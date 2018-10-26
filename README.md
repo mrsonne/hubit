@@ -58,7 +58,7 @@ total_price:
          car.engine.size
          car.wheels.number_of_wheels
       results:
-         wheelprize: car.wheels.price # consumes an attribute provided by the "wheel_price" model
+         wheelprize: car.wheels.price # consumes "car.wheels.price" which is provided by the "wheel_price" model
    provides:
       price: car.price
 ```

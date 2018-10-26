@@ -12,25 +12,49 @@ By defining input and results data structures shared between the tools in your y
 ## cquen workflow
 
 ### Wrapping & wiring
-A cqen _model_ is simply a tool from your ecosystem wrapped to comply with cetain cqen standards. A model will _consume_ certain attributes on the shared input data structure, may _consume_ cetain attributes on the shared results data structure and will _provide_ attributes to the shared results data structures. The attribute consumed and provided for each model are defined in an _interface_ file, which also points to the location module where each model is implemented.
+A cqen _model_ is simply a tool from your ecosystem wrapped to comply with cetain cqen standards. A model will _consume_ certain attributes from the shared input data structure, may _consume_ cetain attributes from the shared results data structure and will _provide_ attributes to the shared results data structures. The attributes consumed and provided for each model are defined in an _interface_ file, which also points to the module where each model is implemented.
 
-Wrap each tool in your ecosystem as a cqen _model_, which simply involves "conneting" the input attributes that are consumed to the corresponding input attribute in the tool input. Similarly the attributes being provided to the shared results object should be "connected" to the corresponding output attribute in the tool output.
+As an example imagine we want to calculate the total price of a car. Two tools are available. The first tool "total_price" calculates the total price of a car based on some XXX such at the model, the engine size, the color and the total prize of the wheels. The second tool "wheel_price" calculates the price of one wheel. cqen provides a smooth way of connecting the two tools in a single task.
 
-As an example let us consider the car defined in the car input 
+The input data structure for the car prize calculator could look something like this 
+
 ```yml
 car:
+   model: cruise
+   color: silver
+   engine:
+      size: 1.6
    wheels:
-      front:
-         size: 16
-         tire:
-         rim:
-      back:
-         size: 14
-         tyre: 
-         rim:
+      number_of_wheels: 4
+      tire: soft
+      rim: 16
 ```
 
-A tool calculates the weight and another tool calculates the price for all four wheels on the car.
+The interface file could look something like this 
+
+```yml
+total_price:
+   path: ../models/
+   consumes:
+      input: 
+         car.model
+         car.color
+         car.engine.size
+         car.wheels.number_of_wheels
+      results:
+         wheelprize: car.wheels.price
+   provides:
+      price: car.price
+wheel_price:
+   path: ../models/
+   consumes:
+      input:
+         rimsize: car.wheels.rim
+         compound: car.wheels.tire
+   provides:
+      price: car.wheels.price
+```
+
 
 ### Running
 To set up a cqen _Task_ you need to provide a query on the Results object. If, for example, we wish to calculate the weight and the price of the left back wheel of a car the yaml query could look somthing like this

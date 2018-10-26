@@ -1,5 +1,7 @@
 ﻿# cqen: connected calculations  
 
+consumer/provider and events.
+
 cqen is a calculation query engine
 
 Motivation
@@ -24,7 +26,7 @@ pip install XXXX
 ```
 
 ------------------
-## Why this name, Keras?
+## Why this name, Ortoo?
 
 
 

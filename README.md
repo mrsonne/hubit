@@ -16,7 +16,7 @@ A cqen _model_ is simply a tool from your ecosystem wrapped to comply with cetai
 
 As an example imagine we want to calculate the total price of a car. Two tools are available. The first tool "total_price" calculates the total price of a car based on some XXX such at the model, the engine size, the color and the total prize of the wheels. The second tool "wheel_price" calculates the price of one wheel. cqen provides a smooth way of connecting the two tools in a single task.
 
-The input data structure for the car prize calculator could look something like this 
+The input data structure for the car prize calculator could look something like this.
 
 ```yml
 car:
@@ -29,6 +29,7 @@ car:
       tire: soft
       rim: 16
 ```
+
 
 The interface file could look something like this 
 
@@ -53,6 +54,15 @@ wheel_price:
          compound: car.wheels.tire
    provides:
       price: car.wheels.price
+```
+
+The results data structure for the car prize calculation would look something like this.
+
+```yml
+car:
+   price: 1000.
+   wheels:
+      price: 25.
 ```
 
 

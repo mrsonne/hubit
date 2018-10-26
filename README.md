@@ -63,7 +63,7 @@ total_price:
 The price calculation 
 
 ```python
-model = Model("modelfile.yml")
+model = CQModel("modelfile.yml")
 query = ["car.price"]
 response = model.get(query)
 results = model.results()
@@ -71,14 +71,14 @@ results = model.results()
 
 The response would look like this.
 
-```
-car.price: 1000.
+```python
+{car.price: [1000.]}
 ```
 
 The results data structure for the car prize calculation would look like this.
 
 ```python
-{car: {price: 1000., wheels: {price: 25.}}}
+[{car: {price: 1000., wheels: {price: 25.}}}]
 ```
 
 

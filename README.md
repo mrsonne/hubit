@@ -35,8 +35,16 @@ car:
 The interface file could look something like this 
 
 ```yml
-total_price: # the model name
-   path: ../models/
+wheel_price: # the model name
+   path: ../models/wheelprice.py # path to the model
+   consumes:
+      input:
+         rimsize: car.wheels.rim # "rimsize" is the internal name used in the model "car.wheels.rim" is a path in the input data structure
+         compound: car.wheels.tire
+   provides:
+      price: car.wheels.price
+total_price: 
+   path: ../models/carprice.py 
    consumes:
       input: 
          car.model
@@ -47,14 +55,6 @@ total_price: # the model name
          wheelprize: car.wheels.price
    provides:
       price: car.price
-wheel_price:
-   path: ../models/
-   consumes:
-      input:
-         rimsize: car.wheels.rim
-         compound: car.wheels.tire
-   provides:
-      price: car.wheels.price
 ```
 
 The results data structure for the car prize calculation would look something like this.

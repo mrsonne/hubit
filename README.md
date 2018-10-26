@@ -42,7 +42,7 @@ wheel_price: # the model name
          rimsize: car.wheels.rim # "rimsize" is the internal name used in the model "car.wheels.rim" is a path in the input data structure
          compound: car.wheels.tire
    provides:
-      price: car.wheels.price
+      price: car.wheels.price # "price" is the internal name used in the model "car.wheels.price" is a path in the results data structure
 total_price: 
    path: ../models/carprice.py 
    consumes:
@@ -52,7 +52,7 @@ total_price:
          car.engine.size
          car.wheels.number_of_wheels
       results:
-         wheelprize: car.wheels.price
+         wheelprize: car.wheels.price # consumes an attribute provided by the "wheel_price" model
    provides:
       price: car.price
 ```

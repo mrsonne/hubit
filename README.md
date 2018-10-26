@@ -14,6 +14,7 @@ By defining input and results data structures shared between the tools in your y
 ### Wrapping & wiring
 A cqen _model_ is simply a tool from your ecosystem wrapped to comply with cetain cqen standards. A model will _consume_ certain attributes from the shared input data structure, may _consume_ cetain attributes from the shared results data structure and will _provide_ attributes to the shared results data structures. The attributes consumed and provided for each model are defined in an _interface_ file, which also points to the module where each model is implemented.
 
+### Example
 As an example imagine we want to calculate the total price of a car. Two tools are available. The first tool "total_price" calculates the total price of a car based on some XXX such at the model, the engine size, the color and the total prize of the wheels. The second tool "wheel_price" calculates the price of one wheel. cqen provides a smooth way of connecting the two tools in a single task.
 
 The input data structure for the car prize calculator could look something like this.
@@ -34,7 +35,7 @@ car:
 The interface file could look something like this 
 
 ```yml
-total_price:
+total_price: # the model name
    path: ../models/
    consumes:
       input: 

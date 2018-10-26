@@ -1,0 +1,8 @@
+_id: XYZ 
+segs:
+    - walls:
+        odias: [0.2, 0.3]
+        thicknesses: [0.01, 0.02]
+        materials: [pvdf, pa11]
+      bore:
+        temperature: 350.

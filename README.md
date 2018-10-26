@@ -5,7 +5,7 @@ cqen is a calculation engine that allows tools to communicate without coupling t
 Compatible with: __Python 2.7-3.7__.
 
 ## Motivation
-It seems not uncommon that an ecosystem of stand-alone tools exists within a company or department. These tools may be developped by experts in different teams using different programming laguages and using different input/output formats. Nethertheless, which rely on the results from other tools in the ecosystem but.
+It seems not uncommon that an ecosystem of stand-alone tools exists within a company or department. These tools may be developped by experts in different teams using different programming laguages and using different input/output formats. Neverthetheless, the tools often depend on the results provided by other tools in the ecosystem leading to undesired data transfer.
 
 
 ## Terminology

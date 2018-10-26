@@ -11,22 +11,35 @@ By defining input and results data structures shared between the tools in your y
 
 ## cquen workflow
 
-### Wrapping
+### Wrapping & wiring
 
 Each tool in your ecosystem should be wrpped as a cqen _model_ so that each model carries out some domain-specific calculation. In an _interface_ file you define how your models interact with the shared input and output data structures. A model may _consume_ certain input attributes and should _provide_ some results attributes.
 
-A _Worker_ is a model wrapped to fit the framework. This wrapping is automatically handled by cqen  
+
+(for which a calculation tool)
+
+### Running
+To set up a task you have to provide a query on the Results object. If, for example, we wish to calculate the weight and the price of the left back wheel of a car the query could look somthing like this
+
+```yml
+car:
+   wheels:
+      back:
+         left:
+             price, weight
+```
+
 
 - A _Task_ manages a collection of workers in order to respond to a user-query. 
 - A _Tasks_ manages a collection tasks.
 - The _Results_ object contains all results (including intermediate results) calculated in order to respond to the user-query.
 - The _Response_ object is the subset of calculated Results that match the user-query.
 
+### Running
+
+
 ## Getting started
 
-```python
-some_example(args)
-```
 
 
 ------------------

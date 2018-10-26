@@ -12,16 +12,23 @@ By defining input and results data structures shared between the tools in your y
 ## cquen workflow
 
 ### Wrapping & wiring
-A cqen _model_ is simply a tool from your ecosystem wrapped to comply with cetain cqen standards. A model will _consume_ certain attributes from the shared input data structure, may _consume_ cetain attributes from the shared results data structure and will _provide_ attributes to the shared results data structures. The attributes consumed and provided for each model are defined in an _interface_ file, which also points to the module where each model is implemented.
+A cqen _model_ is a tool from your ecosystem wrapped to comply with cetain cqen standards. A model will _consume_ certain attributes from the shared input data structure, may _consume_ cetain attributes from the shared results data structure and will _provide_ attributes to the shared results data structures. The attributes consumed and provided for each model are defined in an _interface_ file, which also points to the module where each model is implemented.
+
+### I/O
+in order to respond to a user-query. 
+- A _Tasks_ manages a collection tasks.
+- The _Results_ object contains all results (including intermediate results) calculated in order to respond to the user-query.
+- The _Response_ object is the subset of calculated Results that match the user-query.
+
+
 
 ### Example
-As an example imagine we want to calculate the total price of a car. Two tools are available. The first tool "total_price" calculates the total price of a car based on some XXX such at the model, the engine size, the color and the total prize of the wheels. The second tool "wheel_price" calculates the price of one wheel. cqen provides a smooth way of connecting the two tools in a single task.
+As an example imagine we want to calculate the total price of a car. For historic reasons two tools are available. The first tool "total_price" calculates the total price of a car based on the engine size, the color and the total prize of the wheels. The second tool "wheel_price" calculates the price of one wheel. cqen provides a smooth way of connecting the two tools and calculate the car price in a single step.
 
 The input data structure for the car prize calculator could look something like this.
 
 ```yml
 car:
-   model: cruise
    color: silver
    engine:
       size: 1.6
@@ -47,7 +54,6 @@ total_price:
    path: ../models/carprice.py 
    consumes:
       input: 
-         car.model
          car.color
          car.engine.size
          car.wheels.number_of_wheels
@@ -56,36 +62,28 @@ total_price:
    provides:
       price: car.price
 ```
+The price calculation 
 
-The results data structure for the car prize calculation would look something like this.
+```python
+task = Task("interfacefile.yml")
+query = "car.price"
+response = task.request(query)
+results = task.results()
+```
 
-```yml
-car:
-   price: 1000.
-   wheels:
-      price: 25.
+The response would look like this.
+
+```
+car.price: 1000.
+```
+
+The results data structure for the car prize calculation would look like this.
+
+```python
+{car: {price: 1000., wheels: {price: 25.}}}
 ```
 
 
-### Running
-To set up a cqen _Task_ you need to provide a query on the Results object. If, for example, we wish to calculate the weight and the price of the left back wheel of a car the yaml query could look somthing like this
-
-```yml
-car:
-   wheels:
-       price, weight
-```
-
-A query can also be provided a json. based on the consumers and providers in the interface file cqen will call the models required to produce a response to the query. 
-
-
-
-in order to respond to a user-query. 
-- A _Tasks_ manages a collection tasks.
-- The _Results_ object contains all results (including intermediate results) calculated in order to respond to the user-query.
-- The _Response_ object is the subset of calculated Results that match the user-query.
-
-### Running
 
 
 ## Getting started

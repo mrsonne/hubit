@@ -7,19 +7,17 @@ Compatible with: __Python 2.7-3.7__.
 ## Motivation
 It seems not uncommon that an ecosystem of stand-alone tools exists within a company or department. These tools may be developped by experts in different teams using different programming laguages and using different input/output formats. Neverthetheless, the tools often depend on the results provided by other tools in the ecosystem leading to complicated and errorprone workflows.
 
-By defining input and results data structures shared between the tools in your your ecosystem cqen allows all your Python-wrapable tools to be seamlessly executed in a single workflow.
+By defining input and results data structures shared between the tools in your your ecosystem cqen allows all your Python-wrapable tools to be seamlessly executed as a single model.
 
 ## cquen workflow
 
 ### Wrapping & wiring
-A cqen _model_ is a tool from your ecosystem wrapped to comply with cetain cqen standards. A model will _consume_ certain attributes from the shared input data structure, may _consume_ cetain attributes from the shared results data structure and will _provide_ attributes to the shared results data structures. The attributes consumed and provided for each model are defined in an _interface_ file, which also points to the module where each model is implemented.
+A cqen _component_ is a tool from your ecosystem wrapped to comply with cetain cqen standards. A component _consumes_ certain attributes from the shared input data structure, may _consume_ cetain attributes from the shared results data structure and _provides_ attributes to the shared results data structures. The attributes consumed and provided for each component are defined in an _model_ file, which also points to the module where each component is implemented.
 
 ### I/O
-in order to respond to a user-query. 
-- A _Tasks_ manages a collection tasks.
+in order to respond to a user-query.
 - The _Results_ object contains all results (including intermediate results) calculated in order to respond to the user-query.
 - The _Response_ object is the subset of calculated Results that match the user-query.
-
 
 
 ### Example
@@ -39,17 +37,17 @@ car:
 ```
 
 
-The interface file could look something like this 
+The model file could look something like this 
 
 ```yml
-wheel_price: # the model name
+wheel_price: # the component name
    path: ../models/wheelprice.py # path to the model
    consumes:
       input:
-         rimsize: car.wheels.rim # "rimsize" is the internal name used in the model "car.wheels.rim" is a path in the input data structure
+         rimsize: car.wheels.rim # "rimsize" is the internal name used in the component "car.wheels.rim" is a path in the input data structure
          compound: car.wheels.tire
    provides:
-      price: car.wheels.price # "price" is the internal name used in the model "car.wheels.price" is a path in the results data structure
+      price: car.wheels.price # "price" is the internal name used in the component "car.wheels.price" is a path in the results data structure
 total_price: 
    path: ../models/carprice.py 
    consumes:
@@ -58,17 +56,17 @@ total_price:
          car.engine.size
          car.wheels.number_of_wheels
       results:
-         wheelprize: car.wheels.price # consumes "car.wheels.price" which is provided by the "wheel_price" model
+         wheelprize: car.wheels.price # consumes "car.wheels.price" which is provided by the "wheel_price" component
    provides:
       price: car.price
 ```
 The price calculation 
 
 ```python
-task = Task("interfacefile.yml")
-query = "car.price"
-response = task.request(query)
-results = task.results()
+model = Model("modelfile.yml")
+query = ["car.price"]
+response = model.get(query)
+results = model.results()
 ```
 
 The response would look like this.

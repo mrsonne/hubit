@@ -1,3 +1,3 @@
 # cqen
 
-´´cqen´´ is a calculation query engine
+´´´cqen´'´ is a calculation query engine

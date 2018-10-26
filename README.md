@@ -12,8 +12,9 @@ By defining input and results data structures shared between the tools in your y
 ## cquen workflow
 
 ### Wrapping & wiring
+A cqen _model_ is simply a tool from your ecosystem wrapped to comply with cetain cqen standards. A model will _consume_ certain attributes on the shared input data structure, may _consume_ cetain attributes on the shared results data structure and will _provide_ attributes to the shared results data structures. The attribute consumed and provided for each model are defined in an _interface_ file, which also points to the location module where each model is implemented.
 
-Each tool in your ecosystem should be wrpped as a cqen _model_ so that each model carries out some domain-specific calculation. In an _interface_ file you define how your models interact with the shared input and output data structures. A model may _consume_ certain input attributes and should _provide_ some results attributes.
+Wrap each tool in your ecosystem as a cqen _model_, which simply involves "conneting" the input attributes that are consumed to the corresponding input attribute in the tool input. Similarly the attributes being provided to the shared results object should be "connected" to the corresponding output attribute in the tool output.
 
 As an example let us consider the car defined in the car input 
 ```yml

@@ -15,22 +15,36 @@ By defining input and results data structures shared between the tools in your y
 
 Each tool in your ecosystem should be wrpped as a cqen _model_ so that each model carries out some domain-specific calculation. In an _interface_ file you define how your models interact with the shared input and output data structures. A model may _consume_ certain input attributes and should _provide_ some results attributes.
 
+As an example let us consider the car defined in the car input 
+```yml
+car:
+   wheels:
+      front:
+         size: 16
+         tire:
+         rim:
+      back:
+         size: 14
+         tyre: 
+         rim:
+```
 
-(for which a calculation tool)
+A tool calculates the weight and another tool calculates the price for all four wheels on the car.
 
 ### Running
-To set up a task you have to provide a query on the Results object. If, for example, we wish to calculate the weight and the price of the left back wheel of a car the query could look somthing like this
+To set up a cqen _Task_ you need to provide a query on the Results object. If, for example, we wish to calculate the weight and the price of the left back wheel of a car the yaml query could look somthing like this
 
 ```yml
 car:
    wheels:
-      back:
-         left:
-             price, weight
+       price, weight
 ```
 
+A query can also be provided a json. based on the consumers and providers in the interface file cqen will call the models required to produce a response to the query. 
 
-- A _Task_ manages a collection of workers in order to respond to a user-query. 
+
+
+in order to respond to a user-query. 
 - A _Tasks_ manages a collection tasks.
 - The _Results_ object contains all results (including intermediate results) calculated in order to respond to the user-query.
 - The _Response_ object is the subset of calculated Results that match the user-query.

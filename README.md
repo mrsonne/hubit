@@ -1,4 +1,4 @@
-﻿# hubit: a calculation hub  
+﻿# hubit - a calculation hub  
 
 hubit is allows tools to communicate without coupling them tightly.
 
@@ -8,6 +8,23 @@ Compatible with: __Python 2.7-3.7__.
 It seems not uncommon that an ecosystem of stand-alone tools exists within a company or department. These tools may be developped by  different teams using different programming laguages and using different input/output formats. Neverthetheless, the tools often depend on results provided the other tools leading to complicated and errorprone workflows.
 
 By defining input and results data structures shared between your tools hubit allows all your Python-wrapable tools to be seamlessly executed as a single model.
+
+
+## Getting started
+
+
+
+------------------
+
+
+## Installation
+
+```sh
+pip install XXXX
+```
+
+------------------
+
 
 ## cquen workflow
 
@@ -83,22 +100,6 @@ The results data structure for the car prize calculation would look like this.
 
 
 
-
-## Getting started
-
-
-
-------------------
-
-
-## Installation
-
-```sh
-pip install XXXX
-```
-
-------------------
-## Why this name, Ortoo?
 
 
 

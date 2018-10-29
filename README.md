@@ -32,7 +32,7 @@ pip install XXXX
 ------------------
 
 
-## cquen workflow
+## Workflow
 
 ### Wrapping & wiring
 A `hubit` _component_ is a tool from your ecosystem wrapped to comply with cetain `hubit` standards. A component 

@@ -31,7 +31,11 @@ pip install XXXX
 ### Wrapping & wiring
 A `hubit` _component_ is a tool from your ecosystem wrapped to comply with cetain `hubit` standards. A component 
 
-- _consumes_ certain attributes from the shared input data structure, may _consume_ cetain attributes from the shared results data structure and _provides_ attributes to the shared results data structures. The attributes consumed and provided for each component are defined in an _model_ file, which also points to the module where each component is implemented.
+- _consumes_ certain attributes from the shared input data structure, 
+- may _consume_ cetain attributes from the shared results data structure, and 
+- _provides_ attributes to the shared results data structures. 
+
+The attributes consumed and provided are defined in a _model_ file.
 
 ### I/O
 in order to respond to a user-query.
@@ -40,9 +44,9 @@ in order to respond to a user-query.
 
 
 ### Example
-As an example imagine we want to calculate the total price of a car. For historic reasons two tools are available. The first tool "total_price" calculates the total price of a car based on the engine size, the color and the total prize of the wheels. The second tool "wheel_price" calculates the price of one wheel. cqen provides a smooth way of connecting the two tools and calculate the car price in a single step.
+As an example imagine we want to calculate the total price of a car. For historic reasons two tools are available. The first tool "total_price" calculates the total price of a car based on the engine size, the color and the total prize of the wheels. The second tool "wheel_price" calculates the price of one wheel. `hubit` provides a smooth way of connecting the two tools and calculate the car price in a single step.
 
-The input data structure for the car prize calculator could look something like this.
+The shared input data structure for the car prize calculation could look something like this.
 
 ```yml
 car:
@@ -55,18 +59,17 @@ car:
       rim: 16
 ```
 
-
 The model file could look something like this 
 
 ```yml
 wheel_price: # the component name
-   path: ../models/wheelprice.py # path to the model
+   path: ../models/wheelprice.py # path to the component
    consumes:
       input:
-         rimsize: car.wheels.rim # "rimsize" is the internal name used in the component "car.wheels.rim" is a path in the input data structure
+         rimsize: car.wheels.rim # "rimsize" is the internal name used in the "wheel_price" component. "car.wheels.rim" is a path in the shared input data structure
          compound: car.wheels.tire
    provides:
-      price: car.wheels.price # "price" is the internal name used in the component "car.wheels.price" is a path in the results data structure
+      price: car.wheels.price # "price" is the internal name used in the "wheel_price" component. "car.wheels.price" is a path in the shared results data structure
 total_price: 
    path: ../models/carprice.py 
    consumes:
@@ -75,16 +78,17 @@ total_price:
          car.engine.size
          car.wheels.number_of_wheels
       results:
-         wheelprize: car.wheels.price # consumes "car.wheels.price" which is provided by the "wheel_price" component
+         wheelprize: car.wheels.price # consumes "car.wheels.price" from the shared results data structure. 
    provides:
       price: car.price
 ```
 The price calculation 
 
 ```python
-model = CQModel("modelfile.yml")
+from hubit import HubitModel
+hmodel = HubitModel("modelfile.yml")
 query = ["car.price"]
-response = model.get(query)
+response = hmodel.get(query)
 results = model.results()
 ```
 
@@ -94,14 +98,29 @@ The response would look like this.
 {car.price: [1000.]}
 ```
 
-The results data structure for the car prize calculation would look like this.
+The results for the car prize calculation includes all intermediate results and would look like this.
 
 ```python
 [{car: {price: 1000., wheels: {price: 25.}}}]
 ```
 
+`hubit` manages the execution order of the tools in the model so that the wheel price calculation is executed before the car price calculation. For the same model the query `car.wheels.price` would give a response like this
 
+```python
+{car.wheels.price: 100}
+```
 
+In this case, only the wheel price tool will be executed. Running the wheel price and the car price in two steps can be achieved like this
 
+```python
+from hubit import HubitModel
+hmodel = HubitModel("modelfile.yml")
+query = ["car.wheels.price"]
+response = hmodel.get(query)
+oldresults = model.results()
+response = hmodel.get("car.price", results=oldresults)
+results = model.results()
+```
 
+In this case, the second the calculation corresponding to the query `car.price` will not require the "wheel_price" tool to be executed since the results are provided from a previous calculation. This allows for results patching.
 

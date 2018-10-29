@@ -1,6 +1,12 @@
 ﻿# hubit - a calculation hub  
 
-`hubit` can execute calculation tools as one model without coupling them tightly.
+`hubit` is a hub for your existing calculation tools. It allows you to 
+
+- execute calculation tools as one composite model without coupling them tightly,
+- make parameter sweeps,
+- feed old results into new calculations,
+- run your tools in parallel,
+- visualize the composite model.
 
 Compatible with: __Python 2.7-3.7__.
 

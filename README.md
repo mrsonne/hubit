@@ -1,6 +1,6 @@
 ﻿# hubit - a calculation hub  
 
-hubit is allows tools to communicate without coupling them tightly.
+`hubit` can execute calculation tools as one model without coupling them tightly.
 
 Compatible with: __Python 2.7-3.7__.
 
@@ -29,7 +29,9 @@ pip install XXXX
 ## cquen workflow
 
 ### Wrapping & wiring
-A cqen _component_ is a tool from your ecosystem wrapped to comply with cetain cqen standards. A component _consumes_ certain attributes from the shared input data structure, may _consume_ cetain attributes from the shared results data structure and _provides_ attributes to the shared results data structures. The attributes consumed and provided for each component are defined in an _model_ file, which also points to the module where each component is implemented.
+A `hubit` _component_ is a tool from your ecosystem wrapped to comply with cetain `hubit` standards. A component 
+
+- _consumes_ certain attributes from the shared input data structure, may _consume_ cetain attributes from the shared results data structure and _provides_ attributes to the shared results data structures. The attributes consumed and provided for each component are defined in an _model_ file, which also points to the module where each component is implemented.
 
 ### I/O
 in order to respond to a user-query.

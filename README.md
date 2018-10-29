@@ -8,7 +8,7 @@
 - run your tools in parallel,
 - visualize the composite model.
 
-Compatible with: __Python 2.7-3.7__.
+Compatible with __Python 2.7-3.7__.
 
 ## Motivation
 It seems not uncommon that an ecosystem of stand-alone tools exists within a company or department. These tools may be developped by  different teams using different programming laguages and using different input/output formats. Neverthetheless, the tools often depend on results provided the other tools leading to complicated and errorprone workflows.

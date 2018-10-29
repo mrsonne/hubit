@@ -37,17 +37,11 @@ pip install XXXX
 ### Wrapping & wiring
 A `hubit` _component_ is a tool from your ecosystem wrapped to comply with cetain `hubit` standards. A component 
 
-- _consumes_ certain attributes from the shared input data structure, 
-- may _consume_ cetain attributes from the shared results data structure, and 
-- _provides_ attributes to the shared results data structures. 
+- _consumes_ attributes from the shared input data structure, 
+- may _consume_ attributes from the shared results data structure, and 
+- _provides_ attributes to the shared results data structure. 
 
-The attributes consumed and provided are defined in a _model_ file.
-
-### I/O
-in order to respond to a user-query.
-- The _Results_ object contains all results (including intermediate results) calculated in order to respond to the user-query.
-- The _Response_ object is the subset of calculated Results that match the user-query.
-
+The attributes consumed and provided are defined in a `hubit` _model_ file. To run a model requires the user to provide a _query_, which tells `hubit` what atrributes from the shared results data structure are of of interest. After `hubit` has processed the query, i.e. executed relevant tools, the values of the queried attributes are returned in the _response_. 
 
 ### Example
 As an example imagine we want to calculate the total price of a car. For historic reasons two tools are available. The first tool "total_price" calculates the total price of a car based on the engine size, the color and the total prize of the wheels. The second tool "wheel_price" calculates the price of one wheel. `hubit` provides a smooth way of connecting the two tools and calculate the car price in a single step.

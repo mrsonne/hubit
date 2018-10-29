@@ -110,7 +110,7 @@ The results for the car prize calculation includes all intermediate results and 
 {car.wheels.price: 100}
 ```
 
-In this case, only the wheel price tool will be executed. Running the wheel price and the car price in two steps can be achieved like this
+In this case, `hubit` wil only execute the wheel price tool. Running the wheel price and the car price in two steps can be achieved like this
 
 ```python
 from hubit import HubitModel

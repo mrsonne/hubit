@@ -74,9 +74,9 @@ total_price:
    path: ../models/carprice.py 
    consumes:
       input: 
-         car.color
-         car.engine.size
-         car.wheels.number_of_wheels
+         carcolor: car.color
+         enginesize: car.engine.size
+         nwheels: car.wheels.number_of_wheels
       results:
          wheelprize: car.wheels.price # consumes "car.wheels.price" from the shared results data structure. 
    provides:

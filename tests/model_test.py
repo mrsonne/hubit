@@ -2,17 +2,66 @@ import unittest
 from hubit.model import HubitModel, QueryRunner
 import yaml
 
+yml_input = None
+model = None
+
+def setUpModule():
+        global yml_input
+        global model
+
+        # Paths are relative to the root directory where the tests are executed from
+        model = """
+        rawmaterial_price:
+            path: ./examples/pipeline/hcomp_rawmaterial_price.py
+            provides: 
+                price_tot : price
+            consumes:
+                input:
+                    lengths: segs.:.length
+                    materials: segs.:.walls.materials
+                    thicknesses: segs.:.walls.thicknesses
+                    odias: segs.:.walls.odias
+        thermal_conductivity:
+            path: ./examples/pipeline/hcomp_thermal_conductivity.py
+            provides : {"ks_walls" : "segs._IDX.walls.ks"}
+            consumes:
+                input: 
+                    materials: segs._IDX.walls.materials
+        radial_thermal_prof:
+            path: ./examples/pipeline/hcomp_radial_thermal_profile.py
+            provides:
+                temperatures: segs._IDX.walls.temps
+                heat_flows: segs._IDX.walls.heat_flows
+            consumes:
+                input: 
+                    temp_bore: segs._IDX.bore.temperature
+                    temp_out: segs._IDX.outside.temperature
+                results: 
+                    ks_walls : segs._IDX.walls.ks
+        """
+
+        yml_input = """
+        segs:
+            - walls:
+                odias: [0.2, 0.3]
+                thicknesses: [0.01, 0.02]
+                materials: [pvdf, pa11]
+              bore: 
+                temperature: 350.
+              outside: 
+                temperature: 300.
+        """
+
+
+
 class TestModel(unittest.TestCase):
 
     def setUp(self):
-        modelfile = "./examples/model.yml"
         modelname = 'Pipe model'
-        self.hmodel = HubitModel.from_file(modelfile, modelname)
+        cfg = yaml.load(model)
+        self.hmodel = HubitModel(cfg, modelname)
 
-        inputfile = "./examples/input_thermal_old.yml"
-        with open(inputfile, "r") as stream:
-            self.input_data = yaml.load(stream)
-
+        self.input_data = yaml.load(yml_input)
         self.mpworkers = False
 
 
@@ -29,7 +78,7 @@ class TestModel(unittest.TestCase):
 
     def test_render_query(self):
         """
-        Render the whole model
+        Render the query
         """
         querystrings = ["segs.0.walls.temps"]
         self.hmodel.render(querystrings, self.input_data)
@@ -67,9 +116,9 @@ class TestModel(unittest.TestCase):
 class TestRunner(unittest.TestCase):
 
     def setUp(self):
-        modelfile = "./examples/model.yml"
-        modelname = 'Petrobras pipe model'
-        self.hmodel = HubitModel.from_file(modelfile, modelname)
+        modelname = 'Pipe model'
+        cfg = yaml.load(model)
+        self.hmodel = HubitModel(cfg, modelname)
         self.mpworkers = False
         self.qr = QueryRunner(self.hmodel, self.mpworkers)
 

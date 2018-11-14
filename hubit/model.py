@@ -351,7 +351,7 @@ class HubitModel(object):
         if validate:
             get(qrunner, querystrings, flat_input, dryrun=True)
 
-        get(qrunner, querystrings, flat_input)
+        return get(qrunner, querystrings, flat_input)
 
 
     def validate_query(self, querystrings, all_input, mpworkers=False):

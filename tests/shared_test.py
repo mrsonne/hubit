@@ -1,0 +1,73 @@
+import unittest
+from hubit import shared
+
+class TestShared(unittest.TestCase):
+
+    def setUp(self):
+        self.flat_input = {"segs.0.walls.0.kval" : 1, "segs.0.walls.1.kval" : 2, "segs.0.walls.2.kval" : None,
+                           "segs.1.walls.0.kval" : 3, "segs.1.walls.1.kval" : 7, "segs.1.walls.2.kval" : 5,
+                           "segs.0.length" : 13, "segs.1.length" : 14,
+                           "weight":567}
+
+        self.ilocstr = "_ILOC"
+        self.providerstring = "segs._ILOC.walls._ILOC.temps"
+        self.querystring = "segs.42.walls.3.temps"
+
+
+    def test_get_indices(self):
+        print(shared.get_indices(self.querystring, self.providerstring, self.ilocstr))
+
+
+    def test_get_matches(self):
+        providerstrings = ('price',
+                           self.providerstring,
+                           "segs._ILOC.walls.thicknesses",
+                           self.querystring,
+                           "segs._ILOC.walls._ILOC", 
+                           "segs._ILOC.walls._ILOC.te",
+                           "segs._ILOC.walls._ILOC.t.x", 
+                           "segs._ILOC.walls._ILOC.heat_flow",
+                           "s._ILOC.walls._ILOC.temps",
+                           "segs._ILOC.walls..temps",
+                           "segs._ILOC.walls._ILOC.tempssss",
+                           "segs._ILOC.walls",
+                           )
+        matches = shared.get_matches(self.querystring, providerstrings, self.ilocstr)
+        for idx, pstr in enumerate(providerstrings):
+            print '{:>2} {:35} {:}'.format(idx, pstr, idx in matches)
+
+
+    def test_set_ilocs(self):
+        print "test_set_ilocs"
+        print shared.set_ilocs("segs._ILOC.walls._ILOC.temps", ("34", "3"), self.ilocstr)
+
+
+    def test_query_wildcard(self):
+        querystring = "segs.:.walls.:.temps"
+        queries = shared.expand_query(querystring, self.flat_input)
+        print 'queries', queries
+
+
+    def test_query_wildcard_2(self):
+        querystring = "segs.0.walls.temps.0"
+        queries = shared.expand_query(querystring, self.flat_input)
+        print 'queries', queries
+
+
+    def test_query_all(self):
+        """
+        """
+        providerstrings = (
+                        'price',
+                        "segs._ILOC.walls.values",
+                        "segs._ILOC.walls._ILOC.heat_flow",
+                        "segs._ILOC.walls._ILOC.temp_in",
+                        )
+
+        qall = shared.query_all(providerstrings, self.flat_input, self.ilocstr)
+        # Make general query
+        print qall
+
+
+if __name__ == '__main__':
+    unittest.main()

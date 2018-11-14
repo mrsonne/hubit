@@ -453,6 +453,7 @@ class QueryRunner(object):
     def get_func(cname, cfgdata):
         path, filename = os.path.split(cfgdata["path"])
         filename = os.path.splitext(filename)[0]
+        path = os.path.abspath(path)
         f, _filename, description = imp.find_module(filename, [path])
         module = imp.load_module(filename, f, _filename, description)
         func = getattr(module, cname)

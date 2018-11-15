@@ -377,8 +377,9 @@ class HubitModel(object):
         return qrunner.workers
 
 
-    def get_many(self, querystrings, all_input, input_perturbations, nproc=None):
-
+    def get_many(self, querystrings, all_input, input_perturbations, nproc=None, plot=None):
+        """
+        """
         tstart = time.time()
 
         flat_input = flatten(all_input)
@@ -419,8 +420,17 @@ class HubitModel(object):
 
         print('Queries processed in {} s'.format(time.time() - tstart))
 
+        if plot:
+            self.plot(inps, responses)
 
         return responses, inps
+
+
+    def plot(self, inps, responses):
+        """
+        TODO: implement parallel coordinates plot
+        """
+        pass
 
 
     def validate(self):

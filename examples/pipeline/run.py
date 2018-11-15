@@ -33,18 +33,30 @@ if __name__ == '__main__':
     # Sweep over multiple inputs created as the Cartesian product of the input perturbations 
     paths = ("segs.0.walls.materials",
             "segs.0.walls.thicknesses")
-    # values = ((('pvdf', 'pa11'), ('xlpe', 'pa11'), ('pvdf', 'hdpe'), ('pa11', 'hdpe')), 
-    #             ([[0.008, 0.01], [0.01, 0.01], [0.012, 0.01]]))
-    values = ((('pvdf', 'pa11'), ('xlpe', 'pa11')), 
-                ([[0.008, 0.01], [0.01, 0.01]]))
+    values = ((('pvdf', 'pa11'), ('xlpe', 'pa11'), ('pvdf', 'hdpe'), ('pa11', 'hdpe')), 
+                ([[0.008, 0.01], [0.01, 0.01], [0.012, 0.01]]))
     input_perturbations = dict(zip(paths, values))
 
     res, inps = hmodel.get_many(querystrings,
                                 input_data,
-                                input_perturbations)
+                                input_perturbations,
+                                plot=False)
 
+    # Parallel coordinates plot 
+    # hmodel.plot(res, inps)
 
     for i, r in zip(inps, res):
         print i
         print r
         print
+
+    # Query using wildcard for iloc
+    # querystrings = ["segs.:.walls.temps"]
+    # self.hmodel.get(querystrings, self.input_data, mpworkers=self.mpworkers, validate=True)
+
+    # Query all components (assumes required input is defined)
+    # self.hmodel.get(self.input_data, mpworkers=self.mpworkers)
+
+
+
+

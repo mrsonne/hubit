@@ -89,6 +89,22 @@ class TestModel(unittest.TestCase):
         self.hmodel.get(querystrings, self.input_data, mpworkers=self.mpworkers, validate=True)
 
 
+    def test_get_wildcard(self):
+        """
+        Query all pipe segments
+        TODO: use pipe with multiple segments 
+        """
+        querystrings = ["segs.:.walls.temps"]
+        self.hmodel.get(querystrings, self.input_data, mpworkers=self.mpworkers, validate=True)
+
+
+    def test_get_all(self):
+        """
+        Get all
+        """
+        self.hmodel.get(self.input_data, mpworkers=self.mpworkers)
+
+
     def test_sweep(self):
         """
         TODO: change model and input IL variations only involve IL i.e. something like

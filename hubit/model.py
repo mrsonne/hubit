@@ -96,7 +96,7 @@ class HubitModel(object):
         return cls(cfg, name)
     
 
-    def render(self, querystrings=None, all_input=None):
+    def render(self, querystrings=None, all_input=None, fileidstr=None):
         """
         Renders model if querystrings and all_input are not provided.
         If querystrings and all_input are provided the query is rendered instead.
@@ -123,6 +123,9 @@ class HubitModel(object):
 
 
         if querystrings is not None and all_input is not None:
+            isquery = True
+            filename = 'query'
+
             direction = -1
             workers = self.validate_query(querystrings, all_input, mpworkers=False)
             # with dot.subgraph() as s:
@@ -131,6 +134,8 @@ class HubitModel(object):
             dot.node("_Query", '\n'.join(querystrings), shape='box',
                         color=inputcolor, fontsize='9', fontname="monospace",fontcolor=inputcolor)
         else:
+            isquery = False
+            filename = 'model'
             direction = -1 
             workers = []
             for cname, cdata in self.cfg.items():
@@ -138,7 +143,11 @@ class HubitModel(object):
                 func, version = QueryRunner.get_func(cname, cdata)
                 workers.append(Worker(self, cname, cdata, dummy_query, func, version, self.ilocstr))
 
+        if self.name is not None:
+            filename = '{}_{}'.format(filename, self.name.lower().replace(' ','_'))
 
+        if fileidstr is not None:
+            filename = '{}_{}'.format(filename, fileidstr)
 
         # Component nodes
         with dot.subgraph() as s:
@@ -156,7 +165,7 @@ class HubitModel(object):
         prefix_input = "cluster_input"
         input_object_ids, results_object_ids = self.get_all_objects(prefix_input, prefix_results)
 
-        if querystrings is not None and all_input is not None:
+        if isquery:
             dot.edge('_Query', results_object_ids[0], lhead=prefix_results, constraint="false",
                      arrowsize=arrowsize, color=inputcolor, arrowhead="box")
 
@@ -188,7 +197,6 @@ class HubitModel(object):
                 except KeyError:
                     pass
 
-        filename = 'model'
         dot.render(filename, view=False)
 
 

@@ -4,7 +4,7 @@ from hubit.model import HubitModel, QueryRunner
 
 if __name__ == '__main__':
     modelfile = "model.yml"
-    modelname = 'Pipe model'
+    modelname = 'pipe'
     hmodel = HubitModel.from_file(modelfile, modelname)
 
     inputfile = "input_thermal_old.yml"
@@ -18,11 +18,11 @@ if __name__ == '__main__':
     hmodel.validate()
 
     # Render model
-    hmodel.render()
+    hmodel.render(fileidstr='F3')
 
     # Render query
     querystrings = ["segs.0.walls.temps"]
-    hmodel.render(querystrings, input_data)
+    hmodel.render(querystrings, input_data, fileidstr='F3')
 
     # Do the actual query 
     response = hmodel.get(querystrings, input_data, mpworkers=mpworkers, validate=True)

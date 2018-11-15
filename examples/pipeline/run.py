@@ -1,13 +1,15 @@
 import yaml
+import os
 from hubit.model import HubitModel, QueryRunner
+THISPATH = os.path.dirname(os.path.abspath(__file__))
 
 
 if __name__ == '__main__':
-    modelfile = "model.yml"
+    modelfile = os.path.join(THISPATH, "model.yml")
     modelname = 'pipe'
-    hmodel = HubitModel.from_file(modelfile, modelname)
+    hmodel = HubitModel.from_file(modelfile, name=modelname, odir=THISPATH)
 
-    inputfile = "input_thermal_old.yml"
+    inputfile = os.path.join(THISPATH, "input_thermal_old.yml")
     with open(inputfile, "r") as stream:
         input_data = yaml.load(stream)
 

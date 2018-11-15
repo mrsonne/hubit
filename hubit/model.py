@@ -74,16 +74,17 @@ def get(queryrunner, querystrings, all_input, dryrun=False):
 
 class HubitModel(object):
 
-    def __init__(self, cfg, name=None):
+    def __init__(self, cfg, odir='./', name=None):
 
         self.ilocstr = "_IDX"
         self.module_for_clsname = {}
         self.cfg = cfg
         self.name = name
+        self.odir = odir
 
 
     @classmethod
-    def from_file(cls, filepath, name):
+    def from_file(cls, filepath, odir='./', name=None):
         with open(filepath, "r") as stream:
             cfg = yaml.load(stream)
 
@@ -93,7 +94,7 @@ class HubitModel(object):
             val["path"] = os.path.abspath(os.path.join(path, val["path"]))
             # print val["path"]
 
-        return cls(cfg, name)
+        return cls(cfg, name=name, odir=odir)
     
 
     def render(self, querystrings=None, all_input=None, fileidstr=None):
@@ -197,7 +198,10 @@ class HubitModel(object):
                 except KeyError:
                     pass
 
-        dot.render(filename, view=False)
+        filepath = os.path.join(self.odir, filename)
+        dot.render(filepath, view=False)
+        if os.path.exists(filepath):
+            os.remove(filepath)
 
 
     def _render_objects(self, cname, cdata, clusterid, prefix, cluster_node_id, dot, arrowsize,

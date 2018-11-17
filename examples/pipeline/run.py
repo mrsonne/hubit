@@ -50,9 +50,10 @@ if __name__ == '__main__':
         print r
         print
 
+
     # Query using wildcard for iloc
-    # querystrings = ["segs.:.walls.temps"]
-    # self.hmodel.get(querystrings, self.input_data, mpworkers=self.mpworkers, validate=True)
+    querystrings = ["segs.:.walls.temps"]
+    hmodel.get(querystrings, input_data, mpworkers=mpworkers, validate=True)
 
     # Query all components (assumes required input is defined)
     # self.hmodel.get(self.input_data, mpworkers=self.mpworkers)

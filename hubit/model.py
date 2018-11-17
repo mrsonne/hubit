@@ -10,7 +10,7 @@ import yaml
 from datetime import datetime
 from threading import Thread, Event
 from worker import Worker
-from shared import get_matches, flatten
+from shared import get_matches, flatten, expand_query
 from multiprocessing import Pool, TimeoutError, cpu_count, active_children
 
 POLLTIME = 0.1
@@ -28,7 +28,7 @@ def get_star(args):
     return get(*args)
 
 
-def get(queryrunner, querystrings, all_input, dryrun=False):
+def get(queryrunner, querystrings, flat_input, dryrun=False):
     """
     all_input is a flat dictionary with path strings as keys
     """
@@ -41,27 +41,36 @@ def get(queryrunner, querystrings, all_input, dryrun=False):
 
     extracted_input = {}
     all_results = {}
+    tstart = time.time()
 
-    # Start thread that periodically checks whether we are finished or no   
-    run_event = Event()
-    run_event.set()
-    watcher = Thread(target=queryrunner.watcher, args=(querystrings, all_results, run_event))
+    # Expand the query
+    _querystrings = [qstr2 for qstr1 in querystrings for qstr2 in expand_query(qstr1, flat_input)]
+
+    # Start thread that periodically checks whether we are finished or not  
+    shutdown_event = Event()    
+    watcher = Thread(target=queryrunner.watcher, args=(_querystrings, all_results, shutdown_event))
+    watcher.daemon=True
     watcher.start()
 
-    tstart = time.time()
 
     # remeber to send SIGTERM for processes
     # https://stackoverflow.com/questions/11436502/closing-all-threads-with-a-keyboard-interrupt
     try:
-        queryrunner.deploy(querystrings, extracted_input, all_results, all_input, dryrun=dryrun)
-    except BaseException as err:
+        queryrunner.deploy(_querystrings, extracted_input, all_results, flat_input, dryrun=dryrun)
+        while watcher.is_alive():
+            watcher.join(timeout=1.)
+
+        # TODO: compress query
+    except (BaseException, KeyboardInterrupt) as err:
         traceback.print_exc()
         print(err)
-        run_event.clear()
+        shutdown_event.set()
 
-    watcher.join()
-
-    response = {query:all_results[query] for query in querystrings}
+    print '111111'
+    if watcher.is_alive():
+        watcher.join()
+    print '222222'
+    response = {query:all_results[query] for query in _querystrings}
     # print([(key, [obj.idstr() for obj in objs]) for key, objs in self.observers_for_query.items()])
     print('\n**SUMMARY**\n')
     print('Input extracted\n{}\n'.format(extracted_input))
@@ -429,6 +438,7 @@ class HubitModel(object):
     def plot(self, inps, responses):
         """
         TODO: implement parallel coordinates plot
+        https://stackoverflow.com/questions/8230638/parallel-coordinates-plot-in-matplotlib
         """
         pass
 
@@ -591,16 +601,14 @@ class QueryRunner(object):
             all_results[path] = value
 
 
-    def watcher(self, queries, all_results, run_event):
+    def watcher(self, queries, all_results, shutdown_event):
         """
         Run this watcher on a thread. Runs until all queried data is present in the results.
         Not needed for sequential run, but is necessary when main tread should waiting for 
         calculation processes when using multiprocessing
         """
         should_stop = False
-        while not should_stop and run_event.is_set():
-            # print("WATCH:")
-            # print(resultsdata)
+        while not should_stop and not shutdown_event.is_set():
             _workers_completed = [worker for worker in self.workers_working if worker.results_ready()]
             for worker in _workers_completed:
                 self.set_worker_completed(worker, all_results)

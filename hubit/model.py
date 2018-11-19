@@ -10,7 +10,7 @@ import yaml
 from datetime import datetime
 from threading import Thread, Event
 from worker import Worker
-from shared import get_matches, flatten, expand_query
+from shared import get_matches, flatten, expand_query, get_indices, get_nested_list, set_element
 from multiprocessing import Pool, TimeoutError, cpu_count, active_children
 
 POLLTIME = 0.1
@@ -18,6 +18,32 @@ THISPATH = os.path.dirname(os.path.abspath(__file__))
 
 def cb(x):
     print 'WELCOME BACK! WELCOME BACK! WELCOME BACK! WELCOME BACK!'
+
+
+def compress_response(response, querystrs_for_querystr, ilocstr=":", sepstr="."):
+    """
+    Compress the response to reflec queries with iloc wildcards
+    """
+    _response = {}
+    for qstr_org, (qstrs_expanded, max_ilocs) in querystrs_for_querystr.items():
+
+        print 'max_ilocs', max_ilocs
+
+        # Even if len(qstrs) == 0 the query may be expanded
+        if not qstrs_expanded[0] == qstr_org:
+
+            # Initialize list to collect all iloc indices for each wildcard 
+            values = get_nested_list(max_ilocs)
+
+            # Extract iloc indices for each query in the expanded query
+            for qstr in qstrs_expanded:
+                ilocs = get_indices(qstr, qstr_org, ":")
+                values = set_element(values, response[qstr], [int(iloc) for iloc in ilocs])
+            _response[qstr_org] = values
+        else:
+            _response[qstr_org] = response[qstr_org]
+
+    return _response
 
 
 def get_star(args):   
@@ -28,7 +54,7 @@ def get_star(args):
     return get(*args)
 
 
-def get(queryrunner, querystrings, flat_input, dryrun=False):
+def get(queryrunner, querystrings, flat_input, dryrun=False, expand_iloc=False):
     """
     all_input is a flat dictionary with path strings as keys
     """
@@ -43,8 +69,9 @@ def get(queryrunner, querystrings, flat_input, dryrun=False):
     all_results = {}
     tstart = time.time()
 
-    # Expand the query
-    _querystrings = [qstr2 for qstr1 in querystrings for qstr2 in expand_query(qstr1, flat_input)]
+    # Expand the query and get the max ilocs for each query
+    querystrs_for_querystr = {qstr1:expand_query(qstr1, flat_input) for qstr1 in querystrings}
+    _querystrings = [qstr for qstrs, _ in querystrs_for_querystr.values() for qstr in qstrs]
 
     # Start thread that periodically checks whether we are finished or not  
     shutdown_event = Event()    
@@ -71,6 +98,11 @@ def get(queryrunner, querystrings, flat_input, dryrun=False):
         watcher.join()
     print '222222'
     response = {query:all_results[query] for query in _querystrings}
+
+    if not expand_iloc:
+        response = compress_response(response, querystrs_for_querystr)
+
+
     # print([(key, [obj.idstr() for obj in objs]) for key, objs in self.observers_for_query.items()])
     print('\n**SUMMARY**\n')
     print('Input extracted\n{}\n'.format(extracted_input))

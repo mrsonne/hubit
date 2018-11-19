@@ -3,6 +3,27 @@ import copy
 import itertools
 import collections
 
+def set_element(data, value, indices):
+    """
+    Set the "value" on the "data" at the "indices"
+    """
+    _data = data
+    for idx in indices[:-1]:
+        _data = _data[idx]
+    _data[indices[-1]] = value
+    return _data
+
+
+def get_nested_list(dims):
+    """
+    Create nested list with None-values based on dimensions in "dims" 
+    """
+    empty_list = None
+    for n in dims[::-1]:
+        empty_list = [copy.deepcopy(empty_list) for _ in range(n + 1)]
+    return empty_list
+
+
 def inflate(d, sep="."):
     """
     https://gist.github.com/fmder/494aaa2dd6f8c428cede
@@ -125,7 +146,8 @@ def expand_query(querystr, flat_input):
     for ilocs in itertools.product(*[range(maxval + 1) for maxval in maxilocs]):
         queries.append(set_ilocs(querystr, [str(iloc) for iloc in ilocs], wcstr))
 
-    return queries
+    return queries, maxilocs
+
 
 def query_all(providerstrings, flat_input, ilocstr):
     """

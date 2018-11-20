@@ -16,7 +16,8 @@ def set_element(data, value, indices):
 
 def get_nested_list(dims):
     """
-    Create nested list with None-values based on dimensions in "dims" 
+    Create nested list with all values set to None.
+    Dimensions given in "dims" 
     """
     empty_list = None
     for n in dims[::-1]:

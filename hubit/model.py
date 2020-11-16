@@ -604,37 +604,42 @@ class QueryRunner(object):
         for querystring in querystrings:
 
             # Check whether the queried data is already available  
-            if not querystring in all_results:
+            if querystring in all_results: continue
 
-                # Figure out which worker component can provide a response to the query
-                # and get the corresponding worker
-                worker = self.worker_for_query(querystring, dryrun=dryrun)
+            # Figure out which component can provide a response to the query
+            # and get the corresponding worker
+            worker = self.worker_for_query(querystring, dryrun=dryrun)
 
-                # Check that another query did not already request this worker
-                if worker._id not in self.worker_for_id.keys():
-                    self.worker_for_id[worker._id] = worker
+            # Check that another query did not already request this worker
+            if worker._id in self.worker_for_id.keys(): continue
 
+            self.worker_for_id[worker._id] = worker
+
+            # Set available data on the worker. If data is missing the corresponding 
                     # Set available data on the worker. If data is missing the corresponding 
+            # Set available data on the worker. If data is missing the corresponding 
+            # paths (queries) are returned  
                     # paths (queries) are returned  
-                    input_paths_missing, querystrings_next = worker.set_values(extracted_input, all_results)
+            # paths (queries) are returned  
+            input_paths_missing, querystrings_next = worker.set_values(extracted_input, all_results)
 
-                    self.transfer_input(input_paths_missing, worker, extracted_input, all_input)
+            self.transfer_input(input_paths_missing, worker, extracted_input, all_input)
 
-                    querystrings_next = [qstrexp for qstr in querystrings_next for qstrexp in expand_query(qstr, all_input)[0]]
-                    print("querystrings_next", querystrings_next)
+            querystrings_next = [qstrexp for qstr in querystrings_next for qstrexp in expand_query(qstr, all_input)[0]]
+            print("querystrings_next", querystrings_next)
 
-                    # Add the worker to the oberservers list for that query in order
-                    for query_next in querystrings_next:
-                        if query_next in self.observers_for_query.keys():
-                            self.observers_for_query[query_next].append(worker)
-                        else:
-                            self.observers_for_query[query_next] = [worker]
+            # Add the worker to the oberservers list for that query in order
+            for query_next in querystrings_next:
+                if query_next in self.observers_for_query.keys():
+                    self.observers_for_query[query_next].append(worker)
+                else:
+                    self.observers_for_query[query_next] = [worker]
 
-                    self.deploy(querystrings_next,
-                                extracted_input,
-                                all_results,
-                                all_input,
-                                dryrun=dryrun)
+            self.deploy(querystrings_next,
+                        extracted_input,
+                        all_results,
+                        all_input,
+                        dryrun=dryrun)
 
 
     def set_worker(self, worker):

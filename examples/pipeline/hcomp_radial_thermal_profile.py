@@ -5,6 +5,7 @@ import time
 def radial_thermal_prof(_input_consumed, _results_consumed, results_provided):
     # p = multiprocessing.current_process()
     # print 'workerfun_thermal:', p.name, p.pid
+    # ks = _results_consumed["ktherm"]
     ks = _results_consumed["ks_walls"]
     tb = _input_consumed["temp_bore"]
     to = _input_consumed["temp_out"]

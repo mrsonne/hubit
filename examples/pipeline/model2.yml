@@ -1,0 +1,28 @@
+rawmaterial_price:
+  path: ./hcomp_rawmaterial_price.py
+  provides: 
+    price_tot : price
+  consumes:
+    input:
+        lengths: segments.:.length
+        materials: segments.:.layers.:.material
+        thicknesses: segments.:.layers.:.thickness
+        odias: segments.:.layers.:.outer_diameter
+thermal_conductivity:
+  path: ./hcomp_thermal_conductivity.py
+  provides : {"ktherm" : "segments._IDX.layers._IDX.ktherm"}
+  consumes:
+    input: 
+        material: segments._IDX.layers._IDX.material
+radial_thermal_prof:
+    path: hcomp_radial_thermal_profile.py
+    provides:
+        # temps = (temp_inner, temp_outer)
+        temperatures: segments._IDX.layers.:.temps
+        heat_flows: segments._IDX.layers.:.heat_flow
+    consumes:
+        input: 
+            temp_bore: segments._IDX.bore.temperature
+            temp_out: segments._IDX.outside.temperature
+        results: 
+            ktherm : segments._IDX.layers.:.ktherm

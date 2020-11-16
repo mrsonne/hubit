@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import multiprocessing
 import itertools
 import copy
@@ -132,7 +134,7 @@ class Worker(object):
 
         # TODO: assumes provider has the all ilocs defined
         if "provides" in cfg:
-            print querystring
+            print(querystring)
             self.resultspath_provided_for_attrname, self.ilocs = Worker.get_bindings(cfg["provides"],
                                                                                      querystring,
                                                                                      ilocstr)
@@ -226,7 +228,7 @@ class Worker(object):
         """
         Executes actual work
         """
-        print('\n**START WORKING**\n{}'.format(self.__str__()))
+        print( '\n**START WORKING**\n{}'.format(self.__str__()) )
 
         # Notify the hubit model that we are about to start the work
         self.hmodel.set_worker_working(self)
@@ -256,7 +258,7 @@ class Worker(object):
         """
         # print "work_if_ready", self.name, self.pending_results_pathstrs, self.pending_input_pathstrs
         if len(self.pending_input_pathstrs) == 0 and len(self.pending_results_pathstrs) == 0:
-            print "Let the work begin", self.workfun
+            print("Let the work begin", self.workfun)
 
             self.inputval_for_attrname = self.reshape(self.inputpaths_consumed_for_attrname,
                                                       self.inputval_for_pstr

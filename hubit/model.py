@@ -1,4 +1,4 @@
-# from __future__ import print_function
+from __future__ import print_function
 
 import imp
 import os
@@ -19,7 +19,8 @@ POLLTIME = 0.1
 THISPATH = os.path.dirname(os.path.abspath(__file__))
 
 def cb(x):
-    print 'WELCOME BACK! WELCOME BACK! WELCOME BACK! WELCOME BACK!'
+    # Callback
+    print('WELCOME BACK! WELCOME BACK! WELCOME BACK! WELCOME BACK!')
 
 
 def compress_response(response, querystrs_for_querystr, ilocstr=":", sepstr="."):
@@ -29,7 +30,7 @@ def compress_response(response, querystrs_for_querystr, ilocstr=":", sepstr=".")
     _response = {}
     for qstr_org, (qstrs_expanded, max_ilocs) in querystrs_for_querystr.items():
 
-        print 'max_ilocs', max_ilocs
+        print('max_ilocs', max_ilocs)
 
         # Even if len(qstrs) == 0 the query may be expanded
         if not qstrs_expanded[0] == qstr_org:
@@ -75,7 +76,7 @@ def get(queryrunner, querystrings, flat_input, dryrun=False, expand_iloc=False):
     querystrs_for_querystr = {qstr1:expand_query(qstr1, flat_input) for qstr1 in querystrings}
     _querystrings = [qstr for qstrs, _ in querystrs_for_querystr.values() for qstr in qstrs]
 
-    print 'expanded query', querystrs_for_querystr
+    print('expanded query', querystrs_for_querystr)
 
     # Start thread that periodically checks whether we are finished or not  
     shutdown_event = Event()    
@@ -164,7 +165,7 @@ class HubitModel(object):
         try:
             from graphviz import Digraph
         except ImportError as err:
-            print 'Rendering requires "graphviz"'
+            print('Rendering requires "graphviz"')
             return
 
         calccolor = "gold2"
@@ -477,7 +478,7 @@ class HubitModel(object):
         results = pool.map_async(get_star, args, callback=cb)            
         pool.close()
         while len(active_children()) > 1:
-            print 'waiting'
+            print('waiting')
             time.sleep(0.25)
         pool.join()
         responses = results.get()
@@ -611,7 +612,7 @@ class QueryRunner(object):
                     self.transfer_input(input_paths_missing, worker, extracted_input, all_input)
 
                     querystrings_next = [qstrexp for qstr in querystrings_next for qstrexp in expand_query(qstr, all_input)[0]]
-                    print "querystrings_next", querystrings_next
+                    print("querystrings_next", querystrings_next)
 
                     # Add the worker to the oberservers list for that query in order
                     for query_next in querystrings_next:
@@ -676,7 +677,7 @@ class QueryRunner(object):
             for worker in _workers_completed:
                 self.set_worker_completed(worker, all_results)
 
-            print 'watcher', all_results
+            print('Watcher. All results: ', all_results)
             should_stop = all([query in all_results.keys() for query in queries])
             time.sleep(POLLTIME)
 

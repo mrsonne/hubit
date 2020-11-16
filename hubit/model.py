@@ -544,6 +544,15 @@ class QueryRunner(object):
 
     @staticmethod
     def get_func(cname, cfgdata):
+        """[summary]
+
+        Args:
+            cname (str): Component name
+            cfgdata (dict): configuration data from the model definition file
+
+        Returns:
+            tuple: function handle and function version
+        """
         path, filename = os.path.split(cfgdata["path"])
         filename = os.path.splitext(filename)[0]
         path = os.path.abspath(path)

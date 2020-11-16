@@ -76,7 +76,7 @@ def get(queryrunner, querystrings, flat_input, dryrun=False, expand_iloc=False):
     querystrs_for_querystr = {qstr1:expand_query(qstr1, flat_input) for qstr1 in querystrings}
     _querystrings = [qstr for qstrs, _ in querystrs_for_querystr.values() for qstr in qstrs]
 
-    print('expanded query', querystrs_for_querystr)
+    print('Expanded query', querystrs_for_querystr)
 
     # Start thread that periodically checks whether we are finished or not  
     shutdown_event = Event()    
@@ -428,6 +428,7 @@ class HubitModel(object):
         """
         all_input is a dictionary with path strings as keys
         """
+        # Make a query runner
         qrunner = QueryRunner(self, mpworkers)
 
         if validate:
@@ -571,20 +572,27 @@ class QueryRunner(object):
         """
         Creates instance of the worker class that can respond to the query
         """
+
+        # Get all components that provide data for the query
         components = self.components_for_query(query)
 
         if len(components) > 1:
-            msg = "Fatal error. Multiple providers for query '{}': {}".format(query, [wcls.name for wcls in components])
+            fstr = "Fatal error. Multiple providers for query '{}': {}"
+            msg = fstr.format(query, [wcls.name for wcls in components])
             raise KeyError(msg)
 
         if len(components) == 0:
-            msg = "Fatal error. No provider for query '{}'.".format(query)
+            fstr = "Fatal error. No provider for query '{}'."
+            msg = fstr.format(query)
             raise KeyError(msg)
 
+
+        # Get the provider function for the query
         cname = components[0]
         cfgdata = self.model.cfg[cname]
         func, version = QueryRunner.get_func(cname, cfgdata)
 
+        # Create and return worker
         return Worker(self, cname, cfgdata, self.model.inputdata, query, func, version, 
                       self.model.ilocstr, multiprocess=self.mpworkers, dryrun=dryrun)
 
@@ -616,10 +624,6 @@ class QueryRunner(object):
             self.worker_for_id[worker._id] = worker
 
             # Set available data on the worker. If data is missing the corresponding 
-                    # Set available data on the worker. If data is missing the corresponding 
-            # Set available data on the worker. If data is missing the corresponding 
-            # paths (queries) are returned  
-                    # paths (queries) are returned  
             # paths (queries) are returned  
             input_paths_missing, querystrings_next = worker.set_values(extracted_input, all_results)
 

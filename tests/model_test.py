@@ -10,6 +10,7 @@ def setUpModule():
         global model
 
         # Paths are relative to the root directory where the tests are executed from
+        # This model collects wall data in a list on the end node
         model = """
         rawmaterial_price:
             path: ./examples/pipeline/hcomp_rawmaterial_price.py
@@ -66,6 +67,9 @@ class TestModel(unittest.TestCase):
 
 
     def test_validate(self):
+        """
+        Run validation
+        """
         self.hmodel.validate()
 
 
@@ -76,33 +80,63 @@ class TestModel(unittest.TestCase):
         self.hmodel.render()
 
 
+    def test_render_query_fail(self):
+        """
+        Render the query, but not input.
+        """
+        querystrings = ["segs.0.walls.temps"]
+
+        with self.assertRaises(NameError) as context:
+            self.hmodel.render(querystrings)
+
+        self.assertTrue('HubitModel inputdata not defined. Set inputdata using the set_input method' in str(context.exception))
+
+
     def test_render_query(self):
         """
         Render the query
         """
         querystrings = ["segs.0.walls.temps"]
-        self.hmodel.render(querystrings, self.input_data)
+        self.hmodel.set_input(self.input_data)
+        self.hmodel.render(querystrings)
+
+
+    def test_get_fail(self):
+        """
+        Simple request with no input. Fails
+        """
+        qstr = "segs.0.walls.temps"
+        querystrings = [qstr]
+        response = self.hmodel.get(querystrings, mpworkers=self.mpworkers, validate=True)
+        print response, response[qstr] == [1,2,3]
 
 
     def test_get(self):
-        querystrings = ["segs.0.walls.temps"]
-        self.hmodel.get(querystrings, self.input_data, mpworkers=self.mpworkers, validate=True)
+        """
+        Simple request
+        """
+        qstr = "segs.0.walls.temps"
+        querystrings = [qstr]
+        self.hmodel.set_input(self.input_data)
+        response = self.hmodel.get(querystrings, mpworkers=self.mpworkers, validate=True)
+        print response, response[qstr] == [1,2,3]
 
 
-    def test_get_wildcard(self):
+    def test_iloc_wildcard(self):
         """
         Query all pipe segments
         TODO: use pipe with multiple segments 
         """
         querystrings = ["segs.:.walls.temps"]
+        # self.hmodel.set_input(self.input_data)
         self.hmodel.get(querystrings, self.input_data, mpworkers=self.mpworkers, validate=True)
 
 
-    def test_get_all(self):
-        """
-        Get all
-        """
-        self.hmodel.get(self.input_data, mpworkers=self.mpworkers)
+    # def test_get_all(self):
+    #     """
+    #     Get all
+    #     """
+    #     self.hmodel.get(self.input_data, mpworkers=self.mpworkers)
 
 
     def test_sweep(self):
@@ -137,25 +171,56 @@ class TestRunner(unittest.TestCase):
         self.hmodel = HubitModel(cfg, modelname)
         self.mpworkers = False
         self.qr = QueryRunner(self.hmodel, self.mpworkers)
+        inputdata = {'segs': [{
+                                'walls' : {'temperature': ['steel', 'polymer', 'steel']}, 
+                                'bore' : {'temperature': None},
+                                'outside' : {'temperature': None},
+                                }, 
+                                {},
+                                ]
+                         }
+        self.hmodel.set_input(inputdata)
+
+
 
     def test_worker1(self):
+        """
+        Query thermal conductivities.
+        Consumes: 'segs.0.walls.materials'
+        Provides: 'segs.0.walls.ks'
+        """
         w = self.qr.worker_for_query("segs.0.walls.ks")
-        print(w)
+        consumes = w.inputpath_consumed_for_attrname.values() + w.resultspath_consumed_for_attrname.values()
+        provides = w.resultspath_provided_for_attrname.values()
+        test_consumes = len(consumes) == 1 and consumes[0] == 'segs.0.walls.materials'
+        test_provides = len(provides) == 1 and provides[0] == 'segs.0.walls.ks'
+        self.assertTrue(test_consumes and test_provides)
 
 
     def test_worker2(self):
+        """
+        Query temperatures. 
+        Consumes: 'segs.0.walls.ks', 'segs.0.bore.temperature', 'segs.0.outside.temperature'
+        Provides: 'segs.0.walls.heat_flows' and 'segs.0.walls.temps'
+        """
         w = self.qr.worker_for_query("segs.0.walls.temps")
-        print(w)
+        consumes = w.inputpath_consumed_for_attrname.values() + w.resultspath_consumed_for_attrname.values()
+        provides = w.resultspath_provided_for_attrname.values()
+        test_consumes = len(consumes) == 3 and 'segs.0.walls.ks' in consumes
+        test_consumes = test_consumes and 'segs.0.bore.temperature' in consumes  and 'segs.0.outside.temperature' in consumes
+        test_provides = len(provides) == 2 and 'segs.0.walls.heat_flows' in provides and 'segs.0.walls.temps' in provides
+        self.assertTrue(test_consumes and test_provides)
 
 
     def test_no_provider(self):
         """
-        No provider for query
+        No provider for query since the query has a typo. It's "segs.0.walls.kxs" 
+        instead of "segs.0.walls.ks" as correctly specified in test_worker1.
         """
         with self.assertRaises(KeyError) as context:
             self.qr.worker_for_query("segs.0.walls.kxs")
 
-        self.assertTrue('No provider for query' in str(context.exception))
+        self.assertTrue("No provider for query 'segs.0.walls.kxs'" in str(context.exception))
 
-if __name__ == '__main__':
-    unittest.main()
+    if __name__ == '__main__':
+        unittest.main()

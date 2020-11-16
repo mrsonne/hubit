@@ -1,3 +1,5 @@
+# from __future__ import print_function
+
 import imp
 import os
 import sys
@@ -73,6 +75,8 @@ def get(queryrunner, querystrings, flat_input, dryrun=False, expand_iloc=False):
     querystrs_for_querystr = {qstr1:expand_query(qstr1, flat_input) for qstr1 in querystrings}
     _querystrings = [qstr for qstrs, _ in querystrs_for_querystr.values() for qstr in qstrs]
 
+    print 'expanded query', querystrs_for_querystr
+
     # Start thread that periodically checks whether we are finished or not  
     shutdown_event = Event()    
     watcher = Thread(target=queryrunner.watcher, args=(_querystrings, all_results, shutdown_event))
@@ -83,6 +87,7 @@ def get(queryrunner, querystrings, flat_input, dryrun=False, expand_iloc=False):
     # remeber to send SIGTERM for processes
     # https://stackoverflow.com/questions/11436502/closing-all-threads-with-a-keyboard-interrupt
     try:
+        didfail = False
         queryrunner.deploy(_querystrings, extracted_input, all_results, flat_input, dryrun=dryrun)
         while watcher.is_alive():
             watcher.join(timeout=1.)
@@ -92,25 +97,26 @@ def get(queryrunner, querystrings, flat_input, dryrun=False, expand_iloc=False):
         traceback.print_exc()
         print(err)
         shutdown_event.set()
+        didfail = True
 
-    print '111111'
     if watcher.is_alive():
         watcher.join()
-    print '222222'
-    response = {query:all_results[query] for query in _querystrings}
 
-    if not expand_iloc:
-        response = compress_response(response, querystrs_for_querystr)
+    if not didfail:
+        response = {query:all_results[query] for query in _querystrings}
+
+        if not expand_iloc:
+            response = compress_response(response, querystrs_for_querystr)
 
 
-    # print([(key, [obj.idstr() for obj in objs]) for key, objs in self.observers_for_query.items()])
-    print('\n**SUMMARY**\n')
-    print('Input extracted\n{}\n'.format(extracted_input))
-    print('Results\n{}\n'.format(all_results))
-    print('Response\n{}'.format(response))
+        # print([(key, [obj.idstr() for obj in objs]) for key, objs in self.observers_for_query.items()])
+        print('\n**SUMMARY**\n')
+        print('Input extracted\n{}\n'.format(extracted_input))
+        print('Results\n{}\n'.format(all_results))
+        print('Response\n{}'.format(response))
 
-    print('Response created in {} s'.format(time.time() - tstart))
-    return response
+        print('Response created in {} s'.format(time.time() - tstart))
+        return response
 
 
 class HubitModel(object):
@@ -122,6 +128,8 @@ class HubitModel(object):
         self.cfg = cfg
         self.name = name
         self.odir = odir
+        self.inputdata = None
+        self.flat_input = None
 
 
     @classmethod
@@ -137,19 +145,33 @@ class HubitModel(object):
 
         return cls(cfg, name=name, odir=odir)
     
+    
+    def set_input(self, inputdata):
+        """
+        Set the original hierarchical input and the corresponding flat input
+        """
+        self.inputdata = inputdata
+        self.flat_input = flatten(inputdata)
 
-    def render(self, querystrings=None, all_input=None, fileidstr=None):
+
+    def render(self, querystrings=None, fileidstr=None):
         """
-        Renders model if querystrings and all_input are not provided.
-        If querystrings and all_input are provided the query is rendered instead.
+        Renders model if querystrings is  not provided. If 
+        querystrings are provided the query is rendered 
+        instead. Rendering the query requires the self.inputdata 
+        has been set 
         """
-        from graphviz import Digraph
+        try:
+            from graphviz import Digraph
+        except ImportError as err:
+            print 'Rendering requires "graphviz"'
+            return
+
         calccolor = "gold2"
         arrowsize = ".5"
         inputcolor = "lightpink3"
         resultscolor = "aquamarine3"
         renderformat = "png"
-
 
         # strict=True assures that only one edge is drawn although many may be defined
         dot = Digraph(comment='hubit model', format=renderformat, strict=True)
@@ -164,12 +186,16 @@ class HubitModel(object):
 
 
 
-        if querystrings is not None and all_input is not None:
+        if querystrings is not None:
+            if self.inputdata is None:
+                raise NameError("""HubitModel inputdata not defined.
+                                Set inputdata using the set_input method""")
+
             isquery = True
             filename = 'query'
 
             direction = -1
-            workers = self.validate_query(querystrings, all_input, mpworkers=False)
+            workers = self.validate_query(querystrings, mpworkers=False)
             # with dot.subgraph() as s:
                 # s.attr(rank = 'same')
             dot.node("_Response", "Response", shape='box', color=resultscolor, fontcolor=resultscolor)
@@ -182,8 +208,11 @@ class HubitModel(object):
             workers = []
             for cname, cdata in self.cfg.items():
                 dummy_query = cdata["provides"].values()[0].replace(self.ilocstr, "0")
+                # TODO iloc wildcard
+                dummy_query = dummy_query.replace(":", "0")
+                dummy_input = None
                 func, version = QueryRunner.get_func(cname, cdata)
-                workers.append(Worker(self, cname, cdata, dummy_query, func, version, self.ilocstr))
+                workers.append(Worker(self, cname, cdata, dummy_input, dummy_query, func, version, self.ilocstr))
 
         if self.name is not None:
             filename = '{}_{}'.format(filename, self.name.lower().replace(' ','_'))
@@ -394,27 +423,25 @@ class HubitModel(object):
                     arrowsize=arrowsize, arrowhead="vee", labeljust='l', constraint=constraint)
 
 
-    def get(self, querystrings, all_input, mpworkers=False, validate=False):
+    def get(self, querystrings, mpworkers=False, validate=False):
         """
         all_input is a dictionary with path strings as keys
         """
-        flat_input = flatten(all_input)
         qrunner = QueryRunner(self, mpworkers)
 
         if validate:
-            get(qrunner, querystrings, flat_input, dryrun=True)
+            get(qrunner, querystrings, self.flat_input, dryrun=True)
 
-        return get(qrunner, querystrings, flat_input)
+        return get(qrunner, querystrings, self.flat_input)
 
 
-    def validate_query(self, querystrings, all_input, mpworkers=False):
+    def validate_query(self, querystrings, mpworkers=False):
         """
         Run the query using a dummy calculation to see that all required 
         input and results are available
         """
-        flat_input = flatten(all_input)
         qrunner = QueryRunner(self, mpworkers)
-        get(qrunner, querystrings, flat_input, dryrun=True)
+        get(qrunner, querystrings, self.flat_input, dryrun=True)
         return qrunner.workers
 
 
@@ -423,6 +450,7 @@ class HubitModel(object):
         """
         tstart = time.time()
 
+        # TODO: use self.flat_input
         flat_input = flatten(all_input)
 
         # form all combinations
@@ -547,7 +575,7 @@ class QueryRunner(object):
         cfgdata = self.model.cfg[cname]
         func, version = QueryRunner.get_func(cname, cfgdata)
 
-        return Worker(self, cname, cfgdata, query, func, version, 
+        return Worker(self, cname, cfgdata, self.model.inputdata, query, func, version, 
                       self.model.ilocstr, multiprocess=self.mpworkers, dryrun=dryrun)
 
 
@@ -581,6 +609,9 @@ class QueryRunner(object):
                     input_paths_missing, querystrings_next = worker.set_values(extracted_input, all_results)
 
                     self.transfer_input(input_paths_missing, worker, extracted_input, all_input)
+
+                    querystrings_next = [qstrexp for qstr in querystrings_next for qstrexp in expand_query(qstr, all_input)[0]]
+                    print "querystrings_next", querystrings_next
 
                     # Add the worker to the oberservers list for that query in order
                     for query_next in querystrings_next:
@@ -645,6 +676,7 @@ class QueryRunner(object):
             for worker in _workers_completed:
                 self.set_worker_completed(worker, all_results)
 
+            print 'watcher', all_results
             should_stop = all([query in all_results.keys() for query in queries])
             time.sleep(POLLTIME)
 

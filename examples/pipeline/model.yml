@@ -25,4 +25,4 @@ radial_thermal_prof:
             temp_bore: segments._IDX.bore.temperature
             temp_out: segments._IDX.outside.temperature
         results: 
-            ktherm : segments._IDX.layers.:.k_therm
+            ks_walls : segments._IDX.layers.:.k_therm

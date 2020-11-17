@@ -80,7 +80,8 @@ def get(queryrunner, querystrings, flat_input, dryrun=False, expand_iloc=False):
 
     # Start thread that periodically checks whether we are finished or not  
     shutdown_event = Event()    
-    watcher = Thread(target=queryrunner.watcher, args=(_querystrings, all_results, shutdown_event))
+    watcher = Thread(target=queryrunner.watcher,
+                     args=(_querystrings, all_results, shutdown_event))
     watcher.daemon=True
     watcher.start()
 

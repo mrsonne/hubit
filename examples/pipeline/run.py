@@ -24,9 +24,9 @@ hmodel.set_input(input_data)
 # hmodel.render()
 
 # Render the query
-# querystrings = ["segments.0.layers.:.temps"]
-# querystrings = ["segments.0.layers.0.temps"]
-querystrings = ["segments.:.layers.1.k_therm"] # ok
+# querystrings = ["segments.0.layers.:.temperature"] # ok
+querystrings = ["segments.0.layers.0.temperature"] # ok
+# querystrings = ["segments.:.layers.1.k_therm"] # ok
 # querystrings = ["segments.0.layers.0.k_therm"] # ok
 # querystrings = ["segments.0.layers.:.k_therm"] #ok 
 # querystrings = ["segments.:.layers.:.k_therm"] # not ok 

@@ -17,9 +17,8 @@ thermal_conductivity:
 radial_thermal_prof:
     path: ./components/radial_thermal_profile.py
     provides:
-        # temps = (temp_inner, temp_outer)
-        temperatures: segments._IDX.layers.:.temps
-        heat_flows: segments._IDX.layers.:.heat_flow
+        temperatures_all_layers: segments._IDX.layers.:.temperature
+        heat_flows_all_layers: segments._IDX.layers.:.heat_flow
     consumes:
         input: 
             temp_bore: segments._IDX.bore.temperature

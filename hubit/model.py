@@ -18,7 +18,7 @@ from multiprocessing import Pool, TimeoutError, cpu_count, active_children
 POLLTIME = 0.1
 THISPATH = os.path.dirname(os.path.abspath(__file__))
 
-def cb(x):
+def callback(x):
     # Callback
     print('WELCOME BACK! WELCOME BACK! WELCOME BACK! WELCOME BACK!')
 
@@ -448,7 +448,8 @@ class HubitModel(object):
         return qrunner.workers
 
 
-    def get_many(self, querystrings, all_input, input_perturbations, nproc=None, plot=None):
+    def get_many(self, querystrings, all_input,
+                 input_perturbations, nproc=None, plot=False):
         """
         """
         tstart = time.time()
@@ -459,7 +460,7 @@ class HubitModel(object):
         # form all combinations
         pkeys, pvalues = zip(*input_perturbations.items())
         ppvalues = list(itertools.product(*pvalues))
-
+        
         args = []
         inps = []
         for pvalues in ppvalues:
@@ -473,11 +474,10 @@ class HubitModel(object):
         if nproc is None:
             _nproc = min(len(input_perturbations), cpu_count())
         else:
-            _nproc = nproc
+            _nproc = max(nproc, 1)
         pool = Pool(_nproc)
-
         # Results are ordered as input but only accessible after completion
-        results = pool.map_async(get_star, args, callback=cb)            
+        results = pool.map_async(get_star, args, callback=callback)          
         pool.close()
         while len(active_children()) > 1:
             print('waiting')

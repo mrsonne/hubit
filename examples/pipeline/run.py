@@ -1,5 +1,6 @@
 import yaml
 import os
+from itertools import product
 from hubit.model import HubitModel, QueryRunner
 THISPATH = os.path.dirname(os.path.abspath(__file__))
 TMPPATH = os.path.join(THISPATH, 'tmp')
@@ -24,8 +25,8 @@ hmodel.set_input(input_data)
 # hmodel.render()
 
 # Render the query
-# querystrings = ["segments.0.layers.:.temperature"] # ok
-querystrings = ["segments.0.layers.0.temperature"] # ok
+querystrings = ["segments.0.layers.:.temperature"] # ok
+# querystrings = ["segments.0.layers.0.temperature"] # ok
 # querystrings = ["segments.:.layers.1.k_therm"] # ok
 # querystrings = ["segments.0.layers.0.k_therm"] # ok
 # querystrings = ["segments.0.layers.:.k_therm"] #ok 
@@ -36,20 +37,28 @@ querystrings = ["segments.0.layers.0.temperature"] # ok
 mpworkers = False
 
 # Do the actual query 
-response = hmodel.get(querystrings, mpworkers=mpworkers)
+# response = hmodel.get(querystrings, mpworkers=mpworkers)
 # print(response)
 
-# # Sweep over multiple inputs created as the Cartesian product of the input perturbations 
-# paths = ("segs.0.walls.materials",
-#         "segs.0.walls.thicknesses")
-# values = ((('pvdf', 'pa11'), ('xlpe', 'pa11'), ('pvdf', 'hdpe'), ('pa11', 'hdpe')), 
-#             ([[0.008, 0.01], [0.01, 0.01], [0.012, 0.01]]))
-# input_perturbations = dict(zip(paths, values))
+# For segment 0 sweep over multiple inputs created as the Cartesian product of the input perturbations 
+# input_values_for_path = {"segments.0.layers.0.material": ('pvdf', 'xlpe'),
+#                          "segments.0.layers.1.material": ('pa11', 'hdpe'),
+#                          "segments.0.layers.0.thickness": (0.008, 0.01, 0.012),
+#                          "segments.0.layers.1.thickness": (0.01,),
+#                         }
 
-# res, inps = hmodel.get_many(querystrings,
-#                             input_data,
-#                             input_perturbations,
-#                             plot=False)
+input_values_for_path = {"segments.0.layers.0.material": ('pvdf', 'xlpe'),
+                         "segments.0.layers.0.thickness": (0.008, 0.01,),
+                        }
+
+
+# Important: call multiprocessing from main like this
+if __name__ == '__main__':
+    res, inps = hmodel.get_many(querystrings,
+                                input_data,
+                                input_values_for_path,
+                                plot=False,
+                                nproc=4)
 
 # # Parallel coordinates plot 
 # # hmodel.plot(res, inps)

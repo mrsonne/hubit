@@ -5,18 +5,19 @@ from hubit.model import HubitModel, QueryRunner
 THISPATH = os.path.dirname(os.path.abspath(__file__))
 TMPPATH = os.path.join(THISPATH, 'tmp')
 
+# Create model from a model file
 model_file = "model.yml"
 modelfile = os.path.join(THISPATH, model_file)
 modelname = 'mypipe'
 hmodel = HubitModel.from_file(modelfile, name=modelname, odir=TMPPATH)
 
+# Load the input
 inputfile = os.path.join(THISPATH, "input.yml")
 with open(inputfile, "r") as stream:
     input_data = yaml.load(stream)
 
 # Set the input on the model object
 hmodel.set_input(input_data)
-
 
 # Validate model # TODO: passes even when the key in results_provided["k_therm"] is misspelled
 # hmodel.validate()

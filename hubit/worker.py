@@ -1,12 +1,11 @@
 from __future__ import print_function
-
+import logging
 import multiprocessing
 import itertools
 import copy
 import sys
 from shared import get_matches, get_indices, set_ilocs, traverse, list_from_shape
 from shared import reshape, get_from_datadict, pstr_shape, pstr_expand, get_nested_list
-
 
 class Worker(object):
     """
@@ -88,11 +87,14 @@ class Worker(object):
 
 
     def __init__(self, hmodel, cname, cfg, inputdata, querystring, func, 
-                 version, ilocstr, multiprocess=False, dryrun=False):
+                 version, ilocstr, multiprocess=False, dryrun=False,
+                 logging_level=logging.ERROR):
         """
         If inputdata is None the worker cannot work but can still 
         render itself and print.
         """
+        logging.basicConfig(level=logging_level)
+
         self.func = func
         self.name = cname
         self.version = version
@@ -228,7 +230,7 @@ class Worker(object):
         """
         Executes actual work
         """
-        print( '\n**START WORKING**\n{}'.format(self.__str__()) )
+        logging.debug( '\n**START WORKING**\n{}'.format(self.__str__()) )
 
         # Notify the hubit model that we are about to start the work
         self.hmodel.set_worker_working(self)
@@ -241,7 +243,7 @@ class Worker(object):
         else:
             self.func(self.inputval_for_attrname, self.resultval_for_attrname, self.results)
 
-        print('\n**STOP WORKING**\n{}'.format(self.__str__()))
+        logging.debug( '\n**STOP WORKING**\n{}'.format(self.__str__()) )
 
 
     def reshape(self, pstrs_for_attrname, val_for_pstr):

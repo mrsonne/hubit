@@ -41,12 +41,6 @@ mpworkers = False
 # print(response)
 
 # For segment 0 sweep over multiple inputs created as the Cartesian product of the input perturbations 
-# input_values_for_path = {"segments.0.layers.0.material": ('pvdf', 'xlpe'),
-#                          "segments.0.layers.1.material": ('pa11', 'hdpe'),
-#                          "segments.0.layers.0.thickness": (0.008, 0.01, 0.012),
-#                          "segments.0.layers.1.thickness": (0.01,),
-#                         }
-
 input_values_for_path = {"segments.0.layers.0.material": ('pvdf', 'xlpe'),
                          "segments.0.layers.0.thickness": (0.008, 0.01,),
                         }
@@ -54,11 +48,18 @@ input_values_for_path = {"segments.0.layers.0.material": ('pvdf', 'xlpe'),
 
 # Important: call multiprocessing from main like this
 if __name__ == '__main__':
-    res, inps = hmodel.get_many(querystrings,
-                                input_data,
-                                input_values_for_path,
-                                plot=False,
-                                nproc=4)
+    responses, inps = hmodel.get_many(querystrings,
+                                      input_data,
+                                      input_values_for_path,
+                                      plot=False,
+                                      nproc=4)
+
+    for inp, response in zip(inps, responses):
+        print('Input',
+              inp["segments.0.layers.0.material"],
+              inp["segments.0.layers.0.thickness"])
+        print('Response', response)
+        print('')
 
 # # Parallel coordinates plot 
 # # hmodel.plot(res, inps)

@@ -4,12 +4,12 @@ from hubit.model import HubitModel, QueryRunner
 THISPATH = os.path.dirname(os.path.abspath(__file__))
 TMPPATH = os.path.join(THISPATH, 'tmp')
 
-model_file = "model2.yml"
+model_file = "model.yml"
 modelfile = os.path.join(THISPATH, model_file)
 modelname = 'mypipe'
 hmodel = HubitModel.from_file(modelfile, name=modelname, odir=TMPPATH)
 
-inputfile = os.path.join(THISPATH, "input_thermal2.yml")
+inputfile = os.path.join(THISPATH, "input.yml")
 with open(inputfile, "r") as stream:
     input_data = yaml.load(stream)
 

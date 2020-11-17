@@ -608,6 +608,8 @@ class QueryRunner(object):
 
 
     def deploy(self, querystrings, extracted_input, all_results, all_input, dryrun=False):
+        """Create workers
+        """
         # print('DEPLOY', querystrings)
         for querystring in querystrings:
 
@@ -617,14 +619,13 @@ class QueryRunner(object):
             # Figure out which component can provide a response to the query
             # and get the corresponding worker
             worker = self.worker_for_query(querystring, dryrun=dryrun)
-
             # Check that another query did not already request this worker
             if worker._id in self.worker_for_id.keys(): continue
 
             self.worker_for_id[worker._id] = worker
 
             # Set available data on the worker. If data is missing the corresponding 
-            # paths (queries) are returned  
+            # paths (queries) are returned 
             input_paths_missing, querystrings_next = worker.set_values(extracted_input, all_results)
 
             self.transfer_input(input_paths_missing, worker, extracted_input, all_input)
@@ -663,7 +664,7 @@ class QueryRunner(object):
 
     def set_worker_completed(self, worker, all_results):
         """
-        Called from Workflow when results attribute has been populated 
+        Called when results attribute has been populated 
         """
         self.workers_completed.append(worker)
         self.transfer_results(worker, all_results)
@@ -691,7 +692,9 @@ class QueryRunner(object):
         """
         should_stop = False
         while not should_stop and not shutdown_event.is_set():
-            _workers_completed = [worker for worker in self.workers_working if worker.results_ready()]
+            _workers_completed = [worker 
+                                  for worker in self.workers_working 
+                                  if worker.results_ready()]
             for worker in _workers_completed:
                 self.set_worker_completed(worker, all_results)
 

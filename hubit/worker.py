@@ -312,13 +312,14 @@ class Worker(object):
 
         self.work_if_ready()
 
-        return copy.copy(self.pending_input_pathstrs), copy.copy(self.pending_results_pathstrs)
+        return (copy.copy(self.pending_input_pathstrs), 
+                copy.copy(self.pending_results_pathstrs))
         
 
 
     def idstr(self):
         """
-        Make an ID string for the class that will be the same 
+        Make an ID string for the worker class that will be the same 
         if all ilocs are the same for the same component
         """
         return 'name={} v{} ilocs={}'.format(self.name, self.version, self.ilocs)

@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import re
 import copy
 import itertools
@@ -224,7 +226,9 @@ def get_from_datadict(datadict, keys):
     Extract from nested dictionary using list of keys.
     datadict is a dict. keys is a list of keys.
     """
-    return reduce(getitem, keys, datadict)
+    # Convert digits strings to int
+    _keys = [int(key) if key.isdigit() else key for key in keys]
+    return reduce(getitem, _keys, datadict)
 
 
 

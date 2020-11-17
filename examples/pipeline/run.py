@@ -17,25 +17,26 @@ with open(inputfile, "r") as stream:
 hmodel.set_input(input_data)
 
 
-# Validate model
-hmodel.validate()
+# Validate model # TODO: passes even when the key in results_provided["k_therm"] is misspelled
+# hmodel.validate()
 
 # Render model
-hmodel.render()
+# hmodel.render()
 
 # Render the query
 # querystrings = ["segments.0.layers.:.temps"]
 # querystrings = ["segments.0.layers.0.temps"]
-querystrings = ["segments.:.layers.0.ktherm"] # ok
-# querystrings = ["segments.0.layers.0.ktherm"] # ok
-# querystrings = ["segments.0.layers.:.ktherm"] #ok 
-hmodel.render(querystrings)
+querystrings = ["segments.:.layers.1.k_therm"] # ok
+# querystrings = ["segments.0.layers.0.k_therm"] # ok
+# querystrings = ["segments.0.layers.:.k_therm"] #ok 
+# querystrings = ["segments.:.layers.:.k_therm"] # not ok 
+# hmodel.render(querystrings)
 
 # Execute components using multiprocessing
 mpworkers = False
 
 # Do the actual query 
-# response = hmodel.get(querystrings, mpworkers=mpworkers)
+response = hmodel.get(querystrings, mpworkers=mpworkers)
 # print(response)
 
 # # Sweep over multiple inputs created as the Cartesian product of the input perturbations 

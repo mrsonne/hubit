@@ -27,30 +27,35 @@ hmodel.set_input(input_data)
 # Render model
 # hmodel.render()
 
-# Render the query
-querystrings = ["segments.0.layers.:.temperature"] # ok
+# Make the queries
+# querystrings = ["segments.0.layers.:.temperature"] # ok
 # querystrings = ["segments.0.layers.0.temperature"] # ok
 # querystrings = ["segments.:.layers.1.k_therm"] # ok
-# querystrings = ["segments.0.layers.0.k_therm"] # ok
+querystrings = ["segments.0.layers.0.k_therm"] # ok
 # querystrings = ["segments.0.layers.:.k_therm"] #ok 
-# querystrings = ["segments.:.layers.:.k_therm"] # not ok 
+# querystrings = ["segments.:.layers.:.k_therm"] # not ok TODO
+
+# Render the query
 # hmodel.render(querystrings)
 
 # Execute components using multiprocessing
+# TODO: mpworkers = True fails to import thermal_conductivity
 mpworkers = False
 
-# Do the actual query 
-# response = hmodel.get(querystrings, mpworkers=mpworkers)
-# print(response)
-
-# For segment 0 sweep over multiple inputs created as the Cartesian product of the input perturbations 
-input_values_for_path = {"segments.0.layers.0.material": ('pvdf', 'xlpe'),
-                         "segments.0.layers.0.thickness": (0.008, 0.01,),
-                        }
-
-
 # Important: call multiprocessing from main like this
-if __name__ == '__main__':
+if __name__ == '__main__': # Required on windows if mpworkers = True
+    # Do the actual query 
+    response = hmodel.get(querystrings, mpworkers=mpworkers)
+    # print(response)
+
+
+    
+    # For segment 0 sweep over multiple inputs created as the Cartesian product of the input perturbations 
+    input_values_for_path = {"segments.0.layers.0.material": ('pvdf', 'xlpe'),
+                            "segments.0.layers.0.thickness": (0.008, 0.01,),
+                            }
+
+
     responses, inps = hmodel.get_many(querystrings,
                                       input_data,
                                       input_values_for_path,
@@ -63,19 +68,6 @@ if __name__ == '__main__':
               inp["segments.0.layers.0.thickness"])
         print('Response', response)
         print('')
-
-# # Parallel coordinates plot 
-# # hmodel.plot(res, inps)
-
-# for i, r in zip(inps, res):
-#     print i
-#     print r
-#     print
-
-
-# Query using wildcard for iloc
-# querystrings = ["segs.:.walls.temps"]
-# hmodel.get(querystrings, input_data, mpworkers=mpworkers, validate=True)
 
 
 

@@ -57,7 +57,8 @@ def get_star(args):
     return get(*args)
 
 
-def get(queryrunner, querystrings, flat_input, dryrun=False, expand_iloc=False):
+def get(queryrunner, querystrings, flat_input,
+        dryrun=False, expand_iloc=False):
     """
     all_input is a flat dictionary with path strings as keys
     """
@@ -73,8 +74,10 @@ def get(queryrunner, querystrings, flat_input, dryrun=False, expand_iloc=False):
     tstart = time.time()
 
     # Expand the query and get the max ilocs for each query
-    querystrs_for_querystr = {qstr1:expand_query(qstr1, flat_input) for qstr1 in querystrings}
-    _querystrings = [qstr for qstrs, _ in querystrs_for_querystr.values() for qstr in qstrs]
+    querystrs_for_querystr = {qstr1:expand_query(qstr1, flat_input) 
+                              for qstr1 in querystrings}
+    _querystrings = [qstr for qstrs, _ in querystrs_for_querystr.values()
+                          for qstr in qstrs]
 
     print('Expanded query', querystrs_for_querystr)
 

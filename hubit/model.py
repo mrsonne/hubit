@@ -154,6 +154,7 @@ class HubitModel(object):
         """
         self.inputdata = inputdata
         self.flat_input = flatten(inputdata)
+        return self
 
 
     def render(self, querystrings=None, fileidstr=None):

@@ -236,7 +236,9 @@ class HubitModel(object):
         # This requires one node id in the cluster
         prefix_results = "cluster_results"
         prefix_input = "cluster_input"
-        input_object_ids, results_object_ids = self.get_all_objects(prefix_input, prefix_results)
+        (input_object_ids,
+         results_object_ids) = self.get_all_objects(prefix_input,
+                                                    prefix_results)
 
         if isquery:
             dot.edge('_Query', results_object_ids[0], lhead=prefix_results, constraint="false",

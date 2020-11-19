@@ -451,7 +451,9 @@ class HubitModel(object):
     def get_many(self, querystrings, all_input,
                  input_perturbations, nproc=None, plot=False):
         """
-        """
+        *On windows calling get_many should be guarded by 
+        if __name__ == '__main__':
+        """        
         tstart = time.time()
 
         # TODO: use self.flat_input

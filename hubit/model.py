@@ -88,26 +88,27 @@ def get(queryrunner, querystrings, flat_input,
     watcher.daemon=True
     watcher.start()
 
-
     # remeber to send SIGTERM for processes
     # https://stackoverflow.com/questions/11436502/closing-all-threads-with-a-keyboard-interrupt
     try:
         didfail = False
-        queryrunner.deploy(_querystrings, extracted_input, all_results, flat_input, dryrun=dryrun)
+        success = queryrunner.deploy(_querystrings, extracted_input,
+                                     all_results, flat_input,
+                                     dryrun=dryrun)
         while watcher.is_alive():
             watcher.join(timeout=1.)
-
         # TODO: compress query
     except (BaseException, KeyboardInterrupt) as err:
         traceback.print_exc()
         print(err)
         shutdown_event.set()
         didfail = True
+    
 
     if watcher.is_alive():
         watcher.join()
 
-    if not didfail:
+    if not didfail and success:
         response = {query:all_results[query] for query in _querystrings}
 
         if not expand_iloc:
@@ -218,7 +219,9 @@ class HubitModel(object):
                 dummy_query = dummy_query.replace(":", "0")
                 dummy_input = None
                 func, version = QueryRunner.get_func(cname, cdata)
-                workers.append(Worker(self, cname, cdata, dummy_input, dummy_query, func, version, self.ilocstr))
+                workers.append(Worker(self, cname, cdata, 
+                                      dummy_input, dummy_query,
+                                      func, version, self.ilocstr))
 
         if self.name is not None:
             filename = '{}_{}'.format(filename, self.name.lower().replace(' ','_'))
@@ -572,7 +575,6 @@ class QueryRunner(object):
             version = module.version()
         except AttributeError:
             version = None
-
         return func, version
 
 
@@ -601,8 +603,11 @@ class QueryRunner(object):
         func, version = QueryRunner.get_func(cname, cfgdata)
 
         # Create and return worker
-        return Worker(self, cname, cfgdata, self.model.inputdata, query, func, version, 
-                      self.model.ilocstr, multiprocess=self.mpworkers, dryrun=dryrun)
+        try:
+            return Worker(self, cname, cfgdata, self.model.inputdata, query, func, version, 
+                        self.model.ilocstr, multiprocess=self.mpworkers, dryrun=dryrun)
+        except RuntimeError:
+            return None
 
 
     def transfer_input(self, input_paths, worker, inputdata, all_input):
@@ -618,7 +623,6 @@ class QueryRunner(object):
     def deploy(self, querystrings, extracted_input, all_results, all_input, dryrun=False):
         """Create workers
         """
-        # print('DEPLOY', querystrings)
         for querystring in querystrings:
 
             # Check whether the queried data is already available  
@@ -627,6 +631,8 @@ class QueryRunner(object):
             # Figure out which component can provide a response to the query
             # and get the corresponding worker
             worker = self.worker_for_query(querystring, dryrun=dryrun)
+            # if worker is None: return False
+
             # Check that another query did not already request this worker
             if worker._id in self.worker_for_id.keys(): continue
 
@@ -638,7 +644,9 @@ class QueryRunner(object):
 
             self.transfer_input(input_paths_missing, worker, extracted_input, all_input)
 
-            querystrings_next = [qstrexp for qstr in querystrings_next for qstrexp in expand_query(qstr, all_input)[0]]
+            querystrings_next = [qstrexp 
+                                 for qstr in querystrings_next
+                                 for qstrexp in expand_query(qstr, all_input)[0]]
             print("querystrings_next", querystrings_next)
 
             # Add the worker to the oberservers list for that query in order
@@ -647,13 +655,15 @@ class QueryRunner(object):
                     self.observers_for_query[query_next].append(worker)
                 else:
                     self.observers_for_query[query_next] = [worker]
+            
+            success = self.deploy(querystrings_next,
+                                extracted_input,
+                                all_results,
+                                all_input,
+                                dryrun=dryrun)
+            # if not success: return False
 
-            self.deploy(querystrings_next,
-                        extracted_input,
-                        all_results,
-                        all_input,
-                        dryrun=dryrun)
-
+        return True
 
     def set_worker(self, worker):
         """

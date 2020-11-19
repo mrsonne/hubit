@@ -88,7 +88,7 @@ class Worker(object):
 
     def __init__(self, hmodel, cname, cfg, inputdata, querystring, func, 
                  version, ilocstr, multiprocess=False, dryrun=False,
-                 logging_level=logging.ERROR):
+                 logging_level=logging.DEBUG):
         """
         If inputdata is None the worker cannot work but can still 
         render itself and print.
@@ -234,11 +234,11 @@ class Worker(object):
 
         # Notify the hubit model that we are about to start the work
         self.hmodel.set_worker_working(self)
-
         if self.multiprocess:
-            job = multiprocessing.Process(target=self.func, args=(self.inputval_for_attrname,
-                                                                  self.resultval_for_attrname,
-                                                                  self.results))
+            job = multiprocessing.Process(target=self.func,
+                                          args=(self.inputval_for_attrname,
+                                                self.resultval_for_attrname,
+                                                self.results))
             job.start()
         else:
             self.func(self.inputval_for_attrname, self.resultval_for_attrname, self.results)
@@ -333,6 +333,7 @@ class Worker(object):
         fstr2 = 'I attr values {}\nI pstr values {}\nR attr values {}\nR pstr values {}\nI pending {}\nR pending {}\n'
         strtmp = '='*n + '\n'
         strtmp += 'ID {}\n'.format(self.idstr())
+        strtmp += 'Function {}\n'.format(self.func)
         strtmp += '-'*n + '\n'
         strtmp += fstr1.format(self.resultspath_provided_for_attrname,
                                self.resultspaths_provided_for_attrname,

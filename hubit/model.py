@@ -427,7 +427,6 @@ class HubitModel(object):
 
     def get(self, querystrings, mpworkers=False, validate=False):
         """
-        all_input is a dictionary with path strings as keys
         """
         # Make a query runner
         qrunner = QueryRunner(self, mpworkers)

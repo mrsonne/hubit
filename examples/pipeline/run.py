@@ -77,8 +77,6 @@ if __name__ == '__main__':
 # querystrings = ["segs.:.walls.temps"]
 # hmodel.get(querystrings, input_data, mpworkers=mpworkers, validate=True)
 
-# Query all components (assumes required input is defined)
-# self.hmodel.get(self.input_data, mpworkers=self.mpworkers)
 
 
 

@@ -18,6 +18,14 @@ from multiprocessing import Pool, TimeoutError, cpu_count, active_children
 POLLTIME = 0.1
 THISPATH = os.path.dirname(os.path.abspath(__file__))
 
+class HubitModelNoInputError(Exception):
+    def __init__(self):
+        self.message = 'No input set on the model instance. Set input using the set_input() method'
+
+    def __str__(self): 
+        return(self.message)
+
+
 def callback(x):
     # Callback
     print('WELCOME BACK! WELCOME BACK! WELCOME BACK! WELCOME BACK!')
@@ -142,6 +150,7 @@ class HubitModel(object):
         self.odir = odir
         self.inputdata = None
         self.flat_input = None
+        self._input_is_set = False
 
 
     @classmethod
@@ -164,6 +173,7 @@ class HubitModel(object):
         """
         self.inputdata = inputdata
         self.flat_input = flatten(inputdata)
+        self._input_is_set = True
         return self
 
 
@@ -444,6 +454,9 @@ class HubitModel(object):
     def get(self, querystrings, mpworkers=False, validate=False):
         """
         """
+        if not self._input_is_set:
+            raise HubitModelNoInputError()
+
         # Make a query runner
         qrunner = QueryRunner(self, mpworkers)
 
@@ -468,7 +481,10 @@ class HubitModel(object):
         """
         *On windows calling get_many should be guarded by 
         if __name__ == '__main__':
-        """        
+        """
+        if not self._input_is_set:
+            raise HubitModelNoInputError()
+
         tstart = time.time()
 
         # TODO: use self.flat_input

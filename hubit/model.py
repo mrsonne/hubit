@@ -136,6 +136,8 @@ class HubitModel(object):
         self.ilocstr = "_IDX"
         self.module_for_clsname = {}
         self.cfg = cfg
+        self.component_for_name = {component['func_name']: component 
+                                   for component in cfg}
         self.name = name
         self.odir = odir
         self.inputdata = None
@@ -145,15 +147,15 @@ class HubitModel(object):
     @classmethod
     def from_file(cls, filepath, odir='./', name=None):
         with open(filepath, "r") as stream:
-            cfg = yaml.load(stream)
+            components = yaml.load(stream)
 
         path = os.path.split(filepath)[0]
         # path = os.path.abspath(os.path.join(THISPATH, path))
-        for key, val in cfg.items():
-            val["path"] = os.path.abspath(os.path.join(path, val["path"]))
+        for component in components:
+            component["path"] = os.path.abspath(os.path.join(path, component["path"]))
             # print val["path"]
 
-        return cls(cfg, name=name, odir=odir)
+        return cls(components, name=name, odir=odir)
     
     
     def set_input(self, inputdata):
@@ -217,13 +219,14 @@ class HubitModel(object):
             filename = 'model'
             direction = -1 
             workers = []
-            for cname, cdata in self.cfg.items():
-                dummy_query = cdata["provides"].values()[0].replace(self.ilocstr, "0")
+            for component_data in self.cfg:
+                cname = component_data['func_name']
+                dummy_query = component_data["provides"].values()[0].replace(self.ilocstr, "0")
                 # TODO iloc wildcard
                 dummy_query = dummy_query.replace(":", "0")
                 dummy_input = None
-                func, version = QueryRunner.get_func(cname, cdata)
-                workers.append(Worker(self, cname, cdata, 
+                func, version = QueryRunner.get_func(cname, component_data)
+                workers.append(Worker(self, cname, component_data, 
                                       dummy_input, dummy_query,
                                       func, version, self.ilocstr))
 
@@ -371,7 +374,7 @@ class HubitModel(object):
         """
         results_object_ids = set()
         input_object_ids = set()
-        for _, cdata in self.cfg.items():
+        for cdata in self.cfg:
             _cdata = cdata["provides"]
             results_object_ids.update(['{}{}'.format(prefix_results, objname) for objname in self.get_objects(_cdata)])
 
@@ -527,7 +530,8 @@ class HubitModel(object):
         TODO: check for circular references
         """
         compname_for_pstring = {}
-        for compname, compdata in self.cfg.items():
+        for compdata in self.cfg:
+            compname = compdata['func_name']
             for _, pstring in compdata["provides"].items():
                 if not pstring in compname_for_pstring:
                     compname_for_pstring[pstring] = compname
@@ -552,7 +556,9 @@ class QueryRunner(object):
         """
         Find names of components that can respond to the "query".
         """
-        itempairs = [(cmpname, pstring) for cmpname, cmpdata in self.model.cfg.items() for _, pstring in cmpdata["provides"].items()]
+        itempairs = [(cmpdata['func_name'], pstring) 
+                     for cmpdata in self.model.cfg 
+                     for _, pstring in cmpdata["provides"].items()]
         compnames, providerstrings = zip(*itempairs)
         idxs = get_matches(querystring, providerstrings, self.model.ilocstr)
         return [compnames[idx] for idx in idxs]
@@ -603,7 +609,7 @@ class QueryRunner(object):
 
         # Get the provider function for the query
         cname = components[0]
-        cfgdata = self.model.cfg[cname]
+        cfgdata = self.model.component_for_name[cname]
         func, version = QueryRunner.get_func(cname, cfgdata)
 
         # Create and return worker

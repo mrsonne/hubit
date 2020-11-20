@@ -33,7 +33,7 @@ hmodel.set_input(input_data)
 # querystrings = ["segments.:.layers.1.k_therm"] # ok
 querystrings = ["segments.0.layers.0.k_therm"] # ok
 # querystrings = ["segments.0.layers.:.k_therm"] #ok 
-# querystrings = ["segments.:.layers.:.k_therm"] # not ok TODO
+querystrings = ["segments.:.layers.:.k_therm"] # ok
 
 # Render the query
 # hmodel.render(querystrings)

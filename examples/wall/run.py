@@ -28,12 +28,12 @@ hmodel.set_input(input_data)
 # hmodel.render()
 
 # Make the queries
-# querystrings = ["segments.0.layers.:.temperature"] # ok
+querystrings = ["segments.0.layers.:.temperature"] # ok
 # querystrings = ["segments.0.layers.0.temperature"] # ok
 # querystrings = ["segments.:.layers.1.k_therm"] # ok
-querystrings = ["segments.0.layers.0.k_therm"] # ok
+# querystrings = ["segments.0.layers.0.k_therm"] # ok
 # querystrings = ["segments.0.layers.:.k_therm"] #ok 
-querystrings = ["segments.:.layers.:.k_therm"] # ok
+# querystrings = ["segments.:.layers.:.k_therm"] # ok
 
 # Render the query
 # hmodel.render(querystrings)
@@ -44,6 +44,7 @@ mpworkers = False
 
 # Important: call multiprocessing from main like this
 if __name__ == '__main__': # Required on windows if mpworkers = True
+# if True: # Required on windows if mpworkers = True
     # Do the actual query 
     response = hmodel.get(querystrings, mpworkers=mpworkers)
     # print(response)
@@ -52,22 +53,22 @@ if __name__ == '__main__': # Required on windows if mpworkers = True
     
     # For segment 0 sweep over multiple inputs created as the Cartesian product of the input perturbations 
     input_values_for_path = {"segments.0.layers.0.material": ('pvdf', 'xlpe'),
-                            "segments.0.layers.0.thickness": (0.008, 0.01,),
+                             "segments.0.layers.0.thickness": (0.008, 0.01,),
                             }
 
 
-    responses, inps = hmodel.get_many(querystrings,
-                                      input_data,
-                                      input_values_for_path,
-                                      plot=False,
-                                      nproc=4)
+    # responses, inps = hmodel.get_many(querystrings,
+    #                                   input_data,
+    #                                   input_values_for_path,
+    #                                   plot=False,
+    #                                   nproc=4)
 
-    for inp, response in zip(inps, responses):
-        print('Input',
-              inp["segments.0.layers.0.material"],
-              inp["segments.0.layers.0.thickness"])
-        print('Response', response)
-        print('')
+    # for inp, response in zip(inps, responses):
+    #     print('Input',
+    #           inp["segments.0.layers.0.material"],
+    #           inp["segments.0.layers.0.thickness"])
+    #     print('Response', response)
+    #     print('')
 
 
 

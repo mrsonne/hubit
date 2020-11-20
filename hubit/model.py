@@ -25,11 +25,14 @@ def callback(x):
 
 def compress_response(response, querystrs_for_querystr, ilocstr=":", sepstr="."):
     """
-    Compress the response to reflec queries with iloc wildcards
+    Compress the response to reflect queries with iloc wildcards
     """
+
     _response = {}
     for qstr_org, (qstrs_expanded, max_ilocs) in querystrs_for_querystr.items():
 
+        print('qstr_org', qstr_org)
+        print('qstrs_expanded', qstrs_expanded)
         print('max_ilocs', max_ilocs)
 
         # Even if len(qstrs) == 0 the query may be expanded
@@ -41,7 +44,8 @@ def compress_response(response, querystrs_for_querystr, ilocstr=":", sepstr=".")
             # Extract iloc indices for each query in the expanded query
             for qstr in qstrs_expanded:
                 ilocs = get_indices(qstr, qstr_org, ":")
-                values = set_element(values, response[qstr], [int(iloc) for iloc in ilocs])
+                values = set_element(values, response[qstr], 
+                                     [int(iloc) for iloc in ilocs])
             _response[qstr_org] = values
         else:
             _response[qstr_org] = response[qstr_org]

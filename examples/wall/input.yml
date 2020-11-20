@@ -10,9 +10,9 @@ segments:
         temperature: 300.
     - layers:
         - thickness: 0.015
-          material: brick
+          material: concrete
         - thickness: 0.025
-          material: brick
+          material: styrofoam
       inside:
         temperature: 355.
       outside:

@@ -48,13 +48,17 @@ def traverse(items):
 
 def set_element(data, value, indices):
     """
-    Set the "value" on the "data" at the "indices"
+    Set the "value" on the "data" (nested list) at the 
+    "indices" (list of indices)
     """
     _data = data
+    # Loop over indices excluding last and point to list
+    # at an increasingly deeper level of the 
     for idx in indices[:-1]:
         _data = _data[idx]
+    # _data is now the innermost list where the values should be set
     _data[indices[-1]] = value
-    return _data
+    return data
 
 
 def get_nested_list(maxilocs):

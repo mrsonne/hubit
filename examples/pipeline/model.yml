@@ -6,7 +6,7 @@ thermal_conductivity:
     input:
       material: segments._IDX.layers._IDX.material
 radial_thermal_prof:
-  path: ./components/radial_thermal_profile.py
+  path: ./components/thermal_profile.py
   provides:
     temperatures_all_layers: segments._IDX.layers.:.temperature
     # temperatures_all_layers: segments[.].layers[:].temperature # TODO: this should be the syntax

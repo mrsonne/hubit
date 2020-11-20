@@ -2,7 +2,7 @@
 import time
 # import multiprocessing
 
-def radial_thermal_prof(_input_consumed, _results_consumed, results_provided):
+def thermal_prof(_input_consumed, _results_consumed, results_provided):
     # p = multiprocessing.current_process()
     # print 'workerfun_thermal:', p.name, p.pid
     # ks = _results_consumed["ktherm"]

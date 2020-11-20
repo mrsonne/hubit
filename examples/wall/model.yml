@@ -15,5 +15,6 @@
     input: 
       temp_in: segments._IDX.inside.temperature
       temp_out: segments._IDX.outside.temperature
+      thicknesses: segments._IDX.layers.:.thickness
     results: 
       ks_walls : segments._IDX.layers.:.k_therm

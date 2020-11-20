@@ -12,3 +12,14 @@ segments:
         temperature: 350.
       outside:
         temperature: 300.
+    - layers:
+        - outer_diameter: 0.25
+          thickness: 0.015
+          material: xlpe
+        - outer_diameter: 0.35
+          thickness: 0.025
+          material: hdpe
+      bore:
+        temperature: 355.
+      outside:
+        temperature: 305.

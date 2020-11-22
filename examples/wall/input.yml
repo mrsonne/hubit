@@ -1,19 +1,28 @@
+# The input is used lazyly so only the parts that are 
+# used by a specific query are required
+
 segments:
+    # First segment
     - layers:
-        - thickness: 0.01 # [m]
+        - thickness: 0.1 # [m]
           material: brick
         - thickness: 0.02
           material: air
+        - thickness: 0.1
+          material: brick
       inside:
-        temperature: 350. # allow temprature to vary between segments
+        temperature: 300. # allow temprature to vary between segments
       outside:
-        temperature: 300.
+        temperature: 273.
+    # Second segment
     - layers:
-        - thickness: 0.015
+        - thickness: 0.15
           material: concrete
         - thickness: 0.025
           material: styrofoam
+        - thickness: 0.1
+          material: concrete
       inside:
-        temperature: 355.
+        temperature: 300.
       outside:
-        temperature: 305.
+        temperature: 273.

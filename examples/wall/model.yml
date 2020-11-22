@@ -13,7 +13,9 @@
   
   # The model component provides the thermal conductivity for  
   # for one layer in one segment 
-  provides : {"k_therm" : "segments._IDX.layers._IDX.k_therm"} 
+  provides : 
+    # internal name in the compoment: path in the shared data model
+    k_therm : segments._IDX.layers._IDX.k_therm 
 
   consumes:
     # To compute the thermal conductivities the material 
@@ -21,16 +23,19 @@
     # be provided in the input file for each layer in each 
     # segment
     input:
+      # internal name in the compoment: path in the shared data model
       material: segments._IDX.layers._IDX.material
 
   
 - # Component that calculates the thermal profile
   path: ./components/thermal_profile.py
   func_name: thermal_prof
+
   provides:
-    temperatures_all_layers: segments._IDX.layers.:.temperature
+    outer_temperature_all_layers: segments._IDX.layers.:.outer_temperature
     # temperatures_all_layers: segments[.].layers[:].temperature # TODO: this should be the syntax
-    heat_flows_all_layers: segments._IDX.layers.:.heat_flow
+    heat_flux: segments._IDX.heat_flux
+  
   consumes:
     input: 
       temp_in: segments._IDX.inside.temperature

@@ -1,11 +1,11 @@
 segments:
     - layers:
-        - thickness: 0.01
+        - thickness: 0.01 # [m]
           material: brick
         - thickness: 0.02
           material: air
       inside:
-        temperature: 350.
+        temperature: 350. # allow temprature to vary between segments
       outside:
         temperature: 300.
     - layers:

@@ -1,12 +1,32 @@
-- func_name: thermal_conductivity
-  path: ./components/thermal_conductivity.py # module with model
-  provides : {"k_therm" : "segments._IDX.layers._IDX.k_therm"}
-  # provides : {}
+# The model file is a list of Hubit components
+# The order of the components is not important
+# To allow for some comments the attributes have been 
+# separated by blank lines in this example
+
+- # Component that retrives thermal conductivities
+
+  # Path where the module with the component is located
+  path: ./components/thermal_conductivity.py 
+  
+  # Function name in the module
+  func_name: thermal_conductivity 
+  
+  # The model component provides the thermal conductivity for  
+  # for one layer in one segment 
+  provides : {"k_therm" : "segments._IDX.layers._IDX.k_therm"} 
+
   consumes:
+    # To compute the thermal conductivities the material 
+    # for the layer in the segment need be known. These should 
+    # be provided in the input file for each layer in each 
+    # segment
     input:
       material: segments._IDX.layers._IDX.material
-- func_name: thermal_prof
+
+  
+- # Component that calculates the thermal profile
   path: ./components/thermal_profile.py
+  func_name: thermal_prof
   provides:
     temperatures_all_layers: segments._IDX.layers.:.temperature
     # temperatures_all_layers: segments[.].layers[:].temperature # TODO: this should be the syntax

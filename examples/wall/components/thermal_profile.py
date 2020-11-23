@@ -27,11 +27,11 @@ def thermal_prof(_input_consumed, _results_consumed, results_provided):
     temp_changes = [ -q*R for R in Rs ]
 
     # Calculate temperature on the outside of the layers
-    T_layer_outer =  [T_in + temp_changes[0]]
+    T_outer_all_layers =  [T_in + temp_changes[0]]
     for temp_change in temp_changes[1:]:
-        T_layer_outer.append(T_layer_outer[-1] + temp_change)
+        T_outer_all_layers.append(T_outer_all_layers[-1] + temp_change)
 
-    results_provided["outer_temperature_all_layers"] = T_layer_outer
+    results_provided["outer_temperature_all_layers"] = T_outer_all_layers
     results_provided["heat_flux"] = q
 
 def version():

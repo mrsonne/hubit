@@ -221,7 +221,7 @@ class Worker(object):
         """
         Sets all results to None
         """
-        self.hmodel.set_worker_working(self)
+        self.hmodel._set_worker_working(self)
         for attrname in self.resultspath_provided_for_attrname.keys():
             self.results[attrname] = list_from_shape(self.shape_provided_for_attrname[attrname])
 
@@ -233,7 +233,7 @@ class Worker(object):
         logging.debug( '\n**START WORKING**\n{}'.format(self.__str__()) )
 
         # Notify the hubit model that we are about to start the work
-        self.hmodel.set_worker_working(self)
+        self.hmodel._set_worker_working(self)
         if self.multiprocess:
             job = multiprocessing.Process(target=self.func,
                                           args=(self.inputval_for_attrname,
@@ -296,7 +296,7 @@ class Worker(object):
         to the list of pending items
         """
         # set the worker here since in init we have not yet checked that a similar instance does not exist
-        self.hmodel.set_worker(self)
+        self.hmodel._set_worker(self)
 
         # Check consumed input (should not have any pending items by definition)
         for pathstr in self.input_attrname_for_pathstr.keys():

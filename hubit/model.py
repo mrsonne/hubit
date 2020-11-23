@@ -95,7 +95,7 @@ def get(queryrunner, querystrings, flat_input,
 
     # Start thread that periodically checks whether we are finished or not  
     shutdown_event = Event()    
-    watcher = Thread(target=queryrunner.watcher,
+    watcher = Thread(target=queryrunner._watcher,
                      args=(_querystrings, all_results, shutdown_event))
     watcher.daemon=True
     watcher.start()
@@ -104,9 +104,9 @@ def get(queryrunner, querystrings, flat_input,
     # https://stackoverflow.com/questions/11436502/closing-all-threads-with-a-keyboard-interrupt
     try:
         didfail = False
-        success = queryrunner.deploy(_querystrings, extracted_input,
-                                     all_results, flat_input,
-                                     dryrun=dryrun)
+        success = queryrunner._deploy(_querystrings, extracted_input,
+                                      all_results, flat_input,
+                                      dryrun=dryrun)
         while watcher.is_alive():
             watcher.join(timeout=1.)
         # TODO: compress query
@@ -646,7 +646,8 @@ class QueryRunner(object):
             worker.set_consumed_input(pathstr, val)
 
 
-    def deploy(self, querystrings, extracted_input, all_results, all_input, dryrun=False):
+    def _deploy(self, querystrings, extracted_input, 
+               all_results, all_input, dryrun=False):
         """Create workers
         """
         for querystring in querystrings:
@@ -682,40 +683,42 @@ class QueryRunner(object):
                 else:
                     self.observers_for_query[query_next] = [worker]
             
-            success = self.deploy(querystrings_next,
-                                extracted_input,
-                                all_results,
-                                all_input,
-                                dryrun=dryrun)
+            success = self._deploy(querystrings_next,
+                                   extracted_input,
+                                   all_results,
+                                   all_input,
+                                   dryrun=dryrun)
             # if not success: return False
 
         return True
 
-    def set_worker(self, worker):
+    def _set_worker(self, worker):
         """
-        Called from Worker object when the input is set. Not on init since 
-        we do not yet know if a similar object exists.
+        Called from Worker object when the input is set. 
+        Not on init since we do not yet know if a similar 
+        object exists.
         """
         self.workers.append(worker)
 
 
-    def set_worker_working(self, worker):
+    def _set_worker_working(self, worker):
         """
-        Called from Worker object just before the worker process is started.
+        Called from Worker object just before the worker 
+        process is started.
         """
         self.workers_working.append(worker)
 
 
-    def set_worker_completed(self, worker, all_results):
+    def _set_worker_completed(self, worker, all_results):
         """
         Called when results attribute has been populated 
         """
         self.workers_completed.append(worker)
-        self.transfer_results(worker, all_results)
+        self._transfer_results(worker, all_results)
         self.workers_working.remove(worker)
 
 
-    def transfer_results(self, worker, all_results):
+    def _transfer_results(self, worker, all_results):
         """
         Transfer results and notify observers. Called from workflow.
         """
@@ -728,10 +731,11 @@ class QueryRunner(object):
             all_results[path] = value
 
 
-    def watcher(self, queries, all_results, shutdown_event):
+    def _watcher(self, queries, all_results, shutdown_event):
         """
-        Run this watcher on a thread. Runs until all queried data is present in the results.
-        Not needed for sequential run, but is necessary when main tread should waiting for 
+        Run this watcher on a thread. Runs until all queried data 
+        is present in the results. Not needed for sequential runs, 
+        but is necessary when main tread should waiting for 
         calculation processes when using multiprocessing
         """
         should_stop = False
@@ -741,7 +745,7 @@ class QueryRunner(object):
                                   if worker.results_ready()]
             for worker in _workers_completed:
                 print('Query runner detected that a worker completed.')
-                self.set_worker_completed(worker, all_results)
+                self._set_worker_completed(worker, all_results)
                 print('All results: ', all_results)
 
             should_stop = all([query in all_results.keys() for query in queries])

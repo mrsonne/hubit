@@ -7,10 +7,10 @@ class DummyModel(object):
     def __init__(self):
         pass
     
-    def set_worker(self, worker):
+    def _set_worker(self, worker):
         pass
 
-    def set_worker_working(self, worker):
+    def _set_worker_working(self, worker):
         pass
 
 

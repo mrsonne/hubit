@@ -53,7 +53,7 @@ if __name__ == '__main__': # Required on windows if mpworkers = True
     
     # For segment 0 sweep over multiple inputs created as the Cartesian product of the input perturbations 
     input_values_for_path = {"segments.0.layers.0.material": ('brick', 'concrete'),
-                             "segments.0.layers.0.thickness": (0.008, 0.01,),
+                             "segments.0.layers.0.thickness": (0.08, 0.12,),
                             }
 
 

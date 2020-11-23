@@ -740,7 +740,7 @@ class QueryRunner(object):
                                   for worker in self.workers_working 
                                   if worker.results_ready()]
             for worker in _workers_completed:
-                print('Querry runner detected that a worker completed.')
+                print('Query runner detected that a worker completed.')
                 self.set_worker_completed(worker, all_results)
                 print('All results: ', all_results)
 

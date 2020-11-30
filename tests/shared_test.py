@@ -1,4 +1,6 @@
+from __future__ import print_function
 import unittest
+
 from hubit import shared
 
 class TestShared(unittest.TestCase):
@@ -34,24 +36,24 @@ class TestShared(unittest.TestCase):
                            )
         matches = shared.get_matches(self.querystring, providerstrings, self.ilocstr)
         for idx, pstr in enumerate(providerstrings):
-            print '{:>2} {:35} {:}'.format(idx, pstr, idx in matches)
+            print('{:>2} {:35} {:}'.format(idx, pstr, idx in matches))
 
 
     def test_set_ilocs(self):
-        print "test_set_ilocs"
-        print shared.set_ilocs("segs._ILOC.walls._ILOC.temps", ("34", "3"), self.ilocstr)
+        print("test_set_ilocs")
+        print(shared.set_ilocs("segs._ILOC.walls._ILOC.temps", ("34", "3"), self.ilocstr))
 
 
     def test_query_wildcard(self):
         querystring = "segs.:.walls.:.temps"
         queries = shared.expand_query(querystring, self.flat_input)
-        print 'queries', queries
+        print('queries', queries)
 
 
     def test_query_wildcard_2(self):
         querystring = "segs.0.walls.temps.0"
         queries = shared.expand_query(querystring, self.flat_input)
-        print 'queries', queries
+        print('queries', queries)
 
 
     def test_query_all(self):
@@ -66,7 +68,7 @@ class TestShared(unittest.TestCase):
 
         qall = shared.query_all(providerstrings, self.flat_input, self.ilocstr)
         # Make general query
-        print qall
+        print(qall)
 
 
     def test_get_from_datadict(self):
@@ -100,13 +102,13 @@ class TestShared(unittest.TestCase):
 
         l0 = 'as', 'fv', 'dsd'
         for val in shared.traverse(l0):
-            print 'l0', val
+            print('l0', val)
 
         # iterate over all indices
         import itertools
         shape = (2, 3)
         for ilocs in itertools.product(*[xrange(s) for s in shape]):
-            print ilocs
+            print(ilocs)
 
         # Wrap values as mutable
         # https://stackoverflow.com/questions/37501632/is-it-possible-to-make-wrapper-object-for-numbers-e-g-float-to-make-it-mutabl
@@ -129,7 +131,7 @@ class TestShared(unittest.TestCase):
         # print l1
         # print l2
 
-        print 'XXX', shared.setelemtents(pstrs, valuemap)
+        print('XXX', shared.setelemtents(pstrs, valuemap))
 
 
         # for i, (val1, val2) in enumerate(zip(shared.traverse(l1), shared.traverse(l2))):
@@ -141,11 +143,11 @@ class TestShared(unittest.TestCase):
         #     val1 = val1.val
         # print 'L1', l1
 
-        print 
-        print shape
-        print pstrs
-        print pstrs[0][1]
-        print 
+        print('')
+        print(shape)
+        print(pstrs)
+        print(pstrs[0][1])
+        print('')
 
 
 

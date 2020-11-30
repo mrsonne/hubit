@@ -173,12 +173,12 @@ class HubitModel(object):
         """Creates a model from file
 
         Args:
-            model_file_path ([str]): The location of the model file
+            model_file_path (str): The location of the model file
             output_path (str, optional): Path where results should be saved. Defaults to './'.
-            name ([str], optional): Model name. Defaults to None.
+            name (str, optional): Model name. Defaults to None.
 
         Returns:
-            [HubitModel]: Hubit model object as defined in the specified model file
+            HubitModel: Hubit model object as defined in the specified model file
         """
         with open(model_file_path, "r") as stream:
             components = yaml.load(stream)
@@ -197,10 +197,10 @@ class HubitModel(object):
         Set the (hierarchical) input on the model
 
         Args:
-            input_data ([Dict]): Input data typically in a dict-like format
+            input_data (Dict): Input data typically in a dict-like format
 
         Returns:
-            [HubitModel]: Hubit model with input set
+            HubitModel: Hubit model with input set
         """
         self.inputdata = input_data
         self.flat_input = flatten(input_data)

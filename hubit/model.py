@@ -26,6 +26,16 @@ class HubitModelNoInputError(Exception):
         return(self.message)
 
 
+
+class HubitModelValidationError(Exception):
+    def __init__(self, pstring, compname, compname_for_pstring):
+        fstr = '"{}" on component "{}" also provided by component "{}"'
+        self.message = fstr.format(pstring, compname, compname_for_pstring[pstring])
+
+    def __str__(self): 
+        return(self.message)
+
+
 def callback(x):
     # Callback
     print('WELCOME BACK! WELCOME BACK! WELCOME BACK! WELCOME BACK!')
@@ -580,7 +590,8 @@ class HubitModel(object):
 
     def validate(self):
         """
-        Checks that we don't have multiple components providing the same attribute
+        Validate the model. Checks that there are 
+            - not multiple components providing the same attribute
 
         TODO: check for circular references
         """
@@ -591,8 +602,9 @@ class HubitModel(object):
                 if not pstring in compname_for_pstring:
                     compname_for_pstring[pstring] = compname
                 else:
-                    fstr = '"{}" on component "{}" also provided by component "{}"'
-                    raise BaseException(fstr.format(pstring, compname, compname_for_pstring[pstring]))
+                    raise HubitModelValidationError( pstring,
+                                                     compname,
+                                                     compname_for_pstring )
 
 
 class _QueryRunner(object):

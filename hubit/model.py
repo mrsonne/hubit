@@ -274,7 +274,7 @@ class HubitModel(object):
                 # TODO iloc wildcard
                 dummy_query = dummy_query.replace(":", "0")
                 dummy_input = None
-                func, version = QueryRunner.get_func(cname, component_data)
+                func, version = _QueryRunner.get_func(cname, component_data)
                 workers.append(Worker(self, cname, component_data, 
                                       dummy_input, dummy_query,
                                       func, version, self.ilocstr))
@@ -300,7 +300,7 @@ class HubitModel(object):
         prefix_results = "cluster_results"
         prefix_input = "cluster_input"
         (input_object_ids,
-         results_object_ids) = self.get_all_objects(prefix_input,
+         results_object_ids) = self._get_all_objects(prefix_input,
                                                     prefix_results)
 
         if isquery:
@@ -355,7 +355,7 @@ class HubitModel(object):
         for _, pathstr in cdata.items():
             pathcmps = pathstr.split(".")
             pathcmps_old = copy.copy(pathcmps)
-            pathcmps = self.cleanpathcmps(pathcmps)
+            pathcmps = self._cleanpathcmps(pathcmps)
 
             # Collect data for connecting to nearest objects 
             # and labeling the edge with the attributes consumed/provided
@@ -401,7 +401,7 @@ class HubitModel(object):
                     dot.edge(*t[::direction], arrowsize=str(float(arrowsize)*1.5),
                              color=color, constraint=constraint, arrowhead="none")
 
-        self.edge_with_label(attrnames_for_nodeids, color, constraint, direction, arrowsize, dot)
+        self._edge_with_label(attrnames_for_nodeids, color, constraint, direction, arrowsize, dot)
 
         if len(skipped) > 0:
             if direction == 1:
@@ -412,28 +412,28 @@ class HubitModel(object):
                 clusterid_head = clusterid
 
             attrnames_for_nodeids = {(cluster_node_id, cname): skipped}
-            self.edge_with_label(attrnames_for_nodeids, color, constraint, direction, 
+            self._edge_with_label(attrnames_for_nodeids, color, constraint, direction, 
                                  arrowsize, dot, ltail=clusterid_tail, lhead=clusterid_head)
 
         return skipped, ids
 
 
-    def get_all_objects(self, prefix_input, prefix_results):
+    def _get_all_objects(self, prefix_input, prefix_results):
         """
         """
         results_object_ids = set()
         input_object_ids = set()
         for cdata in self.cfg:
             _cdata = cdata["provides"]
-            results_object_ids.update(['{}{}'.format(prefix_results, objname) for objname in self.get_objects(_cdata)])
+            results_object_ids.update(['{}{}'.format(prefix_results, objname) for objname in self._get_objects(_cdata)])
 
             _cdata = cdata["consumes"]["input"]
-            input_object_ids.update(['{}{}'.format(prefix_input, objname) for objname in self.get_objects(_cdata)])
+            input_object_ids.update(['{}{}'.format(prefix_input, objname) for objname in self._get_objects(_cdata)])
 
             # Not all components cosume results
             try:
                 _cdata = cdata["consumes"]["results"]
-                results_object_ids.update(['{}{}'.format(prefix_results, objname) for objname in self.get_objects(_cdata)])
+                results_object_ids.update(['{}{}'.format(prefix_results, objname) for objname in self._get_objects(_cdata)])
             except KeyError:
                 pass
 
@@ -442,7 +442,7 @@ class HubitModel(object):
         return input_object_ids, results_object_ids
 
     
-    def cleanpathcmps(self, pathcmps):
+    def _cleanpathcmps(self, pathcmps):
         # TODO: check for digits and mark box below
 
         _pathcmps = copy.copy(pathcmps)
@@ -461,18 +461,18 @@ class HubitModel(object):
         return _pathcmps
 
 
-    def get_objects(self, cdata):
+    def _get_objects(self, cdata):
         objects = set()
         for _, pathstr in cdata.items():
             pathcmps = pathstr.split(".")
-            pathcmps = self.cleanpathcmps(pathcmps)
+            pathcmps = self._cleanpathcmps(pathcmps)
             nobjs = len(pathcmps) - 1
             if nobjs > 0:
                 objects.update(pathcmps[:-1])
         return objects
 
 
-    def edge_with_label(self, attrnames_for_nodeids, color, constraint, direction, arrowsize, dot, 
+    def _edge_with_label(self, attrnames_for_nodeids, color, constraint, direction, arrowsize, dot, 
                         ltail=None, lhead=None):
         # Render attributes consumed/provided
         # Add space on the right side of the label. The graph becomes 
@@ -497,7 +497,7 @@ class HubitModel(object):
             raise HubitModelNoInputError()
 
         # Make a query runner
-        qrunner = QueryRunner(self, mpworkers)
+        qrunner = _QueryRunner(self, mpworkers)
 
         if validate:
             _get(qrunner, querystrings, self.flat_input, dryrun=True)
@@ -510,7 +510,7 @@ class HubitModel(object):
         Run the query using a dummy calculation to see that all required 
         input and results are available
         """
-        qrunner = QueryRunner(self, mpworkers)
+        qrunner = _QueryRunner(self, mpworkers)
         _get(qrunner, querystrings, self.flat_input, dryrun=True)
         return qrunner.workers
 
@@ -539,7 +539,7 @@ class HubitModel(object):
             _flat_input = copy.deepcopy(flat_input)
             for key, val in zip(pkeys, pvalues):
                 _flat_input[key] = val
-            qrun = QueryRunner(self, mpworkers=False)
+            qrun = _QueryRunner(self, mpworkers=False)
             args.append( (qrun, querystrings, _flat_input) )
             inps.append(_flat_input)
 
@@ -570,12 +570,12 @@ class HubitModel(object):
         return responses, inps
 
 
-    def plot(self, inps, responses):
-        """
-        TODO: implement parallel coordinates plot
-        https://stackoverflow.com/questions/8230638/parallel-coordinates-plot-in-matplotlib
-        """
-        pass
+    # def plot(self, inps, responses):
+    #     """
+    #     TODO: implement parallel coordinates plot
+    #     https://stackoverflow.com/questions/8230638/parallel-coordinates-plot-in-matplotlib
+    #     """
+    #     pass
 
 
     def validate(self):
@@ -595,9 +595,17 @@ class HubitModel(object):
                     raise BaseException(fstr.format(pstring, compname, compname_for_pstring[pstring]))
 
 
-class QueryRunner(object):
+class _QueryRunner(object):
 
     def __init__(self, model, mpworkers):
+        """Internal class managing workers. Is in a model, the query runner 
+        is responsible for deploying and book keeping workers acording 
+        to a query specified to the model.
+
+        Args:
+            model (HubitModel): The model to manage
+            mpworkers (bool): Flag indicating if multi-processing should be used
+        """
         self.model = model
         self.mpworkers = mpworkers 
         self.workers = []
@@ -665,7 +673,7 @@ class QueryRunner(object):
         # Get the provider function for the query
         cname = components[0]
         cfgdata = self.model.component_for_name[cname]
-        func, version = QueryRunner.get_func(cname, cfgdata)
+        func, version = _QueryRunner.get_func(cname, cfgdata)
 
         # Create and return worker
         try:

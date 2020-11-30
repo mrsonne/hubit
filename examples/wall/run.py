@@ -1,7 +1,7 @@
 import yaml
 import os
 from itertools import product
-from hubit.model import HubitModel
+from hubit.model import HubitModel, HubitModelQueryError
 THISPATH = os.path.dirname(os.path.abspath(__file__))
 TMPPATH = os.path.join(THISPATH, 'tmp')
 
@@ -22,10 +22,10 @@ with open(inputfile, "r") as stream:
 hmodel.set_input(input_data)
 
 # Validate model # TODO: passes even when the key in results_provided["k_therm"] is misspelled
-# hmodel.validate()
+hmodel.validate()
 
 # Render model
-# hmodel.render()
+hmodel.render()
 
 # Make the queries
 # querystrings = ["segments.0.layers.:.outer_temperature"] # ok
@@ -35,8 +35,16 @@ querystrings = ["segments.0.layers.0.outer_temperature"] # ok
 # querystrings = ["segments.0.layers.:.k_therm"] #ok 
 # querystrings = ["segments.:.layers.:.k_therm"] # ok
 
+
+# Query validation fails for at
+try:
+    hmodel.validate(["segments.0.layers.0.doesnt_exist"])
+except HubitModelQueryError as err:
+    print(err)
+    # raise err
+
 # Render the query
-# hmodel.render(querystrings)
+hmodel.render(querystrings)
 
 # Execute components using multiprocessing
 # TODO: mpworkers = True fails to import thermal_conductivity

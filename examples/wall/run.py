@@ -11,7 +11,7 @@ modelfile = os.path.join(THISPATH, model_file)
 modelname = 'mypipe'
 hmodel = HubitModel.from_file(modelfile,
                               name=modelname,
-                              odir=TMPPATH)
+                              output_path=TMPPATH)
 
 # Load the input
 inputfile = os.path.join(THISPATH, "input.yml")

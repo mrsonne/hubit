@@ -31,7 +31,10 @@ def callback(x):
     print('WELCOME BACK! WELCOME BACK! WELCOME BACK! WELCOME BACK!')
 
 
-def compress_response(response, querystrs_for_querystr, ilocstr=":", sepstr="."):
+def _compress_response(response,
+                       querystrs_for_querystr,
+                       ilocstr=":",
+                       sepstr="."):
     """
     Compress the response to reflect queries with iloc wildcards
     """
@@ -61,18 +64,27 @@ def compress_response(response, querystrs_for_querystr, ilocstr=":", sepstr=".")
     return _response
 
 
-def get_star(args):   
+def _get_star(args):   
     """
+    Trick to allow map_async using a list of args.
+
     https://stackoverflow.com/questions/5442910/python-multiprocessing-pool-map-for-multiple-arguments
     Convert `f([1,2])` to `f(1,2)` call.
     """
-    return get(*args)
+    return _get(*args)
 
 
-def get(queryrunner, querystrings, flat_input,
-        dryrun=False, expand_iloc=False):
+def _get(queryrunner,
+         querystrings,
+         flat_input,
+         dryrun=False,
+         expand_iloc=False):
     """
-    all_input is a flat dictionary with path strings as keys
+    With the 'queryrunner' object deploy the queries
+    in 'querystrings'.
+
+    If dryrun=True the workers will generate dummy results. Usefull
+    to validate s query.
     """
     # Reset book keeping data
     queryrunner.workers = []
@@ -124,7 +136,7 @@ def get(queryrunner, querystrings, flat_input,
         response = {query:all_results[query] for query in _querystrings}
 
         if not expand_iloc:
-            response = compress_response(response, querystrs_for_querystr)
+            response = _compress_response(response, querystrs_for_querystr)
 
 
         # print([(key, [obj.idstr() for obj in objs]) for key, objs in self.observers_for_query.items()])
@@ -154,30 +166,51 @@ class HubitModel(object):
 
 
     @classmethod
-    def from_file(cls, filepath, odir='./', name=None):
-        with open(filepath, "r") as stream:
+    def from_file(cls,
+                  model_file_path,
+                  output_path='./',
+                  name=None):
+        """Creates a model from file
+
+        Args:
+            model_file_path ([str]): The location of the model file
+            output_path (str, optional): Path where results should be saved. Defaults to './'.
+            name ([str], optional): Model name. Defaults to None.
+
+        Returns:
+            [HubitModel]: Hubit model object as defined in the specified model file
+        """
+        with open(model_file_path, "r") as stream:
             components = yaml.load(stream)
 
-        path = os.path.split(filepath)[0]
+        path = os.path.split(model_file_path)[0]
         # path = os.path.abspath(os.path.join(THISPATH, path))
         for component in components:
-            component["path"] = os.path.abspath(os.path.join(path, component["path"]))
-            # print val["path"]
+            component["path"] = os.path.abspath(os.path.join(path,
+                                                             component["path"]))
 
-        return cls(components, name=name, odir=odir)
+        return cls(components, name=name, odir=output_path)
     
     
-    def set_input(self, inputdata):
+    def set_input(self, input_data):
         """
-        Set the original hierarchical input and the corresponding flat input
+        Set the (hierarchical) input on the model
+
+        Args:
+            input_data ([Dict]): Input data typically in a dict-like format
+
+        Returns:
+            [HubitModel]: Hubit model with input set
         """
-        self.inputdata = inputdata
-        self.flat_input = flatten(inputdata)
+        self.inputdata = input_data
+        self.flat_input = flatten(input_data)
         self._input_is_set = True
         return self
 
 
-    def render(self, querystrings=None, fileidstr=None):
+    def render(self,
+               querystrings=None,
+               fileidstr=None):
         """
         Renders model if querystrings is  not provided. If 
         querystrings are provided the query is rendered 
@@ -461,9 +494,9 @@ class HubitModel(object):
         qrunner = QueryRunner(self, mpworkers)
 
         if validate:
-            get(qrunner, querystrings, self.flat_input, dryrun=True)
+            _get(qrunner, querystrings, self.flat_input, dryrun=True)
 
-        return get(qrunner, querystrings, self.flat_input)
+        return _get(qrunner, querystrings, self.flat_input)
 
 
     def validate_query(self, querystrings, mpworkers=False):
@@ -472,7 +505,7 @@ class HubitModel(object):
         input and results are available
         """
         qrunner = QueryRunner(self, mpworkers)
-        get(qrunner, querystrings, self.flat_input, dryrun=True)
+        _get(qrunner, querystrings, self.flat_input, dryrun=True)
         return qrunner.workers
 
 
@@ -510,7 +543,7 @@ class HubitModel(object):
             _nproc = max(nproc, 1)
         pool = Pool(_nproc)
         # Results are ordered as input but only accessible after completion
-        results = pool.map_async(get_star, args, callback=callback)          
+        results = pool.map_async(_get_star, args, callback=callback)          
         pool.close()
         while len(active_children()) > 1:
             print('waiting')

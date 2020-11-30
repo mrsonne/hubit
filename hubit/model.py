@@ -267,7 +267,7 @@ class HubitModel(object):
             filename = 'query'
 
             direction = -1
-            workers = self.validate_query(querystrings, mpworkers=False)
+            workers = self._validate_query(querystrings, mpworkers=False)
             # with dot.subgraph() as s:
                 # s.attr(rank = 'same')
             dot.node("_Response", "Response", shape='box', color=resultscolor, fontcolor=resultscolor)

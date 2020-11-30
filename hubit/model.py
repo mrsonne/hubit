@@ -505,7 +505,18 @@ class HubitModel(object):
 
 
     def get(self, querystrings, mpworkers=False, validate=False):
-        """
+        """Generate respose corresponding to the 'querystrings'
+
+        Args:
+            querystrings ([List]): Queries
+            mpworkers (bool, optional): Flag indicating if the respose should be generated using (async) multiprocessing. Defaults to False.
+            validate (bool, optional): Flag indicating if the query should be validated prior to execution. Defaults to False.
+
+        Raises:
+            HubitModelNoInputError: If no input is set on the model
+
+        Returns:
+            [Dict]: The response
         """
         if not self._input_is_set:
             raise HubitModelNoInputError()

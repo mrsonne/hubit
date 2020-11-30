@@ -1,6 +1,8 @@
+from __future__ import print_function
 import unittest
-from hubit.model import HubitModel, QueryRunner
 import yaml
+
+from hubit.model import HubitModel, _QueryRunner
 
 yml_input = None
 model = None
@@ -108,7 +110,7 @@ class TestModel(unittest.TestCase):
         qstr = "segs.0.walls.temps"
         querystrings = [qstr]
         response = self.hmodel.get(querystrings, mpworkers=self.mpworkers, validate=True)
-        print response, response[qstr] == [1,2,3]
+        print(response, response[qstr] == [1,2,3])
 
 
     def test_get(self):
@@ -119,7 +121,7 @@ class TestModel(unittest.TestCase):
         querystrings = [qstr]
         self.hmodel.set_input(self.input_data)
         response = self.hmodel.get(querystrings, mpworkers=self.mpworkers, validate=True)
-        print response, response[qstr] == [1,2,3]
+        print(response, response[qstr] == [1,2,3])
 
 
     def test_iloc_wildcard(self):
@@ -149,7 +151,7 @@ class TestModel(unittest.TestCase):
         values = ((('pvdf', 'pa11'), ('xlpe', 'pa11'), ('pvdf', 'hdpe'), ('pa11', 'hdpe')), 
                   ([[0.008, 0.01], [0.01, 0.01], [0.012, 0.01]]))
         input_perturbations = dict(zip(paths, values))
-        print 'input_perturbations', input_perturbations
+        print('input_perturbations', input_perturbations)
 
         querystrings = ["segs.0.walls.temps"]
         res, inps = self.hmodel.get_many(querystrings,
@@ -158,9 +160,9 @@ class TestModel(unittest.TestCase):
 
 
         for i, r in zip(inps, res):
-            print i
-            print r
-            print
+            print(i)
+            print(r)
+            print('')
 
 
 class TestRunner(unittest.TestCase):

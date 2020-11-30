@@ -608,7 +608,8 @@ class HubitModel(object):
 
     def validate(self, querystrings=[]):
         """
-        Validate model or query. Validates the query if provided.
+        Validate a model or query. Will validate as a query if 
+        querystrings are provided.
         
         The model validation checks that there are 
             - not multiple components providing the same attribute

@@ -274,7 +274,7 @@ class HubitModel(object):
                 # TODO iloc wildcard
                 dummy_query = dummy_query.replace(":", "0")
                 dummy_input = None
-                func, version = _QueryRunner.get_func(cname, component_data)
+                func, version = _QueryRunner._get_func(cname, component_data)
                 workers.append(Worker(self, cname, component_data, 
                                       dummy_input, dummy_query,
                                       func, version, self.ilocstr))
@@ -615,7 +615,7 @@ class _QueryRunner(object):
         self.observers_for_query = {}
 
 
-    def components_for_query(self, querystring):
+    def _components_for_query(self, querystring):
         """
         Find names of components that can respond to the "query".
         """
@@ -628,7 +628,7 @@ class _QueryRunner(object):
 
 
     @staticmethod
-    def get_func(cname, cfgdata):
+    def _get_func(cname, cfgdata):
         """[summary]
 
         Args:
@@ -651,13 +651,13 @@ class _QueryRunner(object):
         return func, version
 
 
-    def worker_for_query(self, query, dryrun=False):
+    def _worker_for_query(self, query, dryrun=False):
         """
         Creates instance of the worker class that can respond to the query
         """
 
         # Get all components that provide data for the query
-        components = self.components_for_query(query)
+        components = self._components_for_query(query)
 
         if len(components) > 1:
             fstr = "Fatal error. Multiple providers for query '{}': {}"
@@ -673,7 +673,7 @@ class _QueryRunner(object):
         # Get the provider function for the query
         cname = components[0]
         cfgdata = self.model.component_for_name[cname]
-        func, version = _QueryRunner.get_func(cname, cfgdata)
+        func, version = _QueryRunner._get_func(cname, cfgdata)
 
         # Create and return worker
         try:
@@ -683,7 +683,7 @@ class _QueryRunner(object):
             return None
 
 
-    def transfer_input(self, input_paths, worker, inputdata, all_input):
+    def _transfer_input(self, input_paths, worker, inputdata, all_input):
         """
         Transfer required input from all input to extracted input
         """
@@ -704,7 +704,7 @@ class _QueryRunner(object):
 
             # Figure out which component can provide a response to the query
             # and get the corresponding worker
-            worker = self.worker_for_query(querystring, dryrun=dryrun)
+            worker = self._worker_for_query(querystring, dryrun=dryrun)
             # if worker is None: return False
 
             # Check that another query did not already request this worker
@@ -716,7 +716,7 @@ class _QueryRunner(object):
             # paths (queries) are returned 
             input_paths_missing, querystrings_next = worker.set_values(extracted_input, all_results)
 
-            self.transfer_input(input_paths_missing, worker, extracted_input, all_input)
+            self._transfer_input(input_paths_missing, worker, extracted_input, all_input)
 
             querystrings_next = [qstrexp 
                                  for qstr in querystrings_next

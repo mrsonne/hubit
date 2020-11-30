@@ -209,14 +209,21 @@ class HubitModel(object):
 
 
     def render(self,
-               querystrings=None,
-               fileidstr=None):
+               querystrings=[],
+               file_idstr=''):
+        """ Renders graph representing the model or the query. 
+        If 'querystrings' is not provided (or is empty) the model 
+        is rendered while the query is rendered if 'querystrings' 
+        are provided. Rendering the query requires the input data 
+        has been set. 
+
+        Args:
+            querystrings (List, optional): Query items. Defaults to [].
+            file_idstr (str, optional): Identifier appended to the 
+            image file name.
         """
-        Renders model if querystrings is  not provided. If 
-        querystrings are provided the query is rendered 
-        instead. Rendering the query requires the self.inputdata 
-        has been set 
-        """
+
+
         try:
             from graphviz import Digraph
         except ImportError as err:
@@ -242,10 +249,9 @@ class HubitModel(object):
 
 
 
-        if querystrings is not None:
-            if self.inputdata is None:
-                raise NameError("""HubitModel inputdata not defined.
-                                Set inputdata using the set_input method""")
+        if len(querystrings) > 0:
+            if not self._input_is_set:
+                raise HubitModelNoInputError()
 
             isquery = True
             filename = 'query'
@@ -276,8 +282,8 @@ class HubitModel(object):
         if self.name is not None:
             filename = '{}_{}'.format(filename, self.name.lower().replace(' ','_'))
 
-        if fileidstr is not None:
-            filename = '{}_{}'.format(filename, fileidstr)
+        if not file_idstr == '':
+            filename = '{}_{}'.format(filename, file_idstr)
 
         # Component nodes
         with dot.subgraph() as s:

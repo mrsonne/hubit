@@ -66,9 +66,7 @@ if __name__ == '__main__': # Required on windows if mpworkers = True
 
 
     # responses, inps = hmodel.get_many(querystrings,
-    #                                   input_data,
     #                                   input_values_for_path,
-    #                                   plot=False,
     #                                   nproc=4)
 
     # for inp, response in zip(inps, responses):

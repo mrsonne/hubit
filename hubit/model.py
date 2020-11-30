@@ -232,7 +232,7 @@ class HubitModel(object):
         has been set. 
 
         Args:
-            querystrings (List, optional): Query items. Defaults to [].
+            querystrings (List, optional): Query path items. Defaults to [].
             file_idstr (str, optional): Identifier appended to the 
             image file name.
         """
@@ -554,28 +554,39 @@ class HubitModel(object):
 
 
 
-    def get_many(self, querystrings, all_input,
-                 input_perturbations, nproc=None, plot=False):
-        """
-        *On windows calling get_many should be guarded by 
+    def get_many(self, querystrings, input_values_for_path,
+                 nproc=None):
+        """Will perform a full factorial sampling of the  
+        input points specified in 'input_values_for_path'. 
+
+        Note that on windows calling get_many should be guarded by 
         if __name__ == '__main__':
+
+        Args:
+            querystrings ([List]): Query path items
+            input_values_for_path ([Dict]): Dictionary with keys representing path items. The corresponding values should be an iterable with elements representing discrete values for the attribute at the path.
+            nproc (int, optional): Number of processors to use. Defaults to None. If not specified a suitable default is used.
+
+        Raises:
+            HubitModelNoInputError: [description]
+
+        Returns:
+            Tuple: 2-tuple with a list of responses in the element 0 and a list of the 
+            corresponding inputs in element 1
         """
         if not self._input_is_set:
             raise HubitModelNoInputError()
 
         tstart = time.time()
 
-        # TODO: use self.flat_input
-        flat_input = flatten(all_input)
-
         # form all combinations
-        pkeys, pvalues = zip(*input_perturbations.items())
+        pkeys, pvalues = zip(*input_values_for_path.items())
         ppvalues = list(itertools.product(*pvalues))
         
         args = []
         inps = []
         for pvalues in ppvalues:
-            _flat_input = copy.deepcopy(flat_input)
+            _flat_input = copy.deepcopy(self.flat_input)
             for key, val in zip(pkeys, pvalues):
                 _flat_input[key] = val
             qrun = _QueryRunner(self, mpworkers=False)
@@ -583,7 +594,7 @@ class HubitModel(object):
             inps.append(_flat_input)
 
         if nproc is None:
-            _nproc = min(len(input_perturbations), cpu_count())
+            _nproc = min(len(input_values_for_path), cpu_count())
         else:
             _nproc = max(nproc, 1)
         pool = Pool(_nproc)
@@ -602,9 +613,6 @@ class HubitModel(object):
         # responses = [result.get(timeout=99999) for result in multiple_results]
 
         print('Queries processed in {} s'.format(time.time() - tstart))
-
-        if plot:
-            self.plot(inps, responses)
 
         return responses, inps
 
@@ -630,7 +638,7 @@ class HubitModel(object):
             - all required results are provided 
 
         Args:
-            querystrings (List, optional): Query items. Defaults to [].
+            querystrings (List, optional): Query path items. Defaults to [].
 
         Returns:
             None

@@ -36,6 +36,10 @@ class HubitModelValidationError(Exception):
         return(self.message)
 
 
+class HubitModelQueryError(Exception):
+    pass
+
+
 def callback(x):
     # Callback
     print('WELCOME BACK! WELCOME BACK! WELCOME BACK! WELCOME BACK!')
@@ -515,7 +519,7 @@ class HubitModel(object):
         return _get(qrunner, querystrings, self.flat_input)
 
 
-    def validate_query(self, querystrings, mpworkers=False):
+    def _validate_query(self, querystrings, mpworkers=False):
         """
         Run the query using a dummy calculation to see that all required 
         input and results are available
@@ -523,6 +527,20 @@ class HubitModel(object):
         qrunner = _QueryRunner(self, mpworkers)
         _get(qrunner, querystrings, self.flat_input, dryrun=True)
         return qrunner.workers
+
+
+    def _validate_model(self):
+        compname_for_pstring = {}
+        for compdata in self.cfg:
+            compname = compdata['func_name']
+            for _, pstring in compdata["provides"].items():
+                if not pstring in compname_for_pstring:
+                    compname_for_pstring[pstring] = compname
+                else:
+                    raise HubitModelValidationError( pstring,
+                                                    compname,
+                                                    compname_for_pstring )
+
 
 
     def get_many(self, querystrings, all_input,
@@ -588,23 +606,31 @@ class HubitModel(object):
     #     pass
 
 
-    def validate(self):
+    def validate(self, querystrings=[]):
         """
-        Validate the model. Checks that there are 
+        Validate model or query. Validates the query if provided.
+        
+        The model validation checks that there are 
             - not multiple components providing the same attribute
+
+        The query validation checks that
+            - all required input are available 
+            - all required results are provided 
+
+        Args:
+            querystrings (List, optional): Query items. Defaults to [].
+
+        Returns:
+            None
 
         TODO: check for circular references
         """
-        compname_for_pstring = {}
-        for compdata in self.cfg:
-            compname = compdata['func_name']
-            for _, pstring in compdata["provides"].items():
-                if not pstring in compname_for_pstring:
-                    compname_for_pstring[pstring] = compname
-                else:
-                    raise HubitModelValidationError( pstring,
-                                                     compname,
-                                                     compname_for_pstring )
+        if len(querystrings) > 0:
+            if not self._input_is_set:
+                raise HubitModelNoInputError()
+            self._validate_query(querystrings, mpworkers=False)
+        else:
+            self._validate_model()
 
 
 class _QueryRunner(object):
@@ -674,12 +700,12 @@ class _QueryRunner(object):
         if len(components) > 1:
             fstr = "Fatal error. Multiple providers for query '{}': {}"
             msg = fstr.format(query, [wcls.name for wcls in components])
-            raise KeyError(msg)
+            raise HubitModelQueryError(msg)
 
         if len(components) == 0:
             fstr = "Fatal error. No provider for query '{}'."
             msg = fstr.format(query)
-            raise KeyError(msg)
+            raise HubitModelQueryError(msg)
 
 
         # Get the provider function for the query

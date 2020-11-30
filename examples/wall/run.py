@@ -1,7 +1,7 @@
 import yaml
 import os
 from itertools import product
-from hubit.model import HubitModel, QueryRunner
+from hubit.model import HubitModel
 THISPATH = os.path.dirname(os.path.abspath(__file__))
 TMPPATH = os.path.join(THISPATH, 'tmp')
 

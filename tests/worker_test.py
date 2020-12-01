@@ -1,6 +1,8 @@
+from __future__ import print_function
 import unittest
-from hubit import worker, shared
 import pprint
+
+from hubit import worker, shared
 
 class DummyModel(object):
 

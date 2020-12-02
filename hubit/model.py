@@ -18,26 +18,35 @@ from multiprocessing import Pool, TimeoutError, cpu_count, active_children
 POLLTIME = 0.1
 THISPATH = os.path.dirname(os.path.abspath(__file__))
 
-class HubitModelNoInputError(Exception):
+class HubitError(Exception):
+    pass
+
+
+class HubitModelNoInputError(HubitError):
     def __init__(self):
         self.message = 'No input set on the model instance. Set input using the set_input() method'
 
     def __str__(self): 
-        return(self.message)
+        return self.message
 
 
 
-class HubitModelValidationError(Exception):
+class HubitModelValidationError(HubitError):
     def __init__(self, pstring, compname, compname_for_pstring):
         fstr = '"{}" on component "{}" also provided by component "{}"'
         self.message = fstr.format(pstring, compname, compname_for_pstring[pstring])
 
     def __str__(self): 
-        return(self.message)
+        return self.message
 
 
-class HubitModelQueryError(Exception):
-    pass
+class HubitModelQueryError(HubitError):
+    def __init__(self, message):
+        self.message = message
+
+    def __str__(self): 
+        return self.message
+    
 
 
 def callback(x):

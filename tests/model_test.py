@@ -2,7 +2,9 @@ from __future__ import print_function
 import unittest
 import yaml
 
-from hubit.model import HubitModel, _QueryRunner, HubitModelNoInputError
+from hubit.model import (HubitModel, 
+                         HubitModelNoInputError,
+                         HubitModelQueryError)
 
 yml_input = None
 model = None
@@ -16,22 +18,22 @@ def setUpModule():
         model = """
         - 
             func_name: fun
-            # Path from project root
+            # Path from project root. TODO: make relative to model file
             path: ./tests/components/comp1.py 
             provides: {"comp1_results": "list._IDX.some_attr.two_x_numbers"}
             consumes:
                 input: 
                     numbers_consumed_by_comp1: list._IDX.some_attr.numbers
-        -
-            func_name: fun
-            path: ./tests/components/comp2.py
-            provides:
-                temperatures: list._IDX.some_attr.two_x_numbers_x_factor
-            consumes:
-                input: 
-                    factors: list._IDX.some_attr.factors
-                results: 
-                    numbers_provided_by_comp1: list._IDX.some_attr.two_x_numbers
+        # -
+        #     func_name: fun
+        #     path: ./tests/components/comp2.py
+        #     provides:
+        #         temperatures: list._IDX.some_attr.two_x_numbers_x_factor
+        #     consumes:
+        #         input: 
+        #             factors: list._IDX.some_attr.factors
+        #         results: 
+        #             numbers_provided_by_comp1: list._IDX.some_attr.two_x_numbers
         """
 
         yml_input = """
@@ -60,12 +62,12 @@ class TestModel(unittest.TestCase):
         """
         Model validation
         """
-        self.hmodel.validate()
+        self.assertTrue(self.hmodel.validate())
 
 
     def test_render_model(self):
         """
-        Render the whole model
+        Test that rendering the model does not raise an exception
         """
         self.hmodel.render()
 
@@ -89,25 +91,36 @@ class TestModel(unittest.TestCase):
     #     self.hmodel.render( querystrings )
 
 
-    def test_get_fail(self):
+    def test_get_fail_no_input(self):
         """
         Simple request with no input. Fails
         """
-        querystrings = ["list.1.some_attr.2_x_numbers"]
+        querystrings = ["list.1.some_attr.two_x_numbers"]
         with self.assertRaises(HubitModelNoInputError) as context:
             response = self.hmodel.get(querystrings,
                                        mpworkers=self.mpworkers)
 
 
-#     def test_get(self):
-#         """
-#         Simple request
-#         """
-#         qstr = "segs.0.walls.temps"
-#         querystrings = [qstr]
-#         # self.hmodel.set_input(self.input_data)
-#         response = self.hmodel.get(querystrings, mpworkers=self.mpworkers, validate=True)
-#         print(response, response[qstr] == [1,2,3])
+    def test_get_fail_query_error(self):
+        """
+        Simple request with no input. Fails
+        """
+        self.hmodel.set_input(self.input)
+        querystrings = ["list.1.some_attr.i_dont_exist"]
+        with self.assertRaises(HubitModelQueryError) as context:
+            self.hmodel.get(querystrings, mpworkers=self.mpworkers)
+
+
+    def test_get(self):
+        """
+        Simple request
+        """
+        self.hmodel.set_input(self.input)
+        querystring = "list.1.some_attr.two_x_numbers"
+        querystrings = [querystring]
+        response = self.hmodel.get(querystrings, mpworkers=self.mpworkers, validate=True)
+        expected_result = [2*x for x in self.input["list"][1]["some_attr"]["numbers"]]
+        self.assertSequenceEqual(response[querystring], expected_result)
 
 
 #     def test_iloc_wildcard(self):

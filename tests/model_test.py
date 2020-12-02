@@ -53,7 +53,9 @@ class TestModel(unittest.TestCase):
     def setUp(self):
         modelname = 'Test model'
         model_data = yaml.load(model)
-        self.hmodel = HubitModel(model_data, name=modelname)
+        self.hmodel = HubitModel(model_data,
+                                 name=modelname,
+                                 output_path='./tmp')
         self.input = yaml.load(yml_input)
         self.mpworkers = False
 

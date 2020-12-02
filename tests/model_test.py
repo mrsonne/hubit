@@ -56,7 +56,9 @@ class TestModel(unittest.TestCase):
         self.hmodel = HubitModel(model_data, name=modelname)
         self.input = yaml.load(yml_input)
         self.mpworkers = False
-        self.querystr1 = "list.1.some_attr.two_x_numbers"
+
+        # Query which does not consume results
+        self.querystr_level0 = "list.1.some_attr.two_x_numbers"
 
 
     def test_validate(self):
@@ -88,7 +90,7 @@ class TestModel(unittest.TestCase):
     #     Render the query
     #     """
     #     self.hmodel.set_input( self.input )
-    #     querystrings = [self.querystr1]
+    #     querystrings = [self.querystr_level0]
     #     self.hmodel.render( querystrings )
 
 
@@ -96,7 +98,7 @@ class TestModel(unittest.TestCase):
         """
         Simple request with no input. Fails
         """
-        querystrings = [self.querystr1]
+        querystrings = [self.querystr_level0]
         with self.assertRaises(HubitModelNoInputError) as context:
             response = self.hmodel.get(querystrings,
                                        mpworkers=self.mpworkers)
@@ -117,10 +119,10 @@ class TestModel(unittest.TestCase):
         Simple request
         """
         self.hmodel.set_input(self.input)
-        querystrings = [self.querystr1]
+        querystrings = [self.querystr_level0]
         response = self.hmodel.get(querystrings, mpworkers=self.mpworkers, validate=True)
         expected_result = [2*x for x in self.input["list"][1]["some_attr"]["numbers"]]
-        self.assertSequenceEqual(response[self.querystr1], expected_result)
+        self.assertSequenceEqual(response[self.querystr_level0], expected_result)
 
 
 #     def test_iloc_wildcard(self):

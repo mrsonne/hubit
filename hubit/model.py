@@ -145,13 +145,13 @@ def _get(queryrunner,
         while watcher.is_alive():
             watcher.join(timeout=1.)
         # TODO: compress query
-    except (BaseException, KeyboardInterrupt) as err:
+    except (Exception, KeyboardInterrupt) as err:
         traceback.print_exc()
         print(err)
         shutdown_event.set()
         didfail = True
     
-
+    # Join thread
     if watcher.is_alive():
         watcher.join()
 
@@ -170,6 +170,9 @@ def _get(queryrunner,
 
         print('Response created in {} s'.format(time.time() - tstart))
         return response
+    else:
+        # Re-raise if failed
+        raise err
 
 
 class HubitModel(object):

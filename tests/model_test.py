@@ -87,13 +87,13 @@ class TestModel(unittest.TestCase):
             self.hmodel.render(querystrings)
 
 
-    # def test_render_query(self):
-    #     """
-    #     Render the query
-    #     """
-    #     self.hmodel.set_input( self.input )
-    #     querystrings = [self.querystr_level0]
-    #     self.hmodel.render( querystrings )
+    def test_render_query(self):
+        """
+        Render the query
+        """
+        self.hmodel.set_input( self.input )
+        querystrings = [self.querystr_level0]
+        self.hmodel.render( querystrings )
 
 
     def test_get_fail_no_input(self):

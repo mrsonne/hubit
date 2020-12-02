@@ -525,7 +525,7 @@ class HubitModel(object):
         """Generate respose corresponding to the 'querystrings'
 
         Args:
-            querystrings ([List]): Queries
+            querystrings ([List]): Query path items
             mpworkers (bool, optional): Flag indicating if the respose should be generated using (async) multiprocessing. Defaults to False.
             validate (bool, optional): Flag indicating if the query should be validated prior to execution. Defaults to False.
 

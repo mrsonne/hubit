@@ -67,7 +67,11 @@ class TestModel(unittest.TestCase):
         self.querystr_level1 = "list.1.some_attr.two_x_numbers_x_factor"
 
         self.querystr_level0_slice = "list.:.some_attr.two_x_numbers"
+        tmp = [2*x for x in self.input["list"][0]["some_attr"]["numbers"]]
+        self.expected_result_level0_slice = [tmp, self.expected_result_level0]
+
         self.querystr_level0_last = "list.-1.some_attr.two_x_numbers"
+
 
     def test_validate(self):
         """
@@ -173,7 +177,9 @@ class TestModel(unittest.TestCase):
         response = self.hmodel.get(querystrings,
                                    mpworkers=self.mpworkers,
                                    validate=True)
-        print(response)
+
+        self.assertSequenceEqual(response[self.querystr_level0_slice], 
+                                 self.expected_result_level0_slice)
 
 
     def test_get_last(self):

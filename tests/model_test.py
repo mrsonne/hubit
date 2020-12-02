@@ -52,6 +52,14 @@ def level0_results_at_idx(input, idx):
     return [fact*x for x in input["list"][idx]["some_attr"]["numbers"]]
 
 
+def level1_results_at_idx(input, idx):
+    level0_fact = 2.
+    return [level0_fact*level1_fact*number
+            for number, level1_fact 
+            in zip(input["list"][idx]["some_attr"]["numbers"],
+                   input["list"][idx]["some_attr"]["factors"])]
+
+
 class TestModel(unittest.TestCase):
 
     def setUp(self):
@@ -161,15 +169,28 @@ class TestModel(unittest.TestCase):
             self.hmodel.get(querystrings, mpworkers=self.mpworkers)
 
 
-    def test_get(self):
+    def test_get_level0(self):
         """
-        Simple request
+        Level 0 query (no dependencies)
         """
         self.hmodel.set_input(self.input)
         querystrings = [self.querystr_level0]
         response = self.hmodel.get(querystrings, mpworkers=self.mpworkers, validate=True)
         self.assertSequenceEqual(response[self.querystr_level0], 
                                  self.expected_result_level0)
+
+
+    def test_get_level1(self):
+        """
+        Level 1 query (one dependency)
+        """
+        self.hmodel.set_input(self.input)
+        querystrings = [self.querystr_level1]
+        response = self.hmodel.get(querystrings,
+                                   mpworkers=self.mpworkers,
+                                   validate=True)
+        self.assertSequenceEqual(response[self.querystr_level1],
+                                 level1_results_at_idx(self.input, 1))
 
 
     def test_get_slice(self):

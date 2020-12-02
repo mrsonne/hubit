@@ -177,15 +177,20 @@ def _get(queryrunner,
 
 class HubitModel(object):
 
-    def __init__(self, cfg, odir='./', name=None):
+    def __init__(self, cfg, output_path='./', name=None):
 
         self.ilocstr = "_IDX"
         self.module_for_clsname = {}
         self.cfg = cfg
+        fnames = [component['func_name'] for component in cfg]
+
+        if not len(fnames) == len( set(fnames) ): 
+            raise HubitError('Component function names must be unique')
+
         self.component_for_name = {component['func_name']: component 
                                    for component in cfg}
         self.name = name
-        self.odir = odir
+        self.odir = output_path
         self.inputdata = None
         self.flat_input = None
         self._input_is_set = False

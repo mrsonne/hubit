@@ -220,7 +220,7 @@ class HubitModel(object):
             component["path"] = os.path.abspath(os.path.join(path,
                                                              component["path"]))
 
-        return cls(components, name=name, odir=output_path)
+        return cls(components, name=name, output_path=output_path)
     
     
     def set_input(self, input_data):

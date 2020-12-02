@@ -1,5 +1,7 @@
 from __future__ import print_function
 import unittest
+import os
+# import pathlib # TODO: py3
 import yaml
 
 from hubit.model import (HubitModel, 
@@ -9,6 +11,12 @@ from hubit.shared import inflate
 
 yml_input = None
 model = None
+
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+TMP_DIR = os.path.join(THIS_DIR, 'tmp')
+# pathlib.Path(TMP_DIR).mkdir(parents=True, exist_ok=True) # TODO: py3
+if not os.path.exists(TMP_DIR):
+    os.makedirs(TMP_DIR)
 
 def setUpModule():
         global yml_input
@@ -64,7 +72,7 @@ class TestModel(unittest.TestCase):
 
     def setUp(self):
         modelname = 'Test model'
-        model_data = yaml.load(model)
+        model_data = yaml.load(model) #, Loader=yaml.FullLoader)
         self.hmodel = HubitModel(model_data,
                                  name=modelname,
                                  output_path='./tmp')
@@ -83,6 +91,17 @@ class TestModel(unittest.TestCase):
                                              self.expected_result_level0]
 
         self.querystr_level0_last = "list.-1.some_attr.two_x_numbers"
+
+
+    def test_from_file(self):
+        """
+        Test if model can successfully be loaded from a file
+        """
+        fpath = os.path.join(TMP_DIR, 'model.yml')
+        with open(fpath, 'w') as handle:
+            yaml.dump(yaml.load(model), handle,
+                      default_flow_style=False)
+        hmodel = HubitModel.from_file(fpath)
 
 
     def test_validate(self):

@@ -172,26 +172,28 @@ class TestModel(unittest.TestCase):
         print(response)
 
 
-    # def test_get_last(self):
-    #     """
-    #     Query last list element
-    #     """
-    #     self.hmodel.set_input(self.input)
-    #     querystrings = [self.querystr_level0_last]
-    #     response = self.hmodel.get(querystrings,
-    #                                mpworkers=self.mpworkers,
-    #                                validate=True)
-    #     print(response)
+    def test_get_last(self):
+        """
+        Query last list element
+        """
+        self.skipTest('Broken')
+        self.hmodel.set_input(self.input)
+        querystrings = [self.querystr_level0_last]
+        response = self.hmodel.get(querystrings,
+                                   mpworkers=self.mpworkers)
+        self.assertSequenceEqual(response[self.querystr_level0], 
+                                 self.expected_result_level0)
 
 
 
-    # def test_get_all(self):
-    #     """
-    #     No query yiled all results
-    #     """
-    #     self.hmodel.set_input(self.input)
-    #     response = self.hmodel.get(mpworkers=self.mpworkers)
-    #     print(response)
+    def test_get_all(self):
+        """
+        No query yields all results
+        """
+        self.skipTest('Not implemented')
+        self.hmodel.set_input(self.input)
+        response = self.hmodel.get(mpworkers=self.mpworkers)
+        print(response)
 
 
 #     def test_sweep(self):

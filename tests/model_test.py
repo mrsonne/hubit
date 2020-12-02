@@ -46,6 +46,9 @@ def setUpModule():
                 factors: [4., 5.]
         """
 
+def level0_results_at_idx(input, idx):
+    fact = 2
+    return [fact*x for x in input["list"][idx]["some_attr"]["numbers"]]
 
 
 class TestModel(unittest.TestCase):
@@ -61,14 +64,14 @@ class TestModel(unittest.TestCase):
 
         # Query which does not consume results
         self.querystr_level0 = "list.1.some_attr.two_x_numbers"
-        self.expected_result_level0 = [2*x for x in self.input["list"][1]["some_attr"]["numbers"]]
+        self.expected_result_level0 = level0_results_at_idx(self.input, 1)
 
 
         self.querystr_level1 = "list.1.some_attr.two_x_numbers_x_factor"
 
         self.querystr_level0_slice = "list.:.some_attr.two_x_numbers"
-        tmp = [2*x for x in self.input["list"][0]["some_attr"]["numbers"]]
-        self.expected_result_level0_slice = [tmp, self.expected_result_level0]
+        self.expected_result_level0_slice = [level0_results_at_idx(self.input, 0),
+                                             self.expected_result_level0]
 
         self.querystr_level0_last = "list.-1.some_attr.two_x_numbers"
 

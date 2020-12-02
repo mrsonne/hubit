@@ -89,18 +89,22 @@ def list_from_shape(shape):
 def inflate(d, sep="."):
     """
     https://gist.github.com/fmder/494aaa2dd6f8c428cede
+    TODO: expands lists as dict... No functional importance but would be nice to fix
     """
     items = dict()
     for k, v in d.items():
         keys = k.split(sep)
         sub_items = items
         for ki in keys[:-1]:
+            _ki = int(ki) if ki.isdigit() else ki
             try:
-                sub_items = sub_items[ki]
+                sub_items = sub_items[_ki]
             except KeyError:
-                sub_items[ki] = dict()
-                sub_items = sub_items[ki]
-            
+                sub_items[_ki] = dict()
+                sub_items = sub_items[_ki]
+        
+        k_last = keys[-1]
+        k_last = int(k_last) if k_last.isdigit() else k_last
         sub_items[keys[-1]] = v
 
     return items

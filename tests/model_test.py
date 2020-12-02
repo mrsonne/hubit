@@ -17,23 +17,23 @@ def setUpModule():
         # This model collects wall data in a list on the end node
         model = """
         - 
-            func_name: fun
+            func_name: multiply_by_2
             # Path from project root. TODO: make relative to model file
             path: ./tests/components/comp1.py 
             provides: {"comp1_results": "list._IDX.some_attr.two_x_numbers"}
             consumes:
                 input: 
                     numbers_consumed_by_comp1: list._IDX.some_attr.numbers
-        # -
-        #     func_name: fun
-        #     path: ./tests/components/comp2.py
-        #     provides:
-        #         temperatures: list._IDX.some_attr.two_x_numbers_x_factor
-        #     consumes:
-        #         input: 
-        #             factors: list._IDX.some_attr.factors
-        #         results: 
-        #             numbers_provided_by_comp1: list._IDX.some_attr.two_x_numbers
+        -
+            func_name: multiply_by_factors
+            path: ./tests/components/comp2.py
+            provides:
+                temperatures: list._IDX.some_attr.two_x_numbers_x_factor
+            consumes:
+                input: 
+                    factors: list._IDX.some_attr.factors
+                results: 
+                    numbers_provided_by_comp1: list._IDX.some_attr.two_x_numbers
         """
 
         yml_input = """
@@ -56,6 +56,7 @@ class TestModel(unittest.TestCase):
         self.hmodel = HubitModel(model_data, name=modelname)
         self.input = yaml.load(yml_input)
         self.mpworkers = False
+        self.querystr1 = "list.1.some_attr.two_x_numbers"
 
 
     def test_validate(self):
@@ -87,7 +88,7 @@ class TestModel(unittest.TestCase):
     #     Render the query
     #     """
     #     self.hmodel.set_input( self.input )
-    #     querystrings = ["list.1.some_attr.two_x_numbers"]
+    #     querystrings = [self.querystr1]
     #     self.hmodel.render( querystrings )
 
 
@@ -95,7 +96,7 @@ class TestModel(unittest.TestCase):
         """
         Simple request with no input. Fails
         """
-        querystrings = ["list.1.some_attr.two_x_numbers"]
+        querystrings = [self.querystr1]
         with self.assertRaises(HubitModelNoInputError) as context:
             response = self.hmodel.get(querystrings,
                                        mpworkers=self.mpworkers)
@@ -116,11 +117,10 @@ class TestModel(unittest.TestCase):
         Simple request
         """
         self.hmodel.set_input(self.input)
-        querystring = "list.1.some_attr.two_x_numbers"
-        querystrings = [querystring]
+        querystrings = [self.querystr1]
         response = self.hmodel.get(querystrings, mpworkers=self.mpworkers, validate=True)
         expected_result = [2*x for x in self.input["list"][1]["some_attr"]["numbers"]]
-        self.assertSequenceEqual(response[querystring], expected_result)
+        self.assertSequenceEqual(response[self.querystr1], expected_result)
 
 
 #     def test_iloc_wildcard(self):

@@ -62,6 +62,7 @@ class TestModel(unittest.TestCase):
         # Query which does not consume results
         self.querystr_level0 = "list.1.some_attr.two_x_numbers"
 
+        self.querystr_level0_slice = "list.:.some_attr.two_x_numbers"
 
     def test_validate(self):
         """

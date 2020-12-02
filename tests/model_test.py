@@ -73,6 +73,36 @@ class TestModel(unittest.TestCase):
         self.assertTrue(self.hmodel.validate())
 
 
+    def test_validate_query_first_element(self):
+        """
+        Validate query for first list element
+        """
+        self.hmodel.set_input(self.input)
+        querystrings = [self.querystr_level0]
+        is_ok = self.hmodel.validate(querystrings)
+        self.assertTrue( is_ok )
+
+
+    def test_validate_query_all_elements(self):
+        """
+        Validate query for all list element
+        """
+        self.hmodel.set_input(self.input)
+        querystrings = [self.querystr_level0_slice]
+        is_ok = self.hmodel.validate(querystrings)
+        self.assertTrue( is_ok )
+
+
+    def test_validate_query_last_element(self):
+        """
+        Validate query for last list element
+        """
+        self.hmodel.set_input(self.input)
+        querystrings = [self.querystr_level0_last]
+        is_ok = self.hmodel.validate(querystrings)
+        print(is_ok)
+
+
     def test_render_model(self):
         """
         Test that rendering the model does not raise an exception

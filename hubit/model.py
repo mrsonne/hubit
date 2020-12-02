@@ -650,7 +650,7 @@ class HubitModel(object):
             querystrings (List, optional): Query path items. Defaults to [].
 
         Returns:
-            None
+            True if validation was successful
 
         TODO: check for circular references
         """
@@ -661,6 +661,7 @@ class HubitModel(object):
         else:
             self._validate_model()
 
+        return True
 
 class _QueryRunner(object):
 

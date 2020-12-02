@@ -5,6 +5,7 @@ import yaml
 from hubit.model import (HubitModel, 
                          HubitModelNoInputError,
                          HubitModelQueryError)
+from hubit.shared import inflate
 
 yml_input = None
 model = None
@@ -47,7 +48,7 @@ def setUpModule():
         """
 
 def level0_results_at_idx(input, idx):
-    fact = 2
+    fact = 2.
     return [fact*x for x in input["list"][idx]["some_attr"]["numbers"]]
 
 
@@ -209,29 +210,29 @@ class TestModel(unittest.TestCase):
         print(response)
 
 
-#     def test_sweep(self):
-#         """
-#         TODO: change model and input IL variations only involve IL i.e. something like
-#         segs.0.walls.0.material
-#         """
-#         paths = ('segs.0.walls.materials',
-#                  "segs.0.walls.thicknesses")
-#         values = ((('pvdf', 'pa11'), ('xlpe', 'pa11'), ('pvdf', 'hdpe'), ('pa11', 'hdpe')), 
-#                   ([[0.008, 0.01], [0.01, 0.01], [0.012, 0.01]]))
-#         input_perturbations = dict(zip(paths, values))
-#         print('input_perturbations', input_perturbations)
-
-#         querystrings = ["segs.0.walls.temps"]
-#         res, inps = self.hmodel.get_many(querystrings,
-#                                         #  self.input_data,
-#                                          input_perturbations)
+    def test_sweep(self):
+        """
+        Sweep input parameters
+        """
+        idx = 1
+        pathstr = "list.{}.some_attr.numbers".format(idx)
+        input_values_for_path = {pathstr: ([1., 2., 3.],
+                                           [4., 5., 6.]),
+                                }
+        self.hmodel.set_input(self.input)
+        querystrings = [self.querystr_level0]
+        responses, inps = self.hmodel.get_many(querystrings,
+                                               input_values_for_path)
 
 
-#         for i, r in zip(inps, res):
-#             print(i)
-#             print(r)
-#             print('')
-
+        expected_results = []
+        calc_responses = []
+        for flat_inp, response in zip(inps, responses):
+            inp = inflate(flat_inp)
+            expected_results.append( level0_results_at_idx( inp, idx ) )
+            calc_responses.append( response[self.querystr_level0] )
+        self.assertSequenceEqual(calc_responses,
+                                 expected_results)
 
 # class TestRunner(unittest.TestCase):
 

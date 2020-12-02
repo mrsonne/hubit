@@ -61,8 +61,10 @@ class TestModel(unittest.TestCase):
 
         # Query which does not consume results
         self.querystr_level0 = "list.1.some_attr.two_x_numbers"
+        self.querystr_level1 = "list.1.some_attr.two_x_numbers_x_factor"
 
         self.querystr_level0_slice = "list.:.some_attr.two_x_numbers"
+        self.querystr_level0_last = "list.-1.some_attr.two_x_numbers"
 
     def test_validate(self):
         """
@@ -128,24 +130,38 @@ class TestModel(unittest.TestCase):
         self.assertSequenceEqual(response[self.querystr_level0], expected_result)
 
 
-#     def test_iloc_wildcard(self):
-#         """
-#         Query all pipe segments
-#         TODO: use pipe with multiple segments 
-#         """
-#         querystrings = ["segs.:.walls.temps"]
-#         # self.hmodel.set_input(self.input_data)
-#         self.hmodel.get(querystrings,
-#                         # self.input_data,
-#                         mpworkers=self.mpworkers,
-#                         validate=True)
+    def test_get_slice(self):
+        """
+        Query all list element
+        """
+        self.hmodel.set_input(self.input)
+        querystrings = [self.querystr_level0_slice]
+        response = self.hmodel.get(querystrings,
+                                   mpworkers=self.mpworkers,
+                                   validate=True)
+        print(response)
 
 
-#     # def test_get_all(self):
-#     #     """
-#     #     Get all
-#     #     """
-#     #     self.hmodel.get(self.input_data, mpworkers=self.mpworkers)
+    # def test_get_last(self):
+    #     """
+    #     Query last list element
+    #     """
+    #     self.hmodel.set_input(self.input)
+    #     querystrings = [self.querystr_level0_last]
+    #     response = self.hmodel.get(querystrings,
+    #                                mpworkers=self.mpworkers,
+    #                                validate=True)
+    #     print(response)
+
+
+
+    # def test_get_all(self):
+    #     """
+    #     No query yiled all results
+    #     """
+    #     self.hmodel.set_input(self.input)
+    #     response = self.hmodel.get(mpworkers=self.mpworkers)
+    #     print(response)
 
 
 #     def test_sweep(self):

@@ -205,7 +205,7 @@ class HubitModel(object):
                                    for component in cfg}
         self.name = name
         self.base_path = base_path
-        self.odir = os.path.normpath(os.path.join(self.base_path, output_path ))
+        self.odir = os.path.normpath(os.path.join(self.base_path, output_path))
         self.inputdata = None
         self.flat_input = None
         self._input_is_set = False
@@ -219,7 +219,7 @@ class HubitModel(object):
         """Creates a model from file
 
         Args:
-            model_file_path (str): The location of the model file. The model base path will be set to the path of the model file.
+            model_file_path (str): The location of the model file. The model base path will be set to the path of the model file and consequently the model component 'path' attribute should be relative to the model file.
             output_path (str, optional): Path where results should be saved. Defaults to './'.
             name (str, optional): Model name. Defaults to None.
 
@@ -318,7 +318,7 @@ class HubitModel(object):
                 # TODO iloc wildcard
                 dummy_query = dummy_query.replace(":", "0")
                 dummy_input = None
-                func, version = _QueryRunner._get_func(cname, component_data)
+                func, version = _QueryRunner._get_func(self.base_path, cname, component_data)
                 workers.append(Worker(self, cname, component_data, 
                                       dummy_input, dummy_query,
                                       func, version, self.ilocstr))
@@ -717,10 +717,11 @@ class _QueryRunner(object):
 
 
     @staticmethod
-    def _get_func(cname, cfgdata):
+    def _get_func(base_path, cname, cfgdata):
         """[summary]
 
         Args:
+            base_path (str): Model base path
             cname (str): Component name
             cfgdata (dict): configuration data from the model definition file
 
@@ -728,6 +729,7 @@ class _QueryRunner(object):
             tuple: function handle and function version
         """
         path, filename = os.path.split(cfgdata["path"])
+        path = os.path.join(base_path, path)
         filename = os.path.splitext(filename)[0]
         path = os.path.abspath(path)
         f, _filename, description = imp.find_module(filename, [path])
@@ -762,12 +764,12 @@ class _QueryRunner(object):
         # Get the provider function for the query
         cname = components[0]
         cfgdata = self.model.component_for_name[cname]
-        func, version = _QueryRunner._get_func(cname, cfgdata)
+        func, version = _QueryRunner._get_func(self.model.base_path, cname, cfgdata)
 
         # Create and return worker
         try:
             return Worker(self, cname, cfgdata, self.model.inputdata, query, func, version, 
-                        self.model.ilocstr, multiprocess=self.mpworkers, dryrun=dryrun)
+                          self.model.ilocstr, multiprocess=self.mpworkers, dryrun=dryrun)
         except RuntimeError:
             return None
 

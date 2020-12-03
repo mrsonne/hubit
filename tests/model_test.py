@@ -28,15 +28,15 @@ def setUpModule():
         model = """
         - 
             func_name: multiply_by_2
-            # Path from project root. TODO: make relative to model file
-            path: ./tests/components/comp1.py 
+            # Path relative to base_path
+            path: ./components/comp1.py 
             provides: {"comp1_results": "list._IDX.some_attr.two_x_numbers"}
             consumes:
                 input: 
                     numbers_consumed_by_comp1: list._IDX.some_attr.numbers
         -
             func_name: multiply_by_factors
-            path: ./tests/components/comp2.py
+            path: ./components/comp2.py
             provides:
                 temperatures: list._IDX.some_attr.two_x_numbers_x_factor
             consumes:

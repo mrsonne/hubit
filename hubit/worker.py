@@ -4,8 +4,21 @@ import multiprocessing
 import itertools
 import copy
 import sys
-from shared import get_matches, get_indices, set_ilocs, traverse, list_from_shape
-from shared import reshape, get_from_datadict, pstr_shape, pstr_expand, get_nested_list
+from shared import (get_matches,
+                    get_indices,
+                    set_ilocs,
+                    traverse,
+                    list_from_shape,
+                    reshape,
+                    get_from_datadict,
+                    pstr_shape,
+                    pstr_expand,
+                    get_nested_list,
+                    HubitError)
+
+class HubitWorkerError(HubitError):
+    pass
+
 
 class Worker(object):
     """
@@ -141,7 +154,7 @@ class Worker(object):
                                                                                      querystring,
                                                                                      ilocstr)
         else:
-            sys.exit('No provider for component "{}"'.format(cname))
+            raise HubitWorkerError( 'No provider for Hubit model component "{}"'.format(cname) )
 
         self.resultspath_consumed_for_attrname = {}
         self.inputpath_consumed_for_attrname = {}

@@ -162,7 +162,7 @@ class TestWorker(unittest.TestCase):
                     }
         # pp = pprint.PrettyPrinter(indent=4)
         # pp.pprint(inputdata)
-        print inputdata
+        print(inputdata)
         # print len(shared.get_from_datadict(inputdata, ("items",)))
         querystring = 'items.0.attr.items.0.path1'        
 
@@ -177,38 +177,38 @@ class TestWorker(unittest.TestCase):
                           multiprocess=False,
                           dryrun=True)
 
-        print w
+        print(w)
 
         # Set current input (nothing)
         w.set_values(inputdata, {})
-        print w
+        print(w)
 
         # add input attribute. Input incomplete.
         w.set_consumed_input('some_number', 64.)
-        print w
+        print(w)
 
         # add input attribute. Input incomplete.
         w.set_consumed_input('items.1.attr.path', 17.)
-        print w
+        print(w)
 
         # add input attribute. Input complete, but still missing results
         w.set_consumed_input('items.0.attr.path', 21.)
-        print w
+        print(w)
 
         # add results attribute.
         w.set_consumed_result('value', 47.)
-        print w
+        print(w)
 
         # add results attribute.
         w.set_consumed_result('items.1.value', 71.)
-        print w
+        print(w)
 
         # add results attribute. Worker starts running
         w.set_consumed_result('items.0.value', 49.)
-        print w
+        print(w)
 
-        print w.results_ready()
-        print w.result_for_path()
+        print(w.results_ready())
+        print(w.result_for_path())
 
 
 if __name__ == '__main__':

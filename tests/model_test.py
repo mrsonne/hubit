@@ -293,7 +293,7 @@ def subscriptions_for_component_idx(model_data, model, comp_idx, iloc):
     """Get subscriptions from model
     """
     ilocstr = str(iloc)
-    
+
     consumes = []
     try:
         consumes.extend( list(model_data[comp_idx]["consumes"]["input"].values()) )
@@ -354,11 +354,16 @@ class TestRunner(unittest.TestCase):
 
         self.assertTrue(test_consumes and test_provides)
 
+
     def test_worker_comp2(self):
         """
         """
+        # Component index in model
+        comp_idx = 1
+        qstr = self.querystr_level1
+
         (worker_consumes,
-        worker_provides) = subscriptions_for_query(self.querystr_level1,
+        worker_provides) = subscriptions_for_query(qstr,
                                                    self.qr)
 
         # Component index in model
@@ -381,6 +386,7 @@ class TestRunner(unittest.TestCase):
         """
         with self.assertRaises(HubitModelQueryError) as context:
             self.qr._worker_for_query("i.dont.exist")
+
 
     if __name__ == '__main__':
         unittest.main()

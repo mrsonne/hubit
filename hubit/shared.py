@@ -7,6 +7,10 @@ import collections
 from functools import reduce
 from operator import getitem
 
+class HubitError(Exception):
+    pass
+
+
 class Container(object):
 
     def __init__(self, val):

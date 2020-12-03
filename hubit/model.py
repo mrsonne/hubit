@@ -12,14 +12,18 @@ import yaml
 from datetime import datetime
 from threading import Thread, Event
 from worker import Worker
-from shared import get_matches, flatten, expand_query, get_indices, get_nested_list, set_element
+from shared import (get_matches,
+                    flatten,
+                    expand_query,
+                    get_indices,
+                    get_nested_list,
+                    set_element,
+                    HubitError)
 from multiprocessing import Pool, TimeoutError, cpu_count, active_children
 
 POLLTIME = 0.1
 THISPATH = os.path.dirname(os.path.realpath(__file__))
 
-class HubitError(Exception):
-    pass
 
 
 class HubitModelNoInputError(HubitError):

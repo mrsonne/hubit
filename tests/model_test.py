@@ -317,8 +317,8 @@ class TestRunner(unittest.TestCase):
         provides_expected = provides_expected.replace(self.hmodel.ilocstr, str(self.idx))
 
         # Tests
-        test_consumes = len(consumes) == 1 and consumes[0] == consumes_expected
-        test_provides = len(provides) == 1 and provides[0] == provides_expected
+        test_consumes = len(consumes) == 1 and consumes_expected in consumes 
+        test_provides = len(provides) == 1 and provides_expected in provides
 
         self.assertTrue(test_consumes and test_provides)
 

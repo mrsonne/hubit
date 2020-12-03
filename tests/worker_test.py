@@ -2,7 +2,7 @@ from __future__ import print_function
 import unittest
 import pprint
 
-from hubit import worker, shared
+from hubit.worker import Worker, HubitWorkerError
 
 class DummyModel(object):
 
@@ -32,32 +32,32 @@ class TestWorker(unittest.TestCase):
         func = None
         version = None
         ilocstr = '_ILOC'
-        cfg = {'provides': {
+        inputdata = None
+        comp_data = {'provides': {
                             'attr1': 'shared.results.attr1.path',
                             'attr2': 'shared.results.attr2.path',
                            },
-               'consumes': {
+                      'consumes': {
                             'input' : {'attr':'shared.input.attr.path'}, 
                             'results' : {},
                            }
-              }
+                    }
 
-        inputdata = {'shared' : {"input": {"attr": {"path": 2}}}}
+        # inputdata = {'shared' : {"input": {"attr": {"path": 2}}}}
                     
         querystring = 'shared.attr.path'
-        with self.assertRaises(IndexError) as context:
-            w = worker.Worker(hmodel,
-                            cname,
-                            cfg,
-                            inputdata,
-                            querystring,
-                            func, 
-                            version,
-                            ilocstr,
-                            multiprocess=False,
-                            dryrun=True)
+        # with self.assertRaises(IndexError) as context:
+        w = Worker(hmodel,
+                   cname,
+                   comp_data,
+                   inputdata,
+                   querystring,
+                   func, 
+                   version,
+                   ilocstr,
+                   multiprocess=False,
+                   dryrun=True)
 
-        self.assertTrue('list index out of range' in str(context.exception))
 
 
     def test_2(self):
@@ -78,25 +78,22 @@ class TestWorker(unittest.TestCase):
                      'consumes': 
                        {
                         'input' : {'attr':'shared.input.attr.path'}, 
-                            'input' : {'attr':'shared.input.attr.path'}, 
-                        'input' : {'attr':'shared.input.attr.path'}, 
                         'results' : {},
                        }
                     }
 
         # Query something known to exist
         querystring = comp_data['provides'].values()[0]
-        w = worker.Worker(hmodel,
-                          cname,
-                          comp_data,
-                          inputdata,
-                          querystring,
-                          func, 
-                          version,
-                          ilocstr,
-                          multiprocess=False,
-                          dryrun=True)
-
+        w = Worker(hmodel,
+                   cname,
+                   comp_data,
+                   inputdata,
+                   querystring,
+                   func, 
+                   version,
+                   ilocstr,
+                   multiprocess=False,
+                   dryrun=True)
 
 
     def test_3(self):
@@ -104,33 +101,29 @@ class TestWorker(unittest.TestCase):
         Componet provides nothing => error
         """
         hmodel = None
-        cname = 'Test'
+        cname = 'Test component'
         func = None
         version = None
         ilocstr = '_ILOC'
         inputdata = None
-        cfg = {'consumes': {
-                            'input' : {'attr':'shared.input.attr.path'}, 
-                            'results' : {},
-                           }
-              }
+        cfg = {'consumes': {'input' : {'attr':'shared.input.attr.path'}, 
+                            'results' : {},}}
 
-        inputdata = None #{'shared' : {"input": {"attr": {"path": 2}}}}            
+        inputdata = None
         querystring = 'shared.results.attr1.path'
 
-        with self.assertRaises(SystemExit) as context:
-            w = worker.Worker(hmodel,
-                            cname,
-                            cfg,
-                            inputdata,
-                            querystring,
-                            func, 
-                            version,
-                            ilocstr,
-                            multiprocess=False,
-                            dryrun=True)
+        with self.assertRaises(HubitWorkerError) as context:
+            w = Worker(hmodel,
+                       cname,
+                       cfg,
+                       inputdata,
+                       querystring,
+                       func,
+                       version,
+                       ilocstr,
+                       multiprocess=False,
+                       dryrun=True)
 
-        self.assertTrue('No provider for component "{}"'.format(cname) in str(context.exception))
 
 
     def test_4(self):
@@ -168,16 +161,16 @@ class TestWorker(unittest.TestCase):
         # print len(shared.get_from_datadict(inputdata, ("items",)))
         querystring = 'items.0.attr.items.0.path1'        
 
-        w = worker.Worker(hmodel,
-                          cname,
-                          cfg,
-                          inputdata,
-                          querystring,
-                          func,
-                          version,
-                          ilocstr,
-                          multiprocess=False,
-                          dryrun=True)
+        w = Worker(hmodel,
+                   cname,
+                   cfg,
+                   inputdata,
+                   querystring,
+                   func,
+                   version,
+                   ilocstr,
+                   multiprocess=False,
+                   dryrun=True)
 
         print(w)
 

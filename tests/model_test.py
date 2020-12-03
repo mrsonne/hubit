@@ -299,18 +299,25 @@ class TestRunner(unittest.TestCase):
     def test_worker_comp1(self):
         """
         """
+        # Get the worker 
         w = self.qr._worker_for_query(self.querystr_level0)
-        consumes = w.inputpath_consumed_for_attrname.values() + w.resultspath_consumed_for_attrname.values()
+
+        # Get consumptions and provisions from the worker
+        consumes = w.inputpath_consumed_for_attrname.values() 
+        consumes += w.resultspath_consumed_for_attrname.values()
         provides = w.resultspath_provided_for_attrname.values()
 
         # Component index in model
         comp_idx = 0
+
+        # Extract expected paths directly from model (assume only one attribute consumed/provided)
         consumes_expected = self.model_data[comp_idx]["consumes"]["input"]["numbers_consumed_by_comp1"]
         consumes_expected = consumes_expected.replace(self.hmodel.ilocstr, str(self.idx))
-        test_consumes = len(consumes) == 1 and consumes[0] == consumes_expected
-
         provides_expected = self.model_data[comp_idx]["provides"]["comp1_results"]
         provides_expected = provides_expected.replace(self.hmodel.ilocstr, str(self.idx))
+
+        # Tests
+        test_consumes = len(consumes) == 1 and consumes[0] == consumes_expected
         test_provides = len(provides) == 1 and provides[0] == provides_expected
 
         self.assertTrue(test_consumes and test_provides)

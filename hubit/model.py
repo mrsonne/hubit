@@ -16,7 +16,7 @@ from shared import get_matches, flatten, expand_query, get_indices, get_nested_l
 from multiprocessing import Pool, TimeoutError, cpu_count, active_children
 
 POLLTIME = 0.1
-THISPATH = os.path.dirname(os.path.abspath(__file__))
+THISPATH = os.path.dirname(os.path.realpath(__file__))
 
 class HubitError(Exception):
     pass
@@ -177,20 +177,35 @@ def _get(queryrunner,
 
 class HubitModel(object):
 
-    def __init__(self, cfg, output_path='./', name=None):
+    def __init__(self, cfg, base_path=os.getcwd(), output_path='./', name='NA'):
+        """Initialize a Hubit model
+
+        Args:
+            cfg (Dict): Model configuration
+            base_path (str, optional): Base path for the model. Defaults to current working directory.
+            output_path (str, optional): Output path relative to base_path. Defaults to './'.
+            name (str, optional): Model name. Defaults to 'NA'.
+
+        Raises:
+            HubitError: [description]
+        """
+
+        if os.path.isabs(output_path):
+            raise HubitError('Output path should be relative')
 
         self.ilocstr = "_IDX"
         self.module_for_clsname = {}
         self.cfg = cfg
         fnames = [component['func_name'] for component in cfg]
 
-        if not len(fnames) == len( set(fnames) ): 
+        if not len(fnames) == len( set(fnames) ):
             raise HubitError('Component function names must be unique')
 
         self.component_for_name = {component['func_name']: component 
                                    for component in cfg}
         self.name = name
-        self.odir = output_path
+        self.base_path = base_path
+        self.odir = os.path.normpath(os.path.join(self.base_path, output_path ))
         self.inputdata = None
         self.flat_input = None
         self._input_is_set = False
@@ -204,7 +219,7 @@ class HubitModel(object):
         """Creates a model from file
 
         Args:
-            model_file_path (str): The location of the model file
+            model_file_path (str): The location of the model file. The model base path will be set to the path of the model file.
             output_path (str, optional): Path where results should be saved. Defaults to './'.
             name (str, optional): Model name. Defaults to None.
 
@@ -214,13 +229,11 @@ class HubitModel(object):
         with open(model_file_path, "r") as stream:
             components = yaml.load(stream) #, TODO: py3 Loader=yaml.FullLoader)
 
-        path = os.path.split(model_file_path)[0]
-        # path = os.path.abspath(os.path.join(THISPATH, path))
+        base_path = os.path.dirname(model_file_path)
         for component in components:
-            component["path"] = os.path.abspath(os.path.join(path,
+            component["path"] = os.path.abspath(os.path.join(base_path,
                                                              component["path"]))
-
-        return cls(components, name=name, output_path=output_path)
+        return cls(components, name=name, output_path=output_path, base_path=base_path)
     
     
     def set_input(self, input_data):

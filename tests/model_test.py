@@ -12,8 +12,9 @@ from hubit.shared import inflate
 yml_input = None
 model = None
 
-THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-TMP_DIR = os.path.join(THIS_DIR, 'tmp')
+THIS_DIR = os.path.dirname(os.path.realpath(__file__))
+REL_TMP_DIR = './tmp'
+TMP_DIR = os.path.join(THIS_DIR, REL_TMP_DIR)
 # pathlib.Path(TMP_DIR).mkdir(parents=True, exist_ok=True) # TODO: py3
 if not os.path.exists(TMP_DIR):
     os.makedirs(TMP_DIR)
@@ -75,7 +76,8 @@ class TestModel(unittest.TestCase):
         model_data = yaml.load(model) #, Loader=yaml.FullLoader)
         self.hmodel = HubitModel(model_data,
                                  name=modelname,
-                                 output_path='./tmp')
+                                 base_path=THIS_DIR,
+                                 output_path=REL_TMP_DIR)
         self.input = yaml.load(yml_input)
         self.mpworkers = False
 

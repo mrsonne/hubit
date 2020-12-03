@@ -2,8 +2,7 @@ import yaml
 import os
 from itertools import product
 from hubit.model import HubitModel, HubitModelQueryError
-THISPATH = os.path.dirname(os.path.abspath(__file__))
-TMPPATH = os.path.join(THISPATH, 'tmp')
+THISPATH = os.path.dirname(os.path.realpath(__file__))
 
 # Create model from a model file
 model_file = "model.yml"
@@ -11,7 +10,7 @@ modelfile = os.path.join(THISPATH, model_file)
 modelname = 'mypipe'
 hmodel = HubitModel.from_file(modelfile,
                               name=modelname,
-                              output_path=TMPPATH)
+                              output_path='./tmp')
 
 # Load the input
 inputfile = os.path.join(THISPATH, "input.yml")

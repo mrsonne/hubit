@@ -70,21 +70,25 @@ class TestWorker(unittest.TestCase):
         version = None
         ilocstr = '_ILOC'
         inputdata = None
-        cfg = {'provides': {
-                            'attr1': 'shared.results.attr1.path',
-                            'attr2': 'shared.results.attr2.path',
-                           },
-               'consumes': {
+        comp_data = {'provides': 
+                        {
+                        'attr1': 'shared.results.attr1.path',
+                        'attr2': 'shared.results.attr2.path',
+                        },
+                     'consumes': 
+                       {
+                        'input' : {'attr':'shared.input.attr.path'}, 
                             'input' : {'attr':'shared.input.attr.path'}, 
-                            'results' : {},
-                           }
-              }
+                        'input' : {'attr':'shared.input.attr.path'}, 
+                        'results' : {},
+                       }
+                    }
 
-        inputdata = None #{'shared' : {"input": {"attr": {"path": 2}}}}            
-        querystring = 'shared.results.attr1.path'
+        # Query something known to exist
+        querystring = comp_data['provides'].values()[0]
         w = worker.Worker(hmodel,
                           cname,
-                          cfg,
+                          comp_data,
                           inputdata,
                           querystring,
                           func, 
@@ -93,8 +97,6 @@ class TestWorker(unittest.TestCase):
                           multiprocess=False,
                           dryrun=True)
 
-        # TODO: not sure what to test...
-        self.assertTrue(True)
 
 
     def test_3(self):

@@ -128,8 +128,7 @@ class TestWorker(unittest.TestCase):
 
     def test_4(self):
         """
-        Specific query to worker that provides multiple attributes. 
-        The worker consumes a single input.
+        Adding required data to worker stepwise and manually
         """
         hmodel = DummyModel()
         cname = None
@@ -138,28 +137,27 @@ class TestWorker(unittest.TestCase):
         ilocstr = '_ILOC'
         cfg = {'provides': {
                             'attrs1': 'items.:.attr.items.:.path1',
-                            'attr2': 'attr2.path',
+                            # 'attr2': 'attr2.path',
                            },
                'consumes': {
-                            'input' : {'attrs' : 'items.:.attr.path',
-                                       'attr' : 'some_number'}, 
+                            'input' : {'attrs' : 'items.:.attr.items.:.path',
+                                       'number' : 'some_number'}, 
                             'results' : {'dependency' : 'value',
                                          'dependency2' : 'items.:.value'},
                            }
               }
 
+        # Required for shape inference. TODO: change when shapes are defined in model
         inputdata = {'items' : [
-                                # {"attr": {"items": [{"path": 2}]}},
-                                # {"attr": {"items": [{"path": 2}]}},
                                 {"attr": {"items": [{"path": 2}, {"path": 1}]}},
                                 {"attr": {"items": [{"path": 3}, {"path": 4}]}},
-                               ] 
+                               ],
+                      'some_number': 33,
                     }
-        # pp = pprint.PrettyPrinter(indent=4)
-        # pp.pprint(inputdata)
-        print(inputdata)
-        # print len(shared.get_from_datadict(inputdata, ("items",)))
-        querystring = 'items.0.attr.items.0.path1'        
+                    
+        pp = pprint.PrettyPrinter(indent=4)
+        pp.pprint(inputdata)
+        querystring = 'items.1.attr.items.0.path1'
 
         w = Worker(hmodel,
                    cname,
@@ -172,22 +170,19 @@ class TestWorker(unittest.TestCase):
                    multiprocess=False,
                    dryrun=True)
 
-        print(w)
-
-        # Set current input (nothing)
-        w.set_values(inputdata, {})
-        print(w)
+        # Set current consumed input and results to nothing so we can fill manually
+        w.set_values({}, {})
+        print('No data yet\n', w)
 
         # add input attribute. Input incomplete.
         w.set_consumed_input('some_number', 64.)
         print(w)
 
-        # add input attribute. Input incomplete.
-        w.set_consumed_input('items.1.attr.path', 17.)
-        print(w)
-
         # add input attribute. Input complete, but still missing results
-        w.set_consumed_input('items.0.attr.path', 21.)
+        w.set_consumed_input('items.0.attr.items.0.path', 17.)
+        w.set_consumed_input('items.0.attr.items.1.path', 18.)
+        w.set_consumed_input('items.1.attr.items.0.path', 19.)
+        # w.set_consumed_input('items.1.attr.items.1.path', 20.)
         print(w)
 
         # add results attribute.
@@ -203,7 +198,7 @@ class TestWorker(unittest.TestCase):
         print(w)
 
         print(w.results_ready())
-        print(w.result_for_path())
+        # print(w.result_for_path())
 
 
 if __name__ == '__main__':

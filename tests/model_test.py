@@ -280,10 +280,9 @@ class TestModel(unittest.TestCase):
 class TestRunner(unittest.TestCase):
 
     def setUp(self):
-        modelname = 'My model'
         self.model_data = yaml.load(model)
         self.hmodel = HubitModel(self.model_data,
-                                 name=modelname,
+                                 name='My model',
                                  base_path=THIS_DIR,
                                  output_path=REL_TMP_DIR)
         self.mpworkers = False

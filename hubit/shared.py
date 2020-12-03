@@ -258,7 +258,7 @@ def pstr_shape(pstr, inputdata, sepstr, ilocwcchar):
         idx = pcmps[cidx:].index(ilocwcchar) 
         cidx += idx
         shape.append(len(get_from_datadict(inputdata, pcmps[:cidx])))
-        pcmps[cidx] = 0
+        pcmps[cidx] = '0'
 
     return shape
 

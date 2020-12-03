@@ -293,8 +293,18 @@ def subscriptions_for_component_idx(model_data, model, comp_idx, iloc):
     """Get subscriptions from model
     """
     ilocstr = str(iloc)
-    consumes = list(model_data[comp_idx]["consumes"]["input"].values())
-    consumes.extend(list(model_data[comp_idx]["consumes"]["results"].values()))
+    
+    consumes = []
+    try:
+        consumes.extend( list(model_data[comp_idx]["consumes"]["input"].values()) )
+    except KeyError:
+        pass
+
+    try:
+        consumes.extend( list(model_data[comp_idx]["consumes"]["results"].values()) )
+    except KeyError:
+        pass
+    
     # Replace ilocstr with actual iloc 
     consumes = [path.replace(model.ilocstr, ilocstr) for path in consumes]
 
@@ -326,30 +336,23 @@ class TestRunner(unittest.TestCase):
     def test_worker_comp1(self):
         """
         """
-        
-        # Get the worker 
-        w = self.qr._worker_for_query(self.querystr_level0)
-
-        # Get consumptions and provisions from the worker
-        consumes = w.inputpath_consumed_for_attrname.values() 
-        consumes += w.resultspath_consumed_for_attrname.values()
-        provides = w.resultspath_provided_for_attrname.values()
-
         # Component index in model
         comp_idx = 0
+        qstr = self.querystr_level0
 
-        # Extract expected paths directly from model (assume only one attribute consumed/provided)
-        consumes_expected = self.model_data[comp_idx]["consumes"]["input"]["numbers_consumed_by_comp1"]
-        consumes_expected = consumes_expected.replace(self.hmodel.ilocstr, str(self.idx))
-        provides_expected = self.model_data[comp_idx]["provides"]["comp1_results"]
-        provides_expected = provides_expected.replace(self.hmodel.ilocstr, str(self.idx))
+        (worker_consumes,
+        worker_provides) = subscriptions_for_query(qstr, self.qr)
 
-        # Tests
-        test_consumes = len(consumes) == 1 and consumes_expected in consumes 
-        test_provides = len(provides) == 1 and provides_expected in provides
+        (worker_consumes_expected,
+        worker_provides_expected) = subscriptions_for_component_idx(self.model_data,
+                                                                    self.hmodel,
+                                                                    comp_idx,
+                                                                    self.idx)
+
+        test_consumes = set(worker_consumes) == set(worker_consumes_expected)
+        test_provides = set(worker_provides) == set(worker_provides_expected)
 
         self.assertTrue(test_consumes and test_provides)
-
 
     def test_worker_comp2(self):
         """

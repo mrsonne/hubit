@@ -6,7 +6,8 @@ import yaml
 
 from hubit.model import (HubitModel, 
                          HubitModelNoInputError,
-                         HubitModelQueryError)
+                         HubitModelQueryError,
+                         _QueryRunner)
 from hubit.shared import inflate
 
 yml_input = None
@@ -82,11 +83,11 @@ class TestModel(unittest.TestCase):
         self.mpworkers = False
 
         # Query which does not consume results
-        self.querystr_level0 = "list.1.some_attr.two_x_numbers"
+        self.idx = 1
+        self.querystr_level0 = "list.{}.some_attr.two_x_numbers".format(self.idx)
         self.expected_result_level0 = level0_results_at_idx(self.input, 1)
 
-
-        self.querystr_level1 = "list.1.some_attr.two_x_numbers_x_factor"
+        self.querystr_level1 = "list.{}.some_attr.two_x_numbers_x_factor".format(self.idx)
 
         self.querystr_level0_slice = "list.:.some_attr.two_x_numbers"
         self.expected_result_level0_slice = [level0_results_at_idx(self.input, 0),
@@ -276,38 +277,41 @@ class TestModel(unittest.TestCase):
         self.assertSequenceEqual(calc_responses,
                                  expected_results)
 
-# class TestRunner(unittest.TestCase):
+class TestRunner(unittest.TestCase):
 
-#     def setUp(self):
-#         modelname = 'Pipe model'
-#         cfg = yaml.load(model)
-#         self.hmodel = HubitModel(cfg, modelname)
-#         self.mpworkers = False
-#         self.qr = QueryRunner(self.hmodel, self.mpworkers)
-#         inputdata = {'segs': [{
-#                                 'walls' : {'temperature': ['steel', 'polymer', 'steel']}, 
-#                                 'bore' : {'temperature': None},
-#                                 'outside' : {'temperature': None},
-#                                 }, 
-#                                 {},
-#                                 ]
-#                          }
-#         self.hmodel.set_input(inputdata)
+    def setUp(self):
+        modelname = 'My model'
+        self.model_data = yaml.load(model)
+        self.hmodel = HubitModel(self.model_data,
+                                 name=modelname,
+                                 base_path=THIS_DIR,
+                                 output_path=REL_TMP_DIR)
+        self.mpworkers = False
+        self.qr = _QueryRunner(self.hmodel, self.mpworkers)
+        self.input = yaml.load(yml_input)
+        self.hmodel.set_input(self.input)
+
+        # Query which does not consume results
+        self.idx = 1
+        self.querystr_level0 = "list.{}.some_attr.two_x_numbers".format(self.idx)
 
 
+    def test_worker_comp1(self):
+        """
+        """
+        w = self.qr._worker_for_query(self.querystr_level0)
+        consumes = w.inputpath_consumed_for_attrname.values() + w.resultspath_consumed_for_attrname.values()
+        provides = w.resultspath_provided_for_attrname.values()
 
-#     def test_worker1(self):
-#         """
-#         Query thermal conductivities.
-#         Consumes: 'segs.0.walls.materials'
-#         Provides: 'segs.0.walls.ks'
-#         """
-#         w = self.qr.worker_for_query("segs.0.walls.ks")
-#         consumes = w.inputpath_consumed_for_attrname.values() + w.resultspath_consumed_for_attrname.values()
-#         provides = w.resultspath_provided_for_attrname.values()
-#         test_consumes = len(consumes) == 1 and consumes[0] == 'segs.0.walls.materials'
-#         test_provides = len(provides) == 1 and provides[0] == 'segs.0.walls.ks'
-#         self.assertTrue(test_consumes and test_provides)
+        consumes_expected = self.model_data[0]["consumes"]["input"]["numbers_consumed_by_comp1"]
+        consumes_expected = consumes_expected.replace("_IDX", str(self.idx))
+        test_consumes = len(consumes) == 1 and consumes[0] == consumes_expected
+
+        provides_expected = self.model_data[0]["provides"]["comp1_results"]
+        provides_expected = provides_expected.replace("_IDX", str(self.idx))
+        test_provides = len(provides) == 1 and provides[0] == provides_expected
+
+        self.assertTrue(test_consumes and test_provides)
 
 
 #     def test_worker2(self):

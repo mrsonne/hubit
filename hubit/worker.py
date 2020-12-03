@@ -266,13 +266,17 @@ class Worker(object):
         """
         return {attrname: reshape(pstrs, val_for_pstr) for attrname, pstrs in pstrs_for_attrname.items()}
 
+    def is_ready_to_work(self):
+        return (len(self.pending_input_pathstrs) == 0 and 
+                len(self.pending_results_pathstrs) == 0)
+
 
     def work_if_ready(self):
         """
         If all consumed attributes are present start working
         """
         # print "work_if_ready", self.name, self.pending_results_pathstrs, self.pending_input_pathstrs
-        if len(self.pending_input_pathstrs) == 0 and len(self.pending_results_pathstrs) == 0:
+        if self.is_ready_to_work():
             print("Let the work begin", self.workfun)
 
             self.inputval_for_attrname = self.reshape(self.inputpaths_consumed_for_attrname,

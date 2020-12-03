@@ -338,15 +338,12 @@ class TestRunner(unittest.TestCase):
 #         self.assertTrue(test_consumes and test_provides)
 
 
-#     def test_no_provider(self):
-#         """
-#         No provider for query since the query has a typo. It's "segs.0.walls.kxs" 
-#         instead of "segs.0.walls.ks" as correctly specified in test_worker1.
-#         """
-#         with self.assertRaises(KeyError) as context:
-#             self.qr.worker_for_query("segs.0.walls.kxs")
-
-#         self.assertTrue("No provider for query 'segs.0.walls.kxs'" in str(context.exception))
+    def test_no_provider(self):
+        """
+        No provider for query since the query has not provider. 
+        """
+        with self.assertRaises(HubitModelQueryError) as context:
+            self.qr._worker_for_query("i.dont.exist")
 
     if __name__ == '__main__':
         unittest.main()

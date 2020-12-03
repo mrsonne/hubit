@@ -277,6 +277,33 @@ class TestModel(unittest.TestCase):
         self.assertSequenceEqual(calc_responses,
                                  expected_results)
 
+
+
+def subscriptions_for_query(query, query_runner):
+    """Get subscriptions from worker
+    """
+    w = query_runner._worker_for_query(query)
+    consumes = w.inputpath_consumed_for_attrname.values() 
+    consumes += w.resultspath_consumed_for_attrname.values()
+    provides = w.resultspath_provided_for_attrname.values()
+    return consumes, provides
+
+
+def subscriptions_for_component_idx(model_data, model, comp_idx, iloc):
+    """Get subscriptions from model
+    """
+    ilocstr = str(iloc)
+    consumes = list(model_data[comp_idx]["consumes"]["input"].values())
+    consumes.extend(list(model_data[comp_idx]["consumes"]["results"].values()))
+    # Replace ilocstr with actual iloc 
+    consumes = [path.replace(model.ilocstr, ilocstr) for path in consumes]
+
+
+    provides = list(model_data[comp_idx]["provides"].values())
+    provides = [path.replace(model.ilocstr, ilocstr) for path in provides]
+
+    return consumes, provides
+
 class TestRunner(unittest.TestCase):
 
     def setUp(self):
@@ -293,11 +320,13 @@ class TestRunner(unittest.TestCase):
         # Query which does not consume results
         self.idx = 1
         self.querystr_level0 = "list.{}.some_attr.two_x_numbers".format(self.idx)
+        self.querystr_level1 = "list.{}.some_attr.two_x_numbers_x_factor".format(self.idx)
 
 
     def test_worker_comp1(self):
         """
         """
+        
         # Get the worker 
         w = self.qr._worker_for_query(self.querystr_level0)
 
@@ -322,19 +351,25 @@ class TestRunner(unittest.TestCase):
         self.assertTrue(test_consumes and test_provides)
 
 
-#     def test_worker2(self):
-#         """
-#         Query temperatures. 
-#         Consumes: 'segs.0.walls.ks', 'segs.0.bore.temperature', 'segs.0.outside.temperature'
-#         Provides: 'segs.0.walls.heat_flows' and 'segs.0.walls.temps'
-#         """
-#         w = self.qr.worker_for_query("segs.0.walls.temps")
-#         consumes = w.inputpath_consumed_for_attrname.values() + w.resultspath_consumed_for_attrname.values()
-#         provides = w.resultspath_provided_for_attrname.values()
-#         test_consumes = len(consumes) == 3 and 'segs.0.walls.ks' in consumes
-#         test_consumes = test_consumes and 'segs.0.bore.temperature' in consumes  and 'segs.0.outside.temperature' in consumes
-#         test_provides = len(provides) == 2 and 'segs.0.walls.heat_flows' in provides and 'segs.0.walls.temps' in provides
-#         self.assertTrue(test_consumes and test_provides)
+    def test_worker_comp2(self):
+        """
+        """
+        (worker_consumes,
+        worker_provides) = subscriptions_for_query(self.querystr_level1,
+                                                   self.qr)
+
+        # Component index in model
+        comp_idx = 1
+        (worker_consumes_expected,
+        worker_provides_expected) = subscriptions_for_component_idx(self.model_data,
+                                                                    self.hmodel,
+                                                                    comp_idx,
+                                                                    self.idx)
+
+        test_consumes = set(worker_consumes) == set(worker_consumes_expected)
+        test_provides = set(worker_provides) == set(worker_provides_expected)
+
+        self.assertTrue(test_consumes and test_provides)
 
 
     def test_no_provider(self):

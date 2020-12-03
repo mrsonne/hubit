@@ -128,7 +128,8 @@ class TestWorker(unittest.TestCase):
 
     def test_4(self):
         """
-        Adding required data to worker stepwise and manually
+        Adding required data to worker stepwise to see that it 
+        starts working when all expected consumptions are present
         """
         hmodel = DummyModel()
         cname = None
@@ -137,7 +138,6 @@ class TestWorker(unittest.TestCase):
         ilocstr = '_ILOC'
         cfg = {'provides': {
                             'attrs1': 'items.:.attr.items.:.path1',
-                            # 'attr2': 'attr2.path',
                            },
                'consumes': {
                             'input' : {'attrs' : 'items.:.attr.items.:.path',
@@ -167,38 +167,40 @@ class TestWorker(unittest.TestCase):
                    func,
                    version,
                    ilocstr,
-                   multiprocess=False,
-                   dryrun=True)
+                   multiprocess=False, # Avoid race conditions
+                   dryrun=True # Use dryrun to easily predict the result
+                   )
 
         # Set current consumed input and results to nothing so we can fill manually
         w.set_values({}, {})
-        print('No data yet\n', w)
 
-        # add input attribute. Input incomplete.
-        w.set_consumed_input('some_number', 64.)
-        print(w)
+        input_values = {'some_number': 64.,
+                        'items.0.attr.items.0.path': 17.,
+                        'items.0.attr.items.1.path': 18.,
+                        'items.1.attr.items.0.path': 19.,
+                        'items.1.attr.items.1.path': 20.,
+                        }
 
-        # add input attribute. Input complete, but still missing results
-        w.set_consumed_input('items.0.attr.items.0.path', 17.)
-        w.set_consumed_input('items.0.attr.items.1.path', 18.)
-        w.set_consumed_input('items.1.attr.items.0.path', 19.)
-        # w.set_consumed_input('items.1.attr.items.1.path', 20.)
-        print(w)
+        # add input attributes one by one
+        for key, val in input_values.items():
+            w.set_consumed_input(key, val)
+            print(w)
+            print(w.is_ready_to_work())
+
+
+        results_values = {'value': 11.,
+                          'items.1.value': 71.,
+                          'items.0.value': 49.,
+                          }
 
         # add results attribute.
-        w.set_consumed_result('value', 47.)
-        print(w)
+        for key, val in results_values.items():
+            w.set_consumed_result(key, val)
+            print(w)
+            print(w.is_ready_to_work())
 
-        # add results attribute.
-        w.set_consumed_result('items.1.value', 71.)
-        print(w)
-
-        # add results attribute. Worker starts running
-        w.set_consumed_result('items.0.value', 49.)
-        print(w)
-
+        # After adding last attribute the worker starts running (sequentially)
         print(w.results_ready())
-        # print(w.result_for_path())
 
 
 if __name__ == '__main__':

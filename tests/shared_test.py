@@ -47,8 +47,13 @@ class TestShared(unittest.TestCase):
 
 
     def test_set_ilocs(self):
-        print("test_set_ilocs")
-        print(shared.set_ilocs("segs._ILOC.walls._ILOC.temps", ("34", "3"), self.ilocstr))
+        """Insert real numbers where the ILOC placeholder is found
+        """
+        expected_pathstr = "segs.34.walls.3.temps" 
+        pathstr = shared.set_ilocs_on_pathstr("segs._ILOC.walls._ILOC.temps",
+                                             ("34", "3"),
+                                             self.ilocstr)
+        self.assertEqual(pathstr, expected_pathstr)
 
 
     def test_query_wildcard(self):

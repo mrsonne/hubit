@@ -6,7 +6,7 @@ import copy
 import sys
 from shared import (idxs_for_matches,
                     get_iloc_indices,
-                    set_ilocs,
+                    set_ilocs_on_pathstr,
                     traverse,
                     list_from_shape,
                     reshape,
@@ -70,7 +70,7 @@ class _Worker(object):
             _ilocs = ilocs
 
         # replace ILOCSTR with the actual iloc indices
-        keyvalpairs = [(internalname, set_ilocs(pstring, _ilocs, ilocstr)) for internalname, pstring in bindingdata.items()]
+        keyvalpairs = [(internalname, set_ilocs_on_pathstr(pstring, _ilocs, ilocstr)) for internalname, pstring in bindingdata.items()]
 
         return dict(keyvalpairs), _ilocs
 

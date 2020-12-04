@@ -138,15 +138,15 @@ def flatten(d, parent_key='', sep='.'):
     return dict(items)
 
 
-def set_ilocs(string, ilocs, ilocstr):
+def set_ilocs_on_pathstr(pathstr, ilocs, ilocstr):
     """
-    Replace the ILOCSTR on the path string with location indices 
+    Replace the ilocstr on the path string with location indices 
     in ilocs
     """
-    _string = copy.copy(string)
+    _pathstr = copy.copy(pathstr)
     for iloc in ilocs:
-        _string = _string.replace(ilocstr, iloc, 1)
-    return _string
+        _pathstr = _pathstr.replace(ilocstr, iloc, 1)
+    return _pathstr
 
 
 def regex_preprocess(querystring, providerstrings, ilocstr):
@@ -225,7 +225,7 @@ def expand_query(querystr, flat_input):
     # Make all query combinations
     queries = []
     for ilocs in itertools.product(*[range(maxval + 1) for maxval in maxilocs]):
-        queries.append(set_ilocs(querystr, [str(iloc) for iloc in ilocs], wcstr))
+        queries.append(set_ilocs_on_pathstr(querystr, [str(iloc) for iloc in ilocs], wcstr))
 
     return queries, maxilocs
 
@@ -275,6 +275,6 @@ def pstr_expand(pstr, shape, ilocwcchar):
     # pstrs = []
     pstrs = get_nested_list([s-1 for s in shape])
     for ilocs in itertools.product(*[range(nitm) for nitm in shape]):
-        #pstrs.append(set_ilocs(pstr, [str(iloc) for iloc in ilocs], ilocwcchar))
-        set_element(pstrs, set_ilocs(pstr, [str(iloc) for iloc in ilocs], ilocwcchar), ilocs)
+        #pstrs.append(set_ilocs_on_pathstrpstr, [str(iloc) for iloc in ilocs], ilocwcchar))
+        set_element(pstrs, set_ilocs_on_pathstr(pstr, [str(iloc) for iloc in ilocs], ilocwcchar), ilocs)
     return pstrs

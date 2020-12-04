@@ -46,17 +46,17 @@ class TestWorker(unittest.TestCase):
         # inputdata = {'shared' : {"input": {"attr": {"path": 2}}}}
                     
         querystring = 'shared.attr.path'
-        # with self.assertRaises(IndexError) as context:
-        w = Worker(hmodel,
-                   cname,
-                   comp_data,
-                   inputdata,
-                   querystring,
-                   func, 
-                   version,
-                   ilocstr,
-                   multiprocess=False,
-                   dryrun=True)
+        with self.assertRaises(HubitWorkerError) as context:
+            w = Worker(hmodel,
+                    cname,
+                    comp_data,
+                    inputdata,
+                    querystring,
+                    func, 
+                    version,
+                    ilocstr,
+                    multiprocess=False,
+                    dryrun=True)
 
 
 

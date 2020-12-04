@@ -50,12 +50,20 @@ class Worker(object):
 
     @staticmethod
     def get_bindings(bindingdata, querystring, ilocstr, ilocs=None):
-        itempairs = [(internalname, pstring) for internalname, pstring in bindingdata.items()]
-        _, pathstrings = zip(*itempairs)
+        itempairs = [(internalname, pstring) 
+                     for internalname, pstring in bindingdata.items()]
 
+        # Get path string for attributes provided
+        _, pathstrings = zip(*itempairs)
+        
         if ilocs is None:
             # get indices in path string list that match the query
             idxs = get_matches(querystring, pathstrings, ilocstr)
+            if len(idxs) == 0:
+                errmsg = 'Query "{}" did not match attributes provided by worker ({}).'.format(querystring,
+                                                                                               ', '.join(pathstrings))
+                raise HubitWorkerError(errmsg)
+
             # get the location indices from query
             _ilocs = get_indices(querystring, pathstrings[idxs[0]], ilocstr)
         else:

@@ -20,7 +20,7 @@ class HubitWorkerError(HubitError):
     pass
 
 
-class Worker(object):
+class _Worker(object):
     """
     """
 
@@ -158,9 +158,9 @@ class Worker(object):
         # TODO: assumes provider has the all ilocs defined
         if "provides" in cfg:
             print(querystring)
-            self.resultspath_provided_for_attrname, self.ilocs = Worker.get_bindings(cfg["provides"],
-                                                                                     querystring,
-                                                                                     ilocstr)
+            self.resultspath_provided_for_attrname, self.ilocs = _Worker.get_bindings(cfg["provides"],
+                                                                                      querystring,
+                                                                                      ilocstr)
         else:
             raise HubitWorkerError( 'No provider for Hubit model component "{}"'.format(cname) )
 
@@ -168,16 +168,16 @@ class Worker(object):
         self.inputpath_consumed_for_attrname = {}
         if "consumes" in cfg:
             if "input" in cfg["consumes"] and len(cfg["consumes"]["input"]) > 0:
-                self.inputpath_consumed_for_attrname, _ = Worker.get_bindings(cfg["consumes"]["input"],
-                                                                              querystring,
-                                                                              ilocstr,
-                                                                              ilocs=self.ilocs)
+                self.inputpath_consumed_for_attrname, _ = _Worker.get_bindings(cfg["consumes"]["input"],
+                                                                               querystring,
+                                                                               ilocstr,
+                                                                               ilocs=self.ilocs)
 
             if "results" in cfg["consumes"]  and len(cfg["consumes"]["results"]) > 0:
-                self.resultspath_consumed_for_attrname, _ = Worker.get_bindings(cfg["consumes"]["results"],
-                                                                                querystring,
-                                                                                ilocstr,
-                                                                                ilocs=self.ilocs)
+                self.resultspath_consumed_for_attrname, _ = _Worker.get_bindings(cfg["consumes"]["results"],
+                                                                                 querystring,
+                                                                                 ilocstr,
+                                                                                 ilocs=self.ilocs)
             
 
 
@@ -190,15 +190,15 @@ class Worker(object):
         # Expand queries containing iloc wildcard
 
         if inputdata is not None:
-            self.inputpaths_consumed_for_attrname, _ = Worker.expand(self.inputpath_consumed_for_attrname,
-                                                                    inputdata)
+            self.inputpaths_consumed_for_attrname, _ = _Worker.expand(self.inputpath_consumed_for_attrname,
+                                                                      inputdata)
 
-            self.resultspaths_consumed_for_attrname, _ = Worker.expand(self.resultspath_consumed_for_attrname,
-                                                                       inputdata)
+            self.resultspaths_consumed_for_attrname, _ = _Worker.expand(self.resultspath_consumed_for_attrname,
+                                                                        inputdata)
 
             (self.resultspaths_provided_for_attrname,
-            self.shape_provided_for_attrname) = Worker.expand(self.resultspath_provided_for_attrname,
-                                                              inputdata)
+            self.shape_provided_for_attrname) = _Worker.expand(self.resultspath_provided_for_attrname,
+                                                               inputdata)
 
             self.input_attrname_for_pathstr = {pathstr:key for key, pathstrs in self.inputpaths_consumed_for_attrname.items() for pathstr in traverse(pathstrs)}
             self.results_attrname_for_pathstr = {pathstr:key for key, pathstrs in self.resultspaths_consumed_for_attrname.items() for pathstr in traverse(pathstrs)}

@@ -11,7 +11,7 @@ import subprocess
 import yaml
 from datetime import datetime
 from threading import Thread, Event
-from worker import Worker
+from worker import _Worker
 from shared import (get_matches,
                     flatten,
                     expand_query,
@@ -323,9 +323,9 @@ class HubitModel(object):
                 dummy_query = dummy_query.replace(":", "0")
                 dummy_input = None
                 func, version = _QueryRunner._get_func(self.base_path, cname, component_data)
-                workers.append(Worker(self, cname, component_data, 
-                                      dummy_input, dummy_query,
-                                      func, version, self.ilocstr))
+                workers.append(_Worker(self, cname, component_data, 
+                                       dummy_input, dummy_query,
+                                       func, version, self.ilocstr))
 
         if self.name is not None:
             filename = '{}_{}'.format(filename, self.name.lower().replace(' ','_'))
@@ -772,8 +772,8 @@ class _QueryRunner(object):
 
         # Create and return worker
         try:
-            return Worker(self, cname, cfgdata, self.model.inputdata, query, func, version, 
-                          self.model.ilocstr, multiprocess=self.mpworkers, dryrun=dryrun)
+            return _Worker(self, cname, cfgdata, self.model.inputdata, query, func, version, 
+                           self.model.ilocstr, multiprocess=self.mpworkers, dryrun=dryrun)
         except RuntimeError:
             return None
 
@@ -836,7 +836,7 @@ class _QueryRunner(object):
 
     def _set_worker(self, worker):
         """
-        Called from Worker object when the input is set. 
+        Called from _Worker object when the input is set. 
         Not on init since we do not yet know if a similar 
         object exists.
         """
@@ -845,7 +845,7 @@ class _QueryRunner(object):
 
     def _set_worker_working(self, worker):
         """
-        Called from Worker object just before the worker 
+        Called from _Worker object just before the worker 
         process is started.
         """
         self.workers_working.append(worker)

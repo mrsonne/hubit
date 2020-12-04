@@ -1,7 +1,7 @@
 from __future__ import print_function
 import unittest
 
-from hubit.worker import Worker, HubitWorkerError
+from hubit.worker import _Worker, HubitWorkerError
 
 class DummyModel(object):
 
@@ -46,16 +46,16 @@ class TestWorker(unittest.TestCase):
                     
         querystring = 'shared.attr.path'
         with self.assertRaises(HubitWorkerError) as context:
-            w = Worker(hmodel,
-                    cname,
-                    comp_data,
-                    inputdata,
-                    querystring,
-                    func, 
-                    version,
-                    ilocstr,
-                    multiprocess=False,
-                    dryrun=True)
+            w = _Worker(hmodel,
+                        cname,
+                        comp_data,
+                        inputdata,
+                        querystring,
+                        func, 
+                        version,
+                        ilocstr,
+                        multiprocess=False,
+                        dryrun=True)
 
 
 
@@ -83,16 +83,16 @@ class TestWorker(unittest.TestCase):
 
         # Query something known to exist
         querystring = comp_data['provides'].values()[0]
-        w = Worker(hmodel,
-                   cname,
-                   comp_data,
-                   inputdata,
-                   querystring,
-                   func, 
-                   version,
-                   ilocstr,
-                   multiprocess=False,
-                   dryrun=True)
+        w = _Worker(hmodel,
+                    cname,
+                    comp_data,
+                    inputdata,
+                    querystring,
+                    func, 
+                    version,
+                    ilocstr,
+                    multiprocess=False,
+                    dryrun=True)
 
 
     def test_3(self):
@@ -112,16 +112,16 @@ class TestWorker(unittest.TestCase):
         querystring = 'shared.results.attr1.path'
 
         with self.assertRaises(HubitWorkerError) as context:
-            w = Worker(hmodel,
-                       cname,
-                       cfg,
-                       inputdata,
-                       querystring,
-                       func,
-                       version,
-                       ilocstr,
-                       multiprocess=False,
-                       dryrun=True)
+            w = _Worker(hmodel,
+                        cname,
+                        cfg,
+                        inputdata,
+                        querystring,
+                        func,
+                        version,
+                        ilocstr,
+                        multiprocess=False,
+                        dryrun=True)
 
 
 
@@ -158,17 +158,17 @@ class TestWorker(unittest.TestCase):
                     
         querystring = 'items.1.attr.items.0.path1'
 
-        w = Worker(hmodel,
-                   cname,
-                   cfg,
-                   inputdata,
-                   querystring,
-                   func,
-                   version,
-                   ilocstr,
-                   multiprocess=False, # Avoid race conditions
-                   dryrun=True # Use dryrun to easily predict the result
-                   )
+        w = _Worker(hmodel,
+                    cname,
+                    cfg,
+                    inputdata,
+                    querystring,
+                    func,
+                    version,
+                    ilocstr,
+                    multiprocess=False, # Avoid race conditions
+                    dryrun=True # Use dryrun to easily predict the result
+                    )
 
         # Set current consumed input and results to nothing so we can fill manually
         w.set_values({}, {})

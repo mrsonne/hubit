@@ -169,17 +169,21 @@ def regex_preprocess(querystring, providerstrings, ilocstr):
 
 def get_matches(querystring, providerstrings, ilocstr):
     """
-    Returns indices of provider strings that match the query string
+    Returns indices in the sequence of provider strings that match the 
+    strucure of the query string
     """
-    clean_query, compiled_regexps = regex_preprocess(querystring, providerstrings, ilocstr)
-    # print 'clean_query', clean_query
-    # print compiled_regexps
-    return [idx for idx, cex in enumerate(compiled_regexps) if re.match(cex, clean_query)]
+    clean_query, compiled_regexps = regex_preprocess(querystring,
+                                                     providerstrings,
+                                                     ilocstr)
+    return [idx 
+            for idx, cex in enumerate(compiled_regexps) 
+            if re.match(cex, clean_query)]
 
 
 def get_indices(querystring, providerstring, ilocstr):
     """
-    Array indices extracted from query
+    Array indices extracted from query based on location of 
+    ilocstr in providerstring
     """
     _q, _lc = regex_preprocess(querystring, [providerstring], ilocstr)
     compiledstring = _lc[0]

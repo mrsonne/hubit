@@ -58,8 +58,11 @@ class TestShared(unittest.TestCase):
 
 
     def test_expand_query(self):
+        """Expand a query that uses : to its constituents
+        """
         querystring = "segs.:.walls.:.temps"
-        queries, maxilocs = shared.expand_query(querystring, self.flat_input)
+        queries, maxilocs = shared.expand_query(querystring,
+                                                self.flat_input)
         # Expected result from highest index in self.flat_input
         expected_maxilocs = [1, 2]
         expected_length = 6 # math.prod(expected_maxilocs) # TODO: py3
@@ -68,10 +71,18 @@ class TestShared(unittest.TestCase):
                          length == expected_length)
 
 
-    def test_query_wildcard_2(self):
+    def test_expand_query2(self):
+        """Expand a query that does not use : to its constituents
+        i.e. itself
+        """
         querystring = "segs.0.walls.temps.0"
-        queries = shared.expand_query(querystring, self.flat_input)
-        print('queries', queries)
+        queries, maxilocs = shared.expand_query(querystring,
+                                                self.flat_input)
+        expected_maxilocs = []
+        expected_length = 1 
+        length = len(queries)
+        self.assertTrue( maxilocs == expected_maxilocs and
+                         length == expected_length)
 
 
     def test_query_all(self):

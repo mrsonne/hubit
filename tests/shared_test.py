@@ -104,8 +104,11 @@ class TestShared(unittest.TestCase):
 
 
     def test_get_from_datadict(self):
+        """Extract value from nested dict.
+        """
         datadict = {'a' : {'b' : [4, 5]}}
-        keys = ['a', 'b', 0]
+        # Should all be of type string
+        keys = ['a', 'b', '0']
         value = shared.get_from_datadict(datadict, keys)
         self.assertTrue(value == 4)
 

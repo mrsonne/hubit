@@ -17,7 +17,13 @@ class TestShared(unittest.TestCase):
 
 
     def test_get_indices(self):
-        print(shared.get_indices(self.querystring, self.providerstring, self.ilocstr))
+        """Test that indices from query string are extracted correctly
+        """
+        idxs = shared.get_indices(self.querystring,
+                                  self.providerstring,
+                                  self.ilocstr)
+        idxs_expected = ('42', '3')
+        self.assertSequenceEqual(idxs, idxs_expected)
 
 
     def test_get_matches(self):

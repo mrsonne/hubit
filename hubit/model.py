@@ -12,7 +12,7 @@ import yaml
 from datetime import datetime
 from threading import Thread, Event
 from worker import _Worker
-from shared import (get_matches,
+from shared import (idxs_for_matches,
                     flatten,
                     expand_query,
                     get_indices,
@@ -716,7 +716,7 @@ class _QueryRunner(object):
                      for cmpdata in self.model.cfg 
                      for _, pstring in cmpdata["provides"].items()]
         compnames, providerstrings = zip(*itempairs)
-        idxs = get_matches(querystring, providerstrings, self.model.ilocstr)
+        idxs = idxs_for_matches(querystring, providerstrings, self.model.ilocstr)
         return [compnames[idx] for idx in idxs]
 
 

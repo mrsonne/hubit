@@ -167,7 +167,7 @@ def regex_preprocess(querystring, providerstrings, ilocstr):
     return clean_query, compiled_regexps
 
 
-def get_matches(querystring, providerstrings, ilocstr):
+def idxs_for_matches(querystring, providerstrings, ilocstr):
     """
     Returns indices in the sequence of provider strings that match the 
     strucure of the query string

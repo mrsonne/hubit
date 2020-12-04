@@ -4,7 +4,7 @@ import multiprocessing
 import itertools
 import copy
 import sys
-from shared import (get_matches,
+from shared import (idxs_for_matches,
                     get_indices,
                     set_ilocs,
                     traverse,
@@ -58,7 +58,7 @@ class _Worker(object):
         
         if ilocs is None:
             # get indices in path string list that match the query
-            idxs = get_matches(querystring, pathstrings, ilocstr)
+            idxs = idxs_for_matches(querystring, pathstrings, ilocstr)
             if len(idxs) == 0:
                 errmsg = 'Query "{}" did not match attributes provided by worker ({}).'.format(querystring,
                                                                                                ', '.join(pathstrings))

@@ -180,7 +180,7 @@ def idxs_for_matches(querystring, providerstrings, ilocstr):
             if re.match(cex, clean_query)]
 
 
-def get_indices(querystring, providerstring, ilocstr):
+def get_iloc_indices(querystring, providerstring, ilocstr):
     """
     Array indices extracted from query based on location of 
     ilocstr in providerstring

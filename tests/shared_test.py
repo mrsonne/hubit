@@ -19,7 +19,7 @@ class TestShared(unittest.TestCase):
     def test_get_indices(self):
         """Test that indices from query string are extracted correctly
         """
-        idxs = shared.get_indices(self.querystring,
+        idxs = shared.get_iloc_indices(self.querystring,
                                   self.providerstring,
                                   self.ilocstr)
         idxs_expected = ('42', '3')

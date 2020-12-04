@@ -15,7 +15,7 @@ from worker import _Worker
 from shared import (idxs_for_matches,
                     flatten,
                     expand_query,
-                    get_indices,
+                    get_iloc_indices,
                     get_nested_list,
                     set_element,
                     HubitError)
@@ -81,7 +81,7 @@ def _compress_response(response,
 
             # Extract iloc indices for each query in the expanded query
             for qstr in qstrs_expanded:
-                ilocs = get_indices(qstr, qstr_org, ":")
+                ilocs = get_iloc_indices(qstr, qstr_org, ":")
                 values = set_element(values, response[qstr], 
                                      [int(iloc) for iloc in ilocs])
             _response[qstr_org] = values

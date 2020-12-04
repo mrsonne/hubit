@@ -5,7 +5,7 @@ import itertools
 import copy
 import sys
 from shared import (idxs_for_matches,
-                    get_indices,
+                    get_iloc_indices,
                     set_ilocs,
                     traverse,
                     list_from_shape,
@@ -65,7 +65,7 @@ class _Worker(object):
                 raise HubitWorkerError(errmsg)
 
             # get the location indices from query
-            _ilocs = get_indices(querystring, pathstrings[idxs[0]], ilocstr)
+            _ilocs = get_iloc_indices(querystring, pathstrings[idxs[0]], ilocstr)
         else:
             _ilocs = ilocs
 

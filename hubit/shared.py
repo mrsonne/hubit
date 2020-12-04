@@ -241,8 +241,8 @@ def query_all(providerstrings, flat_input, ilocstr):
 
 def get_from_datadict(datadict, keys):
     """
-    Extract from nested dictionary using list of keys.
-    datadict is a dict. keys is a list of keys.
+    Extract value from a nested dictionary using list of keys.
+    datadict is a dict. keys is a list of keys (strings).
     """
     # Convert digits strings to int
     _keys = [int(key) if key.isdigit() else key for key in keys]

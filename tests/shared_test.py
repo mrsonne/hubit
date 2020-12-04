@@ -88,14 +88,17 @@ class TestShared(unittest.TestCase):
     def test_query_all(self):
         """
         """
+        self.skipTest('Feature not used yet')
         providerstrings = (
-                        'price',
-                        "segs._ILOC.walls.values",
-                        "segs._ILOC.walls._ILOC.heat_flow",
-                        "segs._ILOC.walls._ILOC.temp_in",
-                        )
+                          "price",
+                          "segs._ILOC.walls.values",
+                          "segs._ILOC.walls._ILOC.heat_flow",
+                          "segs._ILOC.walls._ILOC.temp_in",
+                          )
 
-        qall = shared.query_all(providerstrings, self.flat_input, self.ilocstr)
+        qall = shared.query_all(providerstrings,
+                                self.flat_input,
+                                self.ilocstr)
         # Make general query
         print(qall)
 

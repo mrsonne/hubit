@@ -1,6 +1,5 @@
 from __future__ import print_function
 import unittest
-import pprint
 
 from hubit.worker import Worker, HubitWorkerError
 
@@ -130,6 +129,8 @@ class TestWorker(unittest.TestCase):
         """
         Adding required data to worker stepwise to see that it 
         starts working when all expected consumptions are present
+
+        TODO: split in multiple tests
         """
         hmodel = DummyModel()
         cname = None
@@ -155,8 +156,6 @@ class TestWorker(unittest.TestCase):
                       'some_number': 33,
                     }
                     
-        pp = pprint.PrettyPrinter(indent=4)
-        pp.pprint(inputdata)
         querystring = 'items.1.attr.items.0.path1'
 
         w = Worker(hmodel,
@@ -181,11 +180,23 @@ class TestWorker(unittest.TestCase):
                         'items.1.attr.items.1.path': 20.,
                         }
 
+        # Local version of worker input paths pending
+        pending_input_pathstrs = list(input_values.keys())
+
         # add input attributes one by one
+        tests_paths_pending = []
+        tests_ready_to_work = []
         for key, val in input_values.items():
             w.set_consumed_input(key, val)
-            print(w)
-            print(w.is_ready_to_work())
+
+            # Update local version
+            pending_input_pathstrs.remove(key)
+
+            tests_paths_pending.append(set(pending_input_pathstrs) == 
+                                       set(w.pending_input_pathstrs))
+            
+            # Worker should not be ready to work since consumed results are missing
+            tests_ready_to_work.append( w.is_ready_to_work() == False) 
 
 
         results_values = {'value': 11.,
@@ -193,15 +204,29 @@ class TestWorker(unittest.TestCase):
                           'items.0.value': 49.,
                           }
 
-        # add results attribute.
+        pending_results_pathstrs = list(results_values.keys())
+
+        # Add results values
         for key, val in results_values.items():
             w.set_consumed_result(key, val)
-            print(w)
-            print(w.is_ready_to_work())
+
+            # Update local version
+            pending_results_pathstrs.remove(key)
+
+            tests_paths_pending.append(set(pending_results_pathstrs) == 
+                                       set(w.pending_results_pathstrs))
+            
+            # All input is added so should be ready to work when all consumed 
+            # results have been set 
+            tests_ready_to_work.append( w.is_ready_to_work() == 
+                                        (len(pending_results_pathstrs) == 0)) 
 
         # After adding last attribute the worker starts running (sequentially)
-        print(w.results_ready())
+        test_results_ready = w.results_ready() == True
 
+        self.assertTrue(test_results_ready and 
+                        all(tests_paths_pending) and 
+                        all(tests_ready_to_work))
 
 if __name__ == '__main__':
     unittest.main()

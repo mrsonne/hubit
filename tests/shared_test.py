@@ -27,22 +27,23 @@ class TestShared(unittest.TestCase):
 
 
     def test_get_matches(self):
+        """Test that we can find the provider strings 
+        that match the query
+        """
         providerstrings = ('price',
                            self.providerstring,
                            "segs._ILOC.walls.thicknesses",
                            self.querystring,
+                           "segs._ILOC.walls._ILOC.thicknesses",
                            "segs._ILOC.walls._ILOC", 
-                           "segs._ILOC.walls._ILOC.te",
-                           "segs._ILOC.walls._ILOC.t.x", 
-                           "segs._ILOC.walls._ILOC.heat_flow",
-                           "s._ILOC.walls._ILOC.temps",
-                           "segs._ILOC.walls..temps",
-                           "segs._ILOC.walls._ILOC.tempssss",
-                           "segs._ILOC.walls",
                            )
-        matches = shared.get_matches(self.querystring, providerstrings, self.ilocstr)
-        for idx, pstr in enumerate(providerstrings):
-            print('{:>2} {:35} {:}'.format(idx, pstr, idx in matches))
+
+        idxs_match_expected = (1, 3)
+        idxs_match = shared.idxs_for_matches(self.querystring,
+                                             providerstrings,
+                                             self.ilocstr)
+
+        self.assertSequenceEqual(idxs_match, idxs_match_expected)
 
 
     def test_set_ilocs(self):

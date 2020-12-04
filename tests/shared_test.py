@@ -1,4 +1,5 @@
 from __future__ import print_function
+# import math
 import unittest
 
 from hubit import shared
@@ -56,10 +57,15 @@ class TestShared(unittest.TestCase):
         self.assertEqual(pathstr, expected_pathstr)
 
 
-    def test_query_wildcard(self):
+    def test_expand_query(self):
         querystring = "segs.:.walls.:.temps"
-        queries = shared.expand_query(querystring, self.flat_input)
-        print('queries', queries)
+        queries, maxilocs = shared.expand_query(querystring, self.flat_input)
+        # Expected result from highest index in self.flat_input
+        expected_maxilocs = [1, 2]
+        expected_length = 6 # math.prod(expected_maxilocs) # TODO: py3
+        length = len(queries)
+        self.assertTrue( maxilocs == expected_maxilocs and
+                         length == expected_length)
 
 
     def test_query_wildcard_2(self):

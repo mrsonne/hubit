@@ -234,7 +234,9 @@ def query_all(providerstrings, flat_input, ilocstr):
     """
     Assumes complete input
     """
-    return [qry for pstr in providerstrings for qry in expand_query(pstr.replace(ilocstr, ":"), flat_input)]
+    return [qry 
+            for pstr in providerstrings
+            for qry in expand_query(pstr.replace(ilocstr, ":"), flat_input)]
     
 
 def get_from_datadict(datadict, keys):

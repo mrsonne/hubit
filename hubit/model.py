@@ -232,7 +232,7 @@ class HubitModel(object):
             HubitModel: Hubit model object as defined in the specified model file
         """
         with open(model_file_path, "r") as stream:
-            components = yaml.load(stream) #, TODO: py3 Loader=yaml.FullLoader)
+            components = yaml.load(stream, Loader=yaml.FullLoader)
 
         base_path = os.path.dirname(model_file_path)
         for component in components:

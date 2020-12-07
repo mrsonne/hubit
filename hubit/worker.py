@@ -4,17 +4,17 @@ import multiprocessing
 import itertools
 import copy
 import sys
-from shared import (idxs_for_matches,
-                    get_iloc_indices,
-                    set_ilocs_on_pathstr,
-                    traverse,
-                    list_from_shape,
-                    reshape,
-                    get_from_datadict,
-                    pstr_shape,
-                    pstr_expand,
-                    get_nested_list,
-                    HubitError)
+from .shared import (idxs_for_matches,
+                     get_iloc_indices,
+                     set_ilocs_on_pathstr,
+                     traverse,
+                     list_from_shape,
+                     reshape,
+                     get_from_datadict,
+                     pstr_shape,
+                     pstr_expand,
+                     get_nested_list,
+                     HubitError)
 
 class HubitWorkerError(HubitError):
     pass

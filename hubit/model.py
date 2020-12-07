@@ -11,14 +11,14 @@ import subprocess
 import yaml
 from datetime import datetime
 from threading import Thread, Event
-from worker import _Worker
-from shared import (idxs_for_matches,
-                    flatten,
-                    expand_query,
-                    get_iloc_indices,
-                    get_nested_list,
-                    set_element,
-                    HubitError)
+from .worker import _Worker
+from .shared import (idxs_for_matches,
+                     flatten,
+                     expand_query,
+                     get_iloc_indices,
+                     get_nested_list,
+                     set_element,
+                     HubitError)
 from multiprocessing import Pool, TimeoutError, cpu_count, active_children
 
 POLLTIME = 0.1

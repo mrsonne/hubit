@@ -150,6 +150,7 @@ def _get(queryrunner,
             watcher.join(timeout=1.)
         # TODO: compress query
     except (Exception, KeyboardInterrupt) as err:
+        the_err = err
         traceback.print_exc()
         print(err)
         shutdown_event.set()
@@ -176,7 +177,7 @@ def _get(queryrunner,
         return response
     else:
         # Re-raise if failed
-        raise err
+        raise the_err
 
 
 class HubitModel(object):
@@ -275,8 +276,8 @@ class HubitModel(object):
         try:
             from graphviz import Digraph
         except ImportError as err:
-            print('Rendering requires "graphviz"')
-            return
+            print('Error: Rendering requires "graphviz", but it could not be imported')
+            raise err
 
         calccolor = "gold2"
         arrowsize = ".5"
@@ -291,7 +292,7 @@ class HubitModel(object):
         fstr = 'Hubit model: {}\nRendered at {} by {}'
         dot.attr(label=fstr.format(self.name,
                                    datetime.now().strftime("%b %d %Y %H:%M"),
-                                   subprocess.check_output(['whoami']).replace("\\", "/"),),
+                                   subprocess.check_output(['whoami']).decode("ascii",errors="ignore").replace("\\", "/"),),
                  fontsize='9',
                  fontname="monospace")
 
@@ -318,7 +319,7 @@ class HubitModel(object):
             workers = []
             for component_data in self.cfg:
                 cname = component_data['func_name']
-                dummy_query = component_data["provides"].values()[0].replace(self.ilocstr, "0")
+                dummy_query = list(component_data["provides"].values())[0].replace(self.ilocstr, "0")
                 # TODO iloc wildcard
                 dummy_query = dummy_query.replace(":", "0")
                 dummy_input = None

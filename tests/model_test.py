@@ -1,7 +1,7 @@
 from __future__ import print_function
 import unittest
 import os
-# import pathlib # TODO: py3
+import pathlib
 import yaml
 
 from hubit.model import (HubitModel, 
@@ -16,9 +16,7 @@ model = None
 THIS_DIR = os.path.dirname(os.path.realpath(__file__))
 REL_TMP_DIR = './tmp'
 TMP_DIR = os.path.join(THIS_DIR, REL_TMP_DIR)
-# pathlib.Path(TMP_DIR).mkdir(parents=True, exist_ok=True) # TODO: py3
-if not os.path.exists(TMP_DIR):
-    os.makedirs(TMP_DIR)
+pathlib.Path(TMP_DIR).mkdir(parents=True, exist_ok=True)
 
 def setUpModule():
         global yml_input
@@ -74,12 +72,12 @@ class TestModel(unittest.TestCase):
 
     def setUp(self):
         modelname = 'Test model'
-        model_data = yaml.load(model) #, Loader=yaml.FullLoader)
+        model_data = yaml.load(model, Loader=yaml.FullLoader)
         self.hmodel = HubitModel(model_data,
                                  name=modelname,
                                  base_path=THIS_DIR,
                                  output_path=REL_TMP_DIR)
-        self.input = yaml.load(yml_input)
+        self.input = yaml.load(yml_input, Loader=yaml.FullLoader)
         self.mpworkers = False
 
         # Query which does not consume results
@@ -158,6 +156,7 @@ class TestModel(unittest.TestCase):
         """
         querystrings = ["list.1.some_attr.two_x_numbers"]
 
+        # ModuleNotFoundError raised if graphviz is not installed
         with self.assertRaises(HubitModelNoInputError) as context:
             self.hmodel.render(querystrings)
 
@@ -283,9 +282,9 @@ def subscriptions_for_query(query, query_runner):
     """Get subscriptions from worker
     """
     w = query_runner._worker_for_query(query)
-    consumes = w.inputpath_consumed_for_attrname.values() 
-    consumes += w.resultspath_consumed_for_attrname.values()
-    provides = w.resultspath_provided_for_attrname.values()
+    consumes = list(w.inputpath_consumed_for_attrname.values())
+    consumes += list(w.resultspath_consumed_for_attrname.values())
+    provides = list(w.resultspath_provided_for_attrname.values())
     return consumes, provides
 
 

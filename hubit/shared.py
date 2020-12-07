@@ -7,6 +7,12 @@ import collections
 from functools import reduce
 from operator import getitem
 
+# Python 2 & 3 compatibility
+try:
+  basestring
+except NameError:
+  basestring = str
+
 class HubitError(Exception):
     pass
 

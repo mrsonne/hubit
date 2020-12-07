@@ -159,56 +159,21 @@ class TestShared(unittest.TestCase):
         self.assertTrue( len( list(shared.traverse(pstrs)) ) == shape[0]*shape[1] )
 
 
-    def test_wildcard(self):
+    def test_x(self):
+        self.skipTest('Feature not used yet... and not sure what it is')
         cfg, inputdata = get_data()
         pstr = cfg["provides"]["attrs1"]
 
-        fwfew
         # iterate over all indices
         import itertools
         shape = (2, 3)
         for ilocs in itertools.product(*[xrange(s) for s in shape]):
             print(ilocs)
 
-        # Wrap values as mutable
-        # https://stackoverflow.com/questions/37501632/is-it-possible-to-make-wrapper-object-for-numbers-e-g-float-to-make-it-mutabl
-        # l1 = [shared.Container(1), 
-        #        [shared.Container(2) , shared.Container(3) , 
-        #          [shared.Container(4), shared.Container(5)]
-        #        ]
-        #      ]
-
-        # l1 = [1, [2 , 3 , [4, 5]]]
-        # l2 = [11, [12,13,[14, 15]]]
-        # pstrs = ['attr1', "attr2", "attr3", "attr4"]
-        # pstrs = ['attr1', ["attr2", "attr3", "attr4"]]
-        # pstrs = ['attr1', ["attr2", "attr3"], "attr4"]
-        # pstrs = ['attr1', ["attr2"], "attr3", "attr4"]
         pstrs = [['attr1', "attr2"], ["attr3", "attr4"]]
-        # pstrs = [['attr1', "attr2", "attr3", "attr4"]]
-        # pstrs = 'attr1'
         valuemap = {'attr1':1, "attr2":2, "attr3":3, "attr4":4}
-        # print l1
-        # print l2
 
         print('XXX', shared.setelemtents(pstrs, valuemap))
-
-
-        # for i, (val1, val2) in enumerate(zip(shared.traverse(l1), shared.traverse(l2))):
-        #     print val1, val2
-        #     val1.val = 56 + i
-        #     # val1 = 56 + i
-        # print 'L1', l1
-        # for val1 in shared.traverse(l1):
-        #     val1 = val1.val
-        # print 'L1', l1
-
-        print('')
-        print(shape)
-        print(pstrs)
-        print(pstrs[0][1])
-        print('')
-
 
 
 if __name__ == '__main__':

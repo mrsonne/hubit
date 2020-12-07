@@ -82,7 +82,7 @@ class TestWorker(unittest.TestCase):
                     }
 
         # Query something known to exist
-        querystring = comp_data['provides'].values()[0]
+        querystring = list(comp_data['provides'].values())[0]
         w = _Worker(hmodel,
                     cname,
                     comp_data,

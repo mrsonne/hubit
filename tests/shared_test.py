@@ -104,7 +104,7 @@ class TestShared(unittest.TestCase):
 
 
     def test_get_from_datadict(self):
-        """Extract value from nested dict.
+        """Extract value from nested dict using a list of keys.
         """
         datadict = {'a' : {'b' : [4, 5]}}
         # Should all be of type string

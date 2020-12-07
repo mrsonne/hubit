@@ -143,25 +143,25 @@ class TestShared(unittest.TestCase):
 
 
     def test_shape(self):
+        # Infer the shape of the provision
         cfg, inputdata = get_data()
         pstr = cfg["provides"]["attrs1"]
-        # Infer the shape of the provision
         shape = shared.pstr_shape(pstr, inputdata, ".", ":")
         self.assertSequenceEqual( shape, [2, 2] )
 
 
+    def test_expand(self):
+        # Expand provision into its constituents
+        cfg, inputdata = get_data()
+        pstr = cfg["provides"]["attrs1"]
+        shape = shared.pstr_shape(pstr, inputdata, ".", ":")
+        pstrs = shared.pstr_expand(pstr, shape, ":")      
+        self.assertTrue( len( list(shared.traverse(pstrs)) ) == shape[0]*shape[1] )
+
+
     def test_wildcard(self):
         cfg, inputdata = get_data()
-
-        # Expand provision into its constituents
-        pstrs = shared.pstr_expand(pstr, shape, ":")
-        
-        print( 'XX', len( list(shared.traverse(pstrs)) ) == shape[0]*shape[1] )
-
-        # l0 = 'as', 'fv', 'dsd', ['fr', 'hj', ['gb', 0]]
-        # for val in shared.traverse(l0):
-        #     print('l0', val)
-
+        pstr = cfg["provides"]["attrs1"]
 
         fwfew
         # iterate over all indices

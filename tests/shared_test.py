@@ -4,6 +4,29 @@ import unittest
 
 from hubit import shared
 
+
+def get_data():
+    cfg = {'provides': {
+                        'attrs1': 'items.:.attr.items.:.path1',
+                        'attr2': 'attr2.path',
+                        },
+            'consumes': {
+                        'input' : {'attr' : 'items.:.attr.path'}, 
+                        'results' : {},
+                        }
+            }
+
+    inputdata = {'items' : [
+                            # {"attr": {"items": [{"path": 2}]}},
+                            # {"attr": {"items": [{"path": 2}]}},
+                            {"attr": {"items": [{"path": 2}, {"path": 1}]}},
+                            {"attr": {"items": [{"path": 3}, {"path": 4}]}},
+                            ] 
+                }
+    return cfg, inputdata
+
+
+
 class TestShared(unittest.TestCase):
 
     def setUp(self):
@@ -119,32 +142,28 @@ class TestShared(unittest.TestCase):
         self.assertTrue( len( list( shared.traverse(l0) ) ) == 7 )
 
 
-    def test_wildcard(self):
-        cfg = {'provides': {
-                            'attrs1': 'items.:.attr.items.:.path1',
-                            'attr2': 'attr2.path',
-                           },
-               'consumes': {
-                            'input' : {'attr' : 'items.:.attr.path'}, 
-                            'results' : {},
-                           }
-              }
-
-        inputdata = {'items' : [
-                                # {"attr": {"items": [{"path": 2}]}},
-                                # {"attr": {"items": [{"path": 2}]}},
-                                {"attr": {"items": [{"path": 2}, {"path": 1}]}},
-                                {"attr": {"items": [{"path": 3}, {"path": 4}]}},
-                               ] 
-                    }
+    def test_shape(self):
+        cfg, inputdata = get_data()
         pstr = cfg["provides"]["attrs1"]
+        # Infer the shape of the provision
         shape = shared.pstr_shape(pstr, inputdata, ".", ":")
+        self.assertSequenceEqual( shape, [2, 2] )
+
+
+    def test_wildcard(self):
+        cfg, inputdata = get_data()
+
+        # Expand provision into its constituents
         pstrs = shared.pstr_expand(pstr, shape, ":")
+        
+        print( 'XX', len( list(shared.traverse(pstrs)) ) == shape[0]*shape[1] )
 
-        l0 = 'as', 'fv', 'dsd'
-        for val in shared.traverse(l0):
-            print('l0', val)
+        # l0 = 'as', 'fv', 'dsd', ['fr', 'hj', ['gb', 0]]
+        # for val in shared.traverse(l0):
+        #     print('l0', val)
 
+
+        fwfew
         # iterate over all indices
         import itertools
         shape = (2, 3)

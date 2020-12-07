@@ -12,6 +12,8 @@ from os.path import splitext
 from setuptools import find_packages
 from setuptools import setup
 
+# yaml, graphviz
+
 setup(
     name='hubit',
 #    version=version,

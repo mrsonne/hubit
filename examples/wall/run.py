@@ -4,78 +4,74 @@ from itertools import product
 from hubit.model import HubitModel, HubitModelQueryError
 THISPATH = os.path.dirname(os.path.realpath(__file__))
 
-# Create model from a model file
-model_file = "model.yml"
-modelfile = os.path.join(THISPATH, model_file)
-modelname = 'mypipe'
-hmodel = HubitModel.from_file(modelfile,
-                              name=modelname,
-                              output_path='./tmp')
+def get_model():
+    # Create model from a model file
+    model_file = "model.yml"
+    modelfile = os.path.join(THISPATH, model_file)
+    modelname = 'wall'
+    hmodel = HubitModel.from_file(modelfile,
+                                name=modelname,
+                                output_path='./tmp')
 
-# Load the input
-inputfile = os.path.join(THISPATH, "input.yml")
-with open(inputfile, "r") as stream:
-    input_data = yaml.load(stream, Loader=yaml.FullLoader)
+    # Load the input
+    inputfile = os.path.join(THISPATH, "input.yml")
+    with open(inputfile, "r") as stream:
+        input_data = yaml.load(stream, Loader=yaml.FullLoader)
 
-# Set the input on the model object
-hmodel.set_input(input_data)
+    # Set the input on the model object
+    hmodel.set_input(input_data)
 
-# Validate model # TODO: passes even when the key in results_provided["k_therm"] is misspelled
-hmodel.validate()
+    # Validate model 
+    hmodel.validate()
 
-# Render model
-hmodel.render()
-
-# Make the queries
-# querystrings = ["segments.0.layers.:.outer_temperature"] # ok
-querystrings = ["segments.0.layers.0.outer_temperature"] # ok
-# querystrings = ["segments.:.layers.1.k_therm"] # ok
-# querystrings = ["segments.0.layers.0.k_therm"] # ok
-# querystrings = ["segments.0.layers.:.k_therm"] #ok 
-# querystrings = ["segments.:.layers.:.k_therm"] # ok
+    # Render model
+    hmodel.render()
+    return hmodel
 
 
-# Query validation fails for at
-try:
-    hmodel.validate(["segments.0.layers.0.doesnt_exist"])
-except HubitModelQueryError as err:
-    print(err)
-    # raise err
+def make_queries(hmodel, mpworkers=False):
+    # Query validation fails for at
+    try:
+        hmodel.validate(["segments.0.layers.0.doesnt_exist"])
+    except HubitModelQueryError as err:
+        print(err)
 
-# Render the query
-hmodel.render(querystrings)
+    # Make the queries
+    querystrings = ["segments.0.layers.:.outer_temperature"] 
+    # querystrings = ["segments.0.layers.0.outer_temperature"]  
+    # querystrings = ["segments.:.layers.1.k_therm"] 
+    # querystrings = ["segments.0.layers.0.k_therm"] 
+    # querystrings = ["segments.0.layers.:.k_therm"]  
+    # querystrings = ["segments.:.layers.:.k_therm"] 
 
-# Execute components using multiprocessing
-# TODO: mpworkers = True fails to import thermal_conductivity
-mpworkers = False
+    # Render the query
+    hmodel.render(querystrings)
 
-# Important: call multiprocessing from main like this
-if __name__ == '__main__': # Required on windows if mpworkers = True
-# if True: # Required on windows if mpworkers = True
-    # Do the actual query 
     response = hmodel.get(querystrings, mpworkers=mpworkers)
-    # print(response)
+    print(response)
 
+def make_sweep(hmodel):
+    querystrings = ["segments.0.layers.:.outer_temperature"] 
 
-    
     # For segment 0 sweep over multiple inputs created as the Cartesian product of the input perturbations 
     input_values_for_path = {"segments.0.layers.0.material": ('brick', 'concrete'),
                              "segments.0.layers.0.thickness": (0.08, 0.12,),
                             }
 
 
-    # responses, inps = hmodel.get_many(querystrings,
-    #                                   input_values_for_path,
-    #                                   nproc=4)
+    responses, inps = hmodel.get_many(querystrings,
+                                      input_values_for_path,
+                                      nproc=4)
 
-    # for inp, response in zip(inps, responses):
-    #     print('Input',
-    #           inp["segments.0.layers.0.material"],
-    #           inp["segments.0.layers.0.thickness"])
-    #     print('Response', response)
-    #     print('')
-
-
+    for inp, response in zip(inps, responses):
+        print('Input',
+              inp["segments.0.layers.0.material"],
+              inp["segments.0.layers.0.thickness"])
+        print('Response', response)
+        print('')
 
 
-
+if __name__ == '__main__': # Main guard required on windows if mpworkers = True
+    hmodel = get_model()
+    make_queries(hmodel, mpworkers=False)
+    make_sweep(hmodel)

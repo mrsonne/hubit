@@ -113,6 +113,11 @@ class TestShared(unittest.TestCase):
         self.assertTrue(value == 4)
 
 
+    def test_traverse(self):
+        l0 = 'as', 'fv', 'dsd', ['fr', 'hj', ['gb', 0]]
+        self.assertTrue( len( list( shared.traverse(l0) ) ) == 7 )
+
+
     def test_wildcard(self):
         cfg = {'provides': {
                             'attrs1': 'items.:.attr.items.:.path1',

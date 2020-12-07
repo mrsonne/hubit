@@ -100,7 +100,7 @@ class TestModel(unittest.TestCase):
         """
         fpath = os.path.join(TMP_DIR, 'model.yml')
         with open(fpath, 'w') as handle:
-            yaml.dump(yaml.load(model), handle,
+            yaml.dump(yaml.load(model, Loader=yaml.FullLoader), handle,
                       default_flow_style=False)
         hmodel = HubitModel.from_file(fpath)
 
@@ -316,14 +316,14 @@ def subscriptions_for_component_idx(model_data, model, comp_idx, iloc):
 class TestRunner(unittest.TestCase):
 
     def setUp(self):
-        self.model_data = yaml.load(model)
+        self.model_data = yaml.load(model, Loader=yaml.FullLoader)
         self.hmodel = HubitModel(self.model_data,
                                  name='My model',
                                  base_path=THIS_DIR,
                                  output_path=REL_TMP_DIR)
         self.mpworkers = False
         self.qr = _QueryRunner(self.hmodel, self.mpworkers)
-        self.input = yaml.load(yml_input)
+        self.input = yaml.load(yml_input, Loader=yaml.FullLoader)
         self.hmodel.set_input(self.input)
 
         # Query which does not consume results

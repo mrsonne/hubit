@@ -15,7 +15,7 @@ hmodel = HubitModel.from_file(modelfile,
 # Load the input
 inputfile = os.path.join(THISPATH, "input.yml")
 with open(inputfile, "r") as stream:
-    input_data = yaml.load(stream) #, TODO: py3 Loader=yaml.FullLoader)
+    input_data = yaml.load(stream, Loader=yaml.FullLoader)
 
 # Set the input on the model object
 hmodel.set_input(input_data)

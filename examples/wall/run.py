@@ -4,7 +4,7 @@ from itertools import product
 from hubit.model import HubitModel, HubitModelQueryError
 THISPATH = os.path.dirname(os.path.realpath(__file__))
 
-def get_model():
+def get_model(render=True):
     # Create model from a model file
     model_file = "model.yml"
     modelfile = os.path.join(THISPATH, model_file)
@@ -25,27 +25,29 @@ def get_model():
     hmodel.validate()
 
     # Render model
-    hmodel.render()
+    if render:
+        hmodel.render()
     return hmodel
 
 
-def make_queries(hmodel, mpworkers=False):
+def make_queries(hmodel, render=True, mpworkers=False):
     # Query validation fails for at
-    try:
-        hmodel.validate(["segments.0.layers.0.doesnt_exist"])
-    except HubitModelQueryError as err:
-        print(err)
+    # try:
+    #     hmodel.validate(["segments.0.layers.0.doesnt_exist"])
+    # except HubitModelQueryError as err:
+    #     print(err)
 
     # Make the queries
-    querystrings = ["segments.0.layers.:.outer_temperature"] 
+    # querystrings = ["segments.0.layers.:.outer_temperature"] # problem using multiprocessing
     # querystrings = ["segments.0.layers.0.outer_temperature"]  
     # querystrings = ["segments.:.layers.1.k_therm"] 
     # querystrings = ["segments.0.layers.0.k_therm"] 
     # querystrings = ["segments.0.layers.:.k_therm"]  
-    # querystrings = ["segments.:.layers.:.k_therm"] 
+    querystrings = ["segments.:.layers.:.k_therm"] 
 
     # Render the query
-    hmodel.render(querystrings)
+    if render:
+        hmodel.render(querystrings)
 
     response = hmodel.get(querystrings, mpworkers=mpworkers)
     print(response)
@@ -72,6 +74,6 @@ def make_sweep(hmodel):
 
 
 if __name__ == '__main__': # Main guard required on windows if mpworkers = True
-    hmodel = get_model()
-    make_queries(hmodel, mpworkers=False)
-    make_sweep(hmodel)
+    hmodel = get_model(render=False)
+    make_queries(hmodel, render=False, mpworkers=True)
+    # make_sweep(hmodel)

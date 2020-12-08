@@ -8,6 +8,9 @@ ks = {'brick': 0.47,
       'rock_wool': 0.032}
 
 def thermal_conductivity(_input_consumed, _results_consumed, results_provided):
-    sleep(2.)
-    results_provided["k_therm"] = ks[ _input_consumed["material"] ]
+      """Use 'material' in the input to compute the corresponding thermal
+      conductivity. Use sleep to simulate some latency 
+      """
+      sleep(2.)
+      results_provided["k_therm"] = ks[ _input_consumed["material"] ]
 

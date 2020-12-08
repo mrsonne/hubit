@@ -67,7 +67,8 @@ def make_queries(hmodel, render=True, mpworkers=False):
     response = hmodel.get(querystrings, mpworkers=mpworkers)
     print(response)
 
-def make_sweep(hmodel):
+
+def make_sweep(hmodel, nproc=4):
     """Run a parameter sweep
 
     Args:
@@ -83,7 +84,7 @@ def make_sweep(hmodel):
 
     responses, inps = hmodel.get_many(querystrings,
                                       input_values_for_path,
-                                      nproc=4)
+                                      nproc=nproc)
 
     for inp, response in zip(inps, responses):
         print('Input',

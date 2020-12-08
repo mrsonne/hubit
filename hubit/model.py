@@ -739,6 +739,8 @@ class _QueryRunner(object):
         path = os.path.abspath(path)
         f, _filename, description = imp.find_module(filename, [path])
         module = imp.load_module(filename, f, _filename, description)
+        # Insert in path to solve import issue on worker (multiprocessing)
+        sys.path.insert(0, path)
         func = getattr(module, cname)
         try:
             version = module.version()

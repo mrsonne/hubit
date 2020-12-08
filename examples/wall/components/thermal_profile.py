@@ -4,12 +4,13 @@
 import time
 
 def thermal_prof(_input_consumed, _results_consumed, results_provided):
-      """Use thermal conductivities, thicnesses and boundary conditions 
-      to compute the corresponding thermal profile and heath flux in a 
-      flat multi layer wall. Use sleep to simulate some latency. 
-      The component doesn't use numpy to avoid dependencies the are 
-      not necessary for the the example.
-      """
+    """Use thermal conductivities, thicnesses and boundary conditions 
+    to compute the corresponding thermal profile and heath flux in a 
+    flat multi layer wall. Use sleep to simulate some latency. 
+    The component doesn't use numpy to avoid dependencies the are 
+    not necessary for the the example.
+    """
+    
     # Simulate latency
     time.sleep(0.25)
 

@@ -1,6 +1,3 @@
-"""
-"""
-
 import time
 
 def thermal_prof(_input_consumed, _results_consumed, results_provided):

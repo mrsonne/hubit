@@ -5,6 +5,14 @@ from hubit.model import HubitModel, HubitModelQueryError
 THISPATH = os.path.dirname(os.path.realpath(__file__))
 
 def get_model(render=True):
+    """Create a HubutModel instance from a model file.
+
+    Args:
+        render (bool, optional): Render the model. Defaults to True.
+
+    Returns:
+        [HubitModel]: A hubit model corresponding to the model file 
+    """
     # Create model from a model file
     model_file = "model.yml"
     modelfile = os.path.join(THISPATH, model_file)
@@ -31,6 +39,13 @@ def get_model(render=True):
 
 
 def make_queries(hmodel, render=True, mpworkers=False):
+    """Show some query functionality
+
+    Args:
+        hmodel (HubitModel): Hubit model to be used
+        render (bool, optional): Run query rendering. Defaults to True.
+        mpworkers (bool, optional): Use multiprocessing. Defaults to False.
+    """
     # Query validation fails for at
     # try:
     #     hmodel.validate(["segments.0.layers.0.doesnt_exist"])
@@ -39,7 +54,7 @@ def make_queries(hmodel, render=True, mpworkers=False):
 
     # Make the queries
     # querystrings = ["segments.0.layers.:.outer_temperature"] # problem using multiprocessing
-    # querystrings = ["segments.0.layers.0.outer_temperature"]  
+    querystrings = ["segments.0.layers.0.outer_temperature"]  
     # querystrings = ["segments.:.layers.1.k_therm"] 
     # querystrings = ["segments.0.layers.0.k_therm"] 
     # querystrings = ["segments.0.layers.:.k_therm"]  
@@ -53,6 +68,11 @@ def make_queries(hmodel, render=True, mpworkers=False):
     print(response)
 
 def make_sweep(hmodel):
+    """Run a parameter sweep
+
+    Args:
+        hmodel (HubitModel): Hubit model to be used
+    """
     querystrings = ["segments.0.layers.:.outer_temperature"] 
 
     # For segment 0 sweep over multiple inputs created as the Cartesian product of the input perturbations 

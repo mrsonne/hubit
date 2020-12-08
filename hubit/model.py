@@ -323,7 +323,12 @@ class HubitModel(object):
                 # TODO iloc wildcard
                 dummy_query = dummy_query.replace(":", "0")
                 dummy_input = None
-                func, version = _QueryRunner._get_func(self.base_path, cname, component_data)
+                (func,
+                version,
+                self._components) = _QueryRunner._get_func(self.base_path,
+                                                           cname,
+                                                           component_data,
+                                                           self._components)
                 workers.append(_Worker(self, cname, component_data, 
                                        dummy_input, dummy_query,
                                        func, version, self.ilocstr))
@@ -707,6 +712,9 @@ class _QueryRunner(object):
         self.workers_completed = []
         self.worker_for_id = {}
         self.observers_for_query = {}
+        
+        # For book keeping what has already been imported
+        self._components = {}
 
 
     def _components_for_query(self, querystring):
@@ -722,7 +730,7 @@ class _QueryRunner(object):
 
 
     @staticmethod
-    def _get_func(base_path, cname, cfgdata):
+    def _get_func(base_path, cname, cfgdata, components):
         """[summary]
 
         Args:
@@ -731,22 +739,30 @@ class _QueryRunner(object):
             cfgdata (dict): configuration data from the model definition file
 
         Returns:
-            tuple: function handle and function version
+            tuple: function handle, function version, and component dict
         """
         path, filename = os.path.split(cfgdata["path"])
         path = os.path.join(base_path, path)
         filename = os.path.splitext(filename)[0]
         path = os.path.abspath(path)
+        component_id = os.path.join(path, cname)
+        if component_id in components.keys():
+            func, version = components[component_id]
+            return func, version, components
+
         f, _filename, description = imp.find_module(filename, [path])
         module = imp.load_module(filename, f, _filename, description)
         # Insert in path to solve import issue on worker (multiprocessing)
+
         sys.path.insert(0, path)
         func = getattr(module, cname)
         try:
             version = module.version()
         except AttributeError:
             version = None
-        return func, version
+        components[component_id] = func, version
+
+        return func, version, components
 
 
     def _worker_for_query(self, query, dryrun=False):
@@ -771,7 +787,12 @@ class _QueryRunner(object):
         # Get the provider function for the query
         cname = components[0]
         cfgdata = self.model.component_for_name[cname]
-        func, version = _QueryRunner._get_func(self.model.base_path, cname, cfgdata)
+        (func,
+        version,
+        self._components) = _QueryRunner._get_func(self.model.base_path,
+                                                   cname,
+                                                   cfgdata,
+                                                   self._components)
 
         # Create and return worker
         try:

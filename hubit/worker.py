@@ -262,7 +262,9 @@ class _Worker(object):
                                                 self.results))
             job.start()
         else:
-            self.func(self.inputval_for_attrname, self.resultval_for_attrname, self.results)
+            self.func(self.inputval_for_attrname,
+                      self.resultval_for_attrname,
+                      self.results)
 
         logging.debug( '\n**STOP WORKING**\n{}'.format(self.__str__()) )
 

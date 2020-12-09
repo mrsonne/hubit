@@ -11,7 +11,7 @@ segments:
         - thickness: 0.1
           material: brick
       inside:
-        temperature: 300. # allow temprature to vary between segments
+        temperature: 320. # allow temprature to vary between segments
       outside:
         temperature: 273.
     # Second segment

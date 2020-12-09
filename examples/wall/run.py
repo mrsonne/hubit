@@ -53,12 +53,13 @@ def make_queries(hmodel, render=True, mpworkers=False):
     #     print(err)
 
     # Make the queries
-    # querystrings = ["segments.0.layers.:.outer_temperature"] # problem using multiprocessing
-    querystrings = ["segments.0.layers.0.outer_temperature"]  
+    querystrings = ["segments.:.layers.:.outer_temperature"]
+    # querystrings = ["segments.0.layers.:.outer_temperature"]
+    # querystrings = ["segments.0.layers.0.outer_temperature"]  
     # querystrings = ["segments.:.layers.1.k_therm"] 
     # querystrings = ["segments.0.layers.0.k_therm"] 
     # querystrings = ["segments.0.layers.:.k_therm"]  
-    querystrings = ["segments.:.layers.:.k_therm"] 
+    # querystrings = ["segments.:.layers.:.k_therm"] 
 
     # Render the query
     if render:

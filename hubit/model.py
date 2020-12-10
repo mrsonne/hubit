@@ -146,16 +146,21 @@ def _get(queryrunner,
         success = queryrunner._deploy(_querystrings, extracted_input,
                                       all_results, flat_input,
                                       dryrun=dryrun)
+
+        # TODO: why this, why timeout??
         while watcher.is_alive():
             watcher.join(timeout=1.)
         # TODO: compress query
     except (Exception, KeyboardInterrupt) as err:
         the_err = err
+        success = False
         traceback.print_exc()
         print(err)
         shutdown_event.set()
         didfail = True
-    
+
+    queryrunner._join_workers()
+
     # Join thread
     if watcher.is_alive():
         watcher.join()

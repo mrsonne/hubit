@@ -274,7 +274,8 @@ class _Worker(object):
         Convert val_for_pathstr to val_for_attrname i.e. 
         from external names to internal names with expected shapes
         """
-        return {attrname: reshape(pstrs, val_for_pstr) for attrname, pstrs in pstrs_for_attrname.items()}
+        return {attrname: reshape(pstrs, val_for_pstr)
+                for attrname, pstrs in pstrs_for_attrname.items()}
 
     def is_ready_to_work(self):
         return (len(self.pending_input_pathstrs) == 0 and 

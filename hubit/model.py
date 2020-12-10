@@ -835,9 +835,14 @@ class _QueryRunner(object):
 
             # Set available data on the worker. If data is missing the corresponding 
             # paths (queries) are returned 
-            input_paths_missing, querystrings_next = worker.set_values(extracted_input, all_results)
+            (input_paths_missing,
+             querystrings_next) = worker.set_values(extracted_input,
+                                                    all_results)
 
-            self._transfer_input(input_paths_missing, worker, extracted_input, all_input)
+            self._transfer_input(input_paths_missing,
+                                 worker,
+                                 extracted_input,
+                                 all_input)
 
             querystrings_next = [qstrexp 
                                  for qstr in querystrings_next

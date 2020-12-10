@@ -121,7 +121,7 @@ def _get(queryrunner,
     queryrunner.observers_for_query = {}
 
     extracted_input = {}
-    all_results = {}
+    flat_results = {}
     tstart = time.time()
 
     # Expand the query and get the max ilocs for each query
@@ -135,7 +135,7 @@ def _get(queryrunner,
     # Start thread that periodically checks whether we are finished or not  
     shutdown_event = Event()    
     watcher = Thread(target=queryrunner._watcher,
-                     args=(_querystrings, all_results, shutdown_event))
+                     args=(_querystrings, flat_results, shutdown_event))
     watcher.daemon = True
     watcher.start()
 
@@ -144,7 +144,7 @@ def _get(queryrunner,
     try:
         didfail = False
         success = queryrunner._deploy(_querystrings, extracted_input,
-                                      all_results, flat_input,
+                                      flat_results, flat_input,
                                       dryrun=dryrun)
 
         # TODO: why this, why timeout??
@@ -166,7 +166,7 @@ def _get(queryrunner,
         watcher.join()
 
     if not didfail and success:
-        response = {query:all_results[query] for query in _querystrings}
+        response = {query:flat_results[query] for query in _querystrings}
 
         if not expand_iloc:
             response = _compress_response(response, querystrs_for_querystr)
@@ -175,11 +175,11 @@ def _get(queryrunner,
         # print([(key, [obj.idstr() for obj in objs]) for key, objs in self.observers_for_query.items()])
         print('\n**SUMMARY**\n')
         print('Input extracted\n{}\n'.format(extracted_input))
-        print('Results\n{}\n'.format(all_results))
+        print('Results\n{}\n'.format(flat_results))
         print('Response\n{}'.format(response))
 
         print('Response created in {} s'.format(time.time() - tstart))
-        return response
+        return response, flat_results
     else:
         # Re-raise if failed
         raise the_err
@@ -572,7 +572,10 @@ class HubitModel(object):
         if validate:
             _get(qrunner, querystrings, self.flat_input, dryrun=True)
 
-        return _get(qrunner, querystrings, self.flat_input)
+        response, self.flat_results = _get(qrunner,
+                                           querystrings,
+                                           self.flat_input)
+        return response
 
 
     def _validate_query(self, querystrings, mpworkers=False):
@@ -650,7 +653,7 @@ class HubitModel(object):
             print('waiting')
             time.sleep(0.25)
         pool.join()
-        responses = results.get()
+        responses, flat_results = zip(*results.get())
 
         # Results in random order so we need an ID
         # but callback is called in each query 
@@ -825,7 +828,7 @@ class _QueryRunner(object):
 
 
     def _deploy(self, querystrings, extracted_input, 
-               all_results, all_input, skip_paths=[],
+               flat_results, all_input, skip_paths=[],
                dryrun=False):
         """Create workers
 
@@ -840,7 +843,7 @@ class _QueryRunner(object):
             if querystring in _skip_paths: continue
 
             # Check whether the queried data is already available  
-            if querystring in all_results: continue
+            if querystring in flat_results: continue
 
             # Figure out which component can provide a response to the query
             # and get the corresponding worker
@@ -859,7 +862,7 @@ class _QueryRunner(object):
             # paths (queries) are returned 
             (input_paths_missing,
              querystrings_next) = worker.set_values(extracted_input,
-                                                    all_results)
+                                                    flat_results)
 
             self._transfer_input(input_paths_missing,
                                  worker,
@@ -883,13 +886,14 @@ class _QueryRunner(object):
             # Deploy workers for the dependencies
             success = self._deploy(querystrings_next,
                                    extracted_input,
-                                   all_results,
+                                   flat_results,
                                    all_input,
                                    skip_paths=_skip_paths,
                                    dryrun=dryrun)
             # if not success: return False
 
         return True
+
 
     def _set_worker(self, worker):
         """
@@ -930,7 +934,7 @@ class _QueryRunner(object):
             all_results[path] = value
 
 
-    def _watcher(self, queries, all_results, shutdown_event):
+    def _watcher(self, queries, flat_results, shutdown_event):
         """
         Run this watcher on a thread. Runs until all queried data 
         is present in the results. Not needed for sequential runs, 
@@ -944,9 +948,9 @@ class _QueryRunner(object):
                                   if worker.results_ready()]
             for worker in _workers_completed:
                 print('Query runner detected that a worker completed.')
-                self._set_worker_completed(worker, all_results)
-                print('All results: ', all_results)
+                self._set_worker_completed(worker, flat_results)
+                print('Flat results: ', flat_results)
 
-            should_stop = all([query in all_results.keys() for query in queries])
+            should_stop = all([query in flat_results.keys() for query in queries])
             time.sleep(POLLTIME)
 

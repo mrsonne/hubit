@@ -268,6 +268,20 @@ class HubitModel(object):
         return self
 
 
+    def set_results(self, results_data):
+        """
+        Set the (hierarchical) results on the model
+
+        Args:
+            results_data (Dict): Results data typically in a dict-like format
+
+        Returns:
+            HubitModel: Hubit model with input set
+        """
+        self.flat_results = flatten(results_data)
+        return self
+
+
     def render(self,
                querystrings=[],
                file_idstr=''):

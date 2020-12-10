@@ -8,7 +8,7 @@ from hubit.model import (HubitModel,
                          HubitModelNoInputError,
                          HubitModelQueryError,
                          _QueryRunner)
-from hubit.shared import inflate
+from hubit.shared import inflate, flatten
 
 yml_input = None
 model = None
@@ -385,6 +385,24 @@ class TestRunner(unittest.TestCase):
         """
         with self.assertRaises(HubitModelQueryError) as context:
             self.qr._worker_for_query("i.dont.exist")
+
+
+    def get_worker_counts(self, queries):
+        all_results = {}
+        flat_input = flatten(self.input)
+        worker_counts = []
+        for q in queries:
+            self.qr._deploy([q], flat_input, 
+                            all_results, flat_input, dryrun=True)
+            worker_counts.append(len(self.qr.workers))
+        return worker_counts
+
+
+    def test_number_of_workers_level0(self):
+        queries = [self.querystr_level0,]
+        expected_worker_counts = [1,]
+        worker_counts = self.get_worker_counts(queries)
+        self.assertListEqual(worker_counts, expected_worker_counts)
 
 
     if __name__ == '__main__':

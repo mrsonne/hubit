@@ -119,7 +119,7 @@ class _Worker(object):
         self.version = version
         self.hmodel = hmodel
         self.multiprocess = multiprocess
-
+        self.job = None
         # print "Worker"
         # print 'name', cname
         # print 'query', querystring
@@ -274,11 +274,12 @@ class _Worker(object):
         # Notify the hubit model that we are about to start the work
         self.hmodel._set_worker_working(self)
         if self.multiprocess:
-            job = multiprocessing.Process(target=self.func,
-                                          args=(self.inputval_for_attrname,
-                                                self.resultval_for_attrname,
-                                                self.results))
-            job.start()
+            self.job = multiprocessing.Process(target=self.func,
+                                               args=(self.inputval_for_attrname,
+                                                     self.resultval_for_attrname,
+                                                     self.results))
+            self.job.daemon = False
+            self.job.start()
         else:
             self.func(self.inputval_for_attrname,
                       self.resultval_for_attrname,

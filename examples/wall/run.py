@@ -78,6 +78,30 @@ def make_queries(hmodel, render=True, mpworkers=False):
     results = hmodel.get_results()
     print(results)
 
+    # Use the set_results method to run a model that bypasses 
+    # the default thermal conductivity calculation and uses the 
+    # conductivities specified below. These values could 
+    # represent some new measurements that we want to see 
+    # the effect of in the thermal profile
+    results_data = {'segments': {'0': {'layers': 
+                                        {'0': {'k_therm': 0.47 },
+                                         '1': {'k_therm': 0.025 },
+                                         '2': {'k_therm': 0.47 }
+                                        },
+                                    },
+                                 '1': {'layers': 
+                                        {'0': {'k_therm': 1.1},
+                                         '1': {'k_therm': 0.04},
+                                         '2': {'k_therm': 1.1,}
+                                        }
+                                    }
+                                }
+                    }
+    hmodel.set_results(results_data)
+    response = hmodel.get(["segments.:.layers.:.outer_temperature"],
+                          mpworkers=mpworkers,
+                          reuse_results=True)
+    print(response)
 
 def make_sweep(hmodel, nproc=4):
     """Run a parameter sweep

@@ -194,6 +194,7 @@ class _Worker(object):
             self.resultspaths_consumed_for_attrname, _ = _Worker.expand(self.resultspath_consumed_for_attrname,
                                                                         inputdata)
 
+            # Expand from abstract path with : to list of paths with actual ilocs
             (self.resultspaths_provided_for_attrname,
             self.shape_provided_for_attrname) = _Worker.expand(self.resultspath_provided_for_attrname,
                                                                inputdata)

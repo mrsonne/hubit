@@ -260,6 +260,11 @@ class _Worker(object):
             self.results[attrname] = list_from_shape(self.shape_provided_for_attrname[attrname])
 
 
+    def join(self):
+        if self.job is not None:
+            self.job.join()
+
+
     def work(self):
         """
         Executes actual work

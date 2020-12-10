@@ -35,6 +35,13 @@ class HubitModelNoInputError(HubitError):
         return self.message
 
 
+class HubitModelNoResultsError(HubitError):
+    def __init__(self):
+        self.message = 'No results found on the model instance so cannot reuse results'
+
+    def __str__(self): 
+        return self.message
+
 
 class HubitModelValidationError(HubitError):
     def __init__(self, pstring, compname, compname_for_pstring):
@@ -105,6 +112,7 @@ def _get_star(args):
 def _get(queryrunner,
          querystrings,
          flat_input,
+         flat_results={},
          dryrun=False,
          expand_iloc=False):
     """
@@ -122,7 +130,6 @@ def _get(queryrunner,
     queryrunner.observers_for_query = {}
 
     extracted_input = {}
-    flat_results = {}
     tstart = time.time()
 
     # Expand the query and get the max ilocs for each query
@@ -142,6 +149,7 @@ def _get(queryrunner,
 
     # remeber to send SIGTERM for processes
     # https://stackoverflow.com/questions/11436502/closing-all-threads-with-a-keyboard-interrupt
+    the_err = None
     try:
         didfail = False
         success = queryrunner._deploy(_querystrings, extracted_input,
@@ -154,11 +162,7 @@ def _get(queryrunner,
         # TODO: compress query
     except (Exception, KeyboardInterrupt) as err:
         the_err = err
-        success = False
-        traceback.print_exc()
-        print(err)
         shutdown_event.set()
-        didfail = True
 
     queryrunner._join_workers()
 
@@ -166,7 +170,7 @@ def _get(queryrunner,
     if watcher.is_alive():
         watcher.join()
 
-    if not didfail and success:
+    if the_err is None:
         response = {query:flat_results[query] for query in _querystrings}
 
         if not expand_iloc:
@@ -174,10 +178,10 @@ def _get(queryrunner,
 
 
         # print([(key, [obj.idstr() for obj in objs]) for key, objs in self.observers_for_query.items()])
-        print('\n**SUMMARY**\n')
-        print('Input extracted\n{}\n'.format(extracted_input))
-        print('Results\n{}\n'.format(flat_results))
-        print('Response\n{}'.format(response))
+        # print('\n**SUMMARY**\n')
+        # print('Input extracted\n{}\n'.format(extracted_input))
+        # print('Results\n{}\n'.format(flat_results))
+        # print('Response\n{}'.format(response))
 
         print('Response created in {} s'.format(time.time() - tstart))
         return response, flat_results
@@ -558,7 +562,8 @@ class HubitModel(object):
             return inflate(self.flat_results)
 
 
-    def get(self, querystrings, mpworkers=False, validate=False):
+    def get(self, querystrings, mpworkers=False,
+            validate=False, reuse_results=False):
         """Generate respose corresponding to the 'querystrings'
 
         Args:
@@ -575,15 +580,24 @@ class HubitModel(object):
         if not self._input_is_set:
             raise HubitModelNoInputError()
 
+        if reuse_results and self.flat_results is None:
+            raise HubitModelNoResultsError()
+
         # Make a query runner
         qrunner = _QueryRunner(self, mpworkers)
 
         if validate:
             _get(qrunner, querystrings, self.flat_input, dryrun=True)
 
+        if reuse_results:
+            _flat_results = self.flat_results
+        else:
+            _flat_results = {}
+
         response, self.flat_results = _get(qrunner,
                                            querystrings,
-                                           self.flat_input)
+                                           self.flat_input,
+                                           _flat_results)
         return response
 
 
@@ -622,7 +636,7 @@ class HubitModel(object):
         Args:
             querystrings ([List]): Query path items
             input_values_for_path ([Dict]): Dictionary with keys representing path items. The corresponding values should be an iterable with elements representing discrete values for the attribute at the path.
-            nproc (int, optional): Number of processors to use. Defaults to None. If not specified a suitable default is used.
+            nproc (int, optional): Number of processes to use. Defaults to None. If not specified a suitable default is used.
 
         Raises:
             HubitModelNoInputError: [description]

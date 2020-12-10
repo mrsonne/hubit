@@ -51,6 +51,15 @@ def setUpModule():
             consumes:
                 input: 
                     factors: list.:.some_attr.factors
+        -
+            func_name: fun4
+            path: ./components/comp4.py
+            provides:
+                yvals: list._IDX.some_attr.inner_list.:.yval
+            consumes:
+                input:
+                    fact: list._IDX.some_attr.x_to_y_fact
+                    xvals: list._IDX.some_attr.inner_list.:.xval
         """
 
         yml_input = """
@@ -58,9 +67,21 @@ def setUpModule():
             - some_attr:
                 numbers: [0.2, 0.3]
                 factors: [2., 3.]
+                x_to_y_fact: 2.
+                inner_list:
+                    - 
+                        xval: 1.
+                    - 
+                        xval: 2.
             - some_attr:
                 numbers: [0.4, 0.5]
                 factors: [4., 5.]
+                x_to_y_fact: 3.
+                inner_list:
+                    - 
+                        xval: 3.
+                    - 
+                        xval: 4.
         """
 
 def level0_results_at_idx(input, idx):
@@ -441,10 +462,35 @@ class TestRunner(unittest.TestCase):
 
 
     def test_number_of_workers_slicing(self):
-        queries = [('factors',)]
+        """[summary]
+        """
+        queries = [('factors',),]
         worker_counts = self.get_worker_counts(queries)
         expected_worker_counts = [1, 
                                  ]
+        self.assertListEqual(worker_counts, expected_worker_counts)
+
+
+    def test_number_of_workers_multiple_levels(self):
+        """Query level-1 attribute. Should deploy 2 level-0 workers
+        and 2 level-1 workers.
+        """
+        queries = [('list.0.some_attr.two_x_numbers_x_factor',
+                    'list.1.some_attr.two_x_numbers_x_factor')]
+        worker_counts = self.get_worker_counts(queries)
+        expected_worker_counts = [4,]
+        self.assertListEqual(worker_counts, expected_worker_counts)
+
+
+    def test_number_of_workers_case6(self):
+        """Query multiple attributes that are actually supplied by the 
+        same component. Therefore, only one worker should be deployed.
+        """
+        queries = [('list.0.some_attr.inner_list.0.yval',
+                    'list.0.some_attr.inner_list.1.yval',)
+                  ]
+        worker_counts = self.get_worker_counts(queries)
+        expected_worker_counts = [1,]
         self.assertListEqual(worker_counts, expected_worker_counts)
 
 

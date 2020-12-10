@@ -844,6 +844,8 @@ class _QueryRunner(object):
                                  extracted_input,
                                  all_input)
 
+            # Expand requirement paths returned when the worker was filled 
+            # with input that is currently available 
             querystrings_next = [qstrexp 
                                  for qstr in querystrings_next
                                  for qstrexp in expand_query(qstr, all_input)[0]]

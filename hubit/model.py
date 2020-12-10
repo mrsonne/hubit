@@ -722,6 +722,13 @@ class _QueryRunner(object):
         self._components = {}
 
 
+    def _join_workers(self):
+        # TODO Not sure this is required
+        for i, worker in enumerate(self.workers_completed):
+            # https://stackoverflow.com/questions/25455462/share-list-between-process-in-python-server
+            worker.join()
+
+
     def _components_for_query(self, querystring):
         """
         Find names of components that can respond to the "query".
@@ -818,12 +825,19 @@ class _QueryRunner(object):
 
 
     def _deploy(self, querystrings, extracted_input, 
-               all_results, all_input, dryrun=False):
+               all_results, all_input, skip_paths=[],
+               dryrun=False):
         """Create workers
 
         querystrings should be expanded i.e. explicit in terms of iloc
+
+        paths in skip_paths are skipped
         """
+        _skip_paths = copy.copy(skip_paths)
         for querystring in querystrings:
+            
+            # Skip if the queried data will be provided
+            if querystring in _skip_paths: continue
 
             # Check whether the queried data is already available  
             if querystring in all_results: continue
@@ -832,6 +846,9 @@ class _QueryRunner(object):
             # and get the corresponding worker
             worker = self._worker_for_query(querystring, dryrun=dryrun)
             # if worker is None: return False
+
+            # Skip if the queried data will be provided
+            _skip_paths.extend( worker.paths_provided() )
 
             # Check that another query did not already request this worker
             if worker._id in self.worker_for_id.keys(): continue
@@ -863,10 +880,12 @@ class _QueryRunner(object):
                 else:
                     self.observers_for_query[query_next] = [worker]
             
+            # Deploy workers for the dependencies
             success = self._deploy(querystrings_next,
                                    extracted_input,
                                    all_results,
                                    all_input,
+                                   skip_paths=_skip_paths,
                                    dryrun=dryrun)
             # if not success: return False
 

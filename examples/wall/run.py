@@ -68,6 +68,10 @@ def make_queries(hmodel, render=True, mpworkers=False):
     response = hmodel.get(querystrings, mpworkers=mpworkers)
     print(response)
 
+    # Get the full results object
+    results = hmodel.get_results()
+    print(results)
+
 
 def make_sweep(hmodel, nproc=4):
     """Run a parameter sweep

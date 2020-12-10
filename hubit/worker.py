@@ -200,8 +200,12 @@ class _Worker(object):
             self.shape_provided_for_attrname) = _Worker.expand(self.resultspath_provided_for_attrname,
                                                                inputdata)
 
-            self.input_attrname_for_pathstr = {pathstr:key for key, pathstrs in self.inputpaths_consumed_for_attrname.items() for pathstr in traverse(pathstrs)}
-            self.results_attrname_for_pathstr = {pathstr:key for key, pathstrs in self.resultspaths_consumed_for_attrname.items() for pathstr in traverse(pathstrs)}
+            self.input_attrname_for_pathstr = {pathstr:key 
+                                               for key, pathstrs in self.inputpaths_consumed_for_attrname.items()
+                                               for pathstr in traverse(pathstrs)}
+            self.results_attrname_for_pathstr = {pathstr:key 
+                                                 for key, pathstrs in self.resultspaths_consumed_for_attrname.items() 
+                                                 for pathstr in traverse(pathstrs)}
 
 
 

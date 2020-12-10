@@ -392,7 +392,7 @@ class TestRunner(unittest.TestCase):
         flat_input = flatten(self.input)
         worker_counts = []
         for q in queries:
-            self.qr._deploy([q], flat_input, 
+            self.qr._deploy(q, flat_input, 
                             all_results, flat_input, dryrun=True)
             worker_counts.append(len(self.qr.workers))
         return worker_counts
@@ -402,7 +402,7 @@ class TestRunner(unittest.TestCase):
         """Test number of workers on level 0 quries ie queries 
         that have no dependencies
         """
-        queries = [self.querystr_level0,]
+        queries = [(self.querystr_level0,),]
         
         expected_worker_counts = [1, # Level 0 worker on specific index yields 1 worker
                                  ]
@@ -414,8 +414,17 @@ class TestRunner(unittest.TestCase):
         """Test number of workers on leel 1 quries ie queries
         that have one dependency
         """
-        queries = [self.querystr_level1,]
+        queries = [(self.querystr_level1,),]
         expected_worker_counts = [2, # Level 1 worker on specific index yields 2 workers - one for level 0 and one for level 1
+                                 ]
+        worker_counts = self.get_worker_counts(queries)
+        self.assertListEqual(worker_counts, expected_worker_counts)
+
+
+    def test_number_of_workers_compose(self):
+        queries = [(self.querystr_level0, self.querystr_level1,)
+                  ]
+        expected_worker_counts = [2, # The level 1 quries requires the level 0 so self.querystr_level0 is superfluous
                                  ]
         worker_counts = self.get_worker_counts(queries)
         self.assertListEqual(worker_counts, expected_worker_counts)

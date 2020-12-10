@@ -207,6 +207,16 @@ class _Worker(object):
                                                  for pathstr in traverse(pathstrs)}
 
 
+    def paths_provided(self):
+        """Generates a list of the paths that will be provided.
+
+        Returns:
+            List: Sequence of paths that will be provided by the worker
+        """
+        return [path 
+                for paths in self.resultspaths_provided_for_attrname.values()
+                for path in paths]
+
 
     def result_for_path(self):
         """

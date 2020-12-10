@@ -97,5 +97,5 @@ def make_sweep(hmodel, nproc=4):
 
 if __name__ == '__main__': # Main guard required on windows if mpworkers = True
     hmodel = get_model(render=False)
-    make_queries(hmodel, render=False, mpworkers=True)
-    # make_sweep(hmodel)
+    # make_queries(hmodel, render=False, mpworkers=True)
+    make_sweep(hmodel, nproc=4)

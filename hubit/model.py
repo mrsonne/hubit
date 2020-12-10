@@ -136,7 +136,7 @@ def _get(queryrunner,
     shutdown_event = Event()    
     watcher = Thread(target=queryrunner._watcher,
                      args=(_querystrings, all_results, shutdown_event))
-    watcher.daemon=True
+    watcher.daemon = True
     watcher.start()
 
     # remeber to send SIGTERM for processes

@@ -815,6 +815,8 @@ class _QueryRunner(object):
     def _deploy(self, querystrings, extracted_input, 
                all_results, all_input, dryrun=False):
         """Create workers
+
+        querystrings should be expanded i.e. explicit in terms of iloc
         """
         for querystring in querystrings:
 

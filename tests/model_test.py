@@ -43,6 +43,14 @@ def setUpModule():
                     factors: list._IDX.some_attr.factors
                 results: 
                     numbers_provided_by_comp1: list._IDX.some_attr.two_x_numbers
+        -
+            func_name: slicing
+            path: ./components/comp3.py
+            provides:
+                mylist: factors
+            consumes:
+                input: 
+                    factors: list.:.some_attr.factors
         """
 
         yml_input = """
@@ -429,6 +437,14 @@ class TestRunner(unittest.TestCase):
         expected_worker_counts = [2, # Level 1 query requires the level 0 attr so self.querystr_level0 is superfluous
                                  ]
         worker_counts = self.get_worker_counts(queries)
+        self.assertListEqual(worker_counts, expected_worker_counts)
+
+
+    def test_number_of_workers_slicing(self):
+        queries = [('factors',)]
+        worker_counts = self.get_worker_counts(queries)
+        expected_worker_counts = [1, 
+                                 ]
         self.assertListEqual(worker_counts, expected_worker_counts)
 
 

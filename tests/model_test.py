@@ -411,7 +411,7 @@ class TestRunner(unittest.TestCase):
 
 
     def test_number_of_workers_level1(self):
-        """Test number of workers on leel 1 quries ie queries
+        """Test number of workers on level 1 quries ie queries
         that have one dependency
         """
         queries = [(self.querystr_level1,),]
@@ -421,10 +421,12 @@ class TestRunner(unittest.TestCase):
         self.assertListEqual(worker_counts, expected_worker_counts)
 
 
-    def test_number_of_workers_compose(self):
+    def test_number_of_workers_composite(self):
+        """Test composite queries
+        """
         queries = [(self.querystr_level0, self.querystr_level1,)
                   ]
-        expected_worker_counts = [2, # The level 1 quries requires the level 0 so self.querystr_level0 is superfluous
+        expected_worker_counts = [2, # Level 1 query requires the level 0 attr so self.querystr_level0 is superfluous
                                  ]
         worker_counts = self.get_worker_counts(queries)
         self.assertListEqual(worker_counts, expected_worker_counts)

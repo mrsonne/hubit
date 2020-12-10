@@ -399,8 +399,24 @@ class TestRunner(unittest.TestCase):
 
 
     def test_number_of_workers_level0(self):
+        """Test number of workers on level 0 quries ie queries 
+        that have no dependencies
+        """
         queries = [self.querystr_level0,]
-        expected_worker_counts = [1,]
+        
+        expected_worker_counts = [1, # Level 0 worker on specific index yields 1 worker
+                                 ]
+        worker_counts = self.get_worker_counts(queries)
+        self.assertListEqual(worker_counts, expected_worker_counts)
+
+
+    def test_number_of_workers_level1(self):
+        """Test number of workers on leel 1 quries ie queries
+        that have one dependency
+        """
+        queries = [self.querystr_level1,]
+        expected_worker_counts = [2, # Level 1 worker on specific index yields 2 workers - one for level 0 and one for level 1
+                                 ]
         worker_counts = self.get_worker_counts(queries)
         self.assertListEqual(worker_counts, expected_worker_counts)
 

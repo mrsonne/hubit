@@ -68,6 +68,12 @@ def make_queries(hmodel, render=True, mpworkers=False):
     response = hmodel.get(querystrings, mpworkers=mpworkers)
     print(response)
 
+    # Do the same query and reuse stored results
+    response = hmodel.get(querystrings,
+                          mpworkers=mpworkers,
+                          reuse_results=True)
+    print(response)
+
     # Get the full results object
     results = hmodel.get_results()
     print(results)
@@ -78,6 +84,7 @@ def make_sweep(hmodel, nproc=4):
 
     Args:
         hmodel (HubitModel): Hubit model to be used
+        nproc (int, optional): Number of processes
     """
     querystrings = ["segments.0.layers.:.outer_temperature"] 
 

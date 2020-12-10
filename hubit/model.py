@@ -17,6 +17,7 @@ from .shared import (idxs_for_matches,
                      expand_query,
                      get_iloc_indices,
                      get_nested_list,
+                     inflate,
                      set_element,
                      HubitError)
 from multiprocessing import Pool, TimeoutError, cpu_count, active_children
@@ -218,6 +219,7 @@ class HubitModel(object):
         self.odir = os.path.normpath(os.path.join(self.base_path, output_path))
         self.inputdata = None
         self.flat_input = None
+        self.flat_results = None
         self._input_is_set = False
 
 
@@ -547,6 +549,13 @@ class HubitModel(object):
             dot.edge(*t[::direction], label=labelstr, ltail=ltail, lhead=lhead,
                     fontsize='9', fontname="monospace", fontcolor=color, color=color,
                     arrowsize=arrowsize, arrowhead="vee", labeljust='l', constraint=constraint)
+
+
+    def get_results(self, flat=False):
+        if flat: 
+            return self.flat_results
+        else:
+            return inflate(self.flat_results)
 
 
     def get(self, querystrings, mpworkers=False, validate=False):

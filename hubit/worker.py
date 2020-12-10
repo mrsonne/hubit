@@ -1,9 +1,7 @@
 from __future__ import print_function
 import logging
 import multiprocessing
-import itertools
 import copy
-import sys
 from .shared import (idxs_for_matches,
                      get_iloc_indices,
                      set_ilocs_on_pathstr,

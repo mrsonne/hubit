@@ -119,9 +119,9 @@ def make_sweep(hmodel, nproc=4):
                             }
 
 
-    responses, inps = hmodel.get_many(querystrings,
-                                      input_values_for_path,
-                                      nproc=nproc)
+    responses, inps, _ = hmodel.get_many(querystrings,
+                                         input_values_for_path,
+                                         nproc=nproc)
 
     for inp, response in zip(inps, responses):
         print('Input',

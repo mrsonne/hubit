@@ -646,8 +646,8 @@ class HubitModel(object):
             HubitModelNoInputError: [description]
 
         Returns:
-            Tuple: 2-tuple with a list of responses in the element 0 and a list of the 
-            corresponding inputs in element 1
+            Tuple: 3-tuple with a list of responses in the element 0, a list of the 
+            corresponding inputs in element 1 and a list of the results in element 2.
         """
         if not self._input_is_set:
             raise HubitModelNoInputError()
@@ -682,6 +682,7 @@ class HubitModel(object):
             time.sleep(0.25)
         pool.join()
         responses, flat_results = zip(*results.get())
+        results = [inflate(item) for item in flat_results]
 
         # Results in random order so we need an ID
         # but callback is called in each query 
@@ -690,7 +691,7 @@ class HubitModel(object):
 
         print('Queries processed in {} s'.format(time.time() - tstart))
 
-        return responses, inps
+        return responses, inps, results
 
 
     # def plot(self, inps, responses):

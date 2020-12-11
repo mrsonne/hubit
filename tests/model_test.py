@@ -292,8 +292,8 @@ class TestModel(unittest.TestCase):
                                 }
         self.hmodel.set_input(self.input)
         querystrings = [self.querystr_level0]
-        responses, inps = self.hmodel.get_many(querystrings,
-                                               input_values_for_path)
+        responses, inps, _ = self.hmodel.get_many(querystrings,
+                                                  input_values_for_path)
 
 
         expected_results = []

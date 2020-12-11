@@ -650,7 +650,6 @@ class HubitModel(object):
         compname_for_pstring = {}
         for compdata in self.cfg:
             compname = compdata['func_name']
-            print(compdata["provides"])
             for _, pstring in compdata["provides"].items():
                 if not pstring in compname_for_pstring:
                     compname_for_pstring[pstring] = compname

@@ -202,11 +202,14 @@ class TestModel(unittest.TestCase):
         Simple request with no input. Fails
         """
         querystrings = [self.querystr_level0]
+
+        def test():
+            with self.assertRaises(HubitModelNoInputError) as context:
+                self.hmodel.get(querystrings, mpworkers=mpworkers)
+
         for mpworkers in self.mpworkers_values:
             with self.subTest(mpworkers=mpworkers):
-                with self.assertRaises(HubitModelNoInputError) as context:
-                    response = self.hmodel.get(querystrings,
-                                               mpworkers=mpworkers)
+                test()
 
 
     def test_get_fail_query_error(self):

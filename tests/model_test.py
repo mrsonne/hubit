@@ -253,13 +253,17 @@ class TestModel(unittest.TestCase):
         """
         self.hmodel.set_input(self.input)
         querystrings = [self.querystr_level1]
+
+        def test():
+            response = self.hmodel.get(querystrings,
+                            mpworkers=mpworkers,
+                            validate=True)
+            self.assertSequenceEqual(response[self.querystr_level1],
+                                    level1_results_at_idx(self.input, 1))
+
         for mpworkers in self.mpworkers_values:
             with self.subTest(mpworkers=mpworkers):
-                response = self.hmodel.get(querystrings,
-                                        mpworkers=mpworkers,
-                                        validate=True)
-                self.assertSequenceEqual(response[self.querystr_level1],
-                                        level1_results_at_idx(self.input, 1))
+                test()
 
 
     def test_get_slice(self):

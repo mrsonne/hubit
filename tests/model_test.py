@@ -96,7 +96,6 @@ def level1_results_at_idx(input, idx):
             in zip(input["list"][idx]["some_attr"]["numbers"],
                    input["list"][idx]["some_attr"]["factors"])]
 
-
 class TestModel(unittest.TestCase):
 
     def setUp(self):
@@ -107,7 +106,7 @@ class TestModel(unittest.TestCase):
                                  base_path=THIS_DIR,
                                  output_path=REL_TMP_DIR)
         self.input = yaml.load(yml_input, Loader=yaml.FullLoader)
-        self.mpworkers = False
+        self.mpworkers_values = False, True
 
         # Query which does not consume results
         self.idx = 1
@@ -121,7 +120,6 @@ class TestModel(unittest.TestCase):
                                              self.expected_result_level0]
 
         self.querystr_level0_last = "list.-1.some_attr.two_x_numbers"
-
 
     def test_from_file(self):
         """
@@ -204,9 +202,11 @@ class TestModel(unittest.TestCase):
         Simple request with no input. Fails
         """
         querystrings = [self.querystr_level0]
-        with self.assertRaises(HubitModelNoInputError) as context:
-            response = self.hmodel.get(querystrings,
-                                       mpworkers=self.mpworkers)
+        for mpworkers in self.mpworkers_values:
+            with self.subTest(mpworkers=mpworkers):
+                with self.assertRaises(HubitModelNoInputError) as context:
+                    response = self.hmodel.get(querystrings,
+                                               mpworkers=mpworkers)
 
 
     def test_get_fail_query_error(self):
@@ -215,8 +215,10 @@ class TestModel(unittest.TestCase):
         """
         self.hmodel.set_input(self.input)
         querystrings = ["list.1.some_attr.i_dont_exist"]
-        with self.assertRaises(HubitModelQueryError) as context:
-            self.hmodel.get(querystrings, mpworkers=self.mpworkers)
+        for mpworkers in self.mpworkers_values:
+            with self.subTest(mpworkers=mpworkers):
+                with self.assertRaises(HubitModelQueryError) as context:
+                    self.hmodel.get(querystrings, mpworkers=mpworkers)
 
 
     def test_get_level0(self):
@@ -225,9 +227,13 @@ class TestModel(unittest.TestCase):
         """
         self.hmodel.set_input(self.input)
         querystrings = [self.querystr_level0]
-        response = self.hmodel.get(querystrings, mpworkers=self.mpworkers, validate=True)
-        self.assertSequenceEqual(response[self.querystr_level0], 
-                                 self.expected_result_level0)
+        for mpworkers in self.mpworkers_values:
+            with self.subTest(mpworkers=mpworkers):
+                response = self.hmodel.get(querystrings,
+                                           mpworkers=mpworkers,
+                                           validate=True)
+                self.assertSequenceEqual(response[self.querystr_level0], 
+                                        self.expected_result_level0)
 
 
     def test_get_level1(self):
@@ -236,11 +242,13 @@ class TestModel(unittest.TestCase):
         """
         self.hmodel.set_input(self.input)
         querystrings = [self.querystr_level1]
-        response = self.hmodel.get(querystrings,
-                                   mpworkers=self.mpworkers,
-                                   validate=True)
-        self.assertSequenceEqual(response[self.querystr_level1],
-                                 level1_results_at_idx(self.input, 1))
+        for mpworkers in self.mpworkers_values:
+            with self.subTest(mpworkers=mpworkers):
+                response = self.hmodel.get(querystrings,
+                                        mpworkers=mpworkers,
+                                        validate=True)
+                self.assertSequenceEqual(response[self.querystr_level1],
+                                        level1_results_at_idx(self.input, 1))
 
 
     def test_get_slice(self):
@@ -249,12 +257,14 @@ class TestModel(unittest.TestCase):
         """
         self.hmodel.set_input(self.input)
         querystrings = [self.querystr_level0_slice]
-        response = self.hmodel.get(querystrings,
-                                   mpworkers=self.mpworkers,
-                                   validate=True)
+        for mpworkers in self.mpworkers_values:
+            with self.subTest(mpworkers=mpworkers):
+                response = self.hmodel.get(querystrings,
+                                        mpworkers=mpworkers,
+                                        validate=True)
 
-        self.assertSequenceEqual(response[self.querystr_level0_slice], 
-                                 self.expected_result_level0_slice)
+                self.assertSequenceEqual(response[self.querystr_level0_slice], 
+                                        self.expected_result_level0_slice)
 
 
     def test_get_last(self):
@@ -264,10 +274,12 @@ class TestModel(unittest.TestCase):
         self.skipTest('Broken')
         self.hmodel.set_input(self.input)
         querystrings = [self.querystr_level0_last]
-        response = self.hmodel.get(querystrings,
-                                   mpworkers=self.mpworkers)
-        self.assertSequenceEqual(response[self.querystr_level0], 
-                                 self.expected_result_level0)
+        for mpworkers in self.mpworkers_values:
+            with self.subTest(mpworkers=mpworkers):
+                response = self.hmodel.get(querystrings,
+                                        mpworkers=mpworkers)
+                self.assertSequenceEqual(response[self.querystr_level0], 
+                                        self.expected_result_level0)
 
 
 
@@ -277,8 +289,10 @@ class TestModel(unittest.TestCase):
         """
         self.skipTest('Not implemented')
         self.hmodel.set_input(self.input)
-        response = self.hmodel.get(mpworkers=self.mpworkers)
-        print(response)
+        for mpworkers in self.mpworkers_values:
+            with self.subTest(mpworkers=mpworkers):
+                response = self.hmodel.get(mpworkers=mpworkers)
+                print(response)
 
 
     def test_sweep(self):
@@ -350,8 +364,8 @@ class TestRunner(unittest.TestCase):
                                  name='My model',
                                  base_path=THIS_DIR,
                                  output_path=REL_TMP_DIR)
-        self.mpworkers = False
-        self.qr = _QueryRunner(self.hmodel, self.mpworkers)
+        mpworkers = False
+        self.qr = _QueryRunner(self.hmodel, mpworkers)
         self.input = yaml.load(yml_input, Loader=yaml.FullLoader)
         self.hmodel.set_input(self.input)
 

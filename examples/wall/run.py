@@ -65,7 +65,8 @@ def make_queries(hmodel, render=True, mpworkers=False):
     if render:
         hmodel.render(querystrings)
 
-    response = hmodel.get(querystrings, mpworkers=mpworkers)
+    response = hmodel.get(querystrings,
+                          mpworkers=mpworkers)
     print(response)
 
     # Do the same query and reuse stored results

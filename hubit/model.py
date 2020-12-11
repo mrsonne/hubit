@@ -23,6 +23,7 @@ from .shared import (idxs_for_matches,
 from multiprocessing import Pool, TimeoutError, cpu_count, active_children
 
 POLLTIME = 0.1
+POLLTIME_LONG = 0.25
 THISPATH = os.path.dirname(os.path.realpath(__file__))
 
 
@@ -679,7 +680,7 @@ class HubitModel(object):
         pool.close()
         while len(active_children()) > 1:
             print('waiting')
-            time.sleep(0.25)
+            time.sleep(POLLTIME_LONG)
         pool.join()
         responses, flat_results = zip(*results.get())
         results = [inflate(item) for item in flat_results]

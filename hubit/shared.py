@@ -128,9 +128,9 @@ def flatten(d, parent_key='', sep='.'):
     items = []
     for k, v in d.items():
         new_key = parent_key + sep + k if parent_key else k
-        if isinstance(v, collections.MutableMapping):
+        if isinstance(v, collections.abc.MutableMapping):
             items.extend(flatten(v, new_key, sep=sep).items())
-        elif isinstance(v, collections.Iterable) and not isinstance(v, basestring):
+        elif isinstance(v, collections.abc.Iterable) and not isinstance(v, basestring):
             try:
                 # Elements are dicts
                 for idx, item in enumerate(v):

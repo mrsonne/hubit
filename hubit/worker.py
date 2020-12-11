@@ -156,9 +156,10 @@ class _Worker(object):
         # TODO: assumes provider has the all ilocs defined
         if "provides" in cfg:
             print(querystring)
-            self.resultspath_provided_for_attrname, self.ilocs = _Worker.get_bindings(cfg["provides"],
-                                                                                      querystring,
-                                                                                      ilocstr)
+            (self.resultspath_provided_for_attrname,
+             self.ilocs) = _Worker.get_bindings(cfg["provides"],
+                                                querystring,
+                                                ilocstr)
         else:
             raise HubitWorkerError( 'No provider for Hubit model component "{}"'.format(cname) )
 

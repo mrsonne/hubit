@@ -99,16 +99,6 @@ def _compress_response(response,
     return _response
 
 
-def _get_star(args):   
-    """
-    Trick to allow map_async using a list of args.
-
-    https://stackoverflow.com/questions/5442910/python-multiprocessing-pool-map-for-multiple-arguments
-    Convert `f([1,2])` to `f(1,2)` call.
-    """
-    return _get(*args)
-
-
 def _get(queryrunner,
          querystrings,
          flat_input,
@@ -675,7 +665,8 @@ class HubitModel(object):
             for key, val in zip(pkeys, pvalues):
                 _flat_input[key] = val
             qrun = _QueryRunner(self, mpworkers=False)
-            args.append( (qrun, querystrings, _flat_input) )
+            flat_results = {}
+            args.append( (qrun, querystrings, _flat_input, flat_results) )
             inps.append(_flat_input)
 
         if nproc is None:
@@ -684,7 +675,7 @@ class HubitModel(object):
             _nproc = max(nproc, 1)
         pool = Pool(_nproc)
         # Results are ordered as input but only accessible after completion
-        results = pool.map_async(_get_star, args, callback=callback)          
+        results = pool.starmap_async(_get, args, callback=callback)
         pool.close()
         while len(active_children()) > 1:
             print('waiting')

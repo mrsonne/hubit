@@ -29,37 +29,48 @@ def setUpModule():
             func_name: multiply_by_2
             # Path relative to base_path
             path: ./components/comp1.py 
-            provides: {"comp1_results": "list._IDX.some_attr.two_x_numbers"}
+            provides: 
+                - name: comp1_results
+                  path: list._IDX.some_attr.two_x_numbers
             consumes:
                 input: 
-                    numbers_consumed_by_comp1: list._IDX.some_attr.numbers
+                    - name: numbers_consumed_by_comp1
+                      path: list._IDX.some_attr.numbers
         -
             func_name: multiply_by_factors
             path: ./components/comp2.py
             provides:
-                temperatures: list._IDX.some_attr.two_x_numbers_x_factor
+                - name: temperatures
+                  path: list._IDX.some_attr.two_x_numbers_x_factor
             consumes:
                 input: 
-                    factors: list._IDX.some_attr.factors
+                    - name: factors
+                      path: list._IDX.some_attr.factors
                 results: 
-                    numbers_provided_by_comp1: list._IDX.some_attr.two_x_numbers
+                    - name: numbers_provided_by_comp1
+                      path: list._IDX.some_attr.two_x_numbers
         -
             func_name: slicing
             path: ./components/comp3.py
             provides:
-                mylist: factors
+              - name: mylist
+                path: factors
             consumes:
                 input: 
-                    factors: list.:.some_attr.factors
+                    - name: factors
+                      path: list.:.some_attr.factors
         -
             func_name: fun4
             path: ./components/comp4.py
             provides:
-                yvals: list._IDX.some_attr.inner_list.:.yval
+                - name: yvals
+                  path: list._IDX.some_attr.inner_list.:.yval
             consumes:
                 input:
-                    fact: list._IDX.some_attr.x_to_y_fact
-                    xvals: list._IDX.some_attr.inner_list.:.xval
+                    - name: fact
+                      path: list._IDX.some_attr.x_to_y_fact
+                    - name: xvals
+                      path: list._IDX.some_attr.inner_list.:.xval
         """
 
         yml_input = """

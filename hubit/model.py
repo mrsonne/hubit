@@ -201,7 +201,7 @@ class HubitModel(object):
 
         self.ilocstr = "_IDX"
         self.module_for_clsname = {}
-        self.cfg = cfg
+        self.cfg = HubitModel._convert_model_components(cfg)
         fnames = [component['func_name'] for component in cfg]
 
         if not len(fnames) == len( set(fnames) ):
@@ -216,6 +216,36 @@ class HubitModel(object):
         self.flat_input = None
         self.flat_results = None
         self._input_is_set = False
+
+
+    @staticmethod
+    def _convert_model_components(components):
+        """Convert list components from (name, path) convension to 
+        dict of {name: path} convension
+
+        Args:
+            components (List): Converted model components
+        """
+
+        def convert(sequence):
+            tmp = {}
+            for item in sequence:
+                tmp[item['name']] = item['path']
+                del item['name']
+                del item['path']
+
+            return tmp
+
+        for component in components:
+            component["provides"] = convert( component["provides"] )
+
+            if "input" in component["consumes"]:
+                component["consumes"]["input"] = convert( component["consumes"]["input"] )
+
+            if "results" in component["consumes"]:
+                component["consumes"]["results"] = convert( component["consumes"]["results"] )
+        
+        return components
 
 
     @classmethod
@@ -620,6 +650,7 @@ class HubitModel(object):
         compname_for_pstring = {}
         for compdata in self.cfg:
             compname = compdata['func_name']
+            print(compdata["provides"])
             for _, pstring in compdata["provides"].items():
                 if not pstring in compname_for_pstring:
                     compname_for_pstring[pstring] = compname

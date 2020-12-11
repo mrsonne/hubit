@@ -218,10 +218,14 @@ class TestModel(unittest.TestCase):
         """
         self.hmodel.set_input(self.input)
         querystrings = ["list.1.some_attr.i_dont_exist"]
+
+        def test():
+            with self.assertRaises(HubitModelQueryError) as context:
+                self.hmodel.get(querystrings, mpworkers=mpworkers)
+
         for mpworkers in self.mpworkers_values:
             with self.subTest(mpworkers=mpworkers):
-                with self.assertRaises(HubitModelQueryError) as context:
-                    self.hmodel.get(querystrings, mpworkers=mpworkers)
+                test()
 
 
     def test_get_level0(self):

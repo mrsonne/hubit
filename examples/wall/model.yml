@@ -14,8 +14,8 @@
   # The model component provides the thermal conductivity for  
   # for one layer in one segment 
   provides : 
-    # internal name in the compoment: path in the shared data model
-    k_therm : segments._IDX.layers._IDX.k_therm 
+    - name: k_therm # internal name in the compoment
+      path: segments._IDX.layers._IDX.k_therm # path in the shared data model
 
   consumes:
     # To compute the thermal conductivities the material 
@@ -23,8 +23,8 @@
     # be provided in the input file for each layer in each 
     # segment
     input:
-      # internal name in the compoment: path in the shared data model
-      material: segments._IDX.layers._IDX.material
+      - name: material
+        path: segments._IDX.layers._IDX.material
 
   
 - # Component that calculates the thermal profile
@@ -32,14 +32,19 @@
   func_name: thermal_prof
 
   provides:
-    outer_temperature_all_layers: segments._IDX.layers.:.outer_temperature
-    # temperatures_all_layers: segments[.].layers[:].temperature # TODO: this should be the syntax
-    heat_flux: segments._IDX.heat_flux
+    - name: outer_temperature_all_layers
+      path: segments._IDX.layers.:.outer_temperature
+    - name: heat_flux
+      path: segments._IDX.heat_flux
   
   consumes:
     input: 
-      temp_in: segments._IDX.inside.temperature
-      temp_out: segments._IDX.outside.temperature
-      thicknesses: segments._IDX.layers.:.thickness
+      - name: temp_in
+        path: segments._IDX.inside.temperature
+      - name: temp_out
+        path: segments._IDX.outside.temperature
+      - name: thicknesses
+        path: segments._IDX.layers.:.thickness
     results: 
-      ks_walls : segments._IDX.layers.:.k_therm
+      - name: ks_walls 
+        path: segments._IDX.layers.:.k_therm

@@ -6,19 +6,20 @@ from hubit import shared
 
 
 def get_data():
-    cfg = {'provides': {
-                        'attrs1': 'items.:.attr.items.:.path1',
-                        'attr2': 'attr2.path',
-                        },
+    cfg = {'provides': 
+                        [{'name': 'attrs1',
+                          'path': 'items.:.attr.items.:.path1'},
+                         {'name': 'attr2',
+                          'path': 'attr2.path'},
+                        ]
+                        ,
             'consumes': {
-                        'input' : {'attr' : 'items.:.attr.path'}, 
+                        'input' : [{'name': 'attr', 'path': 'items.:.attr.path'}], 
                         'results' : {},
                         }
             }
 
     inputdata = {'items' : [
-                            # {"attr": {"items": [{"path": 2}]}},
-                            # {"attr": {"items": [{"path": 2}]}},
                             {"attr": {"items": [{"path": 2}, {"path": 1}]}},
                             {"attr": {"items": [{"path": 3}, {"path": 4}]}},
                             ] 
@@ -145,7 +146,7 @@ class TestShared(unittest.TestCase):
     def test_shape(self):
         # Infer the shape of the provision
         cfg, inputdata = get_data()
-        pstr = cfg["provides"]["attrs1"]
+        pstr = cfg["provides"][0]["path"]
         shape = shared.pstr_shape(pstr, inputdata, ".", ":")
         self.assertSequenceEqual( shape, [2, 2] )
 
@@ -153,7 +154,7 @@ class TestShared(unittest.TestCase):
     def test_expand(self):
         # Expand provision into its constituents
         cfg, inputdata = get_data()
-        pstr = cfg["provides"]["attrs1"]
+        pstr = cfg["provides"][0]["path"]
         shape = shared.pstr_shape(pstr, inputdata, ".", ":")
         pstrs = shared.pstr_expand(pstr, shape, ":")      
         self.assertTrue( len( list(shared.traverse(pstrs)) ) == shape[0]*shape[1] )
@@ -167,7 +168,7 @@ class TestShared(unittest.TestCase):
         # iterate over all indices
         import itertools
         shape = (2, 3)
-        for ilocs in itertools.product(*[xrange(s) for s in shape]):
+        for ilocs in itertools.product(*[range(s) for s in shape]):
             print(ilocs)
 
         pstrs = [['attr1', "attr2"], ["attr3", "attr4"]]

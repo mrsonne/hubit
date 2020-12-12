@@ -103,12 +103,14 @@ def _compress_response(response,
 def _get(queryrunner,
          querystrings,
          flat_input,
-         flat_results={},
+         flat_results=None,
          dryrun=False,
          expand_iloc=False):
     """
     With the 'queryrunner' object deploy the queries
     in 'querystrings'.
+
+    flat_results is a dict and will be modified
 
     If dryrun=True the workers will generate dummy results. Usefull
     to validate s query.
@@ -122,6 +124,8 @@ def _get(queryrunner,
 
     extracted_input = {}
     tstart = time.time()
+
+    if flat_results is None: flat_results = {}
 
     # Expand the query and get the max ilocs for each query
     querystrs_for_querystr = {qstr1:expand_query(qstr1, flat_input) 
@@ -162,7 +166,7 @@ def _get(queryrunner,
         watcher.join()
 
     if the_err is None:
-        response = {query:flat_results[query] for query in _querystrings}
+        response = {query: flat_results[query] for query in _querystrings}
 
         if not expand_iloc:
             response = _compress_response(response, querystrs_for_querystr)

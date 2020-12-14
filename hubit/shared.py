@@ -59,7 +59,7 @@ def iterpaths_from_path(path: str, idxids: List[str]) -> List[str]:
         idxids (List): List of index identifiers in the path (see idxids_from_path)
 
     Returns:
-        List: Sequence of Hubit user path strings pointing to iterable parent paths 
+        List: Sequence of Hubit user path strings pointing to parent paths that are iterable
     """
     return [ path[:path.index(idxid) - 1] for idxid in idxids ]
 

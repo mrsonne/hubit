@@ -202,6 +202,20 @@ class Test(unittest.TestCase):
         self.assertSequenceEqual( expected_iterpaths, iterpaths )
 
 
+    def test_3(self):
+        """Convert from Hubit user path to internal Hubit path 
+        """
+        path = "segs[IDX_SEG].walls[IDX_WALL].heat_flow"
+        expected_internal_path = "segs.IDX_SEG.walls.IDX_WALL.heat_flow"
+        internal_path = shared.convert_to_internal_path(path)
+        self.assertSequenceEqual( expected_internal_path, internal_path )
+
+
+    # def test_4(self):
+    #     """Extract lengths for path
+    #     """
+    #     path = "segs[IDX_SEG].walls[IDX_WALL].heat_flow"
+
 
 if __name__ == '__main__':
     unittest.main()

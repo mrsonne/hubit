@@ -31,7 +31,7 @@ def idxids_from_path(path: str) -> List[str]:
     """Get the index identifiers from a Hubit path string
 
     Args:
-        path (str): Hubit path string
+        path (str): Hubit user path string
 
     Returns:
         List: Sequence of index identification strings
@@ -39,15 +39,27 @@ def idxids_from_path(path: str) -> List[str]:
     return re.findall(r"\[(\w+)\]", path)
 
 
+def convert_to_internal_path(path: str) -> str:
+    """Convert user path using [IDX] to internal path using .IDX.
+
+    Args:
+        path (str): Hubit user path string
+
+    Returns:
+        str: Hubit internal path string
+    """
+    return path.replace('[', '.').replace(']', '')
+
+
 def iterpaths_from_path(path: str, idxids: List[str]) -> List[str]:
     """Get all iterables parent paths in the path
 
     Args:
-        path (str): Hubit path string
+        path (str): Hubit user path string
         idxids (List): List of index identifiers in the path (see idxids_from_path)
 
     Returns:
-        List: Sequence of path strings pointing to iterable parent paths 
+        List: Sequence of Hubit user path strings pointing to iterable parent paths 
     """
     return [ path[:path.index(idxid) - 1] for idxid in idxids ]
 

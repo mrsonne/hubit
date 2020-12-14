@@ -205,7 +205,7 @@ class HubitModel(object):
 
         self.ilocstr = "_IDX"
         self.module_for_clsname = {}
-        self.cfg = HubitModel._convert_model_components(cfg)
+        self.cfg = cfg
         fnames = [component['func_name'] for component in cfg]
 
         if not len(fnames) == len( set(fnames) ):
@@ -222,34 +222,6 @@ class HubitModel(object):
         self._input_is_set = False
 
 
-    @staticmethod
-    def _convert_model_components(components):
-        """Convert list components from (name, path) convension to 
-        dict of {name: path} convension
-
-        Args:
-            components (List): Converted model components
-        """
-
-        def convert(sequence):
-            tmp = {}
-            for item in sequence:
-                tmp[item['name']] = item['path']
-                del item['name']
-                del item['path']
-
-            return tmp
-
-        for component in components:
-            component["provides"] = convert( component["provides"] )
-
-            if "input" in component["consumes"]:
-                component["consumes"]["input"] = convert( component["consumes"]["input"] )
-
-            if "results" in component["consumes"]:
-                component["consumes"]["results"] = convert( component["consumes"]["results"] )
-        
-        return components
 
 
     @classmethod
@@ -359,9 +331,17 @@ class HubitModel(object):
             workers = self._validate_query(querystrings, mpworkers=False)
             # with dot.subgraph() as s:
                 # s.attr(rank = 'same')
-            dot.node("_Response", "Response", shape='box', color=resultscolor, fontcolor=resultscolor)
-            dot.node("_Query", '\n'.join(querystrings), shape='box',
-                        color=inputcolor, fontsize='9', fontname="monospace",fontcolor=inputcolor)
+            dot.node("_Response",
+                     "Response",
+                     shape='box',
+                     color=resultscolor,
+                     fontcolor=resultscolor)
+            dot.node("_Query", '\n'.join(querystrings),
+                     shape='box',
+                     color=inputcolor,
+                     fontsize='9',
+                     fontname="monospace",
+                     fontcolor=inputcolor)
         else:
             isquery = False
             filename = 'model'
@@ -369,16 +349,16 @@ class HubitModel(object):
             workers = []
             for component_data in self.cfg:
                 cname = component_data['func_name']
-                dummy_query = list(component_data["provides"].values())[0].replace(self.ilocstr, "0")
+                dummy_query = component_data["provides"][0]['path'].replace(self.ilocstr, "0")
                 # TODO iloc wildcard
                 dummy_query = dummy_query.replace(":", "0")
                 dummy_input = None
                 (func,
                 version,
-                self._components) = _QueryRunner._get_func(self.base_path,
+                _) = _QueryRunner._get_func(self.base_path,
                                                            cname,
                                                            component_data,
-                                                           self._components)
+                                                           components={})
                 workers.append(_Worker(self, cname, component_data, 
                                        dummy_input, dummy_query,
                                        func, version, self.ilocstr))
@@ -565,10 +545,10 @@ class HubitModel(object):
         return _pathcmps
 
 
-    def _get_objects(self, cdata):
+    def _get_objects(self, bindings):
         objects = set()
-        for _, pathstr in cdata.items():
-            pathcmps = pathstr.split(".")
+        for binding in bindings:
+            pathcmps = binding['path'].split(".")
             pathcmps = self._cleanpathcmps(pathcmps)
             nobjs = len(pathcmps) - 1
             if nobjs > 0:
@@ -654,13 +634,13 @@ class HubitModel(object):
         compname_for_pstring = {}
         for compdata in self.cfg:
             compname = compdata['func_name']
-            for _, pstring in compdata["provides"].items():
-                if not pstring in compname_for_pstring:
-                    compname_for_pstring[pstring] = compname
+            for binding in compdata["provides"]:
+                if not binding['path'] in compname_for_pstring:
+                    compname_for_pstring[binding['path']] = compname
                 else:
-                    raise HubitModelValidationError( pstring,
-                                                    compname,
-                                                    compname_for_pstring )
+                    raise HubitModelValidationError( binding['path'],
+                                                     compname,
+                                                     compname_for_pstring )
 
 
 
@@ -800,9 +780,9 @@ class _QueryRunner(object):
         """
         Find names of components that can respond to the "query".
         """
-        itempairs = [(cmpdata['func_name'], pstring) 
+        itempairs = [(cmpdata['func_name'], bindings['path'])
                      for cmpdata in self.model.cfg 
-                     for _, pstring in cmpdata["provides"].items()]
+                     for bindings in cmpdata["provides"]]
         compnames, providerstrings = zip(*itempairs)
         idxs = idxs_for_matches(querystring, providerstrings, self.model.ilocstr)
         return [compnames[idx] for idx in idxs]
@@ -858,8 +838,7 @@ class _QueryRunner(object):
             raise HubitModelQueryError(msg)
 
         if len(components) == 0:
-            fstr = "Fatal error. No provider for query '{}'."
-            msg = fstr.format(query)
+            msg = f"Fatal error. No provider for query '{query}'."
             raise HubitModelQueryError(msg)
 
 

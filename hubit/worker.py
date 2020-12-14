@@ -47,28 +47,26 @@ class _Worker(object):
 
 
     @staticmethod
-    def get_bindings(bindingdata, querystring, ilocstr, ilocs=None):
-        itempairs = [(internalname, pstring) 
-                     for internalname, pstring in bindingdata.items()]
+    def get_bindings(bindings, querystring, ilocstr, ilocs=None):
+        paths = [binding['path'] 
+                 for binding in bindings]
 
-        # Get path string for attributes provided
-        _, pathstrings = zip(*itempairs)
-        
         if ilocs is None:
             # get indices in path string list that match the query
-            idxs = idxs_for_matches(querystring, pathstrings, ilocstr)
+            idxs = idxs_for_matches(querystring, paths, ilocstr)
             if len(idxs) == 0:
-                errmsg = 'Query "{}" did not match attributes provided by worker ({}).'.format(querystring,
-                                                                                               ', '.join(pathstrings))
-                raise HubitWorkerError(errmsg)
+                fstr = 'Query "{}" did not match attributes provided by worker ({}).'
+                raise HubitWorkerError(fstr.format(querystring,
+                                                   ", ".join(paths)))
 
             # get the location indices from query
-            _ilocs = get_iloc_indices(querystring, pathstrings[idxs[0]], ilocstr)
+            _ilocs = get_iloc_indices(querystring, paths[idxs[0]], ilocstr)
         else:
             _ilocs = ilocs
 
         # replace ILOCSTR with the actual iloc indices
-        keyvalpairs = [(internalname, set_ilocs_on_pathstr(pstring, _ilocs, ilocstr)) for internalname, pstring in bindingdata.items()]
+        keyvalpairs = [(binding['name'], set_ilocs_on_pathstr(binding['path'], _ilocs, ilocstr)) 
+                        for binding in bindings]
 
         return dict(keyvalpairs), _ilocs
 

@@ -32,17 +32,22 @@ class TestWorker(unittest.TestCase):
         version = None
         ilocstr = '_ILOC'
         inputdata = None
-        comp_data = {'provides': {
-                            'attr1': 'shared.results.attr1.path',
-                            'attr2': 'shared.results.attr2.path',
-                           },
+        comp_data = {'provides': 
+                            [{'name': 'attr1', 'path': 'shared.results.attr1.path'},
+                             {'name': 'attr2', 'path': 'shared.results.attr2.path'}]
+                           ,
                       'consumes': {
-                            'input' : {'attr':'shared.input.attr.path'}, 
-                            'results' : {},
+                            'input':
+                                   [{'name': 'attr',
+                                     'path': 'shared.input.attr.path'}
+                                   ],
+                            'results': [],
                            }
                     }
 
         # inputdata = {'shared' : {"input": {"attr": {"path": 2}}}}
+                            # [{'name':, 'path':},
+                            # {'name':, 'path':}]
                     
         querystring = 'shared.attr.path'
         with self.assertRaises(HubitWorkerError) as context:
@@ -70,19 +75,19 @@ class TestWorker(unittest.TestCase):
         ilocstr = '_ILOC'
         inputdata = None
         comp_data = {'provides': 
-                        {
-                        'attr1': 'shared.results.attr1.path',
-                        'attr2': 'shared.results.attr2.path',
-                        },
+                        [
+                        {'name': 'attr1', 'path': 'shared.results.attr1.path'},
+                        {'name':'attr2', 'path': 'shared.results.attr2.path'},
+                        ],
                      'consumes': 
                        {
-                        'input' : {'attr':'shared.input.attr.path'}, 
-                        'results' : {},
+                        'input' : [{'name': 'attr', 'path': 'shared.input.attr.path'}], 
+                        'results' : [],
                        }
                     }
 
         # Query something known to exist
-        querystring = list(comp_data['provides'].values())[0]
+        querystring = comp_data['provides'][0]['path']
         w = _Worker(hmodel,
                     cname,
                     comp_data,
@@ -105,8 +110,12 @@ class TestWorker(unittest.TestCase):
         version = None
         ilocstr = '_ILOC'
         inputdata = None
-        cfg = {'consumes': {'input' : {'attr':'shared.input.attr.path'}, 
-                            'results' : {},}}
+        cfg = {'consumes': {'input' : [{'name': 'attr',
+                                        'path': 'shared.input.attr.path'
+                                       }
+                                      ], 
+                            'results' : [],
+                           }}
 
         inputdata = None
         querystring = 'shared.results.attr1.path'
@@ -137,14 +146,24 @@ class TestWorker(unittest.TestCase):
         func = None
         version = None
         ilocstr = '_ILOC'
-        cfg = {'provides': {
-                            'attrs1': 'items.:.attr.items.:.path1',
-                           },
+        cfg = {'provides': [{'name': 'attrs1',
+                             'path': 'items.:.attr.items.:.path1',}
+                            ],
                'consumes': {
-                            'input' : {'attrs' : 'items.:.attr.items.:.path',
-                                       'number' : 'some_number'}, 
-                            'results' : {'dependency' : 'value',
-                                         'dependency2' : 'items.:.value'},
+                            'input' : [{'name': 'attrs', 
+                                        'path': 'items.:.attr.items.:.path'
+                                       },
+                                       {'name': 'number',
+                                        'path': 'some_number'
+                                       }
+                                       ],
+                            'results' : [{'name': 'dependency',
+                                          'path': 'value'
+                                         },
+                                         {'name': 'dependency2',
+                                          'path': 'items.:.value'
+                                         }
+                                        ],
                            }
               }
 

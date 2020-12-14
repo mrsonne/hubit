@@ -368,23 +368,26 @@ def subscriptions_for_component_idx(model_data, model, comp_idx, iloc):
 
     consumes = []
     try:
-        consumes.extend( list(model_data[comp_idx]["consumes"]["input"].values()) )
+        consumes.extend( [binding['path'] 
+                          for binding in model_data[comp_idx]["consumes"]["input"]] )
     except KeyError:
         pass
 
     try:
-        consumes.extend( list(model_data[comp_idx]["consumes"]["results"].values()) )
+        consumes.extend( [binding['path'] 
+                          for binding in model_data[comp_idx]["consumes"]["results"]] )
     except KeyError:
         pass
     
     # Replace ilocstr with actual iloc 
     consumes = [path.replace(model.ilocstr, ilocstr) for path in consumes]
 
-
-    provides = list(model_data[comp_idx]["provides"].values())
+    provides = [binding['path'] 
+                for binding in model_data[comp_idx]["provides"]]
     provides = [path.replace(model.ilocstr, ilocstr) for path in provides]
 
     return consumes, provides
+
 
 class TestRunner(unittest.TestCase):
 

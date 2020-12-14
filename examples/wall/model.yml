@@ -3,7 +3,7 @@
 # To allow for some comments the attributes have been 
 # separated by blank lines in this example
 
-- # Component that retrives thermal conductivities
+- # Component that retrieves thermal conductivities
 
   # Path where the module with the component is located
   path: ./components/thermal_conductivity.py 

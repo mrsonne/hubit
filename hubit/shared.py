@@ -6,6 +6,7 @@ import itertools
 import collections
 from functools import reduce
 from operator import getitem
+from typing import List
 
 # Python 2 & 3 compatibility
 try:
@@ -26,16 +27,29 @@ class Container(object):
     def __str__(self):
         return str(self.val)
 
-def idxids_from_path(path):
+def idxids_from_path(path: str) -> List[str]:
     """Get the index identifiers from a Hubit path string
 
     Args:
         path (str): Hubit path string
 
     Returns:
-        [List]: Sequence of index identifiers
+        List: Sequence of index identification strings
     """
     return re.findall(r"\[(\w+)\]", path)
+
+
+def iterpaths_from_path(path: str, idxids: List[str]) -> List[str]:
+    """Get all iterables parent paths in the path
+
+    Args:
+        path (str): Hubit path string
+        idxids (List): List of index identifiers in the path (see idxids_from_path)
+
+    Returns:
+        List: Sequence of path strings pointing to iterable parent paths 
+    """
+    return [ path[:path.index(idxid) - 1] for idxid in idxids ]
 
 
 def reshape(pstrs, valmap):

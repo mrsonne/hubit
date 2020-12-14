@@ -806,6 +806,10 @@ class _QueryRunner(object):
         Returns:
             tuple: function handle, function version, and component dict
         """
+        if 'path' in cfgdata and 'module' in cfgdata:
+            raise HubitModelComponentError(f'Please specify either "module" or "path" for component with func_name "{func_name}""')
+
+
         if 'path' in cfgdata:
             path, file_name = os.path.split(cfgdata["path"])
             path = os.path.join(base_path, path)
@@ -831,7 +835,7 @@ class _QueryRunner(object):
                 func, version = components[component_id]
                 return func, version, components
         else:
-            raise HubitModelComponentError(f'Please specify either "module" of "path" for component with func_name "{func_name}""')
+            raise HubitModelComponentError(f'Please specify either "module" or "path" for component with func_name "{func_name}""')
 
         func = getattr(module, func_name)
         try:

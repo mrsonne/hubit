@@ -1,6 +1,6 @@
 from __future__ import print_function
 
-import imp
+import importlib
 import os
 import sys
 import time
@@ -356,9 +356,9 @@ class HubitModel(object):
                 (func,
                 version,
                 _) = _QueryRunner._get_func(self.base_path,
-                                                           cname,
-                                                           component_data,
-                                                           components={})
+                                            cname,
+                                            component_data,
+                                            components={})
                 workers.append(_Worker(self, cname, component_data, 
                                        dummy_input, dummy_query,
                                        func, version, self.ilocstr))
@@ -800,19 +800,21 @@ class _QueryRunner(object):
         Returns:
             tuple: function handle, function version, and component dict
         """
-        path, filename = os.path.split(cfgdata["path"])
+        path, file_name = os.path.split(cfgdata["path"])
         path = os.path.join(base_path, path)
-        filename = os.path.splitext(filename)[0]
+        module_name = os.path.splitext(file_name)[0]
         path = os.path.abspath(path)
+        file_path = os.path.join(path, file_name)
         component_id = os.path.join(path, cname)
         if component_id in components.keys():
             func, version = components[component_id]
             return func, version, components
 
-        f, _filename, description = imp.find_module(filename, [path])
-        module = imp.load_module(filename, f, _filename, description)
-        # Insert in path to solve import issue on worker (multiprocessing)
-
+        spec = importlib.util.spec_from_file_location(module_name,
+                                                      file_path)
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[spec.name] = module
+        spec.loader.exec_module(module)
         sys.path.insert(0, path)
         func = getattr(module, cname)
         try:
@@ -820,7 +822,6 @@ class _QueryRunner(object):
         except AttributeError:
             version = None
         components[component_id] = func, version
-
         return func, version, components
 
 

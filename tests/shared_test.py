@@ -31,9 +31,14 @@ def get_data():
 class TestShared(unittest.TestCase):
 
     def setUp(self):
-        self.flat_input = {"segs.0.walls.0.kval" : 1, "segs.0.walls.1.kval" : 2, "segs.0.walls.2.kval" : None,
-                           "segs.1.walls.0.kval" : 3, "segs.1.walls.1.kval" : 7, "segs.1.walls.2.kval" : 5,
-                           "segs.0.length" : 13, "segs.1.length" : 14,
+        self.flat_input = {"segs.0.walls.0.kval": 1,
+                           "segs.0.walls.1.kval": 2,
+                           "segs.0.walls.2.kval": None,
+                           "segs.1.walls.0.kval": 3,
+                           "segs.1.walls.1.kval": 7,
+                           "segs.1.walls.2.kval" : 5,
+                           "segs.0.length" : 13,
+                           "segs.1.length" : 14,
                            "weight":567}
 
         self.ilocstr = "_ILOC"

@@ -44,6 +44,10 @@ class HubitModelNoResultsError(HubitError):
         return self.message
 
 
+class HubitModelComponentError(HubitError):
+    pass
+
+
 class HubitModelValidationError(HubitError):
     def __init__(self, pstring, compname, compname_for_pstring):
         fstr = '"{}" on component "{}" also provided by component "{}"'
@@ -242,10 +246,12 @@ class HubitModel(object):
         with open(model_file_path, "r") as stream:
             components = yaml.load(stream, Loader=yaml.FullLoader)
 
+        # Convert to absolute paths 
         base_path = os.path.dirname(model_file_path)
         for component in components:
-            component["path"] = os.path.abspath(os.path.join(base_path,
-                                                             component["path"]))
+            if 'path' in component.keys():
+                component["path"] = os.path.abspath(os.path.join(base_path,
+                                                                 component["path"]))
         return cls(components, name=name, output_path=output_path, base_path=base_path)
     
     
@@ -789,34 +795,45 @@ class _QueryRunner(object):
 
 
     @staticmethod
-    def _get_func(base_path, cname, cfgdata, components):
+    def _get_func(base_path, func_name, cfgdata, components):
         """[summary]
 
         Args:
             base_path (str): Model base path
-            cname (str): Component name
+            func_name (str): Function name
             cfgdata (dict): configuration data from the model definition file
 
         Returns:
             tuple: function handle, function version, and component dict
         """
-        path, file_name = os.path.split(cfgdata["path"])
-        path = os.path.join(base_path, path)
-        module_name = os.path.splitext(file_name)[0]
-        path = os.path.abspath(path)
-        file_path = os.path.join(path, file_name)
-        component_id = os.path.join(path, cname)
-        if component_id in components.keys():
-            func, version = components[component_id]
-            return func, version, components
+        if 'path' in cfgdata:
+            path, file_name = os.path.split(cfgdata["path"])
+            path = os.path.join(base_path, path)
+            module_name = os.path.splitext(file_name)[0]
+            path = os.path.abspath(path)
+            file_path = os.path.join(path, file_name)
+            component_id = os.path.join(path, func_name)
+            if component_id in components.keys():
+                func, version = components[component_id]
+                return func, version, components
 
-        spec = importlib.util.spec_from_file_location(module_name,
-                                                      file_path)
-        module = importlib.util.module_from_spec(spec)
-        sys.modules[spec.name] = module
-        spec.loader.exec_module(module)
-        sys.path.insert(0, path)
-        func = getattr(module, cname)
+
+            spec = importlib.util.spec_from_file_location(module_name,
+                                                        file_path)
+            module = importlib.util.module_from_spec(spec)
+            sys.modules[spec.name] = module
+            spec.loader.exec_module(module)
+            sys.path.insert(0, path)
+        elif 'module' in cfgdata:
+            module = importlib.import_module(cfgdata["module"])
+            component_id = f'{cfgdata["module"]}{func_name}'
+            if component_id in components.keys():
+                func, version = components[component_id]
+                return func, version, components
+        else:
+            raise HubitModelComponentError(f'Please specify either "module" of "path" for component with func_name "{func_name}""')
+
+        func = getattr(module, func_name)
         try:
             version = module.version()
         except AttributeError:

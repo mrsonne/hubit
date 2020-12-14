@@ -184,10 +184,22 @@ class TestShared(unittest.TestCase):
 class Test(unittest.TestCase):
 
     def test_1(self):
+        """Extract idxids from path
+        """
         path = "segs[IDX_SEG].walls[IDX_WALL].heat_flow"
         expected_idxids = ['IDX_SEG', 'IDX_WALL']
         idxids = shared.idxids_from_path(path)
         self.assertSequenceEqual( expected_idxids, idxids )
+
+
+    def test_2(self):
+        """Extract iterable parent paths from path
+        """
+        path = "segs[IDX_SEG].walls[IDX_WALL].heat_flow"
+        idxids = ['IDX_SEG', 'IDX_WALL']
+        expected_iterpaths = ['segs', 'segs[IDX_SEG].walls']
+        iterpaths = shared.iterpaths_from_path(path, idxids)
+        self.assertSequenceEqual( expected_iterpaths, iterpaths )
 
 
 

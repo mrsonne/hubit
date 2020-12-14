@@ -821,9 +821,8 @@ class _QueryRunner(object):
                 func, version = components[component_id]
                 return func, version, components
 
-
             spec = importlib.util.spec_from_file_location(module_name,
-                                                        file_path)
+                                                          file_path)
             module = importlib.util.module_from_spec(spec)
             sys.modules[spec.name] = module
             spec.loader.exec_module(module)

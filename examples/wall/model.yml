@@ -7,6 +7,8 @@
 
   # Path where the module with the component is located
   path: ./components/thermal_conductivity.py 
+  # specify module in site packages
+  # module: hubit_components.thermal_conductivity
   
   # Function name in the module
   func_name: thermal_conductivity 
@@ -29,6 +31,9 @@
   
 - # Component that calculates the thermal profile
   path: ./components/thermal_profile.py
+  # specify module in site packages
+  # module: hubit_components.thermal_profile
+
   func_name: thermal_prof
 
   provides:

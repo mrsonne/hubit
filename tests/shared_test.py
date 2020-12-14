@@ -1,5 +1,4 @@
 from __future__ import print_function
-# import math
 import unittest
 
 from hubit import shared
@@ -94,7 +93,7 @@ class TestShared(unittest.TestCase):
                                                 self.flat_input)
         # Expected result from highest index in self.flat_input
         expected_maxilocs = [1, 2]
-        expected_length = 6 # math.prod(expected_maxilocs) # TODO: py3
+        expected_length = 6 # math.prod(expected_maxilocs) # TODO: py3.8
         length = len(queries)
         self.assertTrue( maxilocs == expected_maxilocs and
                          length == expected_length)
@@ -180,6 +179,16 @@ class TestShared(unittest.TestCase):
         valuemap = {'attr1':1, "attr2":2, "attr3":3, "attr4":4}
 
         print('XXX', shared.setelemtents(pstrs, valuemap))
+
+
+class Test(unittest.TestCase):
+
+    def test_1(self):
+        path = "segs[IDX_SEG].walls[IDX_WALL].heat_flow"
+        expected_idxids = ['IDX_SEG', 'IDX_WALL']
+        idxids = shared.idxids_from_path(path)
+        self.assertSequenceEqual( expected_idxids, idxids )
+
 
 
 if __name__ == '__main__':

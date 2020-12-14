@@ -26,6 +26,17 @@ class Container(object):
     def __str__(self):
         return str(self.val)
 
+def idxids_from_path(path):
+    """Get the index identifiers from a Hubit path string
+
+    Args:
+        path (str): Hubit path string
+
+    Returns:
+        [List]: Sequence of index identifiers
+    """
+    return re.findall(r"\[(\w+)\]", path)
+
 
 def reshape(pstrs, valmap):
     """

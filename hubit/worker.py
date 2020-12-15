@@ -48,8 +48,7 @@ class _Worker(object):
 
     @staticmethod
     def get_bindings(bindings, querystring, ilocstr, ilocs=None):
-        paths = [binding['path'] 
-                 for binding in bindings]
+        paths = [binding['path'] for binding in bindings]
 
         if ilocs is None:
             # get indices in path string list that match the query
@@ -109,6 +108,8 @@ class _Worker(object):
         """
         If inputdata is None the worker cannot work but can still 
         render itself and print.
+
+        querystring for one specific location ie no [:]
         """
         logging.basicConfig(level=logging_level)
 
@@ -153,7 +154,6 @@ class _Worker(object):
 
         # TODO: assumes provider has the all ilocs defined
         if "provides" in cfg:
-            print(querystring)
             (self.resultspath_provided_for_attrname,
              self.ilocs) = _Worker.get_bindings(cfg["provides"],
                                                 querystring,

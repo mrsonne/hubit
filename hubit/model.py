@@ -132,7 +132,7 @@ def _get(queryrunner,
     if flat_results is None: flat_results = {}
 
     # Expand the query and get the max ilocs for each query
-    querystrs_for_querystr = {qstr1:expand_query(qstr1, flat_input) 
+    querystrs_for_querystr = {qstr1: expand_query(qstr1, flat_input) 
                               for qstr1 in querystrings}
     _querystrings = [qstr for qstrs, _ in querystrs_for_querystr.values()
                           for qstr in qstrs]

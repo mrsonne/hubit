@@ -1,5 +1,6 @@
 from __future__ import print_function
 import unittest
+import yaml
 
 from hubit import shared
 
@@ -193,16 +194,6 @@ class Test(unittest.TestCase):
 
 
     def test_2(self):
-        """Extract iterable parent paths from path
-        """
-        path = "segs[IDX_SEG].walls[IDX_WALL].heat_flow"
-        idxids = ['IDX_SEG', 'IDX_WALL']
-        expected_iterpaths = ['segs', 'segs[IDX_SEG].walls']
-        iterpaths = shared.iterpaths_from_path(path, idxids)
-        self.assertSequenceEqual( expected_iterpaths, iterpaths )
-
-
-    def test_3(self):
         """Convert from Hubit user path to internal Hubit path 
         """
         path = "segs[IDX_SEG].walls[IDX_WALL].heat_flow"
@@ -211,10 +202,72 @@ class Test(unittest.TestCase):
         self.assertSequenceEqual( expected_internal_path, internal_path )
 
 
-    # def test_4(self):
-    #     """Extract lengths for path
-    #     """
-    #     path = "segs[IDX_SEG].walls[IDX_WALL].heat_flow"
+    def test_3(self):
+        path = "segments[IDX_SEG].layers[IDX_LAY].test.positions[IDX_POS]"
+        idxids = shared.idxids_from_path(path)
+        internal_paths =shared._paths_between_idxids(path, idxids)
+        expected_internal_paths = ['segments', 'layers', 'test.positions']
+        self.assertSequenceEqual( expected_internal_paths, internal_paths )
+
+
+    def test_4(self):
+        """Extract lengths from input for path
+        """
+        yml_input = """
+                        segments:
+                            - layers:
+                                - thickness: 0.1 # [m]
+                                  material: brick
+                                  test:
+                                    positions: [1, ]
+                                - thickness: 0.02
+                                  material: air
+                                  test:
+                                      positions: [1, 2, 3]
+                                - thickness: 0.1
+                                  material: brick
+                                  test:
+                                      positions: [1, 3]
+                              inside:
+                                temperature: 320. 
+                              outside:
+                                temperature: 273.
+                            - layers:
+                                - thickness: 0.15
+                                  material: concrete
+                                  test:
+                                      positions: [1, 2, 3, 4, 5]
+                                - thickness: 0.025
+                                  material: styrofoam
+                                  test:
+                                      positions: [1,]
+                                - thickness: 0.1
+                                  material: concrete
+                                  test:
+                                      positions: [1, 2,]
+                                - thickness: 0.001
+                                  material: paint
+                                  test:
+                                      positions: [1, 2, 3, 4]
+                              inside:
+                                temperature: 300.
+                              outside:
+                                temperature: 273.
+                    """
+        input_data = yaml.load(yml_input, Loader=yaml.FullLoader)
+        path = "segments[IDX_SEG].layers[IDX_LAY].test.positions[IDX_POS]"
+        expected_lengths = [[2], [3, 4], [1, 3, 2, 5, 1, 2, 4] ]
+        calculated_lengths = shared.lengths_for_path(path, input_data)
+        self.assertSequenceEqual( expected_lengths, calculated_lengths )
+
+
+    def test_5(self):
+        """No lengths since there are no index IDs in path 
+        """
+        path = "segments.layers.positions"
+        expected_lengths = None
+        calculated_lengths = shared.lengths_for_path(path, {})
+        self.assertEqual( expected_lengths, calculated_lengths )
 
 
 if __name__ == '__main__':

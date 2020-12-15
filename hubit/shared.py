@@ -6,7 +6,7 @@ import itertools
 import collections
 from functools import reduce
 from operator import getitem
-from typing import List
+from typing import Any, List, Dict, Tuple
 
 # Python 2 & 3 compatibility
 try:
@@ -27,16 +27,14 @@ class Container(object):
     def __str__(self):
         return str(self.val)
 
-def idxids_from_path(path: str) -> List[str]:
-    """Get the index identifiers from a Hubit path string
-
-    Args:
-        path (str): Hubit user path string
-
-    Returns:
-        List: Sequence of index identification strings
+def get_from_datadict(datadict, keys):
     """
-    return re.findall(r"\[(\w+)\]", path)
+    Extract value from a nested dictionary using list of keys.
+    datadict is a dict. keys is a list of keys (strings).
+    """
+    # Convert digits strings to int
+    _keys = [int(key) if key.isdigit() else key for key in keys]
+    return reduce(getitem, _keys, datadict)
 
 
 def convert_to_internal_path(path: str) -> str:
@@ -51,17 +49,102 @@ def convert_to_internal_path(path: str) -> str:
     return path.replace('[', '.').replace(']', '')
 
 
-def iterpaths_from_path(path: str, idxids: List[str]) -> List[str]:
-    """Get all iterables parent paths in the path
+def _length_for_iterpaths(connecting_paths: List[str],
+                          input_data: Dict,
+                          out=None,
+                          paths_previous=None) -> Tuple:
+    """Lengths 
+
+    Args:
+        connecting_paths (List[str]): Sequence of index identification strings between index IDs
+        input_data (Dict): Input data 
+        out (List, optional): Lengths found in previous level of recusion. Defaults to None.
+        paths_previous (List, optional): Hubit internal paths found in previous level of recusion with explicit indeices. Defaults to None.
+
+    Returns:
+        Tuple: Two-tuple out, paths_previous
+    """
+    sep = '.'
+    paths_previous = paths_previous or [connecting_paths[0]]
+    out = out or []
+
+    # Get list lengths for paths prepared at the previous recusion level
+    out_current_level = [ len( get_from_datadict(input_data, path.split(sep)))
+                          for path in paths_previous ]
+
+    out.append(out_current_level)
+
+    if len(connecting_paths) > 1:
+        # Prepare paths for next recursive call by appending the 
+        # indices (from out_current_level) and the connecting path 
+        # to the previosly found paths
+        paths_next = ['{}.{}.{}'.format(path_previous, curidx, connecting_paths[1]) 
+                      for length, path_previous in zip(out_current_level, paths_previous)
+                      for curidx in range(length)]
+
+        # Call again for next index ID
+        _length_for_iterpaths(connecting_paths[1:],
+                              input_data,
+                              out=out,
+                              paths_previous=paths_next)
+
+    return out
+
+
+def lengths_for_path(path: str, input_data: Dict) -> Any:
+    """Infer lengths of lists in 'input_data' that correspond 
+    to index IDs in the path.
+
+    Args:
+        path (str): Hubit user path
+        input_data (Dict): Input data
+
+    Returns:
+        Any: None if no index IDs found in 'path' else list og lengths
+    """
+    idxids = idxids_from_path(path)
+
+    # Handle no index IDs
+    if len(idxids) == 0: 
+        return None
+
+    connecting_paths = _paths_between_idxids(path, idxids)
+    lengths = _length_for_iterpaths(connecting_paths, input_data)
+    return lengths
+
+
+def idxids_from_path(path: str) -> List[str]:
+    """Get the index identifiers (in square braces) from a Hubit 
+    user path string
 
     Args:
         path (str): Hubit user path string
-        idxids (List): List of index identifiers in the path (see idxids_from_path)
 
     Returns:
-        List: Sequence of Hubit user path strings pointing to parent paths that are iterable
+        List: Sequence of index identification strings
     """
-    return [ path[:path.index(idxid) - 1] for idxid in idxids ]
+    return re.findall(r"\[(\w+)\]", path)
+
+
+def _paths_between_idxids(path: str, idxids: List[str]) -> List[str]:
+    """Find list of path components inbetween index IDs
+
+    Args:
+        path (str): Hubit user path string
+        idxids (List[str]): Sequence of index identification strings in 'path'
+
+    Returns:
+        List[str]: Sequence of index identification strings between index IDs
+    """
+    # Remove [] and replace with ..
+    p2 = convert_to_internal_path(path)
+    paths = []
+    for idxid in idxids:
+        # Split at current index ID
+        p1, p2 = p2.split(idxid)
+        # Remove leading and trailing
+        paths.append(p1.rstrip('.').lstrip('.'))
+    return paths
 
 
 def reshape(pstrs, valmap):
@@ -281,16 +364,6 @@ def query_all(providerstrings, flat_input, ilocstr):
             for pstr in providerstrings
             for qry in expand_query(pstr.replace(ilocstr, ":"), flat_input)]
     
-
-def get_from_datadict(datadict, keys):
-    """
-    Extract value from a nested dictionary using list of keys.
-    datadict is a dict. keys is a list of keys (strings).
-    """
-    # Convert digits strings to int
-    _keys = [int(key) if key.isdigit() else key for key in keys]
-    return reduce(getitem, _keys, datadict)
-
 
 
 def pstr_shape(pstr, inputdata, sepstr, ilocwcchar):

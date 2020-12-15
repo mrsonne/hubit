@@ -1,6 +1,6 @@
 from __future__ import print_function
 import unittest
-
+import yaml
 from hubit.worker import _Worker, HubitWorkerError
 
 class DummyModel(object):
@@ -23,8 +23,7 @@ class TestWorker(unittest.TestCase):
 
     def test_1(self):
         """
-        Fails since query does not match. 
-        TODO: improve error meassage
+        Fails since query does not match.
         """
         hmodel = None
         cname = None
@@ -246,6 +245,84 @@ class TestWorker(unittest.TestCase):
         self.assertTrue(test_results_ready and 
                         all(tests_paths_pending) and 
                         all(tests_ready_to_work))
+
+
+    def test_5(self):
+        """
+        Initialize worker with ILOC locations in 
+        query and ILOC wildcards in bindings
+        """
+        hmodel = None
+        cname = None
+        func = None
+        version = None
+        ilocstr = '_IDX'
+        inputdata = None
+        comp_yml = """
+                    provides : 
+                        - name: k_therm 
+                          path: segments._IDX.layers.:.k_therm
+                    consumes:
+                        input:
+                        - name: material
+                          path: segments._IDX.layers._IDX.material
+                    """
+        comp_data = yaml.load(comp_yml, Loader=yaml.FullLoader)
+
+        # Query something known to exist
+        querystring = "segments.0.layers.0.k_therm"
+        w = _Worker(hmodel,
+                    cname,
+                    comp_data,
+                    inputdata,
+                    querystring,
+                    func, 
+                    version,
+                    ilocstr,
+                    multiprocess=False,
+                    dryrun=True)
+
+
+    def test_6(self):
+        """
+        Get bindings for query with two location IDs and component 
+        bindings with one index ID and one index wildcard
+        """
+        bindings = [{"name": "k_therm" ,
+                     "path": "segments._IDX.layers.:.k_therm"
+                    }]
+        ilocstr = "_IDX"
+        querystring = "segments.0.layers.0.k_therm"
+        path_for_name, ilocs = _Worker.get_bindings(bindings,
+                                                    querystring,
+                                                    ilocstr)
+
+        # ILOCS for [_IDX] and [:] are both zero base on the query
+        expected_ilocs = '0', '0'
+        with self.subTest():
+            self.assertTupleEqual(ilocs, expected_ilocs)
+    
+        # This is what will be provided for the query: The attribute 'k_therm' 
+        # for all layers for the specific index ID _IDX=0
+        expected_path_for_name = {"k_therm": "segments.0.layers.:.k_therm"}
+        with self.subTest():
+            self.assertDictEqual(expected_path_for_name, path_for_name)
+
+
+    def test_7(self):
+        """Queries should be expanded (location specific)
+        otherwise a HubitWorkerError is raised
+        """
+        provides = [{"name": "k_therm" ,
+                    "path": "segments._IDX.layers._IDX.k_therm"
+                    }]
+        ilocstr = "_IDX"
+        querystring = "segments.0.layers.:.k_therm"
+        with self.assertRaises(HubitWorkerError) as context:
+            _Worker.get_bindings(provides,
+                                 querystring,
+                                 ilocstr)
+
 
 if __name__ == '__main__':
     unittest.main()

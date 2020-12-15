@@ -1,4 +1,5 @@
 from __future__ import print_function
+from os import path
 
 import re
 import copy
@@ -74,21 +75,29 @@ def _length_for_iterpaths(connecting_paths: List[str],
 
     out.append(out_current_level)
 
+    paths_next = paths_previous
     if len(connecting_paths) > 1:
         # Prepare paths for next recursive call by appending the 
         # indices (from out_current_level) and the connecting path 
         # to the previosly found paths
         paths_next = ['{}.{}.{}'.format(path_previous, curidx, connecting_paths[1]) 
-                      for length, path_previous in zip(out_current_level, paths_previous)
-                      for curidx in range(length)]
+                        for length, path_previous in zip(out_current_level, paths_previous)
+                        for curidx in range(length)]
 
         # Call again for next index ID
-        _length_for_iterpaths(connecting_paths[1:],
-                              input_data,
-                              out=out,
-                              paths_previous=paths_next)
+        out, paths_next = _length_for_iterpaths(connecting_paths[1:],
+                                                    input_data,
+                                                    out=out,
+                                                    paths_previous=paths_next)
 
-    return out
+    elif len(connecting_paths) == 1:
+        paths_next = ['{}.{}'.format(path_previous, curidx) 
+                        for length, path_previous in zip(out_current_level, paths_previous)
+                        for curidx in range(length)]
+
+
+    return out, paths_next
+
 
 
 def lengths_for_path(path: str, input_data: Dict) -> Any:
@@ -103,14 +112,17 @@ def lengths_for_path(path: str, input_data: Dict) -> Any:
         Any: None if no index IDs found in 'path' else list og lengths
     """
     idxids = idxids_from_path(path)
-
+    
     # Handle no index IDs
     if len(idxids) == 0: 
-        return None
+        return None, None
+
+    # Handle all IDs are digits 
+    if all([idxid.isdigit() for idxid in idxids]): 
+        return [], [path]
 
     connecting_paths = _paths_between_idxids(path, idxids)
-    lengths = _length_for_iterpaths(connecting_paths, input_data)
-    return lengths
+    return _length_for_iterpaths(connecting_paths, input_data)
 
 
 def idxids_from_path(path: str) -> List[str]:
@@ -123,7 +135,9 @@ def idxids_from_path(path: str) -> List[str]:
     Returns:
         List: Sequence of index identification strings
     """
-    return re.findall(r"\[(\w+)\]", path)
+    # return re.findall(r"\[(\w+)\]", path) # Only word charaters i.e. [a-zA-Z0-9_]+
+    return re.findall(r"\[(.*?)\]", path) # Any character
+    
 
 
 def _paths_between_idxids(path: str, idxids: List[str]) -> List[str]:
@@ -141,7 +155,7 @@ def _paths_between_idxids(path: str, idxids: List[str]) -> List[str]:
     paths = []
     for idxid in idxids:
         # Split at current index ID
-        p1, p2 = p2.split(idxid)
+        p1, p2 = p2.split(idxid, 1)
         # Remove leading and trailing
         paths.append(p1.rstrip('.').lstrip('.'))
     return paths
@@ -317,6 +331,18 @@ def get_iloc_indices(querystring, providerstring, ilocstr):
     return match.groups()
 
 
+# def expand_query(querystr, flat_input):
+# NEW VERSION using [] instead of ..
+#     #TODO: change so we dont need to inflate again
+#     input_data = inflate(flat_input)
+#     lengths, paths = lengths_for_path(querystr, input_data)
+
+#     # Assume rectangular data and convert from length to max index
+#     maxilocs = [items[0] - 1 for items in lengths]
+
+#     return paths, maxilocs
+
+
 def expand_query(querystr, flat_input):
     """
     querystr = "segs.:.walls.temps"
@@ -354,7 +380,6 @@ def expand_query(querystr, flat_input):
         queries.append(set_ilocs_on_pathstr(querystr, [str(iloc) for iloc in ilocs], wcstr))
 
     return queries, maxilocs
-
 
 def query_all(providerstrings, flat_input, ilocstr):
     """

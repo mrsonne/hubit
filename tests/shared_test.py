@@ -89,10 +89,11 @@ class TestShared(unittest.TestCase):
     def test_expand_query(self):
         """Expand a query that uses : to its constituents
         """
+        # querystring = "segs[:].walls[:].temps"
         querystring = "segs.:.walls.:.temps"
         queries, maxilocs = shared.expand_query(querystring,
                                                 self.flat_input)
-        # Expected result from highest index in self.flat_input
+
         expected_maxilocs = [1, 2]
         expected_length = 6 # math.prod(expected_maxilocs) # TODO: py3.8
         length = len(queries)
@@ -104,7 +105,8 @@ class TestShared(unittest.TestCase):
         """Expand a query that does not use : to its constituents
         i.e. itself
         """
-        querystring = "segs.0.walls.temps.0"
+        # querystring = "segs[0].walls[0].kval"
+        querystring = "segs.0.walls.0.kval"
         queries, maxilocs = shared.expand_query(querystring,
                                                 self.flat_input)
         expected_maxilocs = []
@@ -223,11 +225,11 @@ class Test(unittest.TestCase):
                                 - thickness: 0.02
                                   material: air
                                   test:
-                                      positions: [1, 2, 3]
+                                    positions: [1, 2, 3]
                                 - thickness: 0.1
                                   material: brick
                                   test:
-                                      positions: [1, 3]
+                                    positions: [1, 3]
                               inside:
                                 temperature: 320. 
                               outside:
@@ -236,28 +238,30 @@ class Test(unittest.TestCase):
                                 - thickness: 0.15
                                   material: concrete
                                   test:
-                                      positions: [1, 2, 3, 4, 5]
+                                    positions: [1, 2, 3, 4, 5]
                                 - thickness: 0.025
                                   material: styrofoam
                                   test:
-                                      positions: [1,]
+                                    positions: [1,]
                                 - thickness: 0.1
                                   material: concrete
                                   test:
-                                      positions: [1, 2,]
+                                    positions: [1, 2,]
                                 - thickness: 0.001
                                   material: paint
                                   test:
-                                      positions: [1, 2, 3, 4]
+                                    positions: [1, 2, 3, 4]
                               inside:
                                 temperature: 300.
                               outside:
                                 temperature: 273.
                     """
         input_data = yaml.load(yml_input, Loader=yaml.FullLoader)
-        path = "segments[IDX_SEG].layers[IDX_LAY].test.positions[IDX_POS]"
+        path = "segments[:].layers[:].test.positions[:]"
+        # TODO: nest last list
+        # expected_lengths = [[2], [3, 4], [[1, 3, 2], [5, 1, 2, 4]] ]
         expected_lengths = [[2], [3, 4], [1, 3, 2, 5, 1, 2, 4] ]
-        calculated_lengths = shared.lengths_for_path(path, input_data)
+        calculated_lengths, _ = shared.lengths_for_path(path, input_data)
         self.assertSequenceEqual( expected_lengths, calculated_lengths )
 
 
@@ -266,7 +270,7 @@ class Test(unittest.TestCase):
         """
         path = "segments.layers.positions"
         expected_lengths = None
-        calculated_lengths = shared.lengths_for_path(path, {})
+        calculated_lengths, _ = shared.lengths_for_path(path, {})
         self.assertEqual( expected_lengths, calculated_lengths )
 
 

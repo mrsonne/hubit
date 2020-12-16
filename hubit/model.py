@@ -441,7 +441,7 @@ class HubitModel(object):
 
         ids = []
         skipped = []
-        attrnames_for_nodeids = {}
+        names_for_nodeids = {}
         for _, pathstr in cdata.items():
             pathcmps = pathstr.split(".")
             pathcmps_old = copy.copy(pathcmps)
@@ -453,9 +453,9 @@ class HubitModel(object):
                 _id = '{}{}'.format(prefix, pathcmps[-2])
                 t = _id, cname
                 try:
-                    attrnames_for_nodeids[t].append(pathcmps[-1])
+                    names_for_nodeids[t].append(pathcmps[-1])
                 except KeyError:
-                    attrnames_for_nodeids[t] = [pathcmps[-1]]
+                    names_for_nodeids[t] = [pathcmps[-1]]
             else:
                 skipped.append(pathcmps[0])
                 # t = obj_in_cluster, cname
@@ -484,14 +484,27 @@ class HubitModel(object):
                     _id = '{}{}'.format(prefix, pcmp)
                     _id_next = '{}{}'.format(prefix, pcmp_next)
                     ids.extend([_id, _id_next])
-                    dot.node(_id, pcmp, shape='box', fillcolor=color, color=color, fontcolor=color, peripheries=peripheries)
-                    dot.node(_id_next, pcmp_next, shape='box', fillcolor=color, color=color, fontcolor=color, peripheries=peripheries_next)
+                    dot.node(_id, pcmp, shape='box',
+                             fillcolor=color, color=color,
+                             fontcolor=color, peripheries=peripheries)
+                    dot.node(_id_next, pcmp_next, shape='box',
+                             fillcolor=color, color=color,
+                             fontcolor=color,
+                             peripheries=peripheries_next)
                     t = _id, _id_next
                     # _direction = 1
-                    dot.edge(*t[::direction], arrowsize=str(float(arrowsize)*1.5),
-                             color=color, constraint=constraint, arrowhead="none")
+                    dot.edge(*t[::direction],
+                             arrowsize=str(float(arrowsize)*1.5),
+                             color=color,
+                             constraint=constraint,
+                             arrowhead="none")
 
-        self._edge_with_label(attrnames_for_nodeids, color, constraint, direction, arrowsize, dot)
+        HubitModel._edge_with_label(names_for_nodeids,
+                                    color,
+                                    constraint,
+                                    direction,
+                                    arrowsize,
+                                    dot)
 
         if len(skipped) > 0:
             if direction == 1:
@@ -501,9 +514,12 @@ class HubitModel(object):
                 clusterid_tail = None
                 clusterid_head = clusterid
 
-            attrnames_for_nodeids = {(cluster_node_id, cname): skipped}
-            self._edge_with_label(attrnames_for_nodeids, color, constraint, direction, 
-                                 arrowsize, dot, ltail=clusterid_tail, lhead=clusterid_head)
+            names_for_nodeids = {(cluster_node_id, cname): skipped}
+            HubitModel._edge_with_label(names_for_nodeids,
+                                        color, constraint,
+                                        direction, arrowsize,
+                                        dot, ltail=clusterid_tail,
+                                        lhead=clusterid_head)
 
         return skipped, ids
 
@@ -562,22 +578,33 @@ class HubitModel(object):
         return objects
 
 
-    def _edge_with_label(self, attrnames_for_nodeids, color, constraint, direction, arrowsize, dot, 
-                        ltail=None, lhead=None):
+    @staticmethod
+    def _edge_with_label(names_for_nodeids, 
+                         color,
+                         constraint,
+                         direction,
+                         arrowsize,
+                         dot, 
+                         ltail=None,
+                         lhead=None):
         # Render attributes consumed/provided
         # Add space on the right side of the label. The graph becomes 
         # wider and the edge associated with a given label becomes clearer
         spaces = 7
-        for t, attrnames in attrnames_for_nodeids.items():
-            tmp = ''.join(['<tr><td align="left">{}</td><td>{}</td></tr>'.format(attrname, " "*spaces) for attrname in attrnames])
-            labelstr = '<<table cellpadding="0" border="0" cellborder="0">\
-                        {}\
-                        </table>>'.format(tmp)
+        fstr = '<tr><td align="left">{}</td><td>{}</td></tr>'
+        for t, attrnames in names_for_nodeids.items():
+            tmp = ''.join([fstr.format(attrname, " "*spaces) 
+                          for attrname in attrnames])
+
+            labelstr = f'<<table cellpadding="0" border="0" cellborder="0">\
+                        {tmp}\
+                        </table>>'
 
             # ltail is there to attach attributes directly on the cluster
             dot.edge(*t[::direction], label=labelstr, ltail=ltail, lhead=lhead,
-                    fontsize='9', fontname="monospace", fontcolor=color, color=color,
-                    arrowsize=arrowsize, arrowhead="vee", labeljust='l', constraint=constraint)
+                     fontsize='9', fontname="monospace", fontcolor=color, color=color,
+                     arrowsize=arrowsize, arrowhead="vee", labeljust='l',
+                     constraint=constraint)
 
 
     def get_results(self, flat=False):

@@ -9,17 +9,15 @@ from .shared import (idxs_for_matches,
                      traverse,
                      list_from_shape,
                      reshape,
-                     get_from_datadict,
                      path_shape,
                      path_expand,
-                     get_nested_list,
                      HubitError)
 
 class HubitWorkerError(HubitError):
     pass
 
 
-class _Worker(object):
+class _Worker:
     """
     """
 

@@ -21,7 +21,7 @@ class HubitError(Exception):
     pass
 
 
-class Container(object):
+class Container:
 
     def __init__(self, val):
         self.val = val

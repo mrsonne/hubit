@@ -3,7 +3,7 @@ import unittest
 import yaml
 from hubit.worker import _Worker, HubitWorkerError
 
-class DummyModel(object):
+class DummyModel:
 
     def __init__(self):
         pass

@@ -189,7 +189,7 @@ def _get(queryrunner,
         raise the_err
 
 
-class HubitModel(object):
+class HubitModel:
 
     def __init__(self, cfg, base_path=os.getcwd(), output_path='./', name='NA'):
         """Initialize a Hubit model
@@ -779,7 +779,7 @@ class HubitModel(object):
 
         return True
 
-class _QueryRunner(object):
+class _QueryRunner:
 
     def __init__(self, model, mpworkers):
         """Internal class managing workers. Is in a model, the query runner 

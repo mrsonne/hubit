@@ -86,24 +86,24 @@ class _Worker(object):
 
 
     @staticmethod
-    def expand(pstr_for_attrname, inputdata):
-        pstrs_for_attrname = {}
+    def expand(path_for_name, inputdata):
+        paths_for_name = {}
         # exp_for_attrname = {}
-        shape_for_attrname = {}
-        for attrname, pstr in pstr_for_attrname.items():
-            if not ":" in pstr:
-                pstrs_for_attrname[attrname] = [pstr]
+        shape_for_name = {}
+        for name, path in path_for_name.items():
+            if not ":" in path:
+                paths_for_name[name] = [path]
                 # exp_for_attrname[attrname] = False
-                shape_for_attrname[attrname] = [1]
+                shape_for_name[name] = [1]
                 continue
  
-            shape = pstr_shape(pstr, inputdata, ".", ":")
-            pstrs = pstr_expand(pstr, shape, ":")
-            pstrs_for_attrname[attrname] = pstrs
+            shape = pstr_shape(path, inputdata, ".", ":")
+            pstrs = pstr_expand(path, shape, ":")
+            paths_for_name[name] = pstrs
             # exp_for_attrname[attrname] = True
-            shape_for_attrname[attrname] = shape
+            shape_for_name[name] = shape
 
-        return pstrs_for_attrname, shape_for_attrname
+        return paths_for_name, shape_for_name
 
 
 

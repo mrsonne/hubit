@@ -131,6 +131,7 @@ class _Worker:
         self.hmodel = hmodel # reference to the Hubit model instance
         self.use_multiprocessing = multiprocess # flag indicating if multiprocessing should be used
         self.job = None # For referencing the job if using multiprocessing
+        self.query = query
 
         if dryrun:
             # If worker should perform a dry run set the worker function to "work_dryrun"
@@ -217,6 +218,7 @@ class _Worker:
                                    in self.rpaths_consumed_for_name.items() 
                                    for path in traverse(paths)}
 
+        logging.info( f'Worker "{self.name}" was deployed for query "{self.query}"')
 
     @staticmethod
     def consumes_type(cfg: Dict, consumption_type: str) -> bool:
@@ -297,6 +299,8 @@ class _Worker:
         """
         Executes actual work
         """
+        logging.info( f'Worker "{self.name}" started for query "{self.query}"')
+
         logging.debug( '\n**START WORKING**\n{}'.format(self.__str__()) )
 
         # Notify the hubit model that we are about to start the work
@@ -314,6 +318,7 @@ class _Worker:
                       self.results)
 
         logging.debug( '\n**STOP WORKING**\n{}'.format(self.__str__()) )
+        logging.info( f'Worker "{self.name}" finished for query "{self.query}"')
 
 
     def reshape(self, path_for_name, val_for_path):

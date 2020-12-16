@@ -4,7 +4,6 @@ import os
 import sys
 import time
 import copy
-import traceback
 import itertools
 import subprocess
 import yaml
@@ -175,7 +174,7 @@ def _get(queryrunner,
         if not expand_iloc:
             response = _compress_response(response, querystrs_for_querystr)
 
-        logging.debug('Response created in {} s'.format(time.time() - tstart))
+        logging.info('Response created in {} s'.format(time.time() - tstart))
         return response, flat_results
     else:
         # Re-raise if failed
@@ -730,7 +729,7 @@ class HubitModel:
         # multiple_results = [pool.apply_async(get, _args, callback=cb) for _args in args]
         # responses = [result.get(timeout=99999) for result in multiple_results]
 
-        logging.debug('Queries processed in {} s'.format(time.time() - tstart))
+        logging.info('Queries processed in {} s'.format(time.time() - tstart))
 
         return responses, inps, results
 
@@ -1033,7 +1032,6 @@ class _QueryRunner:
             for worker in _workers_completed:
                 logging.debug('Query runner detected that a worker completed.')
                 self._set_worker_completed(worker, flat_results)
-                logging.debug('Flat results: ', flat_results)
 
             should_stop = all([query in flat_results.keys() for query in queries])
             time.sleep(POLLTIME)

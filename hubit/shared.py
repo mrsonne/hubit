@@ -307,18 +307,34 @@ def regex_preprocess(querystring, providerstrings, ilocstr):
     return clean_query, compiled_regexps
 
 
-def idxs_for_matches(querystring, providerstrings, ilocstr):
+def check_path_match(query_path, symbolic_path, ilocstr):
+    query_path_cmps = query_path.split('.')
+    symbolic_path_cmps = symbolic_path.split('.')
+    # Should have same number of path components
+    if not len(query_path_cmps) == len(symbolic_path_cmps): return False
+    for qcmp, scmp in zip(query_path_cmps, symbolic_path_cmps):
+
+        if qcmp.isdigit():
+            # When a digit is found in the query either an ilocstr, 
+            # a wildcard or a digit should be found in the symbolic path
+            if not (scmp == ilocstr or scmp == ':' or scmp.isdigit()):
+                return False    
+        else:
+            # If not a digit the path components should be identical
+            if not qcmp == scmp:
+                return False
+    return True
+
+
+def idxs_for_matches(query_path, symbolic_paths, ilocstr):
     """
     Returns indices in the sequence of provider strings that match the 
     strucure of the query string
     """
-    clean_query, compiled_regexps = regex_preprocess(querystring,
-                                                     providerstrings,
-                                                     ilocstr)
     return [idx 
-            for idx, cex in enumerate(compiled_regexps) 
-            if re.match(cex, clean_query)]
-
+            for idx, symbolic_path in enumerate(symbolic_paths) 
+            if check_path_match(query_path, symbolic_path, ilocstr)]
+            
 
 def get_iloc_indices(querystring, providerstring, ilocstr):
     """

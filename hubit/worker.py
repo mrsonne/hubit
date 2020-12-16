@@ -47,7 +47,7 @@ class _Worker(object):
 
 
     @staticmethod
-    def get_bindings(bindings, query_path, ilocstr, ilocs=None):
+    def get_bindings(bindings, query_path, ilocstr, query_indices=None):
         """Make symbolic binding specific i.e. replace index IDs 
         with actual indices based on query
 
@@ -55,7 +55,7 @@ class _Worker(object):
             bindings (List[str]): List of bindings 
             query_path (str): Query path
             ilocstr (str): Index identification string
-            ilocs (List[int], optional): TODO [description]. Defaults to None.
+            query_indices (List[int], optional): TODO [description]. Defaults to None.
 
         Raises:
             HubitWorkerError: Raised if query does not match any of the bindings
@@ -65,7 +65,7 @@ class _Worker(object):
         """
         binding_paths = [binding['path'] for binding in bindings]
 
-        if ilocs is None:
+        if query_indices is None:
             # Get indices in binding_paths list that match the query
             idxs = idxs_for_matches(query_path, binding_paths, ilocstr)
             if len(idxs) == 0:
@@ -75,15 +75,19 @@ class _Worker(object):
 
             # Get the location indices from query. Using the first binding path that 
             # matched the query suffice
-            _ilocs = get_iloc_indices(query_path, binding_paths[idxs[0]], ilocstr)
+            _indices_from_query = get_iloc_indices(query_path,
+                                                   binding_paths[idxs[0]],
+                                                   ilocstr)
         else:
-            _ilocs = ilocs
+            _indices_from_query = query_indices
 
-        # replace ILOCSTR with the actual iloc indices
-        keyvalpairs = [(binding['name'], set_ilocs_on_pathstr(binding['path'], _ilocs, ilocstr)) 
+        # replace ILOCSTR with the actual indices
+        keyvalpairs = [(binding['name'], set_ilocs_on_pathstr(binding['path'],
+                                                              _indices_from_query,
+                                                              ilocstr)) 
                         for binding in bindings]
 
-        return dict(keyvalpairs), _ilocs
+        return dict(keyvalpairs), _indices_from_query
 
 
     @staticmethod
@@ -185,13 +189,13 @@ class _Worker(object):
                 self.ipath_consumed_for_name, _ = _Worker.get_bindings(cfg["consumes"]["input"],
                                                                        querystring,
                                                                        ilocstr,
-                                                                       ilocs=self.ilocs)
+                                                                       query_indices=self.ilocs)
 
             if "results" in cfg["consumes"]  and len(cfg["consumes"]["results"]) > 0:
                 self.rpath_consumed_for_name, _ = _Worker.get_bindings(cfg["consumes"]["results"],
                                                                        querystring,
                                                                        ilocstr,
-                                                                       ilocs=self.ilocs)
+                                                                       query_indices=self.ilocs)
             
 
 

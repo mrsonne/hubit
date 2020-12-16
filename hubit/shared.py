@@ -1,5 +1,4 @@
 from __future__ import print_function
-from os import path
 
 import re
 import copy
@@ -8,6 +7,10 @@ import collections
 from functools import reduce
 from operator import getitem
 from typing import Any, List, Dict, Tuple
+
+
+IDX_WILDCARD = ":"
+
 
 # Python 2 & 3 compatibility
 try:
@@ -326,9 +329,9 @@ def get_iloc_indices(query_path, symbolic_path, ilocstr):
     List indices extracted from query based on location of 
     ilocstr in providerstring
     """
-    return [qcmp for qcmp, scmp in zip(query_path.split('.'),
+    return tuple([qcmp for qcmp, scmp in zip(query_path.split('.'),
                                        symbolic_path.split('.'))          
-            if scmp == ilocstr]
+            if scmp == ilocstr or scmp == IDX_WILDCARD])
 
 # def expand_query(querystr, flat_input):
 # NEW VERSION using [] instead of ..

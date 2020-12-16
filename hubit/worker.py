@@ -185,13 +185,13 @@ class _Worker(object):
         self.rpath_consumed_for_name = {}
         self.ipath_consumed_for_name = {}
         if "consumes" in cfg:
-            if "input" in cfg["consumes"] and len(cfg["consumes"]["input"]) > 0:
+            if _Worker.consumes_type(cfg, "input"):
                 self.ipath_consumed_for_name, _ = _Worker.get_bindings(cfg["consumes"]["input"],
                                                                        querystring,
                                                                        ilocstr,
                                                                        query_indices=self.ilocs)
 
-            if "results" in cfg["consumes"]  and len(cfg["consumes"]["results"]) > 0:
+            if _Worker.consumes_type(cfg, "results"):
                 self.rpath_consumed_for_name, _ = _Worker.get_bindings(cfg["consumes"]["results"],
                                                                        querystring,
                                                                        ilocstr,
@@ -225,6 +225,11 @@ class _Worker(object):
             self.results_attrname_for_pathstr = {path: key 
                                                  for key, paths in self.rpaths_consumed_for_name.items() 
                                                  for path in traverse(paths)}
+
+
+    @staticmethod
+    def consumes_type(cfg, key):
+        return key in cfg["consumes"] and len(cfg["consumes"][key]) > 0
 
 
     def paths_provided(self):

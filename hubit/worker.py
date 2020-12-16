@@ -157,8 +157,8 @@ class _Worker(object):
         self.pending_results_pathstrs = []
 
         # Stores required values using internal names as keys  
-        self.inputval_for_attrname = {} 
-        self.resultval_for_attrname = {} 
+        self.inputval_for_name = {} 
+        self.resultval_for_name = {} 
 
         # Stores required values using internal names as keys  
         self.inputval_for_pstr = {} 
@@ -300,14 +300,14 @@ class _Worker(object):
         self.hmodel._set_worker_working(self)
         if self.multiprocess:
             self.job = multiprocessing.Process(target=self.func,
-                                               args=(self.inputval_for_attrname,
-                                                     self.resultval_for_attrname,
+                                               args=(self.inputval_for_name,
+                                                     self.resultval_for_name,
                                                      self.results))
             self.job.daemon = False
             self.job.start()
         else:
-            self.func(self.inputval_for_attrname,
-                      self.resultval_for_attrname,
+            self.func(self.inputval_for_name,
+                      self.resultval_for_name,
                       self.results)
 
         logging.debug( '\n**STOP WORKING**\n{}'.format(self.__str__()) )
@@ -334,11 +334,11 @@ class _Worker(object):
         if self.is_ready_to_work():
             print("Let the work begin", self.workfun)
 
-            self.inputval_for_attrname = self.reshape(self.ipaths_consumed_for_name,
+            self.inputval_for_name = self.reshape(self.ipaths_consumed_for_name,
                                                       self.inputval_for_pstr
                                                       )
 
-            self.resultval_for_attrname = self.reshape(self.rpaths_consumed_for_name,
+            self.resultval_for_name = self.reshape(self.rpaths_consumed_for_name,
                                                        self.resultval_for_pstr
                                                        )
 
@@ -415,9 +415,9 @@ class _Worker(object):
                                self.rpaths_consumed_for_name,
                                )
         strtmp += '-'*n + '\n'
-        strtmp += fstr2.format(self.inputval_for_attrname,
+        strtmp += fstr2.format(self.inputval_for_name,
                                self.inputval_for_pstr,
-                               self.resultval_for_attrname,
+                               self.resultval_for_name,
                                self.resultval_for_pstr,
                                self.pending_input_pathstrs,
                                self.pending_results_pathstrs

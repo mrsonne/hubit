@@ -1,5 +1,4 @@
-from __future__ import print_function
-
+import logging
 import importlib
 import os
 import sys
@@ -68,7 +67,8 @@ class HubitModelQueryError(HubitError):
 
 def callback(x):
     # Callback
-    print('WELCOME BACK! WELCOME BACK! WELCOME BACK! WELCOME BACK!')
+    logging.debug('WELCOME BACK! WELCOME BACK! WELCOME BACK! WELCOME BACK!')
+
 
 
 def _compress_response(response,
@@ -82,9 +82,9 @@ def _compress_response(response,
     _response = {}
     for qstr_org, (qstrs_expanded, max_ilocs) in querystrs_for_querystr.items():
 
-        print('qstr_org', qstr_org)
-        print('qstrs_expanded', qstrs_expanded)
-        print('max_ilocs', max_ilocs)
+        # logging.debug('qstr_org', qstr_org)
+        # logging.debug('qstrs_expanded', qstrs_expanded)
+        # logging.debug('max_ilocs', max_ilocs)
 
         # Even if len(qstrs) == 0 the query may be expanded
         if not qstrs_expanded[0] == qstr_org:
@@ -137,7 +137,7 @@ def _get(queryrunner,
     _querystrings = [qstr for qstrs, _ in querystrs_for_querystr.values()
                           for qstr in qstrs]
 
-    print('Expanded query', querystrs_for_querystr)
+    logging.debug('Expanded query', querystrs_for_querystr)
 
     # Start thread that periodically checks whether we are finished or not  
     shutdown_event = Event()    
@@ -175,14 +175,7 @@ def _get(queryrunner,
         if not expand_iloc:
             response = _compress_response(response, querystrs_for_querystr)
 
-
-        # print([(key, [obj.idstr() for obj in objs]) for key, objs in self.observers_for_query.items()])
-        # print('\n**SUMMARY**\n')
-        # print('Input extracted\n{}\n'.format(extracted_input))
-        # print('Results\n{}\n'.format(flat_results))
-        # print('Response\n{}'.format(response))
-
-        print('Response created in {} s'.format(time.time() - tstart))
+        logging.debug('Response created in {} s'.format(time.time() - tstart))
         return response, flat_results
     else:
         # Re-raise if failed
@@ -304,7 +297,7 @@ class HubitModel:
         try:
             from graphviz import Digraph
         except ImportError as err:
-            print('Error: Rendering requires "graphviz", but it could not be imported')
+            logging.debug('Error: Rendering requires "graphviz", but it could not be imported')
             raise err
 
         calccolor = "gold2"
@@ -726,7 +719,7 @@ class HubitModel:
         results = pool.starmap_async(_get, args, callback=callback)
         pool.close()
         while len(active_children()) > 1:
-            print('waiting')
+            logging.debug('waiting')
             time.sleep(POLLTIME_LONG)
         pool.join()
         responses, flat_results = zip(*results.get())
@@ -737,7 +730,7 @@ class HubitModel:
         # multiple_results = [pool.apply_async(get, _args, callback=cb) for _args in args]
         # responses = [result.get(timeout=99999) for result in multiple_results]
 
-        print('Queries processed in {} s'.format(time.time() - tstart))
+        logging.debug('Queries processed in {} s'.format(time.time() - tstart))
 
         return responses, inps, results
 
@@ -965,7 +958,7 @@ class _QueryRunner:
             querystrings_next = [qstrexp 
                                  for qstr in querystrings_next
                                  for qstrexp in expand_query(qstr, all_input)[0]]
-            print("querystrings_next", querystrings_next)
+            logging.debug( "querystrings_next: {}".format(querystrings_next) )
 
             # Add the worker to the oberservers list for that query in order
             for query_next in querystrings_next:
@@ -1038,9 +1031,9 @@ class _QueryRunner:
                                   for worker in self.workers_working 
                                   if worker.results_ready()]
             for worker in _workers_completed:
-                print('Query runner detected that a worker completed.')
+                logging.debug('Query runner detected that a worker completed.')
                 self._set_worker_completed(worker, flat_results)
-                print('Flat results: ', flat_results)
+                logging.debug('Flat results: ', flat_results)
 
             should_stop = all([query in flat_results.keys() for query in queries])
             time.sleep(POLLTIME)

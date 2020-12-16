@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import re
 import copy
 import itertools
@@ -347,16 +345,13 @@ def expand_query(querystr, flat_input):
     sepstr = "."
     wcstr = ":"
     querycmps = querystr.split(sepstr)
-    # print 'querycmps', querycmps
     # At which indices are the wildcard encountered
     wcidxs = [idx for idx, qcmp in enumerate(querycmps) if qcmp == wcstr]
-    # print 'wcidxs', wcidxs
     # Find maximal iloc for the indices with wildcards
     maxilocs = []
     for icount, cmpidx in enumerate(wcidxs):
         for path in flat_input.keys():
             pathcmps = path.split(sepstr)
-            # print 'pathcmps', pathcmps
             try:
                 pathcmp = int(pathcmps[cmpidx])
             except IndexError: # too few components in path

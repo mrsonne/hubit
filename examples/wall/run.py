@@ -1,8 +1,11 @@
 import yaml
 import os
+import logging
 from itertools import product
 from hubit.model import HubitModel, HubitModelQueryError
 THISPATH = os.path.dirname(os.path.realpath(__file__))
+
+logging.basicConfig(level=logging.DEBUG)
 
 def get_model(render=True):
     """Create a HubutModel instance from a model file.
@@ -74,7 +77,6 @@ def make_queries(hmodel, render=True, mpworkers=False):
                           mpworkers=mpworkers,
                           reuse_results=True)
     print(response)
-
     # Get the full results object
     results = hmodel.get_results()
     print(results)

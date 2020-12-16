@@ -118,16 +118,13 @@ class _Worker:
 
 
     def __init__(self, hmodel, cname, cfg, inputdata, querystring, func, 
-                 version, ilocstr, multiprocess=False, dryrun=False,
-                 logging_level=logging.DEBUG):
+                 version, ilocstr, multiprocess=False, dryrun=False):
         """
         If inputdata is None the worker cannot work but can still 
         render itself and print.
 
         querystring for one specific location ie no [:]
         """
-        logging.basicConfig(level=logging_level)
-
         self.func = func
         self.name = cname
         self.version = version
@@ -337,17 +334,16 @@ class _Worker:
         """
         If all consumed attributes are present start working
         """
-        # print "work_if_ready", self.name, self.pending_results_paths, self.pending_input_paths
         if self.is_ready_to_work():
-            print("Let the work begin", self.workfun)
+            logging.debug( "Let the work begin: {}".format(self.workfun) )
 
             self.inputval_for_name = self.reshape(self.ipaths_consumed_for_name,
-                                                      self.inputval_for_path
-                                                      )
+                                                  self.inputval_for_path
+                                                  )
 
             self.resultval_for_name = self.reshape(self.rpaths_consumed_for_name,
-                                                       self.resultval_for_path
-                                                       )
+                                                   self.resultval_for_path
+                                                   )
 
 
             self.workfun()

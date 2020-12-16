@@ -2,6 +2,7 @@ from __future__ import print_function
 import logging
 import multiprocessing
 import copy
+from typing import Dict
 from .shared import (idxs_for_matches,
                      get_iloc_indices,
                      set_ilocs_on_pathstr,
@@ -140,12 +141,6 @@ class _Worker(object):
         self.hmodel = hmodel
         self.multiprocess = multiprocess
         self.job = None
-        # print "Worker"
-        # print 'name', cname
-        # print 'query', querystring
-        # print 'provides', cfg["provides"]
-        # print 'consumes', cfg["consumes"]
-        # sfwefwe
 
         if dryrun:
             self.workfun = self.work_dryrun
@@ -153,8 +148,9 @@ class _Worker(object):
             self.workfun = self.work
 
 
-        self.pending_input_pathstrs = []
-        self.pending_results_pathstrs = []
+        # Paths for values that are consumed but not ready
+        self.pending_input_paths = []
+        self.pending_results_paths = []
 
         # Stores required values using internal names as keys  
         self.inputval_for_name = {} 
@@ -184,18 +180,18 @@ class _Worker(object):
 
         self.rpath_consumed_for_name = {}
         self.ipath_consumed_for_name = {}
-        if "consumes" in cfg:
-            if _Worker.consumes_type(cfg, "input"):
-                self.ipath_consumed_for_name, _ = _Worker.get_bindings(cfg["consumes"]["input"],
-                                                                       querystring,
-                                                                       ilocstr,
-                                                                       query_indices=self.ilocs)
 
-            if _Worker.consumes_type(cfg, "results"):
-                self.rpath_consumed_for_name, _ = _Worker.get_bindings(cfg["consumes"]["results"],
-                                                                       querystring,
-                                                                       ilocstr,
-                                                                       query_indices=self.ilocs)
+        if _Worker.consumes_type(cfg, "input"):
+            self.ipath_consumed_for_name, _ = _Worker.get_bindings(cfg["consumes"]["input"],
+                                                                    querystring,
+                                                                    ilocstr,
+                                                                    query_indices=self.ilocs)
+
+        if _Worker.consumes_type(cfg, "results"):
+            self.rpath_consumed_for_name, _ = _Worker.get_bindings(cfg["consumes"]["results"],
+                                                                    querystring,
+                                                                    ilocstr,
+                                                                    query_indices=self.ilocs)
             
 
 
@@ -220,16 +216,29 @@ class _Worker(object):
                                                                inputdata)
 
             self.input_attrname_for_pathstr = {path: key 
-                                               for key, paths in self.ipaths_consumed_for_name.items()
+                                               for key, paths 
+                                               in self.ipaths_consumed_for_name.items()
                                                for path in traverse(paths)}
             self.results_attrname_for_pathstr = {path: key 
-                                                 for key, paths in self.rpaths_consumed_for_name.items() 
+                                                 for key, paths 
+                                                 in self.rpaths_consumed_for_name.items() 
                                                  for path in traverse(paths)}
 
 
     @staticmethod
-    def consumes_type(cfg, key):
-        return key in cfg["consumes"] and len(cfg["consumes"][key]) > 0
+    def consumes_type(cfg: Dict, consumption_type: str) -> bool:
+        """Check if configuration (cfg) consumes the "consumption_type"
+
+        Args:
+            cfg (Dict): Componet configuration
+            consumption_type (str): The consumption type. Can either be "input" or "results". Validity not checked.
+
+        Returns:
+            bool: Flag indicating if the configuration consumes the "consumption_type"
+        """
+        return ("consumes" in cfg and 
+                consumption_type in cfg["consumes"] and 
+                len(cfg["consumes"][consumption_type]) > 0)
 
 
     def paths_provided(self):
@@ -322,15 +331,15 @@ class _Worker(object):
                 for attrname, pstrs in pstrs_for_attrname.items()}
 
     def is_ready_to_work(self):
-        return (len(self.pending_input_pathstrs) == 0 and 
-                len(self.pending_results_pathstrs) == 0)
+        return (len(self.pending_input_paths) == 0 and 
+                len(self.pending_results_paths) == 0)
 
 
     def work_if_ready(self):
         """
         If all consumed attributes are present start working
         """
-        # print "work_if_ready", self.name, self.pending_results_pathstrs, self.pending_input_pathstrs
+        # print "work_if_ready", self.name, self.pending_results_paths, self.pending_input_paths
         if self.is_ready_to_work():
             print("Let the work begin", self.workfun)
 
@@ -346,17 +355,17 @@ class _Worker(object):
             self.workfun()
 
 
-    def set_consumed_input(self, pathstr, value):
-        if pathstr in self.pending_input_pathstrs:
-            self.pending_input_pathstrs.remove(pathstr)
-            self.inputval_for_pstr[pathstr] = value
+    def set_consumed_input(self, path, value):
+        if path in self.pending_input_paths:
+            self.pending_input_paths.remove(path)
+            self.inputval_for_pstr[path] = value
 
         self.work_if_ready()
 
 
     def set_consumed_result(self, pathstr, value):
-        if pathstr in self.pending_results_pathstrs:
-            self.pending_results_pathstrs.remove(pathstr)
+        if pathstr in self.pending_results_paths:
+            self.pending_results_paths.remove(pathstr)
             self.resultval_for_pstr[pathstr] = value
         
         self.work_if_ready()
@@ -375,19 +384,19 @@ class _Worker(object):
             if pathstr in inputdata.keys():
                self.inputval_for_pstr[pathstr] = inputdata[pathstr]
             else:
-                self.pending_input_pathstrs.append(pathstr)
+                self.pending_input_paths.append(pathstr)
 
         # Check consumed results
         for pathstr in self.results_attrname_for_pathstr.keys():
             if pathstr in resultsdata.keys():
                 self.resultval_for_pstr[pathstr] = resultsdata[pathstr]
             else:
-                self.pending_results_pathstrs.append(pathstr)
+                self.pending_results_paths.append(pathstr)
 
         self.work_if_ready()
 
-        return (copy.copy(self.pending_input_pathstrs), 
-                copy.copy(self.pending_results_pathstrs))
+        return (copy.copy(self.pending_input_paths), 
+                copy.copy(self.pending_results_paths))
         
 
 
@@ -419,8 +428,8 @@ class _Worker(object):
                                self.inputval_for_pstr,
                                self.resultval_for_name,
                                self.resultval_for_pstr,
-                               self.pending_input_pathstrs,
-                               self.pending_results_pathstrs
+                               self.pending_input_paths,
+                               self.pending_results_paths
                                )
         strtmp += '-'*n + '\n'
         strtmp += 'Results {}\n'.format(self.results)

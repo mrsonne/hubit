@@ -199,7 +199,7 @@ class TestWorker(unittest.TestCase):
                         }
 
         # Local version of worker input paths pending
-        pending_input_pathstrs = list(input_values.keys())
+        pending_input_paths = list(input_values.keys())
 
         # add input attributes one by one
         tests_paths_pending = []
@@ -208,10 +208,10 @@ class TestWorker(unittest.TestCase):
             w.set_consumed_input(key, val)
 
             # Update local version
-            pending_input_pathstrs.remove(key)
+            pending_input_paths.remove(key)
 
-            tests_paths_pending.append(set(pending_input_pathstrs) == 
-                                       set(w.pending_input_pathstrs))
+            tests_paths_pending.append(set(pending_input_paths) == 
+                                       set(w.pending_input_paths))
             
             # Worker should not be ready to work since consumed results are missing
             tests_ready_to_work.append( w.is_ready_to_work() == False) 
@@ -222,22 +222,22 @@ class TestWorker(unittest.TestCase):
                           'items.0.value': 49.,
                           }
 
-        pending_results_pathstrs = list(results_values.keys())
+        pending_results_paths = list(results_values.keys())
 
         # Add results values
         for key, val in results_values.items():
             w.set_consumed_result(key, val)
 
             # Update local version
-            pending_results_pathstrs.remove(key)
+            pending_results_paths.remove(key)
 
-            tests_paths_pending.append(set(pending_results_pathstrs) == 
-                                       set(w.pending_results_pathstrs))
+            tests_paths_pending.append(set(pending_results_paths) == 
+                                       set(w.pending_results_paths))
             
             # All input is added so should be ready to work when all consumed 
             # results have been set 
             tests_ready_to_work.append( w.is_ready_to_work() == 
-                                        (len(pending_results_pathstrs) == 0)) 
+                                        (len(pending_results_paths) == 0)) 
 
         # After adding last attribute the worker starts running (sequentially)
         test_results_ready = w.results_ready() == True

@@ -49,9 +49,9 @@ class HubitModelComponentError(HubitError):
 
 
 class HubitModelValidationError(HubitError):
-    def __init__(self, pstring, compname, compname_for_pstring):
+    def __init__(self, path, fname, fname_for_path):
         fstr = '"{}" on component "{}" also provided by component "{}"'
-        self.message = fstr.format(pstring, compname, compname_for_pstring[pstring])
+        self.message = fstr.format(path, fname, fname_for_path[path])
 
     def __str__(self): 
         return self.message
@@ -637,16 +637,16 @@ class HubitModel(object):
 
 
     def _validate_model(self):
-        compname_for_pstring = {}
+        fname_for_path = {}
         for compdata in self.cfg:
-            compname = compdata['func_name']
+            fname = compdata['func_name']
             for binding in compdata["provides"]:
-                if not binding['path'] in compname_for_pstring:
-                    compname_for_pstring[binding['path']] = compname
+                if not binding['path'] in fname_for_path:
+                    fname_for_path[binding['path']] = fname
                 else:
                     raise HubitModelValidationError( binding['path'],
-                                                     compname,
-                                                     compname_for_pstring )
+                                                     fname,
+                                                     fname_for_path )
 
 
 

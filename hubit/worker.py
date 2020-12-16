@@ -117,7 +117,7 @@ class _Worker:
 
 
 
-    def __init__(self, hmodel, cname, cfg, inputdata, querystring, func, 
+    def __init__(self, hmodel, name, cfg, inputdata, query, func, 
                  version, ilocstr, multiprocess=False, dryrun=False):
         """
         If inputdata is None the worker cannot work but can still 
@@ -125,14 +125,15 @@ class _Worker:
 
         querystring for one specific location ie no [:]
         """
-        self.func = func
-        self.name = cname
-        self.version = version
-        self.hmodel = hmodel
-        self.multiprocess = multiprocess
-        self.job = None
+        self.func = func # function to excecute 
+        self.name = name # name of the component
+        self.version = version # Version of the component
+        self.hmodel = hmodel # reference to the Hubit model instance
+        self.use_multiprocessing = multiprocess # flag indicating if multiprocessing should be used
+        self.job = None # For referencing the job if using multiprocessing
 
         if dryrun:
+            # If worker should perform a dry run set the worker function to "work_dryrun"
             self.workfun = self.work_dryrun
         else:
             self.workfun = self.work
@@ -150,8 +151,7 @@ class _Worker:
         self.inputval_for_path = {} 
         self.resultval_for_path = {} 
 
-        # actual
-        if self.multiprocess:
+        if self.use_multiprocessing:
             # Using a pool for multiple queries block for any multi-processing in the worker
             mgr = multiprocessing.Manager()
             self.results =  mgr.dict() 
@@ -163,14 +163,14 @@ class _Worker:
         if "provides" in cfg:
             (self.rpath_provided_for_name,
              self.ilocs) = _Worker.get_bindings(cfg["provides"],
-                                                querystring,
+                                                query,
                                                 ilocstr)
         else:
-            raise HubitWorkerError( 'No provider for Hubit model component "{}"'.format(cname) )
+            raise HubitWorkerError( 'No provider for Hubit model component "{}"'.format(self.name) )
 
         if _Worker.consumes_type(cfg, "input"):
             self.ipath_consumed_for_name, _ = _Worker.get_bindings(cfg["consumes"]["input"],
-                                                                    querystring,
+                                                                    query,
                                                                     ilocstr,
                                                                     query_indices=self.ilocs)
         else:
@@ -179,7 +179,7 @@ class _Worker:
 
         if _Worker.consumes_type(cfg, "results"):
             self.rpath_consumed_for_name, _ = _Worker.get_bindings(cfg["consumes"]["results"],
-                                                                    querystring,
+                                                                    query,
                                                                     ilocstr,
                                                                     query_indices=self.ilocs)
         else:
@@ -301,7 +301,7 @@ class _Worker:
 
         # Notify the hubit model that we are about to start the work
         self.hmodel._set_worker_working(self)
-        if self.multiprocess:
+        if self.use_multiprocessing:
             self.job = multiprocessing.Process(target=self.func,
                                                args=(self.inputval_for_name,
                                                      self.resultval_for_name,

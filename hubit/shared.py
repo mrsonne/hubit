@@ -163,21 +163,21 @@ def _paths_between_idxids(path: str, idxids: List[str]) -> List[str]:
     return paths
 
 
-def reshape(pstrs, valmap):
+def reshape(paths, valmap):
     """
-    pstrs contains path strings in the correct shape i.e. a nested list. 
+    paths contains path strings in the correct shape i.e. a nested list. 
     Even a simple number is a list of one element due to the expansion. 
     If only one element return that element i.e. the value. Else collect the 
     values from the value map an store them in a nested list structure like
-    pstrs.
+    paths.
     """
-    if len(pstrs) > 1:
-        return [valmap[pstr] 
-               if isinstance(pstr, basestring) 
-               else reshape(pstr, valmap) 
-               for pstr in pstrs]
+    if len(paths) > 1:
+        return [valmap[path] 
+               if isinstance(path, basestring) 
+               else reshape(path, valmap) 
+               for path in paths]
     else:
-        return valmap[pstrs[0]]
+        return valmap[paths[0]]
         
 
 def traverse(items):
@@ -396,7 +396,7 @@ def query_all(providerstrings, flat_input, ilocstr):
 def path_shape(path, inputdata, sepstr, ilocwcchar):
     """
     From the input data infer the shape corresponding to the iloc 
-    wildcard character (ilocwcchar) in the pstr.
+    wildcard character (ilocwcchar) in the path.
     Rectagular data assumed.
     """
     nwc = path.count(ilocwcchar)
@@ -417,7 +417,6 @@ def path_expand(path, shape, ilocwcchar):
     Expand a path string according to the shape. 
     The result is a nested list of path strings
     """
-    # pstrs = []
     paths = get_nested_list([s-1 for s in shape])
     for ilocs in itertools.product(*[range(nitm) for nitm in shape]):
         #pstrs.append(set_ilocs_on_pathstrpstr, [str(iloc) for iloc in ilocs], ilocwcchar))

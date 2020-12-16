@@ -170,7 +170,7 @@ class TestShared(unittest.TestCase):
     def test_x(self):
         self.skipTest('Feature not used yet... and not sure what it is')
         cfg, inputdata = get_data()
-        pstr = cfg["provides"]["attrs1"]
+        path = cfg["provides"]["attrs1"]
 
         # iterate over all indices
         import itertools
@@ -178,10 +178,10 @@ class TestShared(unittest.TestCase):
         for ilocs in itertools.product(*[range(s) for s in shape]):
             print(ilocs)
 
-        pstrs = [['attr1', "attr2"], ["attr3", "attr4"]]
+        paths = [['attr1', "attr2"], ["attr3", "attr4"]]
         valuemap = {'attr1':1, "attr2":2, "attr3":3, "attr4":4}
 
-        print('XXX', shared.setelemtents(pstrs, valuemap))
+        print('XXX', shared.setelemtents(paths, valuemap))
 
 
 class Test(unittest.TestCase):

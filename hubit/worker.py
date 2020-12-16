@@ -10,8 +10,8 @@ from .shared import (idxs_for_matches,
                      list_from_shape,
                      reshape,
                      get_from_datadict,
-                     pstr_shape,
-                     pstr_expand,
+                     path_shape,
+                     path_expand,
                      get_nested_list,
                      HubitError)
 
@@ -94,20 +94,15 @@ class _Worker(object):
     @staticmethod
     def expand(path_for_name, inputdata):
         paths_for_name = {}
-        # exp_for_attrname = {}
         shape_for_name = {}
         for name, path in path_for_name.items():
             if not ":" in path:
                 paths_for_name[name] = [path]
-                # exp_for_attrname[attrname] = False
                 shape_for_name[name] = [1]
                 continue
  
-            shape = pstr_shape(path, inputdata, ".", ":")
-            pstrs = pstr_expand(path, shape, ":")
-            paths_for_name[name] = pstrs
-            # exp_for_attrname[attrname] = True
-            shape_for_name[name] = shape
+            shape_for_name[name] = path_shape(path, inputdata, ".", ":")
+            paths_for_name[name] = path_expand(path, shape_for_name[name], ":")
 
         return paths_for_name, shape_for_name
 
@@ -157,8 +152,8 @@ class _Worker(object):
         self.resultval_for_name = {} 
 
         # Stores required values using internal names as keys  
-        self.inputval_for_pstr = {} 
-        self.resultval_for_pstr = {} 
+        self.inputval_for_path = {} 
+        self.resultval_for_path = {} 
 
         # actual
         if self.multiprocess:
@@ -178,15 +173,14 @@ class _Worker(object):
         else:
             raise HubitWorkerError( 'No provider for Hubit model component "{}"'.format(cname) )
 
-        self.rpath_consumed_for_name = {}
         self.ipath_consumed_for_name = {}
-
         if _Worker.consumes_type(cfg, "input"):
             self.ipath_consumed_for_name, _ = _Worker.get_bindings(cfg["consumes"]["input"],
                                                                     querystring,
                                                                     ilocstr,
                                                                     query_indices=self.ilocs)
 
+        self.rpath_consumed_for_name = {}
         if _Worker.consumes_type(cfg, "results"):
             self.rpath_consumed_for_name, _ = _Worker.get_bindings(cfg["consumes"]["results"],
                                                                     querystring,
@@ -212,17 +206,18 @@ class _Worker(object):
 
             # Expand from abstract path with : to list of paths with actual ilocs
             (self.rpaths_provided_for_name,
-            self.shape_provided_for_attrname) = _Worker.expand(self.rpath_provided_for_name,
-                                                               inputdata)
+            self.shape_provided_for_name) = _Worker.expand(self.rpath_provided_for_name,
+                                                           inputdata)
 
-            self.input_attrname_for_pathstr = {path: key 
-                                               for key, paths 
-                                               in self.ipaths_consumed_for_name.items()
-                                               for path in traverse(paths)}
-            self.results_attrname_for_pathstr = {path: key 
-                                                 for key, paths 
-                                                 in self.rpaths_consumed_for_name.items() 
-                                                 for path in traverse(paths)}
+            self.iname_for_path = {path: key 
+                                   for key, paths 
+                                   in self.ipaths_consumed_for_name.items()
+                                   for path in traverse(paths)}
+
+            self.rname_for_path = {path: key 
+                                   for key, paths 
+                                   in self.rpaths_consumed_for_name.items() 
+                                   for path in traverse(paths)}
 
 
     @staticmethod
@@ -260,13 +255,14 @@ class _Worker(object):
 
         # TODO: Work only with : and not..... but not elegant...
         out = {}
-        for attrname, pstrs in self.rpaths_provided_for_name.items():
-            
-            if len(pstrs) > 1:
-                for pstr, val in zip(traverse(pstrs), traverse(self.results[attrname])):
-                    out[pstr] = val
+        for name, paths in self.rpaths_provided_for_name.items():
+            if len(paths) > 1:
+                _out = {path: val 
+                        for path, val in zip(traverse(paths),
+                                             traverse(self.results[name]))}
             else:
-                out[pstrs[0]] = self.results[attrname]
+                _out = {paths[0]: self.results[name]}
+            out.update(_out)
         return out
 
 
@@ -290,8 +286,8 @@ class _Worker(object):
         Sets all results to None
         """
         self.hmodel._set_worker_working(self)
-        for attrname in self.rpath_provided_for_name.keys():
-            self.results[attrname] = list_from_shape(self.shape_provided_for_attrname[attrname])
+        for name in self.rpath_provided_for_name.keys():
+            self.results[name] = list_from_shape(self.shape_provided_for_name[name])
 
 
     def join(self):
@@ -322,13 +318,14 @@ class _Worker(object):
         logging.debug( '\n**STOP WORKING**\n{}'.format(self.__str__()) )
 
 
-    def reshape(self, pstrs_for_attrname, val_for_pstr):
+    def reshape(self, path_for_name, val_for_path):
         """
         Convert val_for_pathstr to val_for_attrname i.e. 
         from external names to internal names with expected shapes
         """
-        return {attrname: reshape(pstrs, val_for_pstr)
-                for attrname, pstrs in pstrs_for_attrname.items()}
+        return {name: reshape(path, val_for_path)
+                for name, path in path_for_name.items()}
+
 
     def is_ready_to_work(self):
         return (len(self.pending_input_paths) == 0 and 
@@ -344,11 +341,11 @@ class _Worker(object):
             print("Let the work begin", self.workfun)
 
             self.inputval_for_name = self.reshape(self.ipaths_consumed_for_name,
-                                                      self.inputval_for_pstr
+                                                      self.inputval_for_path
                                                       )
 
             self.resultval_for_name = self.reshape(self.rpaths_consumed_for_name,
-                                                       self.resultval_for_pstr
+                                                       self.resultval_for_path
                                                        )
 
 
@@ -358,7 +355,7 @@ class _Worker(object):
     def set_consumed_input(self, path, value):
         if path in self.pending_input_paths:
             self.pending_input_paths.remove(path)
-            self.inputval_for_pstr[path] = value
+            self.inputval_for_path[path] = value
 
         self.work_if_ready()
 
@@ -366,7 +363,7 @@ class _Worker(object):
     def set_consumed_result(self, pathstr, value):
         if pathstr in self.pending_results_paths:
             self.pending_results_paths.remove(pathstr)
-            self.resultval_for_pstr[pathstr] = value
+            self.resultval_for_path[pathstr] = value
         
         self.work_if_ready()
 
@@ -380,16 +377,16 @@ class _Worker(object):
         self.hmodel._set_worker(self)
 
         # Check consumed input (should not have any pending items by definition)
-        for pathstr in self.input_attrname_for_pathstr.keys():
+        for pathstr in self.iname_for_path.keys():
             if pathstr in inputdata.keys():
-               self.inputval_for_pstr[pathstr] = inputdata[pathstr]
+               self.inputval_for_path[pathstr] = inputdata[pathstr]
             else:
                 self.pending_input_paths.append(pathstr)
 
         # Check consumed results
-        for pathstr in self.results_attrname_for_pathstr.keys():
+        for pathstr in self.rname_for_path.keys():
             if pathstr in resultsdata.keys():
-                self.resultval_for_pstr[pathstr] = resultsdata[pathstr]
+                self.resultval_for_path[pathstr] = resultsdata[pathstr]
             else:
                 self.pending_results_paths.append(pathstr)
 
@@ -411,7 +408,7 @@ class _Worker(object):
     def __str__(self):
         n = 100
         fstr1 = 'R provided {}\nR provided exp {}\nI consumed {}\nI consumed exp {}\nR consumed {}\nR consumed exp {}\n'
-        fstr2 = 'I attr values {}\nI pstr values {}\nR attr values {}\nR pstr values {}\nI pending {}\nR pending {}\n'
+        fstr2 = 'I attr values {}\nI path values {}\nR attr values {}\nR path values {}\nI pending {}\nR pending {}\n'
         strtmp = '='*n + '\n'
         strtmp += 'ID {}\n'.format(self.idstr())
         strtmp += 'Function {}\n'.format(self.func)
@@ -425,9 +422,9 @@ class _Worker(object):
                                )
         strtmp += '-'*n + '\n'
         strtmp += fstr2.format(self.inputval_for_name,
-                               self.inputval_for_pstr,
+                               self.inputval_for_path,
                                self.resultval_for_name,
-                               self.resultval_for_pstr,
+                               self.resultval_for_path,
                                self.pending_input_paths,
                                self.pending_results_paths
                                )

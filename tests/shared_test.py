@@ -153,18 +153,18 @@ class TestShared(unittest.TestCase):
     def test_shape(self):
         # Infer the shape of the provision
         cfg, inputdata = get_data()
-        pstr = cfg["provides"][0]["path"]
-        shape = shared.pstr_shape(pstr, inputdata, ".", ":")
+        path = cfg["provides"][0]["path"]
+        shape = shared.path_shape(path, inputdata, ".", ":")
         self.assertSequenceEqual( shape, [2, 2] )
 
 
     def test_expand(self):
         # Expand provision into its constituents
         cfg, inputdata = get_data()
-        pstr = cfg["provides"][0]["path"]
-        shape = shared.pstr_shape(pstr, inputdata, ".", ":")
-        pstrs = shared.pstr_expand(pstr, shape, ":")      
-        self.assertTrue( len( list(shared.traverse(pstrs)) ) == shape[0]*shape[1] )
+        path = cfg["provides"][0]["path"]
+        shape = shared.path_shape(path, inputdata, ".", ":")
+        paths = shared.path_expand(path, shape, ":")      
+        self.assertTrue( len( list(shared.traverse(paths)) ) == shape[0]*shape[1] )
 
 
     def test_x(self):

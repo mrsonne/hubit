@@ -11,7 +11,6 @@ from typing import Any, List, Dict, Tuple
 
 IDX_WILDCARD = ":"
 
-
 # Python 2 & 3 compatibility
 try:
   basestring
@@ -383,25 +382,26 @@ def expand_query(querystr, flat_input):
 
     return queries, maxilocs
 
+
 def query_all(providerstrings, flat_input, ilocstr):
     """
     Assumes complete input
     """
     return [qry 
-            for pstr in providerstrings
-            for qry in expand_query(pstr.replace(ilocstr, ":"), flat_input)]
+            for path in providerstrings
+            for qry in expand_query(path.replace(ilocstr, ":"), flat_input)]
     
 
 
-def pstr_shape(pstr, inputdata, sepstr, ilocwcchar):
+def path_shape(path, inputdata, sepstr, ilocwcchar):
     """
     From the input data infer the shape corresponding to the iloc 
     wildcard character (ilocwcchar) in the pstr.
     Rectagular data assumed.
     """
-    nwc = pstr.count(ilocwcchar)
+    nwc = path.count(ilocwcchar)
     shape = []
-    pcmps = pstr.split(sepstr)
+    pcmps = path.split(sepstr)
     cidx = 0
     for _ in range(nwc):
         idx = pcmps[cidx:].index(ilocwcchar) 
@@ -412,14 +412,14 @@ def pstr_shape(pstr, inputdata, sepstr, ilocwcchar):
     return shape
 
 
-def pstr_expand(pstr, shape, ilocwcchar):
+def path_expand(path, shape, ilocwcchar):
     """
     Expand a path string according to the shape. 
     The result is a nested list of path strings
     """
     # pstrs = []
-    pstrs = get_nested_list([s-1 for s in shape])
+    paths = get_nested_list([s-1 for s in shape])
     for ilocs in itertools.product(*[range(nitm) for nitm in shape]):
         #pstrs.append(set_ilocs_on_pathstrpstr, [str(iloc) for iloc in ilocs], ilocwcchar))
-        set_element(pstrs, set_ilocs_on_pathstr(pstr, [str(iloc) for iloc in ilocs], ilocwcchar), ilocs)
-    return pstrs
+        set_element(paths, set_ilocs_on_pathstr(path, [str(iloc) for iloc in ilocs], ilocwcchar), ilocs)
+    return paths

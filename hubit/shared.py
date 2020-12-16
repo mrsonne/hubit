@@ -289,24 +289,6 @@ def set_ilocs_on_pathstr(pathstr, ilocs, ilocstr):
     return _pathstr
 
 
-def regex_preprocess(querystring, providerstrings, ilocstr):
-    """
-    """
-    # get rid of . before doing regex stuff
-    clean_query = querystring.replace(".", "->")
-    clean_providerstr = [pstring.replace(".", "->") for pstring in providerstrings]
-
-    # Look for digits whenever ilocstr is encountered
-    clean_regexps = [string.replace(ilocstr, r"(\d+)") + '$' for string in clean_providerstr]
-    # TODO: also replace ":"... maybe loop over all possible 
-    # TODO iloc wildcard
-    clean_regexps = [string.replace(":", r"(\d+)") + '$' for string in clean_regexps]
-    # print "clean_regexps", clean_regexps, clean_query
-    compiled_regexps = [re.compile(string) for string in clean_regexps]
-    # print clean_regexps
-    return clean_query, compiled_regexps
-
-
 def check_path_match(query_path, symbolic_path, ilocstr):
     query_path_cmps = query_path.split('.')
     symbolic_path_cmps = symbolic_path.split('.')
@@ -334,18 +316,16 @@ def idxs_for_matches(query_path, symbolic_paths, ilocstr):
     return [idx 
             for idx, symbolic_path in enumerate(symbolic_paths) 
             if check_path_match(query_path, symbolic_path, ilocstr)]
-            
 
-def get_iloc_indices(querystring, providerstring, ilocstr):
+
+def get_iloc_indices(query_path, symbolic_path, ilocstr):
     """
-    Array indices extracted from query based on location of 
+    List indices extracted from query based on location of 
     ilocstr in providerstring
     """
-    _q, _lc = regex_preprocess(querystring, [providerstring], ilocstr)
-    compiledstring = _lc[0]
-    match = re.search(compiledstring, _q)
-    return match.groups()
-
+    return [qcmp for qcmp, scmp in zip(query_path.split('.'),
+                                       symbolic_path.split('.'))          
+            if scmp == ilocstr]
 
 # def expand_query(querystr, flat_input):
 # NEW VERSION using [] instead of ..

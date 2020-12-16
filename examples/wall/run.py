@@ -5,7 +5,7 @@ from itertools import product
 from hubit.model import HubitModel, HubitModelQueryError
 THISPATH = os.path.dirname(os.path.realpath(__file__))
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 def get_model(render=True):
     """Create a HubutModel instance from a model file.
@@ -148,7 +148,7 @@ def make_sweep(hmodel, nproc=4):
 if __name__ == '__main__': # Main guard required on windows if mpworkers = True
     hmodel = get_model(render=False)
     use_multiprocessing = True
-    # query(hmodel, render=False, mpworkers=use_multiprocessing)
+    query(hmodel, render=False, mpworkers=use_multiprocessing)
     # query_with_precomputed_results(hmodel, mpworkers=use_multiprocessing)
-    query_with_custom_results(hmodel, mpworkers=use_multiprocessing)
+    # query_with_custom_results(hmodel, mpworkers=use_multiprocessing)
     # make_sweep(hmodel, nproc=None)

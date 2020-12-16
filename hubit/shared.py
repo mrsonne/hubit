@@ -11,12 +11,6 @@ from typing import Any, List, Dict, Tuple
 
 IDX_WILDCARD = ":"
 
-# Python 2 & 3 compatibility
-try:
-  basestring
-except NameError:
-  basestring = str
-
 class HubitError(Exception):
     pass
 
@@ -173,7 +167,7 @@ def reshape(paths, valmap):
     """
     if len(paths) > 1:
         return [valmap[path] 
-               if isinstance(path, basestring) 
+               if isinstance(path, str) 
                else reshape(path, valmap) 
                for path in paths]
     else:
@@ -186,7 +180,7 @@ def traverse(items):
     """
     try:
         for i in iter(items):
-            if not isinstance(i, basestring):
+            if not isinstance(i, str):
                 for j in traverse(i):
                     yield j
             else:
@@ -269,7 +263,7 @@ def flatten(d, parent_key='', sep='.'):
         new_key = parent_key + sep + k if parent_key else k
         if isinstance(v, collections.abc.MutableMapping):
             items.extend(flatten(v, new_key, sep=sep).items())
-        elif isinstance(v, collections.abc.Iterable) and not isinstance(v, basestring):
+        elif isinstance(v, collections.abc.Iterable) and not isinstance(v, str):
             try:
                 # Elements are dicts
                 for idx, item in enumerate(v):

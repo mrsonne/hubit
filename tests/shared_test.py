@@ -50,8 +50,8 @@ class TestShared(unittest.TestCase):
         """Test that indices from query string are extracted correctly
         """
         idxs = shared.get_iloc_indices(self.querystring,
-                                  self.providerstring,
-                                  self.ilocstr)
+                                       self.providerstring,
+                                       self.ilocstr)
         idxs_expected = ('42', '3')
         self.assertSequenceEqual(idxs, idxs_expected)
 

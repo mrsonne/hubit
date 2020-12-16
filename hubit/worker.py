@@ -66,14 +66,15 @@ class _Worker(object):
         binding_paths = [binding['path'] for binding in bindings]
 
         if ilocs is None:
-            # get indices in path string list that match the query
+            # Get indices in binding_paths list that match the query
             idxs = idxs_for_matches(query_path, binding_paths, ilocstr)
             if len(idxs) == 0:
                 fstr = 'Query "{}" did not match attributes provided by worker ({}).'
                 raise HubitWorkerError(fstr.format(query_path,
                                                    ", ".join(binding_paths)))
 
-            # get the location indices from query
+            # Get the location indices from query. Using the first binding path that 
+            # matched the query suffice
             _ilocs = get_iloc_indices(query_path, binding_paths[idxs[0]], ilocstr)
         else:
             _ilocs = ilocs

@@ -28,6 +28,7 @@ class Container(object):
     def __str__(self):
         return str(self.val)
 
+
 def get_from_datadict(datadict, keys):
     """
     Extract value from a nested dictionary using list of keys.
@@ -136,9 +137,8 @@ def idxids_from_path(path: str) -> List[str]:
         List: Sequence of index identification strings
     """
     # return re.findall(r"\[(\w+)\]", path) # Only word charaters i.e. [a-zA-Z0-9_]+
-    return re.findall(r"\[(.*?)\]", path) # Any character
+    return re.findall(r"\[(.*?)\]", path) # Any character in square brackets
     
-
 
 def _paths_between_idxids(path: str, idxids: List[str]) -> List[str]:
     """Find list of path components inbetween index IDs
@@ -170,7 +170,10 @@ def reshape(pstrs, valmap):
     pstrs.
     """
     if len(pstrs) > 1:
-        return [valmap[pstr] if isinstance(pstr, basestring) else reshape(pstr, valmap) for pstr in pstrs]
+        return [valmap[pstr] 
+               if isinstance(pstr, basestring) 
+               else reshape(pstr, valmap) 
+               for pstr in pstrs]
     else:
         return valmap[pstrs[0]]
         

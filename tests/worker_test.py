@@ -324,5 +324,6 @@ class TestWorker(unittest.TestCase):
                                  ilocstr)
 
 
+    # TODO: Get binding for multiple bindings
 if __name__ == '__main__':
     unittest.main()

@@ -711,7 +711,7 @@ class HubitModel:
             inps.append(_flat_input)
 
         if nproc is None:
-            _nproc = min(len(input_values_for_path), cpu_count())
+            _nproc = len(args)
         else:
             _nproc = max(nproc, 1)
         pool = Pool(_nproc)

@@ -171,19 +171,22 @@ class _Worker:
         else:
             raise HubitWorkerError( 'No provider for Hubit model component "{}"'.format(cname) )
 
-        self.ipath_consumed_for_name = {}
         if _Worker.consumes_type(cfg, "input"):
             self.ipath_consumed_for_name, _ = _Worker.get_bindings(cfg["consumes"]["input"],
                                                                     querystring,
                                                                     ilocstr,
                                                                     query_indices=self.ilocs)
+        else:
+            self.ipath_consumed_for_name = {}
 
-        self.rpath_consumed_for_name = {}
+
         if _Worker.consumes_type(cfg, "results"):
             self.rpath_consumed_for_name, _ = _Worker.get_bindings(cfg["consumes"]["results"],
                                                                     querystring,
                                                                     ilocstr,
                                                                     query_indices=self.ilocs)
+        else:
+            self.rpath_consumed_for_name = {}
             
 
 

@@ -355,9 +355,9 @@ def subscriptions_for_query(query, query_runner):
     """Get subscriptions from worker
     """
     w = query_runner._worker_for_query(query)
-    consumes = list(w.inputpath_consumed_for_attrname.values())
-    consumes += list(w.resultspath_consumed_for_attrname.values())
-    provides = list(w.resultspath_provided_for_attrname.values())
+    consumes = list(w.ipath_consumed_for_name.values())
+    consumes += list(w.rpath_consumed_for_name.values())
+    provides = list(w.rpath_provided_for_name.values())
     return consumes, provides
 
 

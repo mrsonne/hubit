@@ -406,19 +406,19 @@ class HubitModel(object):
             with dot.subgraph(name='cluster_input', node_attr={'shape': 'box'}) as c:
                 c.attr(label='Input', color=inputcolor, style="dashed")
 
-                self._render_objects(w.name, w.inputpath_consumed_for_attrname,
+                self._render_objects(w.name, w.ipath_consumed_for_name,
                                      "cluster_input", prefix_input, input_object_ids[0],
                                      c, arrowsize, inputcolor, direction=-direction)
 
             with dot.subgraph(name='cluster_results', node_attr={'shape': 'box'}) as c:
                 c.attr(label='Results', color=resultscolor, style="dashed")
-                self._render_objects(w.name, w.resultspath_provided_for_attrname,
+                self._render_objects(w.name, w.rpath_provided_for_name,
                                      "cluster_results", prefix_results, results_object_ids[0],
                                      c, arrowsize, resultscolor, direction=direction)
 
                 # Not all components cosume results
                 try:
-                    self._render_objects(w.name, w.resultspath_consumed_for_attrname, 
+                    self._render_objects(w.name, w.rpath_consumed_for_name, 
                                          "cluster_results", prefix_results, results_object_ids[0], 
                                          c, arrowsize, resultscolor, direction=-direction,
                                          constraint="false", render_objects=False)

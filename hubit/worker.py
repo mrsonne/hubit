@@ -170,56 +170,56 @@ class _Worker(object):
 
         # TODO: assumes provider has the all ilocs defined
         if "provides" in cfg:
-            (self.resultspath_provided_for_attrname,
+            (self.rpath_provided_for_name,
              self.ilocs) = _Worker.get_bindings(cfg["provides"],
                                                 querystring,
                                                 ilocstr)
         else:
             raise HubitWorkerError( 'No provider for Hubit model component "{}"'.format(cname) )
 
-        self.resultspath_consumed_for_attrname = {}
-        self.inputpath_consumed_for_attrname = {}
+        self.rpath_consumed_for_name = {}
+        self.ipath_consumed_for_name = {}
         if "consumes" in cfg:
             if "input" in cfg["consumes"] and len(cfg["consumes"]["input"]) > 0:
-                self.inputpath_consumed_for_attrname, _ = _Worker.get_bindings(cfg["consumes"]["input"],
-                                                                               querystring,
-                                                                               ilocstr,
-                                                                               ilocs=self.ilocs)
+                self.ipath_consumed_for_name, _ = _Worker.get_bindings(cfg["consumes"]["input"],
+                                                                       querystring,
+                                                                       ilocstr,
+                                                                       ilocs=self.ilocs)
 
             if "results" in cfg["consumes"]  and len(cfg["consumes"]["results"]) > 0:
-                self.resultspath_consumed_for_attrname, _ = _Worker.get_bindings(cfg["consumes"]["results"],
-                                                                                 querystring,
-                                                                                 ilocstr,
-                                                                                 ilocs=self.ilocs)
+                self.rpath_consumed_for_name, _ = _Worker.get_bindings(cfg["consumes"]["results"],
+                                                                       querystring,
+                                                                       ilocstr,
+                                                                       ilocs=self.ilocs)
             
 
 
 
         self._id = self.idstr()
 
-        # print 'ORG inp', self.inputpath_consumed_for_attrname
-        # print 'ORG results', self.resultspath_provided_for_attrname
+        # print 'ORG inp', self.ipath_consumed_for_name
+        # print 'ORG results', self.rpath_provided_for_name
 
         # Expand queries containing iloc wildcard
 
         if inputdata is not None:
-            self.inputpaths_consumed_for_attrname, _ = _Worker.expand(self.inputpath_consumed_for_attrname,
-                                                                      inputdata)
+            self.ipaths_consumed_for_name, _ = _Worker.expand(self.ipath_consumed_for_name,
+                                                              inputdata)
 
-            self.resultspaths_consumed_for_attrname, _ = _Worker.expand(self.resultspath_consumed_for_attrname,
-                                                                        inputdata)
+            self.rpaths_consumed_for_name, _ = _Worker.expand(self.rpath_consumed_for_name,
+                                                              inputdata)
 
             # Expand from abstract path with : to list of paths with actual ilocs
-            (self.resultspaths_provided_for_attrname,
-            self.shape_provided_for_attrname) = _Worker.expand(self.resultspath_provided_for_attrname,
+            (self.rpaths_provided_for_name,
+            self.shape_provided_for_attrname) = _Worker.expand(self.rpath_provided_for_name,
                                                                inputdata)
 
-            self.input_attrname_for_pathstr = {pathstr:key 
-                                               for key, pathstrs in self.inputpaths_consumed_for_attrname.items()
-                                               for pathstr in traverse(pathstrs)}
-            self.results_attrname_for_pathstr = {pathstr:key 
-                                                 for key, pathstrs in self.resultspaths_consumed_for_attrname.items() 
-                                                 for pathstr in traverse(pathstrs)}
+            self.input_attrname_for_pathstr = {path: key 
+                                               for key, paths in self.ipaths_consumed_for_name.items()
+                                               for path in traverse(paths)}
+            self.results_attrname_for_pathstr = {path: key 
+                                                 for key, paths in self.rpaths_consumed_for_name.items() 
+                                                 for path in traverse(paths)}
 
 
     def paths_provided(self):
@@ -229,7 +229,7 @@ class _Worker(object):
             List: Sequence of paths that will be provided by the worker
         """
         return [path 
-                for paths in self.resultspaths_provided_for_attrname.values()
+                for paths in self.rpaths_provided_for_name.values()
                 for path in paths]
 
 
@@ -241,7 +241,7 @@ class _Worker(object):
 
         # TODO: Work only with : and not..... but not elegant...
         out = {}
-        for attrname, pstrs in self.resultspaths_provided_for_attrname.items():
+        for attrname, pstrs in self.rpaths_provided_for_name.items():
             
             if len(pstrs) > 1:
                 for pstr, val in zip(traverse(pstrs), traverse(self.results[attrname])):
@@ -252,18 +252,18 @@ class _Worker(object):
 
 
         # Work only with :
-        # return {pstr:val for attrname, pstrs in self.resultspaths_provided_for_attrname.items() \
+        # return {pstr:val for attrname, pstrs in self.rpaths_provided_for_name.items() \
         #                  for pstr, val in zip(traverse(pstrs), traverse(self.results[attrname]))}
 
         # Does not work with :
-        # return {pathstr:self.results[key] for key, pathstr in self.resultspath_provided_for_attrname.items()}
+        # return {pathstr:self.results[key] for key, pathstr in self.rpath_provided_for_name.items()}
 
 
     def results_ready(self):
         """
         Checks that all attributes provided have been calculated
         """
-        return set(self.results.keys()) == set(self.resultspath_provided_for_attrname.keys())
+        return set(self.results.keys()) == set(self.rpath_provided_for_name.keys())
 
 
     def work_dryrun(self):
@@ -271,7 +271,7 @@ class _Worker(object):
         Sets all results to None
         """
         self.hmodel._set_worker_working(self)
-        for attrname in self.resultspath_provided_for_attrname.keys():
+        for attrname in self.rpath_provided_for_name.keys():
             self.results[attrname] = list_from_shape(self.shape_provided_for_attrname[attrname])
 
 
@@ -324,11 +324,11 @@ class _Worker(object):
         if self.is_ready_to_work():
             print("Let the work begin", self.workfun)
 
-            self.inputval_for_attrname = self.reshape(self.inputpaths_consumed_for_attrname,
+            self.inputval_for_attrname = self.reshape(self.ipaths_consumed_for_name,
                                                       self.inputval_for_pstr
                                                       )
 
-            self.resultval_for_attrname = self.reshape(self.resultspaths_consumed_for_attrname,
+            self.resultval_for_attrname = self.reshape(self.rpaths_consumed_for_name,
                                                        self.resultval_for_pstr
                                                        )
 
@@ -397,12 +397,12 @@ class _Worker(object):
         strtmp += 'ID {}\n'.format(self.idstr())
         strtmp += 'Function {}\n'.format(self.func)
         strtmp += '-'*n + '\n'
-        strtmp += fstr1.format(self.resultspath_provided_for_attrname,
-                               self.resultspaths_provided_for_attrname,
-                               self.inputpath_consumed_for_attrname,
-                               self.inputpaths_consumed_for_attrname,
-                               self.resultspath_consumed_for_attrname,
-                               self.resultspaths_consumed_for_attrname,
+        strtmp += fstr1.format(self.rpath_provided_for_name,
+                               self.rpaths_provided_for_name,
+                               self.ipath_consumed_for_name,
+                               self.ipaths_consumed_for_name,
+                               self.rpath_consumed_for_name,
+                               self.rpaths_consumed_for_name,
                                )
         strtmp += '-'*n + '\n'
         strtmp += fstr2.format(self.inputval_for_attrname,

@@ -1,4 +1,3 @@
-from __future__ import print_function
 import unittest
 import yaml
 from hubit.worker import _Worker, HubitWorkerError

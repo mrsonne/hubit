@@ -442,8 +442,8 @@ class HubitModel:
         ids = []
         skipped = []
         names_for_nodeids = {}
-        for _, pathstr in cdata.items():
-            pathcmps = pathstr.split(".")
+        for _, path in cdata.items():
+            pathcmps = path.split(".")
             pathcmps_old = copy.copy(pathcmps)
             pathcmps = self._cleanpathcmps(pathcmps)
 
@@ -912,10 +912,10 @@ class _QueryRunner:
         """
         Transfer required input from all input to extracted input
         """
-        for pathstr in input_paths:
-            val = all_input[pathstr]
-            inputdata[pathstr] = val
-            worker.set_consumed_input(pathstr, val)
+        for path in input_paths:
+            val = all_input[path]
+            inputdata[path] = val
+            worker.set_consumed_input(path, val)
 
 
     def _deploy(self, querystrings, extracted_input, 

@@ -80,10 +80,10 @@ class TestShared(unittest.TestCase):
         """Insert real numbers where the ILOC placeholder is found
         """
         expected_pathstr = "segs.34.walls.3.temps" 
-        pathstr = shared.set_ilocs_on_pathstr("segs._ILOC.walls._ILOC.temps",
-                                             ("34", "3"),
-                                             self.ilocstr)
-        self.assertEqual(pathstr, expected_pathstr)
+        path = shared.set_ilocs_on_path("segs._ILOC.walls._ILOC.temps",
+                                        ("34", "3"),
+                                        self.ilocstr)
+        self.assertEqual(path, expected_pathstr)
 
 
     def test_expand_query(self):

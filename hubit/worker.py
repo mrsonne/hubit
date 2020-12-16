@@ -5,7 +5,7 @@ import copy
 from typing import Dict
 from .shared import (idxs_for_matches,
                      get_iloc_indices,
-                     set_ilocs_on_pathstr,
+                     set_ilocs_on_path,
                      traverse,
                      list_from_shape,
                      reshape,
@@ -81,9 +81,9 @@ class _Worker:
             _indices_from_query = query_indices
 
         # replace ILOCSTR with the actual indices
-        keyvalpairs = [(binding['name'], set_ilocs_on_pathstr(binding['path'],
-                                                              _indices_from_query,
-                                                              ilocstr)) 
+        keyvalpairs = [(binding['name'], set_ilocs_on_path(binding['path'],
+                                                           _indices_from_query,
+                                                           ilocstr)) 
                         for binding in bindings]
 
         return dict(keyvalpairs), _indices_from_query
@@ -361,10 +361,10 @@ class _Worker:
         self.work_if_ready()
 
 
-    def set_consumed_result(self, pathstr, value):
-        if pathstr in self.pending_results_paths:
-            self.pending_results_paths.remove(pathstr)
-            self.resultval_for_path[pathstr] = value
+    def set_consumed_result(self, path, value):
+        if path in self.pending_results_paths:
+            self.pending_results_paths.remove(path)
+            self.resultval_for_path[path] = value
         
         self.work_if_ready()
 
@@ -378,18 +378,18 @@ class _Worker:
         self.hmodel._set_worker(self)
 
         # Check consumed input (should not have any pending items by definition)
-        for pathstr in self.iname_for_path.keys():
-            if pathstr in inputdata.keys():
-               self.inputval_for_path[pathstr] = inputdata[pathstr]
+        for path in self.iname_for_path.keys():
+            if path in inputdata.keys():
+               self.inputval_for_path[path] = inputdata[path]
             else:
-                self.pending_input_paths.append(pathstr)
+                self.pending_input_paths.append(path)
 
         # Check consumed results
-        for pathstr in self.rname_for_path.keys():
-            if pathstr in resultsdata.keys():
-                self.resultval_for_path[pathstr] = resultsdata[pathstr]
+        for path in self.rname_for_path.keys():
+            if path in resultsdata.keys():
+                self.resultval_for_path[path] = resultsdata[path]
             else:
-                self.pending_results_paths.append(pathstr)
+                self.pending_results_paths.append(path)
 
         self.work_if_ready()
 

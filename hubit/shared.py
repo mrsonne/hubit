@@ -277,15 +277,15 @@ def flatten(d, parent_key='', sep='.'):
     return dict(items)
 
 
-def set_ilocs_on_pathstr(pathstr, ilocs, ilocstr):
+def set_ilocs_on_path(path, ilocs, ilocstr):
     """
-    Replace the ilocstr on the path string with location indices 
+    Replace the ilocstr on the path with location indices 
     in ilocs
     """
-    _pathstr = copy.copy(pathstr)
+    _path = copy.copy(path)
     for iloc in ilocs:
-        _pathstr = _pathstr.replace(ilocstr, iloc, 1)
-    return _pathstr
+        _path = _path.replace(ilocstr, iloc, 1)
+    return _path
 
 
 def check_path_match(query_path, symbolic_path, ilocstr):
@@ -354,8 +354,8 @@ def expand_query(querystr, flat_input):
     # Find maximal iloc for the indices with wildcards
     maxilocs = []
     for icount, cmpidx in enumerate(wcidxs):
-        for pathstr in flat_input.keys():
-            pathcmps = pathstr.split(sepstr)
+        for path in flat_input.keys():
+            pathcmps = path.split(sepstr)
             # print 'pathcmps', pathcmps
             try:
                 pathcmp = int(pathcmps[cmpidx])
@@ -372,7 +372,7 @@ def expand_query(querystr, flat_input):
     # Make all query combinations
     queries = []
     for ilocs in itertools.product(*[range(maxval + 1) for maxval in maxilocs]):
-        queries.append(set_ilocs_on_pathstr(querystr, [str(iloc) for iloc in ilocs], wcstr))
+        queries.append(set_ilocs_on_path(querystr, [str(iloc) for iloc in ilocs], wcstr))
 
     return queries, maxilocs
 
@@ -414,5 +414,5 @@ def path_expand(path, shape, ilocwcchar):
     paths = get_nested_list([s-1 for s in shape])
     for ilocs in itertools.product(*[range(nitm) for nitm in shape]):
         #pstrs.append(set_ilocs_on_pathstrpstr, [str(iloc) for iloc in ilocs], ilocwcchar))
-        set_element(paths, set_ilocs_on_pathstr(path, [str(iloc) for iloc in ilocs], ilocwcchar), ilocs)
+        set_element(paths, set_ilocs_on_path(path, [str(iloc) for iloc in ilocs], ilocwcchar), ilocs)
     return paths

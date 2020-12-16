@@ -330,9 +330,9 @@ class TestModel(unittest.TestCase):
         Sweep input parameters
         """
         idx = 1
-        pathstr = "list.{}.some_attr.numbers".format(idx)
-        input_values_for_path = {pathstr: ([1., 2., 3.],
-                                           [4., 5., 6.]),
+        path = "list.{}.some_attr.numbers".format(idx)
+        input_values_for_path = {path: ([1., 2., 3.],
+                                        [4., 5., 6.]),
                                 }
         self.hmodel.set_input(self.input)
         querystrings = [self.querystr_level0]

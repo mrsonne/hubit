@@ -41,7 +41,7 @@ def get_model(render=True):
     return hmodel
 
 
-def make_queries(hmodel, render=True, mpworkers=False):
+def query(hmodel, render=True, mpworkers=False):
     """Show some query functionality
 
     Args:
@@ -72,15 +72,26 @@ def make_queries(hmodel, render=True, mpworkers=False):
                           mpworkers=mpworkers)
     print(response)
 
-    # Do the same query and reuse stored results
+
+def query_with_precomputed_results(hmodel, mpworkers=False):
+    querystrings = ["segments.:.layers.:.outer_temperature"]
+
+    # First query
+    response = hmodel.get(querystrings,
+                          mpworkers=mpworkers)
+
+    # Same query and reuse stored results
     response = hmodel.get(querystrings,
                           mpworkers=mpworkers,
                           reuse_results=True)
+
     print(response)
     # Get the full results object
     results = hmodel.get_results()
     print(results)
 
+
+def query_with_custom_results(hmodel, mpworkers=False):
     # Use the set_results method to run a model that bypasses 
     # the default thermal conductivity calculation and uses the 
     # conductivities specified below. These values could 
@@ -106,6 +117,7 @@ def make_queries(hmodel, render=True, mpworkers=False):
                           reuse_results=True)
     print(response)
 
+
 def make_sweep(hmodel, nproc=4):
     """Run a parameter sweep
 
@@ -117,7 +129,7 @@ def make_sweep(hmodel, nproc=4):
 
     # For segment 0 sweep over multiple inputs created as the Cartesian product of the input perturbations 
     input_values_for_path = {"segments.0.layers.0.material": ('brick', 'concrete'),
-                             "segments.0.layers.0.thickness": (0.08, 0.12,),
+                             "segments.0.layers.0.thickness": (0.08, 0.12, 0.15, 0.46,),
                             }
 
 
@@ -135,5 +147,8 @@ def make_sweep(hmodel, nproc=4):
 
 if __name__ == '__main__': # Main guard required on windows if mpworkers = True
     hmodel = get_model(render=False)
-    # make_queries(hmodel, render=False, mpworkers=True)
-    make_sweep(hmodel, nproc=4)
+    use_multiprocessing = True
+    # query(hmodel, render=False, mpworkers=use_multiprocessing)
+    # query_with_precomputed_results(hmodel, mpworkers=use_multiprocessing)
+    query_with_custom_results(hmodel, mpworkers=use_multiprocessing)
+    # make_sweep(hmodel, nproc=None)

@@ -191,11 +191,7 @@ class _Worker:
 
         self._id = self.idstr()
 
-        # print 'ORG inp', self.ipath_consumed_for_name
-        # print 'ORG results', self.rpath_provided_for_name
-
         # Expand queries containing iloc wildcard
-
         if inputdata is not None:
             self.ipaths_consumed_for_name, _ = _Worker.expand(self.ipath_consumed_for_name,
                                                               inputdata)

@@ -47,19 +47,34 @@ class _Worker(object):
 
 
     @staticmethod
-    def get_bindings(bindings, querystring, ilocstr, ilocs=None):
-        paths = [binding['path'] for binding in bindings]
+    def get_bindings(bindings, query_path, ilocstr, ilocs=None):
+        """Make symbolic binding specific i.e. replace index IDs 
+        with actual indices based on query
+
+        Args:
+            bindings (List[str]): List of bindings 
+            query_path (str): Query path
+            ilocstr (str): Index identification string
+            ilocs (List[int], optional): TODO [description]. Defaults to None.
+
+        Raises:
+            HubitWorkerError: Raised if query does not match any of the bindings
+
+        Returns:
+            [type]: TODO [description]
+        """
+        binding_paths = [binding['path'] for binding in bindings]
 
         if ilocs is None:
             # get indices in path string list that match the query
-            idxs = idxs_for_matches(querystring, paths, ilocstr)
+            idxs = idxs_for_matches(query_path, binding_paths, ilocstr)
             if len(idxs) == 0:
                 fstr = 'Query "{}" did not match attributes provided by worker ({}).'
-                raise HubitWorkerError(fstr.format(querystring,
-                                                   ", ".join(paths)))
+                raise HubitWorkerError(fstr.format(query_path,
+                                                   ", ".join(binding_paths)))
 
             # get the location indices from query
-            _ilocs = get_iloc_indices(querystring, paths[idxs[0]], ilocstr)
+            _ilocs = get_iloc_indices(query_path, binding_paths[idxs[0]], ilocstr)
         else:
             _ilocs = ilocs
 
@@ -68,6 +83,7 @@ class _Worker(object):
                         for binding in bindings]
 
         return dict(keyvalpairs), _ilocs
+
 
     @staticmethod
     def expand(pstr_for_attrname, inputdata):
@@ -207,7 +223,7 @@ class _Worker(object):
 
 
     def paths_provided(self):
-        """Generates a list of the paths that will be provided.
+        """Generates a list of the (expanded) paths that will be provided.  
 
         Returns:
             List: Sequence of paths that will be provided by the worker

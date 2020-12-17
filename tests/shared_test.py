@@ -257,14 +257,16 @@ class Test(unittest.TestCase):
                                 temperature: 273.
                     """
         input_data = yaml.load(yml_input, Loader=yaml.FullLoader)
-        path = "segments[:].layers[:].test.positions[:]"
+        path = "segments[:@IDX_SEG].layers[:@IDX_LAY].test.positions[:@IDX_POS]"
+        path = "segments[IDX_SEG].layers[:@IDX_LAY].test.positions[:@IDX_POS]"
         # TODO test paths in this case
-        # path = "segments[:].layers[:].test"
+        # path = "segments[:@IDX_SEG].layers[:@IDX_LAY].test"
         # TODO: nest last list
         # expected_lengths = [[2], [3, 4], [[1, 3, 2], [5, 1, 2, 4]] ]
-        expected_lengths = [[2], [3, 4], [1, 3, 2, 5, 1, 2, 4] ]
+        expected_lengths = (('IDX_SEG', [2]),
+                            ('IDX_LAY', [3, 4]), 
+                            ('IDX_POS', [1, 3, 2, 5, 1, 2, 4])) 
         calculated_lengths, paths = shared.lengths_for_path(path, input_data)
-        print(paths)
         self.assertSequenceEqual( expected_lengths, calculated_lengths )
 
 

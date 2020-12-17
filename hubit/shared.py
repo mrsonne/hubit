@@ -122,6 +122,7 @@ def lengths_for_path(path: str, input_data: Dict) -> Any:
         Any: None if no index IDs found in 'path' else list og lengths
     """
     idxids = idxids_from_path(path)
+    clean_idxids = [idxid.split('@')[1] if '@' in idxid else idxid for idxid in idxids]
     
     # Handle no index IDs
     if len(idxids) == 0: 
@@ -132,10 +133,10 @@ def lengths_for_path(path: str, input_data: Dict) -> Any:
         return [], [path]
 
     connecting_paths = _paths_between_idxids(path, idxids)
-    length, paths = _length_for_iterpaths(connecting_paths[:-1], input_data)
+    lengths, paths = _length_for_iterpaths(connecting_paths[:-1], input_data)
     if not connecting_paths[-1] == '':
         paths = ['{}.{}'.format(path, connecting_paths[-1]) for path in paths]
-    return length, paths
+    return tuple(zip(clean_idxids, lengths)), paths
 
 
 def idxids_from_path(path: str) -> List[str]:

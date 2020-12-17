@@ -398,7 +398,7 @@ class Test(unittest.TestCase):
                         ]
         paths = shared.expand_new(path, template_path, lengths,)
         print(paths)
-        # self.assertSequenceEqual( paths, expected_paths )
+        self.assertSequenceEqual( paths, expected_paths )
 
 
 if __name__ == '__main__':

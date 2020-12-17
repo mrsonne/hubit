@@ -1,19 +1,20 @@
 ﻿# hubit - a calculation hub  
 
-`hubit` is a hub for your existing calculation tools. It allows you to 
+`hubit` is a orchestration hub for your existing calculation tools. It allows you to 
 
 - execute calculation tools as one composite model without coupling them tightly,
+- query the model for specific results thus avoiding fixed call trees and superfluous calculations,
 - make parameter sweeps,
 - feed old results into new calculations,
 - run your tools in parallel,
 - visualize the composite model.
 
-Compatible with __Python 2.7-3.7__.
+Compatible with __Python 3.7__.
 
 ## Motivation
-It seems not uncommon that an ecosystem of stand-alone tools exists within a company or department. These tools may be developped by  different teams using different programming laguages and using different input/output formats. Neverthetheless, the tools often depend on results provided the other tools leading to complicated and errorprone workflows.
+Often an ecosystem of stand-alone tools exists within a company or department. These tools may be developped by  different teams using different programming laguages and using different input/output formats. Neverthetheless, the tools often depend on results provided the other tools leading to complicated and errorprone (manual!) workflows.
 
-By defining input and results data structures shared between your tools hubit allows all your Python-wrapable tools to be seamlessly executed as a single model.
+By defining input and results data structures shared between your tools `hubit` allows all your Python-wrapable tools to be seamlessly executed asynchronously as a single model.
 
 
 ## Getting started
@@ -23,10 +24,26 @@ By defining input and results data structures shared between your tools hubit al
 ------------------
 
 
-## Installation
+## Installation & requirement
 
+Install latest package
 ```sh
-pip install XXXX
+pip install hubit
+```
+
+Install from GitHub
+```sh
+XXXXX
+```
+
+This will install the requirement which is euivalent to
+```sh
+pip install graphviz yaml
+```
+
+To render the generated DOT source code, you also need to install Graphviz (https://graphviz.org/download/). On e.g.Ubuntu Graphviz can be install using the command
+```sh
+sudo apt install graphviz
 ```
 
 ------------------

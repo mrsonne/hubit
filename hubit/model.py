@@ -556,7 +556,7 @@ class HubitModel:
             pass
  
         _pathcmps = [cmp 
-                     for cmp in  _pathcmps 
+                     for cmp in _pathcmps 
                      if not is_digit(cmp)] 
  
         return _pathcmps
@@ -565,10 +565,8 @@ class HubitModel:
     def _get_objects(self, bindings):
         objects = set()
         for binding in bindings:
-            pathcmps = binding['path'].split(".")
-            pathcmps = self._cleanpathcmps(pathcmps)
-            nobjs = len(pathcmps) - 1
-            if nobjs > 0:
+            pathcmps = self._cleanpathcmps( binding['path'].split(".") )
+            if len(pathcmps) - 1 > 0:
                 objects.update(pathcmps[:-1])
         return objects
 

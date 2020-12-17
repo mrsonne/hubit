@@ -443,7 +443,7 @@ def expand_new(path: str, all_lengths: List, level: int=0, lengths_next: Any=Non
         lengths_next (Any, optional): Recursion variable. Defaults to None.
 
     Returns:
-        [List]: Paths 
+        [List]: Paths
     """
 
 
@@ -459,12 +459,10 @@ def expand_new(path: str, all_lengths: List, level: int=0, lengths_next: Any=Non
     paths, idxs = zip(*[(path.replace(f':@{idxid_current}', str(idx)), idx) 
                         for idx in range(length)])
     paths = list(paths)
-
     if len(all_lengths) - 1 > level:
         # Iterate over each newly gererate path and call again to replace nex index ID
-        return [_path 
-                for _path, idx in zip(paths, idxs) 
-                for _path in expand_new(_path, all_lengths, level=level+1, lengths_next=_lengths_next[idx])]
+        return [ expand_new(_path, all_lengths, level=level+1, lengths_next=_lengths_next[idx]) 
+                for _path, idx in zip( traverse(paths), idxs)]
     else:
         # We're at the bottom
         return paths

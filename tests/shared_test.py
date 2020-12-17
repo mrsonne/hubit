@@ -288,5 +288,35 @@ class Test(unittest.TestCase):
         self.assertEqual( expected_lengths, calculated_lengths )
 
 
+    def test_expand_new(self):
+        path = "segments.:@IDX_SEG.layers.:@IDX_LAY.test.positions.:@IDX_POS"
+        lengths = (('IDX_SEG', 2),
+                   ('IDX_LAY', [3, 4]), 
+                   ('IDX_POS', [[1, 3, 2], [5, 1, 2, 4]])) 
+
+        # 1 + 3 + 2 values for segment 0 and 5 + 1 + 2 + 4 values for segment 1
+        # All all 18 elements
+        expected_paths = ['segments.0.layers.0.test.positions.0',
+                          'segments.0.layers.1.test.positions.0',
+                          'segments.0.layers.1.test.positions.1',
+                          'segments.0.layers.1.test.positions.2',
+                          'segments.0.layers.2.test.positions.0',
+                          'segments.0.layers.2.test.positions.1',
+                          'segments.1.layers.0.test.positions.0',
+                          'segments.1.layers.0.test.positions.1',
+                          'segments.1.layers.0.test.positions.2',
+                          'segments.1.layers.0.test.positions.3',
+                          'segments.1.layers.0.test.positions.4',
+                          'segments.1.layers.1.test.positions.0',
+                          'segments.1.layers.2.test.positions.0',
+                          'segments.1.layers.2.test.positions.1',
+                          'segments.1.layers.3.test.positions.0',
+                          'segments.1.layers.3.test.positions.1',
+                          'segments.1.layers.3.test.positions.2',
+                          'segments.1.layers.3.test.positions.3']
+        paths = shared.expand_new(path, lengths)
+        self.assertSequenceEqual( paths, expected_paths )
+
+
 if __name__ == '__main__':
     unittest.main()

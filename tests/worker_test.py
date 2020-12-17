@@ -323,6 +323,33 @@ class TestWorker(unittest.TestCase):
                                  ilocstr)
 
 
-    # TODO: Get binding for multiple bindings
+    def test_8(self):
+        """Expand subscription path with two wildcards gives a nested list
+        """
+        inputdata =  {'items': [{'attr': {'items': [{'path': 2}, {'path': 1}]}}, 
+                                {'attr': {'items': [{'path': 3}, {'path': 4}]}}], 
+                      'some_number': 33}
+        path_consumed_for_name = {'attrs': 'items.:.attr.items.:.path', 'number': 'some_number'}
+        expected_result  = {'attrs': [['items.0.attr.items.0.path', 'items.0.attr.items.1.path'],
+                                      ['items.1.attr.items.0.path', 'items.1.attr.items.1.path']], 
+                            'number': ['some_number']}
+        result, _ = _Worker.expand(path_consumed_for_name,inputdata)
+        self.assertDictEqual(expected_result, result)
+
+
+    def test_9(self):
+        """As test 8 but the consumed path only subscribes to element 0 
+        of the (leftmost) items. Thus, the expasion leads to a flat list 
+        corresponding to the (rightmost) items
+        """
+        inputdata =  {'items': [{'attr': {'items': [{'path': 2}, {'path': 1}]}}, 
+                                {'attr': {'items': [{'path': 3}, {'path': 4}]}}],
+                      'some_number': 33}
+        path_consumed_for_name = {'attrs': 'items.0.attr.items.:.path', 'number': 'some_number'}
+        expected_result  = {'attrs': ['items.0.attr.items.0.path', 'items.0.attr.items.1.path'], 
+                            'number': ['some_number']}
+        result, _ = _Worker.expand(path_consumed_for_name, inputdata)
+        self.assertDictEqual(expected_result, result)
+
 if __name__ == '__main__':
     unittest.main()

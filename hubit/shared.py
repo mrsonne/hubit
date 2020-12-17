@@ -97,9 +97,9 @@ def _length_for_iterpaths(connecting_paths: List[str],
 
         # Call again for next index ID
         out, paths_next = _length_for_iterpaths(connecting_paths[1:],
-                                                    input_data,
-                                                    out=out,
-                                                    paths_previous=paths_next)
+                                                input_data,
+                                                out=out,
+                                                paths_previous=paths_next)
 
     elif len(connecting_paths) == 1:
         paths_next = ['{}.{}'.format(path_previous, curidx) 

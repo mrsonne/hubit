@@ -17,6 +17,7 @@ from .shared import (idxs_for_matches,
                      get_nested_list,
                      inflate,
                      set_element,
+                     is_digit,
                      HubitError)
 from multiprocessing import Pool, TimeoutError, cpu_count, active_children
 
@@ -554,7 +555,9 @@ class HubitModel:
         except ValueError:
             pass
  
-        _pathcmps = [cmp for cmp in  _pathcmps if not cmp.isdigit()] 
+        _pathcmps = [cmp 
+                     for cmp in  _pathcmps 
+                     if not is_digit(cmp)] 
  
         return _pathcmps
 

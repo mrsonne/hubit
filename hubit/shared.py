@@ -23,13 +23,29 @@ class Container:
         return str(self.val)
 
 
+def is_digit(s: str):
+    """Alternative to s.isdigit() that handles negative integers
+
+    Args:
+        s (str): A string
+
+    Returns:
+        bool: Flag indicating if the input string is a signed int
+    """
+    try:
+        int(s)
+        return True
+    except ValueError:
+        return  False
+
+
 def get_from_datadict(datadict, keys):
     """
     Extract value from a nested dictionary using list of keys.
     datadict is a dict. keys is a list of keys (strings).
     """
     # Convert digits strings to int
-    _keys = [int(key) if key.isdigit() else key for key in keys]
+    _keys = [int(key) if is_digit(key) else key for key in keys]
     return reduce(getitem, _keys, datadict)
 
 
@@ -113,7 +129,7 @@ def lengths_for_path(path: str, input_data: Dict) -> Any:
         return None, None
 
     # Handle all IDs are digits 
-    if all([idxid.isdigit() for idxid in idxids]): 
+    if all([is_digit(idxid) for idxid in idxids]): 
         return [], [path]
 
     connecting_paths = _paths_between_idxids(path, idxids)
@@ -237,7 +253,7 @@ def inflate(d, sep="."):
         keys = k.split(sep)
         sub_items = items
         for ki in keys[:-1]:
-            _ki = int(ki) if ki.isdigit() else ki
+            _ki = int(ki) if is_digit(ki) else ki
             try:
                 sub_items = sub_items[_ki]
             except KeyError:
@@ -245,7 +261,7 @@ def inflate(d, sep="."):
                 sub_items = sub_items[_ki]
         
         k_last = keys[-1]
-        k_last = int(k_last) if k_last.isdigit() else k_last
+        k_last = int(k_last) if is_digit(k_last) else k_last
         sub_items[keys[-1]] = v
 
     return items
@@ -293,10 +309,10 @@ def check_path_match(query_path, symbolic_path, ilocstr):
     if not len(query_path_cmps) == len(symbolic_path_cmps): return False
     for qcmp, scmp in zip(query_path_cmps, symbolic_path_cmps):
 
-        if qcmp.isdigit():
+        if is_digit(qcmp):
             # When a digit is found in the query either an ilocstr, 
             # a wildcard or a digit should be found in the symbolic path
-            if not (scmp == ilocstr or scmp == ':' or scmp.isdigit()):
+            if not (scmp == ilocstr or scmp == ':' or is_digit(scmp)):
                 return False    
         else:
             # If not a digit the path components should be identical

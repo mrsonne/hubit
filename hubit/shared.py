@@ -341,7 +341,7 @@ def get_iloc_indices(query_path, symbolic_path, ilocstr):
     ilocstr in providerstring
     """
     return tuple([qcmp for qcmp, scmp in zip(query_path.split('.'),
-                                       symbolic_path.split('.'))          
+                                             symbolic_path.split('.'))          
             if scmp == ilocstr or scmp == IDX_WILDCARD])
 
 # def expand_query(querystr, flat_input):
@@ -433,18 +433,19 @@ def path_expand(path, shape, ilocwcchar):
     return paths
 
 
-def expand_new(path, all_lengths, level=0, lengths_next=None):
-    """[summary]
+def expand_new(path: str, all_lengths: List, level: int=0, lengths_next: Any=None):
+    """Expand path with wildcard based on lengths in "all_lengths"
 
     Args:
-        path ([type]): Hubit internal path with wildcard
-        all_lengths ([type]): [description]
-        level (int, optional): [description]. Defaults to 0.
-        lengths_next ([type], optional): [description]. Defaults to None.
+        path (str): Hubit internal path with wildcards
+        all_lengths (List): Lengths object from "lengths_for_path"
+        level (int, optional): Recursion variable. Defaults to 0.
+        lengths_next (Any, optional): Recursion variable. Defaults to None.
 
     Returns:
-        [type]: [description]
+        [List]: Paths 
     """
+
 
     idxid_current, _ = all_lengths[level]
     _lengths_next = lengths_next or all_lengths[-1][1]

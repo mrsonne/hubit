@@ -290,6 +290,7 @@ class Test(unittest.TestCase):
 
     def test_expand_new(self):
         path = "segments.:@IDX_SEG.layers.:@IDX_LAY.test.positions.:@IDX_POS"
+        template_path = path
         lengths = (('IDX_SEG', 2),
                    ('IDX_LAY', [3, 4]), 
                    ('IDX_POS', [[1, 3, 2], [5, 1, 2, 4]])) 
@@ -334,13 +335,14 @@ class Test(unittest.TestCase):
                             ]
                            ]
                          ]
-        paths = shared.expand_new(path, lengths)
+        paths = shared.expand_new(path, template_path, lengths)
         self.assertSequenceEqual( paths, expected_paths )
 
 
 
     def test_expand_new1(self):
         path = "segments.:@IDX_SEG.layers.:@IDX_LAY.test"
+        template_path = path
         lengths = (('IDX_SEG', 2),
                    ('IDX_LAY', [2, 2]), ) 
 
@@ -349,24 +351,35 @@ class Test(unittest.TestCase):
                           'segments.0.layers.1.test'],
                           ['segments.1.layers.0.test',
                           'segments.1.layers.1.test',]]
-        paths = shared.expand_new(path, lengths)
+        paths = shared.expand_new(path, template_path, lengths)
         self.assertSequenceEqual( paths, expected_paths )
 
-    # def test_expand_new2(self):
-    #     path = "segments.0.layers.:@IDX_LAY.test.positions.:@IDX_POS"
-    #     lengths = (('IDX_SEG', 2),
-    #                ('IDX_LAY', [3, 4]), 
-    #                ('IDX_POS', [[1, 3, 2], [5, 1, 2, 4]])) 
 
-    #     # 1 + 3 + 2 values for segment 0
-    #     expected_paths = ['segments.0.layers.0.test.positions.0',
-    #                       'segments.0.layers.1.test.positions.0',
-    #                       'segments.0.layers.1.test.positions.1',
-    #                       'segments.0.layers.1.test.positions.2',
-    #                       'segments.0.layers.2.test.positions.0',
-    #                       'segments.0.layers.2.test.positions.1',]
-    #     paths = shared.expand_new(path, lengths,)
-    #     self.assertSequenceEqual( paths, expected_paths )
+    def test_expand_new2(self):
+        path = "segments.0.layers.:@IDX_LAY.test.positions.:@IDX_POS"
+        template_path = "segments.:@IDX_SEG.layers.:@IDX_LAY.test.positions.:@IDX_POS"
+        lengths = (('IDX_SEG', 2),
+                   ('IDX_LAY', [3, 4]), 
+                   ('IDX_POS', [[1, 3, 2], [5, 1, 2, 4]])) 
+
+        # 1 + 3 + 2 values for segment 0
+        expected_paths = [[
+                           [
+                              'segments.0.layers.0.test.positions.0',
+                           ],
+                           [
+                             'segments.0.layers.1.test.positions.0',
+                             'segments.0.layers.1.test.positions.1',
+                             'segments.0.layers.1.test.positions.2',
+                           ],
+                           [
+                             'segments.0.layers.2.test.positions.0',
+                             'segments.0.layers.2.test.positions.1',
+                           ]
+                          ]
+                        ]
+        paths = shared.expand_new(path, template_path, lengths,)
+        self.assertSequenceEqual( paths, expected_paths )
 
 
 if __name__ == '__main__':

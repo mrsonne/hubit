@@ -433,17 +433,18 @@ def path_expand(path, shape, ilocwcchar):
     return paths
 
 
-def expand_new(path: str, all_lengths: List, level: int=0, lengths_next: Any=None):
+def expand_new(path: str, template_path: str, all_lengths: List, level: int=0, lengths_next: Any=None):
     """Expand path with wildcard based on lengths in "all_lengths"
 
     Args:
         path (str): Hubit internal path with wildcards
+        template_path (str): Hubit internal path corresponding to paths with all wildcards present
         all_lengths (List): Lengths object from "lengths_for_path"
         level (int, optional): Recursion variable. Defaults to 0.
         lengths_next (Any, optional): Recursion variable. Defaults to None.
 
     Returns:
-        [List]: Paths
+        [List]: Paths arranged in the correct shape according to all_lengths
     """
 
 
@@ -455,13 +456,22 @@ def expand_new(path: str, all_lengths: List, level: int=0, lengths_next: Any=Non
     except TypeError: # int
         length = _lengths_next
 
-    # Replace index ID at current level with indices
-    paths, idxs = zip(*[(path.replace(f':@{idxid_current}', str(idx)), idx) 
-                        for idx in range(length)])
+    if idxid_current in path:
+        # The index ID is found. Replace it with indices
+        paths, idxs = zip(*[(path.replace(f':@{idxid_current}', str(idx)), idx) 
+                            for idx in range(length)])
+    else:
+        # The index ID is found so it must have an integer value already. 
+        paths = [path]
+        idxs = [int(idx) 
+                for idx in get_iloc_indices(path, template_path,
+                                            f':@{idxid_current}')]
+
     paths = list(paths)
     if len(all_lengths) - 1 > level:
         # Iterate over each newly gererate path and call again to replace nex index ID
-        return [ expand_new(_path, all_lengths, level=level+1, lengths_next=_lengths_next[idx]) 
+        return [ expand_new(_path, template_path,
+                            all_lengths, level=level+1, lengths_next=_lengths_next[idx]) 
                 for _path, idx in zip( traverse(paths), idxs)]
     else:
         # We're at the bottom

@@ -318,5 +318,22 @@ class Test(unittest.TestCase):
         self.assertSequenceEqual( paths, expected_paths )
 
 
+    # def test_expand_new2(self):
+    #     path = "segments.0.layers.:@IDX_LAY.test.positions.:@IDX_POS"
+    #     lengths = (('IDX_SEG', 2),
+    #                ('IDX_LAY', [3, 4]), 
+    #                ('IDX_POS', [[1, 3, 2], [5, 1, 2, 4]])) 
+
+    #     # 1 + 3 + 2 values for segment 0
+    #     expected_paths = ['segments.0.layers.0.test.positions.0',
+    #                       'segments.0.layers.1.test.positions.0',
+    #                       'segments.0.layers.1.test.positions.1',
+    #                       'segments.0.layers.1.test.positions.2',
+    #                       'segments.0.layers.2.test.positions.0',
+    #                       'segments.0.layers.2.test.positions.1',]
+    #     paths = shared.expand_new(path, lengths,)
+    #     self.assertSequenceEqual( paths, expected_paths )
+
+
 if __name__ == '__main__':
     unittest.main()

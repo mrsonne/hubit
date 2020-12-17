@@ -106,7 +106,6 @@ def _length_for_iterpaths(connecting_paths: List[str],
                         for length, path_previous in zip(out_current_level, paths_previous)
                         for curidx in range(length)]
 
-
     return out, paths_next
 
 
@@ -133,7 +132,10 @@ def lengths_for_path(path: str, input_data: Dict) -> Any:
         return [], [path]
 
     connecting_paths = _paths_between_idxids(path, idxids)
-    return _length_for_iterpaths(connecting_paths, input_data)
+    length, paths = _length_for_iterpaths(connecting_paths[:-1], input_data)
+    if not connecting_paths[-1] == '':
+        paths = ['{}.{}'.format(path, connecting_paths[-1]) for path in paths]
+    return length, paths
 
 
 def idxids_from_path(path: str) -> List[str]:
@@ -158,7 +160,7 @@ def _paths_between_idxids(path: str, idxids: List[str]) -> List[str]:
         idxids (List[str]): Sequence of index identification strings in 'path'
 
     Returns:
-        List[str]: Sequence of index identification strings between index IDs
+        List[str]: Sequence of index identification strings between index IDs. Includes path after last index ID
     """
     # Remove [] and replace with ..
     p2 = convert_to_internal_path(path)
@@ -168,6 +170,7 @@ def _paths_between_idxids(path: str, idxids: List[str]) -> List[str]:
         p1, p2 = p2.split(idxid, 1)
         # Remove leading and trailing
         paths.append(p1.rstrip('.').lstrip('.'))
+    paths.append(p2.rstrip('.').lstrip('.'))
     return paths
 
 

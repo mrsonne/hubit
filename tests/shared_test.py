@@ -207,7 +207,8 @@ class Test(unittest.TestCase):
         path = "segments[IDX_SEG].layers[IDX_LAY].test.positions[IDX_POS]"
         idxids = shared.idxids_from_path(path)
         internal_paths =shared._paths_between_idxids(path, idxids)
-        expected_internal_paths = ['segments', 'layers', 'test.positions']
+        # Last element is empty since there are no attribute after IDX_POS
+        expected_internal_paths = ['segments', 'layers', 'test.positions', '']
         self.assertSequenceEqual( expected_internal_paths, internal_paths )
 
 
@@ -257,10 +258,13 @@ class Test(unittest.TestCase):
                     """
         input_data = yaml.load(yml_input, Loader=yaml.FullLoader)
         path = "segments[:].layers[:].test.positions[:]"
+        # TODO test paths in this case
+        # path = "segments[:].layers[:].test"
         # TODO: nest last list
         # expected_lengths = [[2], [3, 4], [[1, 3, 2], [5, 1, 2, 4]] ]
         expected_lengths = [[2], [3, 4], [1, 3, 2, 5, 1, 2, 4] ]
-        calculated_lengths, _ = shared.lengths_for_path(path, input_data)
+        calculated_lengths, paths = shared.lengths_for_path(path, input_data)
+        print(paths)
         self.assertSequenceEqual( expected_lengths, calculated_lengths )
 
 

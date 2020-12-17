@@ -203,6 +203,15 @@ class Test(unittest.TestCase):
         self.assertSequenceEqual( expected_internal_path, internal_path )
 
 
+    def test_2a(self):
+        """Convert from Hubit user path to internal Hubit path 
+        """
+        path = "segs[:@IDX_SEG].walls[:@IDX_WALL].heat_flow"
+        expected_internal_path = "segs.:@IDX_SEG.walls.:@IDX_WALL.heat_flow"
+        internal_path = shared.convert_to_internal_path(path)
+        self.assertSequenceEqual( expected_internal_path, internal_path )
+
+
     def test_3(self):
         path = "segments[IDX_SEG].layers[IDX_LAY].test.positions[IDX_POS]"
         idxids = shared.idxids_from_path(path)

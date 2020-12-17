@@ -431,3 +431,39 @@ def path_expand(path, shape, ilocwcchar):
         #pstrs.append(set_ilocs_on_pathstrpstr, [str(iloc) for iloc in ilocs], ilocwcchar))
         set_element(paths, set_ilocs_on_path(path, [str(iloc) for iloc in ilocs], ilocwcchar), ilocs)
     return paths
+
+
+def expand_new(path, all_lengths, level=0, lengths_next=None):
+    """[summary]
+
+    Args:
+        path ([type]): Hubit internal path with wildcard
+        all_lengths ([type]): [description]
+        level (int, optional): [description]. Defaults to 0.
+        lengths_next ([type], optional): [description]. Defaults to None.
+
+    Returns:
+        [type]: [description]
+    """
+
+    idxid_current, _ = all_lengths[level]
+    _lengths_next = lengths_next or all_lengths[-1][1]
+
+    try: # list
+        length = len(_lengths_next)
+    except TypeError: # int
+        length = _lengths_next
+
+    # Replace index ID at current level with indices
+    paths, idxs = zip(*[(path.replace(f':@{idxid_current}', str(idx)), idx) 
+                        for idx in range(length)])
+    paths = list(paths)
+
+    if len(all_lengths) - 1 > level:
+        # Iterate over each newly gererate path and call again to replace nex index ID
+        return [_path 
+                for _path, idx in zip(paths, idxs) 
+                for _path in expand_new(_path, all_lengths, level=level+1, lengths_next=_lengths_next[idx])]
+    else:
+        # We're at the bottom
+        return paths

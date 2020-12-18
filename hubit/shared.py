@@ -433,10 +433,14 @@ def path_expand(path, shape, ilocwcchar):
     return paths
 
 
-# def set_nested_item(data, keys, val):
-#     """Set item in nested dictionary"""
-#     reduce(getitem, keys[:-1], data)[keys[-1]] = val
-#     return data
+def set_nested_item(data, keys, val):
+    """Set item in nested dictionary"""
+    reduce(getitem, keys[:-1], data)[keys[-1]] = val
+    return data
+
+
+def get_nested_item(data, keys):
+    return reduce(getitem, keys, data)
 
 
 def expand_new(path: str, template_path: str, all_lengths: List):
@@ -467,23 +471,43 @@ def expand_new(path: str, template_path: str, all_lengths: List):
                                            template_path,
                                            f':@{idxid_current}')[0])
                 for idx_level, (_, sizes) in enumerate(_all_lengths[level+1:], start=level+1):
-                    _all_lengths[idx_level][1] = [sizes[idx]]
+                    _all_lengths[idx_level][1] = sizes[idx]
 
                 paths_current_level = paths
                 if idx >= length:
                     paths_current_level.remove(path)
-                    # print(idxid_current, path, idx, level)
-                    # did_break = True
+                    idxs = [int(get_iloc_indices(path,
+                                                 template_path,
+                                                 f':@{_all_lengths[lev][0]}')[0]) 
+                            for lev in range(level+1)] 
+
+                    idxs = idxs[:-1]
+                    data = _all_lengths[level][1]
+                    val = get_nested_item(data, idxs)
+                    if val > 1:
+                        set_nested_item(data, idxs, val - 1)
+                    else:
+                        items = get_nested_item(data, idxs[:-1])
+                        print(items)
+                        items.pop(idxs[-1])
+                        print(items)
+                        set_nested_item(data, idxs[:-1], items)
+                        print(_all_lengths)
+
                     break
-        
-        # print(did_break)
-        # if did_break: 
-        #     continue
 
         paths = paths_current_level
-        # print(paths)
 
-    for _, sizes in reversed(_all_lengths[1:]):
+    print('_all_lengths', _all_lengths)
+    for _, sizes in reversed(_all_lengths):
+        print('sizes 1', sizes)
+        try:
+            if len(sizes) < 1: continue
+        except TypeError:
+            # not a list so not need to split
+            continue 
+
+        print('sizes', sizes)
         paths = split_items(paths, list(traverse(sizes)))
 
     return paths

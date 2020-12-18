@@ -456,21 +456,32 @@ def expand_new(path: str, template_path: str, all_lengths: List):
     for level in range(nlevels):
         idxid_current, lengths = _all_lengths[level]
         paths_current_level = []
+        # did_break = False
         for path, length in zip(paths, list(traverse(lengths))):
 
             if idxid_current in path:
                 paths_current_level.extend([path.replace(f':@{idxid_current}', str(idx)) 
                                            for idx in range(length)])
             else:
-                paths_current_level = paths
                 idx = int(get_iloc_indices(path,
                                            template_path,
                                            f':@{idxid_current}')[0])
-
                 for idx_level, (_, sizes) in enumerate(_all_lengths[level+1:], start=level+1):
                     _all_lengths[idx_level][1] = [sizes[idx]]
 
+                paths_current_level = paths
+                if idx >= length:
+                    paths_current_level.remove(path)
+                    # print(idxid_current, path, idx, level)
+                    # did_break = True
+                    break
+        
+        # print(did_break)
+        # if did_break: 
+        #     continue
+
         paths = paths_current_level
+        # print(paths)
 
     for _, sizes in reversed(_all_lengths[1:]):
         paths = split_items(paths, list(traverse(sizes)))

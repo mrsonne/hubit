@@ -467,13 +467,25 @@ def expand_new(path: str, template_path: str, all_lengths: List):
                 paths_current_level.extend([path.replace(f':@{idxid_current}', str(idx)) 
                                            for idx in range(length)])
             else:
+                # Get fixed index from path
                 idx = int(get_iloc_indices(path,
                                            template_path,
                                            f':@{idxid_current}')[0])
+
+
+                # The current level is fixed so all levels above
+                for idx_level, (_, sizes) in enumerate(_all_lengths[:level+1]):
+                    _all_lengths[level][1] = 1
+
+                # At all levels from below the current level keep only data 
+                # corrensponding to the fixed index
                 for idx_level, (_, sizes) in enumerate(_all_lengths[level+1:], start=level+1):
                     _all_lengths[idx_level][1] = sizes[idx]
 
+
+                print(_all_lengths)
                 paths_current_level = paths
+
                 if idx >= length:
                     paths_current_level.remove(path)
                     idxs = [int(get_iloc_indices(path,
@@ -483,16 +495,25 @@ def expand_new(path: str, template_path: str, all_lengths: List):
 
                     idxs = idxs[:-1]
                     data = _all_lengths[level][1]
-                    val = get_nested_item(data, idxs)
+                    print(idxid_current, idxs)
+                    print(data)
+                    if isinstance(data, int):
+                        val = data 
+                    else:
+                        val = get_nested_item(data, idxs)
+    
                     if val > 1:
                         set_nested_item(data, idxs, val - 1)
                     else:
-                        items = get_nested_item(data, idxs[:-1])
-                        print(items)
-                        items.pop(idxs[-1])
-                        print(items)
-                        set_nested_item(data, idxs[:-1], items)
-                        print(_all_lengths)
+                        if isinstance(data, int):
+                            _all_lengths[level-1][1] -= 1
+                        else:
+                            items = get_nested_item(data, idxs[:-1])
+                            print(items)
+                            items.pop(idxs[-1])
+                            print(items)
+                            set_nested_item(data, idxs[:-1], items)
+                            print(_all_lengths)
 
                     break
 

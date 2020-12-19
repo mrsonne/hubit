@@ -456,6 +456,29 @@ def expand_new(path: str, template_path: str, all_lengths: List):
     """
     nlevels = len(all_lengths)
     _all_lengths = copy.copy(all_lengths)
+
+    # Prune length tree if some levels are fixed in path
+    fixed_idx_for_level = {}
+    for level in range(nlevels):
+        idxid_current, _ = _all_lengths[level]
+        if not idxid_current in path:
+            # Get fixed index from path
+            idx = int(get_iloc_indices(path,
+                                       template_path,
+                                       f':@{idxid_current}')[0])
+            fixed_idx_for_level[level] = idx
+
+            # The current level is fixed so all levels above
+            # TODO: not sure this is correct
+            for idx_level, (_, sizes) in enumerate(_all_lengths[:level+1]):
+                _all_lengths[level][1] = 1
+
+            # At all levels from below the current level keep only data 
+            # corrensponding to the fixed index
+            for idx_level, (_, sizes) in enumerate(_all_lengths[level+1:], start=level+1):
+                _all_lengths[idx_level][1] = sizes[idx]
+
+
     paths = [path]
     for level in range(nlevels):
         idxid_current, lengths = _all_lengths[level]
@@ -463,27 +486,12 @@ def expand_new(path: str, template_path: str, all_lengths: List):
         # did_break = False
         for path, length in zip(paths, list(traverse(lengths))):
 
-            if idxid_current in path:
+            if not level in fixed_idx_for_level:
                 paths_current_level.extend([path.replace(f':@{idxid_current}', str(idx)) 
                                            for idx in range(length)])
             else:
-                # Get fixed index from path
-                idx = int(get_iloc_indices(path,
-                                           template_path,
-                                           f':@{idxid_current}')[0])
-
-
-                # The current level is fixed so all levels above
-                for idx_level, (_, sizes) in enumerate(_all_lengths[:level+1]):
-                    _all_lengths[level][1] = 1
-
-                # At all levels from below the current level keep only data 
-                # corrensponding to the fixed index
-                for idx_level, (_, sizes) in enumerate(_all_lengths[level+1:], start=level+1):
-                    _all_lengths[idx_level][1] = sizes[idx]
-
-
-                print(_all_lengths)
+                idx = fixed_idx_for_level[level]
+                # print(_all_lengths)
                 paths_current_level = paths
 
                 if idx >= length:

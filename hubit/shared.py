@@ -479,6 +479,7 @@ def expand_new(path: str, template_path: str, all_lengths: List):
                 _all_lengths[idx_level][1] = sizes[idx]
 
 
+    # Expand the path (and do some pruning)
     paths = [path]
     for level in range(nlevels):
         idxid_current, lengths = _all_lengths[level]

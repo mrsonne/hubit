@@ -487,32 +487,35 @@ def expand_new(path: str, template_path: str, all_lengths: List):
                 paths_current_level = paths
 
                 if idx >= length:
+                    # The fixed index is not legal in the context of indices above
                     paths_current_level.remove(path)
+
+                    # Get all indices above the illegal path 
                     idxs = [int(get_iloc_indices(path,
                                                  template_path,
                                                  f':@{_all_lengths[lev][0]}')[0]) 
                             for lev in range(level+1)] 
 
+                    # We need to subtract one element in the size tree node above the illegal path
+                    # Indices to level above illegal path
                     idxs = idxs[:-1]
-                    data = _all_lengths[level][1]
-                    print(idxid_current, idxs)
-                    print(data)
-                    if isinstance(data, int):
-                        val = data 
+                    sizes_at_level = _all_lengths[level][1]
+                    if isinstance(sizes_at_level, int):
+                        val = sizes_at_level 
                     else:
-                        val = get_nested_item(data, idxs)
+                        val = get_nested_item(sizes_at_level, idxs)
     
                     if val > 1:
-                        set_nested_item(data, idxs, val - 1)
+                        set_nested_item(sizes_at_level, idxs, val - 1)
                     else:
-                        if isinstance(data, int):
+                        if isinstance(sizes_at_level, int):
                             _all_lengths[level-1][1] -= 1
                         else:
-                            items = get_nested_item(data, idxs[:-1])
+                            items = get_nested_item(sizes_at_level, idxs[:-1])
                             print(items)
                             items.pop(idxs[-1])
                             print(items)
-                            set_nested_item(data, idxs[:-1], items)
+                            set_nested_item(sizes_at_level, idxs[:-1], items)
                             print(_all_lengths)
 
                     break

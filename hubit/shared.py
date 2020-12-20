@@ -1,3 +1,4 @@
+from __future__ import annotations
 import re
 import copy
 import itertools
@@ -8,6 +9,55 @@ from typing import Any, List, Dict, Tuple
 
 
 IDX_WILDCARD = ":"
+
+
+class LenghtNode:
+    def __init__(self, nchildren: int):
+        self.level = 0
+        # Assume bottom level (children = None)
+        self.children = [None for _ in range(nchildren)]
+
+        # Assume top level (children = None)
+        self.parent = None
+
+
+    def nchildren(self) -> int:
+        return len(self.children)
+
+
+    def set_children(self, children: List[LenghtNode]) -> int:
+        self.children = children
+        for child in self.children:
+            child.parent = self
+            child.level = self.level + 1
+
+
+class LengthTree:
+    def __init__(self, nodes: List[LenghtNode], level_names: List[str]):
+        self.nlevels = len(level_names)
+        self.level_names = level_names
+
+        self.nodes_for_level = [[] for idx in range(self.nlevels)]
+        for node in nodes:
+            self.nodes_for_level[node.level].append(node)
+
+
+    def add_node(self, node: LenghtNode, idx_level: int):
+        self.nodes_for_level[idx_level].append(node)
+
+
+    def remove_node(self, node: LenghtNode, idx_level: int):
+        self.nodes_for_level[idx_level].remove(node)
+
+
+    def __str__(self):
+        lines = ['Length tree']
+        for idx, (name, nodes) in enumerate(zip(self.level_names, self.nodes_for_level)):
+            nparents = len({node.parent for node in nodes if node.parent is not None})
+            nchildren = sum( [node.nchildren() for node in nodes] )
+            lines.append(f'level={idx} ({name}), nodes={len(nodes)}, parents={nparents}, children={nchildren}')
+        return '\n'.join(lines)
+
 
 class HubitError(Exception):
     pass

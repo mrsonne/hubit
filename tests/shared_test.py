@@ -400,5 +400,30 @@ class Test(unittest.TestCase):
         self.assertSequenceEqual( paths, expected_paths )
 
 
+class TestTree(unittest.TestCase):
+
+    def test_1(self):
+        lengths = [['IDX_SEG', 2],
+                   ['IDX_LAY', [3, 4]],
+                   ['IDX_POS', [[1, 3, 2], [5, 1, 2, 4]]]] 
+
+        lev0_nodes = shared.LenghtNode(2)
+        lev1_nodes = shared.LenghtNode(3), shared.LenghtNode(4)
+        lev2a_nodes = shared.LenghtNode(1), shared.LenghtNode(3), shared.LenghtNode(2)
+        lev2b_nodes = shared.LenghtNode(5), shared.LenghtNode(1), shared.LenghtNode(2), shared.LenghtNode(4)
+
+        lev0_nodes.set_children(lev1_nodes)
+        lev1_nodes[0].set_children(lev2a_nodes)
+        lev1_nodes[1].set_children(lev2b_nodes)
+
+        nodes = [lev0_nodes]
+        nodes.extend(lev1_nodes) 
+        nodes.extend(lev2a_nodes) 
+        nodes.extend(lev2b_nodes)
+        level_names = 'IDX_SEG', 'IDX_LAY', 'IDX_POS'
+        tree = shared.LengthTree(nodes, level_names)
+        print(tree)
+
+
 if __name__ == '__main__':
     unittest.main()

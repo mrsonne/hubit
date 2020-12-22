@@ -464,5 +464,24 @@ class TestTree(unittest.TestCase):
         print(self.tree)
         self.assertListEqual( self.tree.to_lists(), expected_lengths )
 
+
+    def test_4(self):
+        """Out of bounds for all but two paths
+        """
+        path = "segments.:@IDX_SEG.layers.:@IDX_LAY.test.positions.3"
+        expected_lengths = [ 1,
+                             2,
+                             [5, 4]] 
+        self.tree.prune_from_path(path, self.template_path)
+        print(self.tree)
+        self.assertListEqual( self.tree.to_lists(), expected_lengths )
+
+
+    # TODO test
+    # No tree left
+    # path = "segments.:@IDX_SEG.layers.:@IDX_LAY.test.positions.17"
+
+    # path = "segments.0.layers.:@IDX_LAY.test.positions.1"
+
 if __name__ == '__main__':
     unittest.main()

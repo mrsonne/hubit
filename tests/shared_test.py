@@ -402,7 +402,7 @@ class Test(unittest.TestCase):
 
 class TestTree(unittest.TestCase):
 
-    def test_1(self):
+    def setUp(self):
         lengths = [['IDX_SEG', 2],
                    ['IDX_LAY', [3, 4]],
                    ['IDX_POS', [[1, 3, 2], [5, 1, 2, 4]]]] 
@@ -421,9 +421,29 @@ class TestTree(unittest.TestCase):
         nodes.extend(lev2a_nodes) 
         nodes.extend(lev2b_nodes)
         level_names = 'IDX_SEG', 'IDX_LAY', 'IDX_POS'
-        tree = shared.LengthTree(nodes, level_names)
-        print(tree)
+        self.tree = shared.LengthTree(nodes, level_names)
+        self.template_path = "segments.:@IDX_SEG.layers.:@IDX_LAY.test.positions.:@IDX_POS"
 
+
+    def test_1(self):
+        path = "segments.0.layers.:@IDX_LAY.test.positions.:@IDX_POS"
+        print(self.tree)
+        self.tree.prune_from_path(path, self.template_path)
+        print(self.tree)
+
+
+    def test_2(self):
+        path = "segments.1.layers.:@IDX_LAY.test.positions.:@IDX_POS"
+        print(self.tree)
+        self.tree.prune_from_path(path, self.template_path)
+        print(self.tree)
+
+
+    def test_3(self):
+        path = "segments.:@IDX_SEG.layers.1.test.positions.:@IDX_POS"
+        print(self.tree)
+        self.tree.prune_from_path(path, self.template_path)
+        print(self.tree)
 
 if __name__ == '__main__':
     unittest.main()

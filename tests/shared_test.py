@@ -437,16 +437,22 @@ class TestTree(unittest.TestCase):
 
     def test_1(self):
         path = "segments.0.layers.:@IDX_LAY.test.positions.:@IDX_POS"
-        print(self.tree)
         self.tree.prune_from_path(path, self.template_path)
+        expected_lengths = [1,
+                            3,
+                            [1, 3, 2]] 
         print(self.tree)
+        self.assertListEqual( self.tree.to_lists(), expected_lengths )
 
 
     def test_2(self):
         path = "segments.1.layers.:@IDX_LAY.test.positions.:@IDX_POS"
-        print(self.tree)
         self.tree.prune_from_path(path, self.template_path)
         print(self.tree)
+        expected_lengths = [1,
+                            4,
+                           [5, 1, 2, 4]] 
+        self.assertListEqual( self.tree.to_lists(), expected_lengths )
 
 
     def test_3(self):

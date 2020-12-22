@@ -79,7 +79,6 @@ class LengthTree:
         nodes = self.nodes_for_level[level_idx + 1]
         idx_others = list(range(len(nodes)))
         idx_others.remove(idx)
-        print(idx_others)
         for node in self.nodes_for_level[level_idx]:
             idx_others = list(range(node.nchildren()))
             idx_others.remove(idx)
@@ -96,18 +95,36 @@ class LengthTree:
 
 
     def __str__(self):
-        lines = ['Length tree']
+        lines = ['--------------------',
+                 'Tree']
         for idx, (name, nodes) in enumerate(zip(self.level_names, self.nodes_for_level)):
             nparents = len({node.parent for node in nodes if node.parent is not None})
             nchildren = sum( [node.nchildren() for node in nodes] )
             lines.append(f'level={idx} ({name}), nodes={len(nodes)}, parents={nparents}, children={nchildren}')
 
         lines.append('--------------------')
+        lines.append('Lengths')
 
-        for idx, (name, nodes) in enumerate(zip(self.level_names, self.nodes_for_level)):
-            lines.append(f'{name}: ')
-            for node in nodes:
-                lines[-1] += f'{list(range(node.nchildren()))}  '
+        idx_vals = []
+        for name, nodes in zip(self.level_names,
+                               self.nodes_for_level):
+            idx_vals.append( [node.nchildren() for node in nodes] )
+
+        sizes = [1,]
+        size_for_level = []
+        for vals in idx_vals:
+            if len(sizes) == 1 and sizes[0] == len(vals):
+                if sizes[0] == 1:
+                    size_for_level.append(vals[0])
+                else:
+                    size_for_level.append(vals)
+            else:
+                size_for_level.append(split_items(vals, sizes))
+            sizes = vals
+
+        for idx, (name, size) in enumerate(zip(self.level_names,
+                                               size_for_level)):
+            lines.append(f'level={idx} ({name}), {size}')
 
         return '\n'.join(lines)
 

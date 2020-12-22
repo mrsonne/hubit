@@ -19,18 +19,33 @@ class LenghtNode:
 
         # Assume top level (children = None)
         self.parent = None
+        self.tree = None
 
 
     def nchildren(self) -> int:
         return len(self.children)
 
 
-    def set_children(self, children: List[LenghtNode]) -> int:
-        self.children = children
+    def set_children(self, children: List[LenghtNode]):
+        self.children = list(children)
         for child in self.children:
             child.parent = self
             child.level = self.level + 1
 
+
+    def pop_child_for_idx(self, idx):
+        self.children[idx].remove_decendants()
+        child = self.children[idx] 
+        self.children.pop(idx)
+        self.tree.nodes_for_level[self.level + 1].remove(child)
+
+
+    def remove_decendants(self):
+        for child in self.children:
+            if child is not None:
+                # Remove child from tree
+                child.tree.nodes_for_level[child.level].remove(child)
+                child.remove_decendants()
 
 class LengthTree:
     def __init__(self, nodes: List[LenghtNode], level_names: List[str]):
@@ -39,7 +54,37 @@ class LengthTree:
 
         self.nodes_for_level = [[] for idx in range(self.nlevels)]
         for node in nodes:
+            node.tree = self
             self.nodes_for_level[node.level].append(node)
+    
+
+    def prune_from_path(self, path: str,
+                        template_path: str,
+                        inplace: bool=True):
+
+        obj = self if inplace else copy.deepcopy(self)
+        for level_idx, level_name in enumerate(obj.level_names):
+            if not level_name in path:
+                # Get fixed index from path
+                idx = int(get_iloc_indices(path,
+                                           template_path,
+                                           f':@{level_name}')[0])
+
+                obj.fix_idx_at_level(idx, level_idx)
+
+        return obj
+
+    def fix_idx_at_level(self, idx, level_idx):
+        # Keep child corresponding to idx  remove the rest
+        nodes = self.nodes_for_level[level_idx + 1]
+        idx_others = list(range(len(nodes)))
+        idx_others.remove(idx)
+        print(idx_others)
+        for node in self.nodes_for_level[level_idx]:
+            idx_others = list(range(node.nchildren()))
+            idx_others.remove(idx)
+            for idx_other in reversed(idx_others):
+                node.pop_child_for_idx(idx_other)
 
 
     def add_node(self, node: LenghtNode, idx_level: int):
@@ -56,6 +101,14 @@ class LengthTree:
             nparents = len({node.parent for node in nodes if node.parent is not None})
             nchildren = sum( [node.nchildren() for node in nodes] )
             lines.append(f'level={idx} ({name}), nodes={len(nodes)}, parents={nparents}, children={nchildren}')
+
+        lines.append('--------------------')
+
+        for idx, (name, nodes) in enumerate(zip(self.level_names, self.nodes_for_level)):
+            lines.append(f'{name}: ')
+            for node in nodes:
+                lines[-1] += f'{list(range(node.nchildren()))}  '
+
         return '\n'.join(lines)
 
 

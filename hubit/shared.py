@@ -95,22 +95,23 @@ class LengthTree:
 
 
     def to_lists(self):
-        idx_vals = []
-        for name, nodes in zip(self.level_names,
-                               self.nodes_for_level):
-            idx_vals.append( [node.nchildren() for node in nodes] )
+        idx_vals = [[node.nchildren() for node in nodes] 
+                    for nodes in self.nodes_for_level]
 
-        sizes = [1,]
         size_for_level = []
-        for vals in idx_vals:
-            if len(sizes) == 1 and sizes[0] == len(vals):
-                if sizes[0] == 1:
-                    size_for_level.append(vals[0])
-                else:
-                    size_for_level.append(vals)
-            else:
-                size_for_level.append(split_items(vals, sizes))
-            sizes = vals
+        size_for_level = [ idx_vals[0][0] ]
+        for idx, vals in enumerate(idx_vals[1:], 1):
+
+            # Loop over levels above (excluding level 0) and incrementally 
+            # divide list into sub-lists
+            for sizes in idx_vals[1:idx][::-1]:
+                # Cast to list in case of an integer
+                vals = split_items(vals, traverse([sizes]))
+
+            if len(vals) == 1:
+                vals = vals[0]
+
+            size_for_level.append(vals)
 
         return size_for_level
 

@@ -441,14 +441,12 @@ class TestTree(unittest.TestCase):
         expected_lengths = [1,
                             3,
                             [1, 3, 2]] 
-        print(self.tree)
         self.assertListEqual( self.tree.to_lists(), expected_lengths )
 
 
     def test_2(self):
         path = "segments.1.layers.:@IDX_LAY.test.positions.:@IDX_POS"
         self.tree.prune_from_path(path, self.template_path)
-        print(self.tree)
         expected_lengths = [1,
                             4,
                            [5, 1, 2, 4]] 
@@ -461,11 +459,18 @@ class TestTree(unittest.TestCase):
                             [1, 1], 
                             [[3,], [1,]]]
         self.tree.prune_from_path(path, self.template_path)
-        print(self.tree)
         self.assertListEqual( self.tree.to_lists(), expected_lengths )
 
 
     def test_4(self):
+        path = "segments.0.layers.:@IDX_LAY.test.positions.1"
+        expected_lengths = []
+        self.tree.prune_from_path(path, self.template_path)
+        print(self.tree)
+        self.assertListEqual( self.tree.to_lists(), expected_lengths )
+
+
+    def test_5(self):
         """Out of bounds for all but two paths
         """
         path = "segments.:@IDX_SEG.layers.:@IDX_LAY.test.positions.3"
@@ -477,11 +482,55 @@ class TestTree(unittest.TestCase):
         self.assertListEqual( self.tree.to_lists(), expected_lengths )
 
 
-    # TODO test
-    # No tree left
-    # path = "segments.:@IDX_SEG.layers.:@IDX_LAY.test.positions.17"
+    def test_6(self):
+        """Out of bounds for all paths
+        """
+        path = "segments.:@IDX_SEG.layers.:@IDX_LAY.test.positions.17"
+        expected_lengths = [ 1,
+                             2,
+                             [5, 4]] 
+        self.tree.prune_from_path(path, self.template_path)
+        print(self.tree)
+        self.assertListEqual( self.tree.to_lists(), expected_lengths )
 
-    # path = "segments.0.layers.:@IDX_LAY.test.positions.1"
+
+    def test_7(self):
+        """4-level tree
+        """
+        lev0_nodes = shared.LenghtNode(2)
+        lev1_nodes = shared.LenghtNode(1), shared.LenghtNode(3)
+        lev2_0_nodes = [shared.LenghtNode(2)]
+        lev2_1_nodes = shared.LenghtNode(1), shared.LenghtNode(2), shared.LenghtNode(4)
+        lev3_0_0_nodes = shared.LenghtNode(1), shared.LenghtNode(3)
+        lev3_1_0_nodes = [shared.LenghtNode(1)]
+        lev3_1_1_nodes = shared.LenghtNode(2), shared.LenghtNode(2) 
+        lev3_1_2_nodes = shared.LenghtNode(1), shared.LenghtNode(1), shared.LenghtNode(1), shared.LenghtNode(2)
+
+        lev0_nodes.set_children(lev1_nodes)
+        lev1_nodes[0].set_children(lev2_0_nodes)
+        lev1_nodes[1].set_children(lev2_1_nodes)
+        lev2_0_nodes[0].set_children(lev3_0_0_nodes)
+        lev2_1_nodes[0].set_children(lev3_1_0_nodes)
+        lev2_1_nodes[1].set_children(lev3_1_1_nodes)
+        lev2_1_nodes[2].set_children(lev3_1_2_nodes)
+
+        nodes = [lev0_nodes]
+        nodes.extend(lev1_nodes) 
+        nodes.extend(lev2_0_nodes) 
+        nodes.extend(lev2_1_nodes)
+        nodes.extend(lev3_0_0_nodes)
+        nodes.extend(lev3_1_0_nodes)
+        nodes.extend(lev3_1_1_nodes)
+        nodes.extend(lev3_1_2_nodes)
+        level_names = 'IDX_X1', 'IDX_X2', 'IDX_X3', 'IDX_X4', 
+        tree = shared.LengthTree(nodes, level_names)
+        expected_lengths = [2,
+                            [1, 3],
+                            [[2], [1, 2, 4]],
+                            [[[1, 3]], [[1], [2, 2], [1, 1, 1, 2]]]
+                            ]
+        self.assertListEqual( tree.to_lists(), expected_lengths )
+
 
 if __name__ == '__main__':
     unittest.main()

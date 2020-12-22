@@ -457,9 +457,12 @@ class TestTree(unittest.TestCase):
 
     def test_3(self):
         path = "segments.:@IDX_SEG.layers.1.test.positions.:@IDX_POS"
-        print(self.tree)
+        expected_lengths = [2,
+                            [1, 1], 
+                            [[3,], [1,]]]
         self.tree.prune_from_path(path, self.template_path)
         print(self.tree)
+        self.assertListEqual( self.tree.to_lists(), expected_lengths )
 
 if __name__ == '__main__':
     unittest.main()

@@ -425,6 +425,16 @@ class TestTree(unittest.TestCase):
         self.template_path = "segments.:@IDX_SEG.layers.:@IDX_LAY.test.positions.:@IDX_POS"
 
 
+    def test_0(self):
+        """path is identical to template_path so the tree remains unchanged 
+        """
+        path = self.template_path
+        pruned_tree = self.tree.prune_from_path(path, self.template_path, inplace=False)
+        print(self.tree)
+        print(pruned_tree)
+        self.assertEqual(self.tree, pruned_tree)
+
+
     def test_1(self):
         path = "segments.0.layers.:@IDX_LAY.test.positions.:@IDX_POS"
         print(self.tree)

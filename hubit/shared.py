@@ -115,6 +115,10 @@ class LengthTree:
         return size_for_level
 
 
+    def __eq__(self, other):
+        return self.to_lists() == other.to_lists()
+
+
     def __str__(self):
         lines = ['--------------------',
                  'Tree']

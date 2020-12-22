@@ -94,7 +94,12 @@ class LengthTree:
         self.nodes_for_level[idx_level].remove(node)
 
 
-    def to_lists(self):
+    def to_list(self):
+        """Convert length tree to nested lists for testing puposes
+
+        Returns:
+            List: Nested lists representing the length tree
+        """
         idx_vals = [[node.nchildren() for node in nodes] 
                     for nodes in self.nodes_for_level]
 
@@ -117,7 +122,7 @@ class LengthTree:
 
 
     def __eq__(self, other):
-        return self.to_lists() == other.to_lists()
+        return self.to_list() == other.to_list()
 
 
     def __str__(self):
@@ -131,7 +136,7 @@ class LengthTree:
         lines.append('--------------------')
         lines.append('Lengths')
 
-        size_for_level = self.to_lists()
+        size_for_level = self.to_list()
 
         for idx, (name, size) in enumerate(zip(self.level_names,
                                                size_for_level)):
@@ -587,11 +592,13 @@ def expand_new(path: str, template_path: str, all_lengths: List):
     """
     nlevels = len(all_lengths)
     _all_lengths = copy.copy(all_lengths)
-
+    print(_all_lengths)
+    print(path)
     # Prune length tree if some levels are fixed in path
     fixed_idx_for_level = {}
     for level in range(nlevels):
         idxid_current, _ = _all_lengths[level]
+        print(_all_lengths)
         if not idxid_current in path:
             # Get fixed index from path
             idx = int(get_iloc_indices(path,
@@ -599,17 +606,17 @@ def expand_new(path: str, template_path: str, all_lengths: List):
                                        f':@{idxid_current}')[0])
             fixed_idx_for_level[level] = idx
 
-            # The current level is fixed so all levels above
-            # TODO: not sure this is correct
-            for idx_level, (_, sizes) in enumerate(_all_lengths[:level+1]):
-                _all_lengths[level][1] = 1
-
+            # The current level is fixed so level above
+            _all_lengths[level-1][1] = [1]
             # At all levels from below the current level keep only data 
             # corrensponding to the fixed index
+            print('XXXX', _all_lengths)
             for idx_level, (_, sizes) in enumerate(_all_lengths[level+1:], start=level+1):
+                print(sizes)
                 _all_lengths[idx_level][1] = sizes[idx]
 
-
+    print('final', _all_lengths)
+    wdqd
     # Expand the path (and do some pruning)
     paths = [path]
     for level in range(nlevels):

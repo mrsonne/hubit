@@ -441,7 +441,7 @@ class TestTree(unittest.TestCase):
         expected_lengths = [1,
                             3,
                             [1, 3, 2]] 
-        self.assertListEqual( self.tree.to_lists(), expected_lengths )
+        self.assertListEqual( self.tree.to_list(), expected_lengths )
 
 
     def test_2(self):
@@ -450,7 +450,7 @@ class TestTree(unittest.TestCase):
         expected_lengths = [1,
                             4,
                            [5, 1, 2, 4]] 
-        self.assertListEqual( self.tree.to_lists(), expected_lengths )
+        self.assertListEqual( self.tree.to_list(), expected_lengths )
 
 
     def test_3(self):
@@ -459,7 +459,7 @@ class TestTree(unittest.TestCase):
                             [1, 1], 
                             [[3,], [1,]]]
         self.tree.prune_from_path(path, self.template_path)
-        self.assertListEqual( self.tree.to_lists(), expected_lengths )
+        self.assertListEqual( self.tree.to_list(), expected_lengths )
 
 
     def test_4(self):
@@ -467,7 +467,7 @@ class TestTree(unittest.TestCase):
         expected_lengths = []
         self.tree.prune_from_path(path, self.template_path)
         print(self.tree)
-        self.assertListEqual( self.tree.to_lists(), expected_lengths )
+        self.assertListEqual( self.tree.to_list(), expected_lengths )
 
 
     def test_5(self):
@@ -479,7 +479,7 @@ class TestTree(unittest.TestCase):
                              [5, 4]] 
         self.tree.prune_from_path(path, self.template_path)
         print(self.tree)
-        self.assertListEqual( self.tree.to_lists(), expected_lengths )
+        self.assertListEqual( self.tree.to_list(), expected_lengths )
 
 
     def test_6(self):
@@ -491,7 +491,7 @@ class TestTree(unittest.TestCase):
                              [5, 4]] 
         self.tree.prune_from_path(path, self.template_path)
         print(self.tree)
-        self.assertListEqual( self.tree.to_lists(), expected_lengths )
+        self.assertListEqual( self.tree.to_list(), expected_lengths )
 
 
     def test_7(self):
@@ -529,7 +529,7 @@ class TestTree(unittest.TestCase):
                             [[2], [1, 2, 4]],
                             [[[1, 3]], [[1], [2, 2], [1, 1, 1, 2]]]
                             ]
-        self.assertListEqual( tree.to_lists(), expected_lengths )
+        self.assertListEqual( tree.to_list(), expected_lengths )
 
 
 if __name__ == '__main__':

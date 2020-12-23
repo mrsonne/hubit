@@ -463,6 +463,18 @@ class TestTree(unittest.TestCase):
 
 
     def test_4(self):
+        """In bounds for all bottom-most paths.
+        """
+        path = "segments.:@IDX_SEG.layers.:@IDX_LAY.test.positions.0"
+        expected_lengths = [2,
+                            [3, 4],
+                            [[1, 1, 1], [1, 1, 1, 1]]
+                           ] 
+        self.tree.prune_from_path(path, self.template_path)
+        self.assertListEqual( self.tree.to_list(), expected_lengths )
+
+
+    def test_5(self):
         path = "segments.0.layers.:@IDX_LAY.test.positions.1"
         expected_lengths = []
         self.tree.prune_from_path(path, self.template_path)
@@ -470,7 +482,7 @@ class TestTree(unittest.TestCase):
         self.assertListEqual( self.tree.to_list(), expected_lengths )
 
 
-    def test_5(self):
+    def test_5a(self):
         """Out of bounds for all but two paths
         """
         path = "segments.:@IDX_SEG.layers.:@IDX_LAY.test.positions.3"

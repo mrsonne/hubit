@@ -475,8 +475,13 @@ class TestTree(unittest.TestCase):
 
 
     def test_5(self):
-        path = "segments.0.layers.:@IDX_LAY.test.positions.1"
-        expected_lengths = []
+        """Two indices fixed
+        """
+        path = "segments.1.layers.:@IDX_LAY.test.positions.0"
+        expected_lengths = [1,
+                            4,
+                            [1, 1, 1, 1]
+                           ] 
         self.tree.prune_from_path(path, self.template_path)
         print(self.tree)
         self.assertListEqual( self.tree.to_list(), expected_lengths )

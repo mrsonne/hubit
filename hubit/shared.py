@@ -33,11 +33,13 @@ class LenghtNode:
             child.level = self.level + 1
 
 
-    def pop(self):
+    def remove(self):
+        """remove node 
+        """
         self.remove_decendants()
         self.parent.children.remove(self)
         if self.parent.nchildren() == 0:
-            self.parent.pop()
+            self.parent.remove()
         self.tree.nodes_for_level[self.level].remove(self)
 
 
@@ -85,7 +87,6 @@ class LengthTree:
         return obj
 
     def fix_idx_at_level(self, idx, level_idx):
-
         nodes_to_be_deleted = []
         for node in self.nodes_for_level[level_idx]:
             # Keep child corresponding to idx  remove the rest
@@ -99,7 +100,7 @@ class LengthTree:
                 nodes_to_be_deleted.append(node)
 
         for node in nodes_to_be_deleted:
-            node.pop()
+            node.remove()
 
     def add_node(self, node: LenghtNode, idx_level: int):
         self.nodes_for_level[idx_level].append(node)

@@ -458,7 +458,7 @@ class TestTree(unittest.TestCase):
 
 
     def test_2a(self):
-        """Top level index fixed to 2 i.e. outside bounds
+        """Outside bounds top level index 
         """
         path = "segments.2.layers.:@IDX_LAY.test.positions.:@IDX_POS"
         self.tree.prune_from_path(path, self.template_path)
@@ -506,13 +506,16 @@ class TestTree(unittest.TestCase):
 
     def test_5a(self):
         """Out of bounds for all but two paths
+
+        [['IDX_SEG', 2*], -> 1
+        ['IDX_LAY', [3, 4*]], -> 2
+        ['IDX_POS', [[1, 3, 2], [5*, 1, 2, 4*]]]] -> [1, 1] 
         """
         path = "segments.:@IDX_SEG.layers.:@IDX_LAY.test.positions.3"
         expected_lengths = [ 1,
                              2,
-                             [5, 4]] 
+                             [1, 1]] 
         self.tree.prune_from_path(path, self.template_path)
-        print(self.tree)
         self.assertListEqual( self.tree.to_list(), expected_lengths )
 
 

@@ -11,6 +11,14 @@ from typing import Any, List, Dict, Tuple
 IDX_WILDCARD = ":"
 
 
+class HubitError(Exception):
+    pass
+
+
+class HubitIndexError(HubitError):
+    pass
+
+
 class LenghtNode:
     def __init__(self, nchildren: int):
         self.level = 0
@@ -36,6 +44,9 @@ class LenghtNode:
     def remove(self):
         """remove node 
         """
+        if self.parent is None:
+            raise HubitIndexError
+
         self.remove_decendants()
         self.parent.children.remove(self)
         if self.parent.nchildren() == 0:
@@ -100,7 +111,10 @@ class LengthTree:
                 nodes_to_be_deleted.append(node)
 
         for node in nodes_to_be_deleted:
-            node.remove()
+            try:
+                node.remove()
+            except HubitIndexError:
+                raise HubitIndexError(f'Cannot find index {idx} for index ID {self.level_names[level_idx]}')
 
     def add_node(self, node: LenghtNode, idx_level: int):
         self.nodes_for_level[idx_level].append(node)
@@ -159,10 +173,6 @@ class LengthTree:
             lines.append(f'level={idx} ({name}), {size}')
 
         return '\n'.join(lines)
-
-
-class HubitError(Exception):
-    pass
 
 
 class Container:

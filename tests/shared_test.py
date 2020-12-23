@@ -461,12 +461,9 @@ class TestTree(unittest.TestCase):
         """Outside bounds top level index 
         """
         path = "segments.2.layers.:@IDX_LAY.test.positions.:@IDX_POS"
-        self.tree.prune_from_path(path, self.template_path)
-        expected_lengths = [1,
-                            4,
-                           [5, 1, 2, 4]] 
-        self.assertListEqual( self.tree.to_list(), expected_lengths )
-
+        with self.assertRaises(shared.HubitIndexError) as context:
+            self.tree.prune_from_path(path, self.template_path)
+    
 
     def test_3(self):
         """Middle index fixed
@@ -523,12 +520,8 @@ class TestTree(unittest.TestCase):
         """Out of bounds for all paths
         """
         path = "segments.:@IDX_SEG.layers.:@IDX_LAY.test.positions.17"
-        expected_lengths = [ 1,
-                             2,
-                             [5, 4]] 
-        self.tree.prune_from_path(path, self.template_path)
-        print(self.tree)
-        self.assertListEqual( self.tree.to_list(), expected_lengths )
+        with self.assertRaises(shared.HubitIndexError) as context:
+            self.tree.prune_from_path(path, self.template_path)
 
 
     def test_7(self):

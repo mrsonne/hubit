@@ -204,7 +204,7 @@ class Container:
         return str(self.val)
 
 
-def is_digit(s: str):
+def is_digit(s: str) -> bool:
     """Alternative to s.isdigit() that handles negative integers
 
     Args:

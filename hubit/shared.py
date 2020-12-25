@@ -83,7 +83,7 @@ class LengthTree:
     """Stores length information for multi-dimensional and non-rectangular 
     data. 
     """
-    
+
     def __init__(self, nodes: List[LenghtNode], level_names: List[str]):
         self.nlevels = len(level_names)
         self.level_names = level_names
@@ -125,6 +125,7 @@ class LengthTree:
 
         return obj
 
+
     def fix_idx_at_level(self, idx, level_idx):
         nodes_to_be_deleted = []
         for node in self.nodes_for_level[level_idx]:
@@ -143,6 +144,7 @@ class LengthTree:
                 node.remove()
             except HubitIndexError:
                 raise HubitIndexError(f'Cannot find index {idx} for index ID {self.level_names[level_idx]}')
+
 
     def add_node(self, node: LenghtNode, idx_level: int):
         self.nodes_for_level[idx_level].append(node)
@@ -177,6 +179,97 @@ class LengthTree:
             size_for_level.append(vals)
 
         return size_for_level
+
+    @staticmethod
+    def _nodes_for_iterpaths(connecting_paths: List[str],
+                             data: Dict,
+                             nodes=None,
+                             paths_previous=None,
+                             parent: LenghtNode=None) -> Tuple:
+        """Lengths 
+
+        Args:
+            connecting_paths (List[str]): Sequence of index identification strings between index IDs
+            data (Dict): Input data 
+            nodes (List[LenghtNode], optional): Cummulative list of nodes. Defaults to None.
+            paths_previous (List, optional): Hubit internal paths 
+            found in previous level of recusion with explicit indeices. Defaults to None.
+            parent (LenghtNode, optional): Parent node
+
+        Returns:
+            Tuple: Two-tuple list of nodes, paths_previous
+        """
+        sep = '.'
+        paths_previous = paths_previous or [connecting_paths[0]]
+        nodes = nodes or []
+
+        # Get node list for paths prepared at the previous recusion level
+        child_nodes = [ LenghtNode(len( get_from_datadict(data, path.split(sep))))
+                               for path in paths_previous ]
+
+        if parent is not None:
+            parent.set_children(child_nodes)
+
+        nodes.extend(child_nodes)
+
+        paths_next = paths_previous
+        if len(connecting_paths) > 1:
+            # Prepare paths for next recursive call by appending the 
+            # indices (from out_current_level) and the connecting path 
+            # to the previosly found paths
+            for node, path_previous in zip(child_nodes, paths_previous):
+                paths_next = ['{}.{}.{}'.format(path_previous, curidx, connecting_paths[1]) 
+                              for curidx in range(node.nchildren())]
+
+                # Call again for next index ID
+                nodes, paths_next = LengthTree._nodes_for_iterpaths(connecting_paths[1:],
+                                                                    data,
+                                                                    nodes=nodes,
+                                                                    parent=node,
+                                                                    paths_previous=paths_next)
+
+        elif len(connecting_paths) == 1:
+            for node, path_previous in zip(child_nodes, paths_previous):
+                paths_next = ['{}.{}'.format(path_previous, curidx) 
+                               for curidx in range(node.nchildren())]
+
+        return nodes, paths_next
+
+
+    @classmethod
+    def from_data(cls, path:str, data: dict) -> Any:
+        """Infer lengths of lists in 'input_data' that correspond 
+        to index IDs in the path.
+
+        Args:
+            path (str): Hubit user path
+            input_data (Dict): Input data
+
+        Returns:
+            Any: None if no index IDs found in 'path' else LengthTree 
+            and list of all 'expanded' paths
+        """
+        level_names = idxids_from_path(path)
+        clean_level_names = [idxid.split('@')[1] if '@' in idxid 
+                             else idxid
+                             for idxid in level_names]
+        
+        # Handle no index IDs
+        if len(level_names) == 0: 
+            return None, None
+
+        # Handle all IDs are digits 
+        if all([is_digit(level_name) for level_name in level_names]): 
+            return None, [path]
+
+        connecting_paths = _paths_between_idxids(path, level_names)
+        nodes, paths = LengthTree._nodes_for_iterpaths(connecting_paths[:-1], data)
+        if not connecting_paths[-1] == '':
+            paths = ['{}.{}'.format(path, connecting_paths[-1]) for path in paths]
+
+        tree = cls(nodes, clean_level_names)
+
+        return tree, paths
 
 
     def __eq__(self, other):

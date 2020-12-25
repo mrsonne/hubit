@@ -71,6 +71,10 @@ class LenghtNode:
                 child.remove_decendants()
 
 class LengthTree:
+    """Stores length information for multi-dimensional and non-rectangular 
+    data. 
+    """
+    
     def __init__(self, nodes: List[LenghtNode], level_names: List[str]):
         self.nlevels = len(level_names)
         self.level_names = level_names
@@ -83,16 +87,31 @@ class LengthTree:
 
     def prune_from_path(self, path: str,
                         template_path: str,
-                        inplace: bool=True):
+                        inplace: bool=True) -> LengthTree:
+        """Prune the length tree based on a path where zero
+        to all inices are already specified.
+
+        Args:
+            path (str): A Hubit internal path with zero to all index IDs replaced by indices
+            template_path (str): A Hubit internal path with all relevant index IDs defined
+            inplace (bool, optional): If True the instance itself will be pruned. If False a pruned copy will be created. Defaults to True.
+
+        Returns:
+            LengthTree: Pruned tree. If inplace=True the instance itself is also pruned.
+        """
 
         obj = self if inplace else copy.deepcopy(self)
+
+        # Loop over the index ID levels
         for level_idx, level_name in enumerate(obj.level_names):
+            # Check in the index is fixed i.e. if the index ID is missing
             if not level_name in path:
                 # Get fixed index from path
                 idx = int(get_iloc_indices(path,
                                            template_path,
                                            f':@{level_name}')[0])
 
+                # Prune the tree to reflex that the index is fixed
                 obj.fix_idx_at_level(idx, level_idx)
 
         return obj

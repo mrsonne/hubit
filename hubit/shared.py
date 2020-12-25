@@ -303,7 +303,9 @@ def lengths_for_path(path: str, input_data: Dict) -> Any:
         Any: None if no index IDs found in 'path' else list og lengths
     """
     idxids = idxids_from_path(path)
-    clean_idxids = [idxid.split('@')[1] if '@' in idxid else idxid for idxid in idxids]
+    clean_idxids = [idxid.split('@')[1] if '@' in idxid 
+                    else idxid
+                    for idxid in idxids]
     
     # Handle no index IDs
     if len(idxids) == 0: 

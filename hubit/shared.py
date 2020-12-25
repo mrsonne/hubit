@@ -70,6 +70,15 @@ class LenghtNode:
                 child.tree.nodes_for_level[child.level].remove(child)
                 child.remove_decendants()
 
+    
+    def __str__(self):
+        return f'LengthNode nchildren={self.nchildren()}, has parent={"Yes" if self.parent else "No"}'
+
+
+    def __repr__(self):
+        return str(self)
+
+
 class LengthTree:
     """Stores length information for multi-dimensional and non-rectangular 
     data. 

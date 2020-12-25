@@ -412,8 +412,6 @@ class TestTree(unittest.TestCase):
         # print(tree_as_list)
         # TODO test paths in this case
         # path = "segments[:@IDX_SEG].layers[:@IDX_LAY].test"
-        # TODO: nest last list
-        # expected_lengths = [[2], [3, 4], [[1, 3, 2], [5, 1, 2, 4]] ]
         expected_lengths = [2,
                             [3, 4], 
                             [[1, 3, 2], [5, 1, 2, 4]]
@@ -425,9 +423,9 @@ class TestTree(unittest.TestCase):
         """No lengths since there are no index IDs in path 
         """
         path = "segments.layers.positions"
-        expected_lengths = None
-        calculated_lengths, _ = shared.lengths_for_path(path, {})
-        self.assertEqual( expected_lengths, calculated_lengths )
+        expected_tree = None
+        calculated_tree, _ = shared.LengthTree.from_data(path, {})
+        self.assertEqual( expected_tree, calculated_tree )
 
 
     def test_0(self):

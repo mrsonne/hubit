@@ -272,6 +272,43 @@ class LengthTree:
         return tree, paths
 
 
+    # def expand_path(self, path: str):
+    #     """Expand path with wildcard based 
+
+    #     Args:
+    #         path (str): Hubit internal path with wildcards
+
+    #     Returns:
+    #         [List]: Paths arranged in the correct shape 
+    #     """
+    #     # Expand the path (and do some pruning)
+    #     paths = [path]
+    #     as_list = self.to_list()
+    #     for idx_level, level_name in enumerate(self.level_names):
+    #         lengths = as_list[idx_level]
+    #         paths_current_level = []
+    #         # did_break = False
+    #         for path, length in zip(paths, list(traverse(lengths))):
+
+    #             paths_current_level.extend([path.replace(f':@{level_name}', str(idx)) 
+    #                                     for idx in range(length)])
+
+    #         paths = paths_current_level
+
+    #     for sizes in reversed(as_list):
+    #         print('sizes 1', sizes)
+    #         try:
+    #             if len(sizes) < 1: continue
+    #         except TypeError:
+    #             # not a list so not need to split
+    #             continue 
+
+    #         print('sizes', sizes)
+    #         paths = split_items(paths, list(traverse(sizes)))
+
+    #     return paths
+
+
     def __eq__(self, other):
         return self.to_list() == other.to_list()
 
@@ -371,13 +408,14 @@ def _length_for_iterpaths(connecting_paths: List[str],
 
     paths_next = paths_previous
     if len(connecting_paths) > 1:
+        print(paths_previous)
         # Prepare paths for next recursive call by appending the 
         # indices (from out_current_level) and the connecting path 
         # to the previosly found paths
         paths_next = ['{}.{}.{}'.format(path_previous, curidx, connecting_paths[1]) 
                         for length, path_previous in zip(out_current_level, paths_previous)
                         for curidx in range(length)]
-
+        # print(paths_next)
         # Call again for next index ID
         out, paths_next = _length_for_iterpaths(connecting_paths[1:],
                                                 input_data,
@@ -765,7 +803,6 @@ def expand_new(path: str, template_path: str, all_lengths: List):
                 _all_lengths[idx_level][1] = sizes[idx]
 
     print('final', _all_lengths)
-    wdqd
     # Expand the path (and do some pruning)
     paths = [path]
     for level in range(nlevels):

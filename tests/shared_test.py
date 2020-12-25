@@ -221,73 +221,6 @@ class Test(unittest.TestCase):
         self.assertSequenceEqual( expected_internal_paths, internal_paths )
 
 
-    def test_4(self):
-        """Extract lengths from input for path
-        """
-        yml_input = """
-                        segments:
-                            - layers:
-                                - thickness: 0.1 # [m]
-                                  material: brick
-                                  test:
-                                    positions: [1, ]
-                                - thickness: 0.02
-                                  material: air
-                                  test:
-                                    positions: [1, 2, 3]
-                                - thickness: 0.1
-                                  material: brick
-                                  test:
-                                    positions: [1, 3]
-                              inside:
-                                temperature: 320. 
-                              outside:
-                                temperature: 273.
-                            - layers:
-                                - thickness: 0.15
-                                  material: concrete
-                                  test:
-                                    positions: [1, 2, 3, 4, 5]
-                                - thickness: 0.025
-                                  material: styrofoam
-                                  test:
-                                    positions: [1,]
-                                - thickness: 0.1
-                                  material: concrete
-                                  test:
-                                    positions: [1, 2,]
-                                - thickness: 0.001
-                                  material: paint
-                                  test:
-                                    positions: [1, 2, 3, 4]
-                              inside:
-                                temperature: 300.
-                              outside:
-                                temperature: 273.
-                    """
-        input_data = yaml.load(yml_input, Loader=yaml.FullLoader)
-        path = "segments[:@IDX_SEG].layers[:@IDX_LAY].test.positions[:@IDX_POS]"
-        path = "segments[IDX_SEG].layers[:@IDX_LAY].test.positions[:@IDX_POS]"
-        # TODO test paths in this case
-        # path = "segments[:@IDX_SEG].layers[:@IDX_LAY].test"
-        # TODO: nest last list
-        # expected_lengths = [[2], [3, 4], [[1, 3, 2], [5, 1, 2, 4]] ]
-        expected_lengths = (('IDX_SEG', [2]),
-                            ('IDX_LAY', [3, 4]), 
-                            ('IDX_POS', [1, 3, 2, 5, 1, 2, 4])) 
-        calculated_lengths, paths = shared.lengths_for_path(path, input_data)
-        self.assertSequenceEqual( expected_lengths, calculated_lengths )
-
-
-    def test_5(self):
-        """No lengths since there are no index IDs in path 
-        """
-        path = "segments.layers.positions"
-        expected_lengths = None
-        calculated_lengths, _ = shared.lengths_for_path(path, {})
-        self.assertEqual( expected_lengths, calculated_lengths )
-
-
     def test_expand_new(self):
         path = "segments.:@IDX_SEG.layers.:@IDX_LAY.test.positions.:@IDX_POS"
         template_path = path
@@ -423,6 +356,78 @@ class TestTree(unittest.TestCase):
         level_names = 'IDX_SEG', 'IDX_LAY', 'IDX_POS'
         self.tree = shared.LengthTree(nodes, level_names)
         self.template_path = "segments.:@IDX_SEG.layers.:@IDX_LAY.test.positions.:@IDX_POS"
+
+
+    def test_from_data1(self):
+        """Extract lengths from input for path
+        """
+        yml_input = """
+                        segments:
+                            - layers:
+                                - thickness: 0.1 # [m]
+                                  material: brick
+                                  test:
+                                    positions: [1, ]
+                                - thickness: 0.02
+                                  material: air
+                                  test:
+                                    positions: [1, 2, 3]
+                                - thickness: 0.1
+                                  material: brick
+                                  test:
+                                    positions: [1, 3]
+                              inside:
+                                temperature: 320. 
+                              outside:
+                                temperature: 273.
+                            - layers:
+                                - thickness: 0.15
+                                  material: concrete
+                                  test:
+                                    positions: [1, 2, 3, 4, 5]
+                                - thickness: 0.025
+                                  material: styrofoam
+                                  test:
+                                    positions: [1,]
+                                - thickness: 0.1
+                                  material: concrete
+                                  test:
+                                    positions: [1, 2,]
+                                - thickness: 0.001
+                                  material: paint
+                                  test:
+                                    positions: [1, 2, 3, 4]
+                              inside:
+                                temperature: 300.
+                              outside:
+                                temperature: 273.
+                    """
+        input_data = yaml.load(yml_input, Loader=yaml.FullLoader)
+        # path = "segments[:@IDX_SEG].layers[:@IDX_LAY].test.positions[:@IDX_POS]"
+        path = "segments[IDX_SEG].layers[:@IDX_LAY].test.positions[:@IDX_POS]"
+
+        tree, paths = shared.LengthTree.from_data(path, input_data)
+        print(tree)
+        tree_as_list = tree.to_list()
+        # print(tree_as_list)
+        # TODO test paths in this case
+        # path = "segments[:@IDX_SEG].layers[:@IDX_LAY].test"
+        # TODO: nest last list
+        # expected_lengths = [[2], [3, 4], [[1, 3, 2], [5, 1, 2, 4]] ]
+        expected_lengths = [2,
+                            [3, 4], 
+                            [[1, 3, 2], [5, 1, 2, 4]]
+                           ] 
+        self.assertSequenceEqual( expected_lengths, tree_as_list )
+
+
+    def test_from_data2(self):
+        """No lengths since there are no index IDs in path 
+        """
+        path = "segments.layers.positions"
+        expected_lengths = None
+        calculated_lengths, _ = shared.lengths_for_path(path, {})
+        self.assertEqual( expected_lengths, calculated_lengths )
 
 
     def test_0(self):

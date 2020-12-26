@@ -300,7 +300,6 @@ class TestTree(unittest.TestCase):
         path = "segments[IDX_SEG].layers[:@IDX_LAY].test.positions[:@IDX_POS]"
 
         tree, paths = shared.LengthTree.from_data(path, input_data)
-        print(tree)
         tree_as_list = tree.to_list()
         # print(tree_as_list)
         # TODO test paths in this case
@@ -326,8 +325,6 @@ class TestTree(unittest.TestCase):
         """
         path = self.template_path
         pruned_tree = self.tree.prune_from_path(path, self.template_path, inplace=False)
-        print(self.tree)
-        print(pruned_tree)
         self.assertEqual(self.tree, pruned_tree)
 
 
@@ -393,7 +390,7 @@ class TestTree(unittest.TestCase):
                             [1, 1, 1, 1]
                            ] 
         self.tree.prune_from_path(path, self.template_path)
-        print(self.tree)
+        # print(self.tree)
         self.assertListEqual( self.tree.to_list(), expected_lengths )
 
 
@@ -566,14 +563,12 @@ class TestTree(unittest.TestCase):
         path = "segments.0.layers.:@IDX_LAY.test.positions.1"
         template_path = "segments.:@IDX_SEG.layers.:@IDX_LAY.test.positions.:@IDX_POS"
         self.tree.prune_from_path(path, template_path)
-        print(self.tree)
         # 1 + 3 + 2 values for segment 0
         expected_paths = [
                            'segments.0.layers.1.test.positions.1',
                            'segments.0.layers.2.test.positions.1',
                          ]
         paths = self.tree.expand_path(path)
-        print('RESULT', paths)
         self.assertSequenceEqual( paths, expected_paths )
 
 

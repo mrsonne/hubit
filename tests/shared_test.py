@@ -224,23 +224,28 @@ class TestPath(unittest.TestCase):
 class TestTree(unittest.TestCase):
 
     def setUp(self):
-        lengths = [['IDX_SEG', 2],
-                   ['IDX_LAY', [3, 4]],
-                   ['IDX_POS', [[1, 3, 2], [5, 1, 2, 4]]]] 
+        # lengths = [['IDX_SEG', 2],
+        #            ['IDX_LAY', [3, 4]],
+        #            ['IDX_POS', [[1, 3, 2], [5, 1, 2, 4]]]] 
 
-        lev0_nodes = shared.LenghtNode(2)
-        lev1_nodes = shared.LenghtNode(3), shared.LenghtNode(4)
-        lev2a_nodes = shared.LenghtNode(1), shared.LenghtNode(3), shared.LenghtNode(2)
-        lev2b_nodes = shared.LenghtNode(5), shared.LenghtNode(1), shared.LenghtNode(2), shared.LenghtNode(4)
+        seg_nodes = shared.LenghtNode(2)
+        lay_nodes = shared.LenghtNode(3), shared.LenghtNode(4)
+        pos_lay0_nodes = (shared.LenghtNode(1),
+                          shared.LenghtNode(3),
+                          shared.LenghtNode(2))
+        pos_lay1_nodes = (shared.LenghtNode(5),
+                          shared.LenghtNode(1),
+                          shared.LenghtNode(2),
+                          shared.LenghtNode(4))
 
-        lev0_nodes.set_children(lev1_nodes)
-        lev1_nodes[0].set_children(lev2a_nodes)
-        lev1_nodes[1].set_children(lev2b_nodes)
+        seg_nodes.set_children(lay_nodes)
+        lay_nodes[0].set_children(pos_lay0_nodes)
+        lay_nodes[1].set_children(pos_lay1_nodes)
 
-        nodes = [lev0_nodes]
-        nodes.extend(lev1_nodes) 
-        nodes.extend(lev2a_nodes) 
-        nodes.extend(lev2b_nodes)
+        nodes = [seg_nodes]
+        nodes.extend(lay_nodes) 
+        nodes.extend(pos_lay0_nodes) 
+        nodes.extend(pos_lay1_nodes)
         level_names = 'IDX_SEG', 'IDX_LAY', 'IDX_POS'
         self.tree = shared.LengthTree(nodes, level_names)
         self.template_path = "segments.:@IDX_SEG.layers.:@IDX_LAY.test.positions.:@IDX_POS"
@@ -418,31 +423,34 @@ class TestTree(unittest.TestCase):
     def test_7(self):
         """4-level tree
         """
-        lev0_nodes = shared.LenghtNode(2)
-        lev1_nodes = shared.LenghtNode(1), shared.LenghtNode(3)
-        lev2_0_nodes = [shared.LenghtNode(2)]
-        lev2_1_nodes = shared.LenghtNode(1), shared.LenghtNode(2), shared.LenghtNode(4)
-        lev3_0_0_nodes = shared.LenghtNode(1), shared.LenghtNode(3)
-        lev3_1_0_nodes = [shared.LenghtNode(1)]
-        lev3_1_1_nodes = shared.LenghtNode(2), shared.LenghtNode(2) 
-        lev3_1_2_nodes = shared.LenghtNode(1), shared.LenghtNode(1), shared.LenghtNode(1), shared.LenghtNode(2)
+        x1_nodes = shared.LenghtNode(2)
+        x2_nodes = shared.LenghtNode(1), shared.LenghtNode(3)
+        x3_0_nodes = [shared.LenghtNode(2)]
+        x3_1_nodes = shared.LenghtNode(1), shared.LenghtNode(2), shared.LenghtNode(4)
+        x4_0_0_nodes = shared.LenghtNode(1), shared.LenghtNode(3)
+        x4_1_0_nodes = [shared.LenghtNode(1)]
+        x4_1_1_nodes = shared.LenghtNode(2), shared.LenghtNode(2) 
+        x4_1_2_nodes = (shared.LenghtNode(1),
+                        shared.LenghtNode(1),
+                        shared.LenghtNode(1),
+                        shared.LenghtNode(2))
 
-        lev0_nodes.set_children(lev1_nodes)
-        lev1_nodes[0].set_children(lev2_0_nodes)
-        lev1_nodes[1].set_children(lev2_1_nodes)
-        lev2_0_nodes[0].set_children(lev3_0_0_nodes)
-        lev2_1_nodes[0].set_children(lev3_1_0_nodes)
-        lev2_1_nodes[1].set_children(lev3_1_1_nodes)
-        lev2_1_nodes[2].set_children(lev3_1_2_nodes)
+        x1_nodes.set_children(x2_nodes)
+        x2_nodes[0].set_children(x3_0_nodes)
+        x2_nodes[1].set_children(x3_1_nodes)
+        x3_0_nodes[0].set_children(x4_0_0_nodes)
+        x3_1_nodes[0].set_children(x4_1_0_nodes)
+        x3_1_nodes[1].set_children(x4_1_1_nodes)
+        x3_1_nodes[2].set_children(x4_1_2_nodes)
 
-        nodes = [lev0_nodes]
-        nodes.extend(lev1_nodes) 
-        nodes.extend(lev2_0_nodes) 
-        nodes.extend(lev2_1_nodes)
-        nodes.extend(lev3_0_0_nodes)
-        nodes.extend(lev3_1_0_nodes)
-        nodes.extend(lev3_1_1_nodes)
-        nodes.extend(lev3_1_2_nodes)
+        nodes = [x1_nodes]
+        nodes.extend(x2_nodes) 
+        nodes.extend(x3_0_nodes) 
+        nodes.extend(x3_1_nodes)
+        nodes.extend(x4_0_0_nodes)
+        nodes.extend(x4_1_0_nodes)
+        nodes.extend(x4_1_1_nodes)
+        nodes.extend(x4_1_2_nodes)
         level_names = 'IDX_X1', 'IDX_X2', 'IDX_X3', 'IDX_X4', 
         tree = shared.LengthTree(nodes, level_names)
         expected_lengths = [2,

@@ -92,6 +92,13 @@ class LengthTree:
     """
 
     def __init__(self, nodes: List[LenghtNode], level_names: List[str]):
+        """A data structure that allows manipulations of connected 
+        LengthNodes 
+
+        Args:
+            nodes (List[LenghtNode]): Connected length nodes
+            level_names (List[str]): Name of the levels specified on the nodes
+        """
         self.nlevels = len(level_names)
         self.level_names = level_names
 
@@ -133,14 +140,23 @@ class LengthTree:
         return obj
 
 
-    def fix_idx_at_level(self, idx, level_idx):
+    def fix_idx_at_level(self, idx_value: int, level_idx: int):
+        """Fix the nodes at level_idx to the value idx
+
+        Args:
+            idx_value (int): Index value to be set.  
+            level_idx (int): Level index
+
+        Raises:
+            HubitIndexError: Raise of the specified idx_value cannot be provided 
+        """
         nodes_to_be_deleted = []
         for node in self.nodes_for_level[level_idx]:
             # Keep child corresponding to idx  remove the rest
             idx_others = list(range(node.nchildren()))
-            if idx in idx_others:
+            if idx_value in idx_others:
                 # idx can be provided
-                idx_others.remove(idx)
+                idx_others.remove(idx_value)
                 for idx_other in reversed(idx_others):
                     node.pop_child_for_idx(idx_other)
             else:
@@ -150,15 +166,7 @@ class LengthTree:
             try:
                 node.remove()
             except HubitIndexError:
-                raise HubitIndexError(f'Cannot find index {idx} for index ID {self.level_names[level_idx]}')
-
-
-    def add_node(self, node: LenghtNode, idx_level: int):
-        self.nodes_for_level[idx_level].append(node)
-
-
-    def remove_node(self, node: LenghtNode, idx_level: int):
-        self.nodes_for_level[idx_level].remove(node)
+                raise HubitIndexError(f'Cannot find index {idx_value} for index ID {self.level_names[level_idx]}')
 
 
     def to_list(self):
@@ -199,8 +207,8 @@ class LengthTree:
             connecting_paths (List[str]): Sequence of index identification strings between index IDs
             data (Dict): Input data 
             nodes (List[LenghtNode], optional): Cummulative list of nodes. Defaults to None.
-            paths_previous (List, optional): Hubit internal paths 
-            found in previous level of recusion with explicit indeices. Defaults to None.
+            paths_previous (List, optional): Hubit internal paths found in 
+            previous level of recusion with explicit indeices. Defaults to None.
             parent (LenghtNode, optional): Parent node
 
         Returns:
@@ -253,8 +261,9 @@ class LengthTree:
             input_data (Dict): Input data
 
         Returns:
-            Any: None if no index IDs found in 'path' else LengthTree 
-            and list of all 'expanded' paths
+            Tuple: Element 0 is None if no index IDs found in 'path' 
+            else a LengthTree. Element 1 is a list of all paths from 
+            the 'expansion'.
         """
         level_names = idxids_from_path(path)
         clean_level_names = [idxid.split('@')[1] if '@' in idxid 

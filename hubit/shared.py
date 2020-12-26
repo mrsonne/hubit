@@ -35,7 +35,9 @@ class LengthNode:
         # Assume top level (children = None)
         self.parent = None
         self.tree = None
-
+        
+        # Stores index in parent's list of children
+        self.index = None 
 
     def nchildren(self) -> int:
         return len(self.children)
@@ -43,9 +45,10 @@ class LengthNode:
 
     def set_children(self, children: List[LengthNode]):
         self.children = list(children)
-        for child in self.children:
+        for idx, child in enumerate(self.children):
             child.parent = self
             child.level = self.level + 1
+            child.index = idx
 
 
     def remove(self):
@@ -300,24 +303,26 @@ class LengthTree:
         # Expand the path (and do some pruning)
         paths = [path]
 
-        # TODO: rewrite as no not use the list version of the tree object
-        as_list = self.to_list()
         for idx_level, level_name in enumerate(self.level_names):
-            lengths = as_list[idx_level]
+            nodes = self.nodes_for_level[idx_level]
             paths_current_level = []
-            for path, length in zip(paths, list(traverse(lengths))):
-
-                paths_current_level.extend([path.replace(f':@{level_name}', str(idx)) 
-                                        for idx in range(length)])
+            for path, node in zip(paths, nodes):
+                paths_current_level.extend([path.replace(f':@{level_name}', str(child.index if child is not None else idx)) 
+                                            for idx, child in enumerate(node.children)])
 
             paths = paths_current_level
 
+        # TODO: rewrite as no not use the list version of the tree object
+        as_list = self.to_list()
         for sizes in reversed(as_list):
             try:
                 if len(sizes) < 1: continue
             except TypeError:
                 # not a list so not need to split
                 continue 
+
+            # Don't add a level if all have only one child 
+            if all([size == 1 for size in sizes]): continue
 
             paths = split_items(paths, list(traverse(sizes)))
 

@@ -19,7 +19,7 @@ class HubitIndexError(HubitError):
     pass
 
 
-class LenghtNode:
+class LengthNode:
     def __init__(self, nchildren: int):
         """A node in the length tree i.e. a generalized 
         shape for non-rectagular data.
@@ -41,7 +41,7 @@ class LenghtNode:
         return len(self.children)
 
 
-    def set_children(self, children: List[LenghtNode]):
+    def set_children(self, children: List[LengthNode]):
         self.children = list(children)
         for child in self.children:
             child.parent = self
@@ -91,12 +91,12 @@ class LengthTree:
     data. 
     """
 
-    def __init__(self, nodes: List[LenghtNode], level_names: List[str]):
+    def __init__(self, nodes: List[LengthNode], level_names: List[str]):
         """A data structure that allows manipulations of connected 
         LengthNodes 
 
         Args:
-            nodes (List[LenghtNode]): Connected length nodes
+            nodes (List[LengthNode]): Connected length nodes
             level_names (List[str]): Name of the levels specified on the nodes
         """
         self.nlevels = len(level_names)
@@ -200,16 +200,16 @@ class LengthTree:
                              data: Dict,
                              nodes=None,
                              paths_previous=None,
-                             parent: LenghtNode=None) -> Tuple:
+                             parent: LengthNode=None) -> Tuple:
         """Lengths 
 
         Args:
             connecting_paths (List[str]): Sequence of index identification strings between index IDs
             data (Dict): Input data 
-            nodes (List[LenghtNode], optional): Cummulative list of nodes. Defaults to None.
+            nodes (List[LengthNode], optional): Cummulative list of nodes. Defaults to None.
             paths_previous (List, optional): Hubit internal paths found in 
             previous level of recusion with explicit indeices. Defaults to None.
-            parent (LenghtNode, optional): Parent node
+            parent (LengthNode, optional): Parent node
 
         Returns:
             Tuple: Two-tuple list of nodes, paths_previous
@@ -219,7 +219,7 @@ class LengthTree:
         nodes = nodes or []
 
         # Get node list for paths prepared at the previous recusion level
-        child_nodes = [ LenghtNode(len( get_from_datadict(data, path.split(sep))))
+        child_nodes = [ LengthNode(len( get_from_datadict(data, path.split(sep))))
                                for path in paths_previous ]
 
         if parent is not None:

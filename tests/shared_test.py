@@ -228,15 +228,15 @@ class TestTree(unittest.TestCase):
         #            ['IDX_LAY', [3, 4]],
         #            ['IDX_POS', [[1, 3, 2], [5, 1, 2, 4]]]] 
 
-        seg_nodes = shared.LenghtNode(2)
-        lay_nodes = shared.LenghtNode(3), shared.LenghtNode(4)
-        pos_lay0_nodes = (shared.LenghtNode(1),
-                          shared.LenghtNode(3),
-                          shared.LenghtNode(2))
-        pos_lay1_nodes = (shared.LenghtNode(5),
-                          shared.LenghtNode(1),
-                          shared.LenghtNode(2),
-                          shared.LenghtNode(4))
+        seg_nodes = shared.LengthNode(2)
+        lay_nodes = shared.LengthNode(3), shared.LengthNode(4)
+        pos_lay0_nodes = (shared.LengthNode(1),
+                          shared.LengthNode(3),
+                          shared.LengthNode(2))
+        pos_lay1_nodes = (shared.LengthNode(5),
+                          shared.LengthNode(1),
+                          shared.LengthNode(2),
+                          shared.LengthNode(4))
 
         seg_nodes.set_children(lay_nodes)
         lay_nodes[0].set_children(pos_lay0_nodes)
@@ -423,17 +423,17 @@ class TestTree(unittest.TestCase):
     def test_7(self):
         """4-level tree
         """
-        x1_nodes = shared.LenghtNode(2)
-        x2_nodes = shared.LenghtNode(1), shared.LenghtNode(3)
-        x3_0_nodes = [shared.LenghtNode(2)]
-        x3_1_nodes = shared.LenghtNode(1), shared.LenghtNode(2), shared.LenghtNode(4)
-        x4_0_0_nodes = shared.LenghtNode(1), shared.LenghtNode(3)
-        x4_1_0_nodes = [shared.LenghtNode(1)]
-        x4_1_1_nodes = shared.LenghtNode(2), shared.LenghtNode(2) 
-        x4_1_2_nodes = (shared.LenghtNode(1),
-                        shared.LenghtNode(1),
-                        shared.LenghtNode(1),
-                        shared.LenghtNode(2))
+        x1_nodes = shared.LengthNode(2)
+        x2_nodes = shared.LengthNode(1), shared.LengthNode(3)
+        x3_0_nodes = [shared.LengthNode(2)]
+        x3_1_nodes = shared.LengthNode(1), shared.LengthNode(2), shared.LengthNode(4)
+        x4_0_0_nodes = shared.LengthNode(1), shared.LengthNode(3)
+        x4_1_0_nodes = [shared.LengthNode(1)]
+        x4_1_1_nodes = shared.LengthNode(2), shared.LengthNode(2) 
+        x4_1_2_nodes = (shared.LengthNode(1),
+                        shared.LengthNode(1),
+                        shared.LengthNode(1),
+                        shared.LengthNode(2))
 
         x1_nodes.set_children(x2_nodes)
         x2_nodes[0].set_children(x3_0_nodes)
@@ -515,8 +515,8 @@ class TestTree(unittest.TestCase):
         """Expand to full template path
         """
         path = "segments.:@IDX_SEG.layers.:@IDX_LAY.test"
-        seg_node = shared.LenghtNode(2)
-        lay_nodes = shared.LenghtNode(2), shared.LenghtNode(2)
+        seg_node = shared.LengthNode(2)
+        lay_nodes = shared.LengthNode(2), shared.LengthNode(2)
         seg_node.set_children(lay_nodes)
 
         nodes = [seg_node]

@@ -183,7 +183,7 @@ class TestShared(unittest.TestCase):
         print('XXX', shared.setelemtents(paths, valuemap))
 
 
-class Test(unittest.TestCase):
+class TestPath(unittest.TestCase):
 
     def test_1(self):
         """Extract idxids from path
@@ -219,118 +219,6 @@ class Test(unittest.TestCase):
         # Last element is empty since there are no attribute after IDX_POS
         expected_internal_paths = ['segments', 'layers', 'test.positions', '']
         self.assertSequenceEqual( expected_internal_paths, internal_paths )
-
-
-    def test_expand_new(self):
-        path = "segments.:@IDX_SEG.layers.:@IDX_LAY.test.positions.:@IDX_POS"
-        template_path = path
-        lengths = (('IDX_SEG', 2),
-                   ('IDX_LAY', [3, 4]), 
-                   ('IDX_POS', [[1, 3, 2], [5, 1, 2, 4]])) 
-
-        # 1 + 3 + 2 values for segment 0 and 5 + 1 + 2 + 4 values for segment 1
-        # All all 18 elements
-        expected_paths = [
-                          [ # IDX_SEG element 0 has 3 IDX_LAY elements
-                           [ # IDX_LAY element 0 has 1 IDX_POS elements
-                               'segments.0.layers.0.test.positions.0'
-                           ],
-                           [ # IDX_LAY element 1 has 3 IDX_POS elements
-                               'segments.0.layers.1.test.positions.0',
-                               'segments.0.layers.1.test.positions.1' ,
-                               'segments.0.layers.1.test.positions.2'
-                           ],
-                           [ # IDX_LAY element 2 has 2 IDX_POS elements
-                               'segments.0.layers.2.test.positions.0',
-                               'segments.0.layers.2.test.positions.1',
-                           ]
-                          ],
-                          [ # IDX_SEG element 1 has 4 IDX_LAY elements
-                            [ # IDX_LAY element 0 has 5 IDX_POS elements
-                               'segments.1.layers.0.test.positions.0',
-                               'segments.1.layers.0.test.positions.1',
-                               'segments.1.layers.0.test.positions.2',
-                               'segments.1.layers.0.test.positions.3',
-                               'segments.1.layers.0.test.positions.4',
-                            ],
-                            [ # IDX_LAY element 0 has 1 IDX_POS elements
-                               'segments.1.layers.1.test.positions.0',
-                            ],
-                            [ # IDX_LAY element 0 has 2 IDX_POS elements
-                               'segments.1.layers.2.test.positions.0',
-                               'segments.1.layers.2.test.positions.1',
-                            ],
-                            [ # IDX_LAY element 0 has 4 IDX_POS elements
-                               'segments.1.layers.3.test.positions.0',
-                               'segments.1.layers.3.test.positions.1',
-                               'segments.1.layers.3.test.positions.2',
-                               'segments.1.layers.3.test.positions.3'
-                            ]
-                           ]
-                         ]
-        paths = shared.expand_new(path, template_path, lengths)
-        self.assertSequenceEqual( paths, expected_paths )
-
-
-
-    def test_expand_new1(self):
-        path = "segments.:@IDX_SEG.layers.:@IDX_LAY.test"
-        template_path = path
-        lengths = (('IDX_SEG', 2),
-                   ('IDX_LAY', [2, 2]), ) 
-
-        # 2  values for segment 0 and 2 values for segment 1
-        expected_paths = [['segments.0.layers.0.test',
-                          'segments.0.layers.1.test'],
-                          ['segments.1.layers.0.test',
-                          'segments.1.layers.1.test',]]
-        paths = shared.expand_new(path, template_path, lengths)
-        self.assertSequenceEqual( paths, expected_paths )
-
-
-    def test_expand_new2(self):
-        path = "segments.0.layers.:@IDX_LAY.test.positions.:@IDX_POS"
-        template_path = "segments.:@IDX_SEG.layers.:@IDX_LAY.test.positions.:@IDX_POS"
-        lengths = [['IDX_SEG', 2],
-                   ['IDX_LAY', [3, 4]],
-                   ['IDX_POS', [[1, 3, 2], [5, 1, 2, 4]]]] 
-
-        # 1 + 3 + 2 values for segment 0
-        expected_paths = [
-                           [
-                              'segments.0.layers.0.test.positions.0',
-                           ],
-                           [
-                             'segments.0.layers.1.test.positions.0',
-                             'segments.0.layers.1.test.positions.1',
-                             'segments.0.layers.1.test.positions.2',
-                           ],
-                           [
-                             'segments.0.layers.2.test.positions.0',
-                             'segments.0.layers.2.test.positions.1',
-                           ]
-                        ]
-        paths = shared.expand_new(path, template_path, lengths,)
-        # TODO: reduce size of _all_lengths['IDX_SEG'] to 1
-        print(paths)
-        self.assertSequenceEqual( paths, expected_paths )
-
-
-    def test_expand_new3(self):
-        path = "segments.0.layers.:@IDX_LAY.test.positions.1"
-        template_path = "segments.:@IDX_SEG.layers.:@IDX_LAY.test.positions.:@IDX_POS"
-        lengths = [['IDX_SEG', 2],
-                   ['IDX_LAY', [3, 4]], 
-                   ['IDX_POS', [[1, 3, 2], [5, 1, 2, 4]]]] 
-
-        # 1 + 3 + 2 values for segment 0
-        expected_paths = [
-                           'segments.0.layers.1.test.positions.1',
-                           'segments.0.layers.2.test.positions.1',
-                         ]
-        paths = shared.expand_new(path, template_path, lengths,)
-        print('RESULT', paths)
-        self.assertSequenceEqual( paths, expected_paths )
 
 
 class TestTree(unittest.TestCase):
@@ -563,6 +451,122 @@ class TestTree(unittest.TestCase):
                             [[[1, 3]], [[1], [2, 2], [1, 1, 1, 2]]]
                             ]
         self.assertListEqual( tree.to_list(), expected_lengths )
+
+
+    def test_expand_1(self):
+        """Expand to full template path
+        """
+        path = "segments.:@IDX_SEG.layers.:@IDX_LAY.test.positions.:@IDX_POS"
+
+        # 1 + 3 + 2 values for segment 0 and 5 + 1 + 2 + 4 values for segment 1
+        # All all 18 elements
+        expected_paths = [
+                          [ # IDX_SEG element 0 has 3 IDX_LAY elements
+                           [ # IDX_LAY element 0 has 1 IDX_POS elements
+                               'segments.0.layers.0.test.positions.0'
+                           ],
+                           [ # IDX_LAY element 1 has 3 IDX_POS elements
+                               'segments.0.layers.1.test.positions.0',
+                               'segments.0.layers.1.test.positions.1' ,
+                               'segments.0.layers.1.test.positions.2'
+                           ],
+                           [ # IDX_LAY element 2 has 2 IDX_POS elements
+                               'segments.0.layers.2.test.positions.0',
+                               'segments.0.layers.2.test.positions.1',
+                           ]
+                          ],
+                          [ # IDX_SEG element 1 has 4 IDX_LAY elements
+                            [ # IDX_LAY element 0 has 5 IDX_POS elements
+                               'segments.1.layers.0.test.positions.0',
+                               'segments.1.layers.0.test.positions.1',
+                               'segments.1.layers.0.test.positions.2',
+                               'segments.1.layers.0.test.positions.3',
+                               'segments.1.layers.0.test.positions.4',
+                            ],
+                            [ # IDX_LAY element 0 has 1 IDX_POS elements
+                               'segments.1.layers.1.test.positions.0',
+                            ],
+                            [ # IDX_LAY element 0 has 2 IDX_POS elements
+                               'segments.1.layers.2.test.positions.0',
+                               'segments.1.layers.2.test.positions.1',
+                            ],
+                            [ # IDX_LAY element 0 has 4 IDX_POS elements
+                               'segments.1.layers.3.test.positions.0',
+                               'segments.1.layers.3.test.positions.1',
+                               'segments.1.layers.3.test.positions.2',
+                               'segments.1.layers.3.test.positions.3'
+                            ]
+                           ]
+                         ]
+
+        paths = self.tree.expand_path(path)
+        self.assertSequenceEqual( paths, expected_paths )
+
+
+    def test_expand_2(self):
+        """Expand to full template path
+        """
+        path = "segments.:@IDX_SEG.layers.:@IDX_LAY.test"
+        seg_node = shared.LenghtNode(2)
+        lay_nodes = shared.LenghtNode(2), shared.LenghtNode(2)
+        seg_node.set_children(lay_nodes)
+
+        nodes = [seg_node]
+        nodes.extend(lay_nodes)
+        level_names = 'IDX_SEG', 'IDX_LAY'
+        tree = shared.LengthTree(nodes, level_names)
+        # 2  values for segment 0 and 2 values for segment 1
+        expected_paths = [['segments.0.layers.0.test',
+                          'segments.0.layers.1.test'],
+                          ['segments.1.layers.0.test',
+                          'segments.1.layers.1.test',]]
+
+        paths = tree.expand_path(path)
+        self.assertSequenceEqual( paths, expected_paths )
+
+
+    def test_expand_3(self):
+        """Prune tree before expanding. Two indices vary so 
+        expanded paths is 2D
+        """
+        path = "segments.0.layers.:@IDX_LAY.test.positions.:@IDX_POS"
+        template_path = "segments.:@IDX_SEG.layers.:@IDX_LAY.test.positions.:@IDX_POS"
+        self.tree.prune_from_path(path, template_path)
+        # 1 + 3 + 2 values for segment 0
+        expected_paths = [
+                           [
+                              'segments.0.layers.0.test.positions.0',
+                           ],
+                           [
+                             'segments.0.layers.1.test.positions.0',
+                             'segments.0.layers.1.test.positions.1',
+                             'segments.0.layers.1.test.positions.2',
+                           ],
+                           [
+                             'segments.0.layers.2.test.positions.0',
+                             'segments.0.layers.2.test.positions.1',
+                           ]
+                        ]
+        paths = self.tree.expand_path(path)
+        self.assertSequenceEqual( paths, expected_paths )
+
+
+    def test_expand_4(self):
+        """Prune tree before expanding. Ine index varies so 
+        expanded paths is 1D
+        """
+        path = "segments.0.layers.:@IDX_LAY.test.positions.1"
+        template_path = "segments.:@IDX_SEG.layers.:@IDX_LAY.test.positions.:@IDX_POS"
+        self.tree.prune_from_path(path, template_path)
+        print(self.tree)
+        # 1 + 3 + 2 values for segment 0
+        expected_paths = [
+                           'segments.0.layers.1.test.positions.1',
+                           'segments.0.layers.2.test.positions.1',
+                         ]
+        paths = self.tree.expand_path(path)
+        print('RESULT', paths)
+        self.assertSequenceEqual( paths, expected_paths )
 
 
 if __name__ == '__main__':

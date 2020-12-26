@@ -21,6 +21,13 @@ class HubitIndexError(HubitError):
 
 class LenghtNode:
     def __init__(self, nchildren: int):
+        """A node in the length tree i.e. a generalized 
+        shape for non-rectagular data.
+
+        Args:
+            nchildren (int): Number of children. Equivalent to the number of 
+            indices for the current node.
+        """
         self.level = 0
         # Assume bottom level (children = None)
         self.children = [None for _ in range(nchildren)]

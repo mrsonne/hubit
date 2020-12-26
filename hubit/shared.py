@@ -279,41 +279,40 @@ class LengthTree:
         return tree, paths
 
 
-    # def expand_path(self, path: str):
-    #     """Expand path with wildcard based 
+    def expand_path(self, path: str):
+        """Expand path with wildcard based on tree
 
-    #     Args:
-    #         path (str): Hubit internal path with wildcards
+        Args:
+            path (str): Hubit internal path with wildcards
 
-    #     Returns:
-    #         [List]: Paths arranged in the correct shape 
-    #     """
-    #     # Expand the path (and do some pruning)
-    #     paths = [path]
-    #     as_list = self.to_list()
-    #     for idx_level, level_name in enumerate(self.level_names):
-    #         lengths = as_list[idx_level]
-    #         paths_current_level = []
-    #         # did_break = False
-    #         for path, length in zip(paths, list(traverse(lengths))):
+        Returns:
+            [List]: Paths arranged in the shape defined by the tree 
+        """
+        # Expand the path (and do some pruning)
+        paths = [path]
 
-    #             paths_current_level.extend([path.replace(f':@{level_name}', str(idx)) 
-    #                                     for idx in range(length)])
+        # TODO: rewrite as no not use the list version of the tree object
+        as_list = self.to_list()
+        for idx_level, level_name in enumerate(self.level_names):
+            lengths = as_list[idx_level]
+            paths_current_level = []
+            for path, length in zip(paths, list(traverse(lengths))):
 
-    #         paths = paths_current_level
+                paths_current_level.extend([path.replace(f':@{level_name}', str(idx)) 
+                                        for idx in range(length)])
 
-    #     for sizes in reversed(as_list):
-    #         print('sizes 1', sizes)
-    #         try:
-    #             if len(sizes) < 1: continue
-    #         except TypeError:
-    #             # not a list so not need to split
-    #             continue 
+            paths = paths_current_level
 
-    #         print('sizes', sizes)
-    #         paths = split_items(paths, list(traverse(sizes)))
+        for sizes in reversed(as_list):
+            try:
+                if len(sizes) < 1: continue
+            except TypeError:
+                # not a list so not need to split
+                continue 
 
-    #     return paths
+            paths = split_items(paths, list(traverse(sizes)))
+
+        return paths
 
 
     def __eq__(self, other):

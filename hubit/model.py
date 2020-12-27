@@ -1,3 +1,4 @@
+from typing import Any
 import logging
 import importlib
 import os
@@ -868,9 +869,19 @@ class _QueryRunner:
         return func, version, components
 
 
-    def _worker_for_query(self, query_path, dryrun=False):
-        """
-        Creates instance of the worker class that can respond to the query
+    def _worker_for_query(self, query_path:str, dryrun: bool=False) -> Any:
+        """Creates instance of the worker class that can respond to the query
+
+        Args:
+            query_path (str): Explicit path
+            dryrun (bool, optional): Dryrun flag for the worker. Defaults to False.
+
+        Raises:
+            HubitModelQueryError: Multiple providers for the query
+            HubitModelQueryError: No providers for the query
+
+        Returns:
+            Any: _Worker or None
         """
 
         # Get all components that provide data for the query

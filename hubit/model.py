@@ -791,7 +791,7 @@ class _QueryRunner:
         self.worker_for_id = {}
         self.observers_for_query = {}
         
-        # For book keeping what has already been imported
+        # For book-keeping what has already been imported
         self._components = {}
 
 
@@ -806,12 +806,15 @@ class _QueryRunner:
         """
         Find names of components that can respond to the "query".
         """
+        # TODO: Next two lines should only be executed once in init (speed)
         itempairs = [(cmpdata['func_name'], bindings['path'])
                      for cmpdata in self.model.cfg 
                      for bindings in cmpdata["provides"]]
-        compnames, providerstrings = zip(*itempairs)
-        idxs = idxs_for_matches(querystring, providerstrings, self.model.ilocstr)
-        return [compnames[idx] for idx in idxs]
+        func_names, providerstrings = zip(*itempairs)
+        return [func_names[idx] 
+                for idx in idxs_for_matches(querystring,
+                                            providerstrings,
+                                            self.model.ilocstr)]
 
 
     @staticmethod
@@ -865,38 +868,46 @@ class _QueryRunner:
         return func, version, components
 
 
-    def _worker_for_query(self, query, dryrun=False):
+    def _worker_for_query(self, query_path, dryrun=False):
         """
         Creates instance of the worker class that can respond to the query
         """
 
         # Get all components that provide data for the query
-        components = self._components_for_query(query)
+        func_names = self._components_for_query(query_path)
 
-        if len(components) > 1:
+        if len(func_names) > 1:
             fstr = "Fatal error. Multiple providers for query '{}': {}"
-            msg = fstr.format(query, [wcls.name for wcls in components])
+            msg = fstr.format(query_path, [wcls.name for wcls in func_names])
             raise HubitModelQueryError(msg)
 
-        if len(components) == 0:
-            msg = f"Fatal error. No provider for query '{query}'."
+        if len(func_names) == 0:
+            msg = f"Fatal error. No provider for query path'{query_path}'."
             raise HubitModelQueryError(msg)
 
 
         # Get the provider function for the query
-        cname = components[0]
-        cfgdata = self.model.component_for_name[cname]
+        func_name = func_names[0]
+        component_data = self.model.component_for_name[func_name]
         (func,
         version,
         self._components) = _QueryRunner._get_func(self.model.base_path,
-                                                   cname,
-                                                   cfgdata,
+                                                   func_name,
+                                                   component_data,
                                                    self._components)
 
         # Create and return worker
         try:
-            return _Worker(self, cname, cfgdata, self.model.inputdata, query, func, version, 
-                           self.model.ilocstr, multiprocess=self.mpworkers, dryrun=dryrun)
+            return _Worker(self,
+                           func_name,
+                           component_data,
+                           self.model.inputdata,
+                           query_path,
+                           func,
+                           version, 
+                           self.model.ilocstr,
+                           multiprocess=self.mpworkers,
+                           dryrun=dryrun)
         except RuntimeError:
             return None
 

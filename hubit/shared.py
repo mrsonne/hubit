@@ -291,14 +291,17 @@ class LengthTree:
         return tree, paths
 
 
-    def expand_path(self, path: str):
+    def expand_path(self, path: str, flat: bool=False) -> List[str]:
         """Expand path with wildcard based on tree
 
         Args:
             path (str): Hubit internal path with wildcards
+            flat (bool): Return expansion result as a flat list.
 
         Returns:
-            [List]: Paths arranged in the shape defined by the tree 
+            [List]: Paths from expansion. Arranged in the shape 
+            defined by the tree if flat = False. Otherwise a 
+            flat list.
         """
         # Expand the path (and do some pruning)
         paths = [path]
@@ -311,6 +314,8 @@ class LengthTree:
                                             for idx, child in enumerate(node.children)])
 
             paths = paths_current_level
+        
+        if flat: return paths
 
         # TODO: rewrite as no not use the list version of the tree object
         as_list = self.to_list()

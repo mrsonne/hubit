@@ -56,32 +56,33 @@ def query(hmodel, render=True, mpworkers=False):
     #     print(err)
 
     # Make the queries
-    querystrings = ["segments.:.layers.:.outer_temperature"]
-    # querystrings = ["segments.0.layers.:.outer_temperature"]
-    # querystrings = ["segments.0.layers.0.outer_temperature"]  
-    # querystrings = ["segments.:.layers.1.k_therm"] 
-    # querystrings = ["segments.0.layers.0.k_therm"] 
-    # querystrings = ["segments.0.layers.:.k_therm"]  
-    # querystrings = ["segments.:.layers.:.k_therm"] 
+    # queries = ["segments[:].layers[:].outer_temperature"] # not ok
+    # queries = ["segments[0].layers[:].outer_temperature"] # not ok
+    # queries = ["segments[0].layers[0].outer_temperature"] # ok  
+    # queries = ["segments[:].layers[1].k_therm"] # not ok
+    # queries = ["segments[0].layers[0].k_therm"] # ok
+    queries = ["segments[0].layers[:].k_therm"] # not ok. response only contains 0,0 result
+    # queries = ["segments[:].layers[0].k_therm"] # almost ok except compress   
+    # queries = ["segments[:].layers[:].k_therm"] # not ok
 
     # Render the query
     if render:
-        hmodel.render(querystrings)
+        hmodel.render(queries)
 
-    response = hmodel.get(querystrings,
+    response = hmodel.get(queries,
                           mpworkers=mpworkers)
     print(response)
 
 
 def query_with_precomputed_results(hmodel, mpworkers=False):
-    querystrings = ["segments.:.layers.:.outer_temperature"]
+    queries = ["segments.:.layers.:.outer_temperature"]
 
     # First query
-    response = hmodel.get(querystrings,
+    response = hmodel.get(queries,
                           mpworkers=mpworkers)
 
     # Same query and reuse stored results
-    response = hmodel.get(querystrings,
+    response = hmodel.get(queries,
                           mpworkers=mpworkers,
                           reuse_results=True)
 
@@ -125,7 +126,7 @@ def make_sweep(hmodel, nproc=4):
         hmodel (HubitModel): Hubit model to be used
         nproc (int, optional): Number of processes
     """
-    querystrings = ["segments.0.layers.:.outer_temperature"] 
+    queries = ["segments.0.layers.:.outer_temperature"] 
 
     # For segment 0 sweep over multiple inputs created as the Cartesian product of the input perturbations 
     input_values_for_path = {"segments.0.layers.0.material": ('brick', 'concrete'),
@@ -133,7 +134,7 @@ def make_sweep(hmodel, nproc=4):
                             }
 
 
-    responses, inps, _ = hmodel.get_many(querystrings,
+    responses, inps, _ = hmodel.get_many(queries,
                                          input_values_for_path,
                                          nproc=nproc)
 

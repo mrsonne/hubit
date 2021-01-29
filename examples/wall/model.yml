@@ -17,7 +17,7 @@
   # for one layer in one segment 
   provides : 
     - name: k_therm # internal name in the compoment
-      path: segments._IDX.layers._IDX.k_therm # path in the shared data model
+      path: segments[IDX_SEG].layers[IDX_LAY].k_therm # path in the shared data model
 
   consumes:
     # To compute the thermal conductivities the material 
@@ -26,30 +26,30 @@
     # segment
     input:
       - name: material
-        path: segments._IDX.layers._IDX.material
+        path: segments[IDX_SEG].layers[IDX_LAY].material
 
   
 - # Component that calculates the thermal profile
   path: ./components/thermal_profile.py
-  # specify module in site packages
+  # if the module were in site packages use the "module" attribute  
   # module: hubit_components.thermal_profile
 
   func_name: thermal_prof
 
   provides:
     - name: outer_temperature_all_layers
-      path: segments._IDX.layers.:.outer_temperature
+      path: segments[IDX_SEG].layers[:@IDX_LAY].outer_temperature
     - name: heat_flux
-      path: segments._IDX.heat_flux
+      path: segments[IDX_SEG].heat_flux
   
   consumes:
     input: 
       - name: temp_in
-        path: segments._IDX.inside.temperature
+        path: segments[IDX_SEG].inside.temperature
       - name: temp_out
-        path: segments._IDX.outside.temperature
+        path: segments[IDX_SEG].outside.temperature
       - name: thicknesses
-        path: segments._IDX.layers.:.thickness
+        path: segments[IDX_SEG].layers[:@IDX_LAY].thickness
     results: 
       - name: ks_walls 
-        path: segments._IDX.layers.:.k_therm
+        path: segments[IDX_SEG].layers[:@IDX_LAY].k_therm

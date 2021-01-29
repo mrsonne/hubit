@@ -40,17 +40,19 @@ class TestShared(unittest.TestCase):
                            "segs.1.length" : 14,
                            "weight":567}
 
-        self.ilocstr = "_ILOC"
-        self.providerstring = "segs._ILOC.walls._ILOC.temps"
-        self.querystring = "segs.42.walls.3.temps"
+        self.providerstring = "segs[IDXSEG].walls[IDXWALL].temps"
+        self.querystring = "segs[42].walls[3].temps"
+        self.idxids = shared.idxids_from_path(self.providerstring) 
 
 
     def test_get_indices(self):
         """Test that indices from query string are extracted correctly
         """
-        idxs = shared.get_iloc_indices(self.querystring,
-                                       self.providerstring,
-                                       self.ilocstr)
+        mpath = shared.convert_to_internal_path(self.providerstring)
+        qpath = shared.convert_to_internal_path(self.querystring)
+        idxs = shared.get_iloc_indices(qpath,
+                                       mpath,
+                                       self.idxids)
         idxs_expected = ('42', '3')
         self.assertSequenceEqual(idxs, idxs_expected)
 
@@ -61,58 +63,75 @@ class TestShared(unittest.TestCase):
         """
         providerstrings = ('price',
                            self.providerstring,
-                           "segs._ILOC.walls.thicknesses",
+                           "segs[IDXSEG].walls.thicknesses",
                            self.querystring,
-                           "segs._ILOC.walls._ILOC.thicknesses",
-                           "segs._ILOC.walls._ILOC", 
+                           "segs[IDXSEG].walls[IDXWALL].thicknesses",
+                           "segs[IDXSEG].walls[IDXWALL]", 
                            )
 
         idxs_match_expected = (1, 3)
         idxs_match = shared.idxs_for_matches(self.querystring,
-                                             providerstrings,
-                                             self.ilocstr)
-
+                                             providerstrings)
         self.assertSequenceEqual(idxs_match, idxs_match_expected)
 
 
     def test_set_ilocs(self):
         """Insert real numbers where the ILOC placeholder is found
         """
-        expected_pathstr = "segs.34.walls.3.temps" 
-        path = shared.set_ilocs_on_path("segs._ILOC.walls._ILOC.temps",
-                                        ("34", "3"),
-                                        self.ilocstr)
+        expected_pathstr = "segs[34].walls[3].temps" 
+        path = shared.set_ilocs_on_path("segs[IDXSEG].walls[IDXWALL].temps",
+                                        ("34", "3"))
         self.assertEqual(path, expected_pathstr)
 
 
-    def test_expand_query(self):
-        """Expand a query that uses : to its constituents
+    def test_set_ilocs_with_wildcard(self):
+        """Insert real numbers where the ILOC placeholder is found
         """
-        # querystring = "segs[:].walls[:].temps"
-        querystring = "segs.:.walls.:.temps"
-        queries, maxilocs = shared.expand_query(querystring,
-                                                self.flat_input)
-
-        expected_maxilocs = [1, 2]
-        expected_length = 6 # math.prod(expected_maxilocs) # TODO: py3.8
-        length = len(queries)
-        self.assertTrue( maxilocs == expected_maxilocs and
-                         length == expected_length)
+        expected_pathstr = "segs[34].walls[:@IDXWALL].temps" 
+        path = shared.set_ilocs_on_path("segs[IDXSEG].walls[:@IDXWALL].temps",
+                                        ("34", "3"))
+        self.assertEqual(path, expected_pathstr)
 
 
-    def test_expand_query2(self):
+    @staticmethod
+    def get_tree():
+        seg_node = shared.LengthNode(2)
+        wall_nodes = shared.LengthNode(3), shared.LengthNode(3)
+        seg_node.set_children(wall_nodes)
+        nodes = [seg_node]
+        nodes.extend(wall_nodes)
+        tree = shared.LengthTree(nodes, level_names=['IDXSEG', 'IDXWALL'])
+        return tree
+
+
+    def test_expand_mpath(self):
+        """Expand a query that uses : to its constituents
+
+        TODO: move to Tree Test or delete if not longer neede.
+        """
+        tree = TestShared.get_tree()
+        query= "segs.:@IDXSEG.walls.:@IDXWALL.temps"
+        paths = tree.expand_path(query, flat=True)
+        expected_length = sum( [node.nchildren() 
+                                for node in tree.nodes_for_level[-1]]
+                             )
+        length = len(paths)
+        self.assertTrue( length == expected_length )
+
+
+    def test_expand_mpath2(self):
         """Expand a query that does not use : to its constituents
         i.e. itself
+
+        TODO: move to Tree Test or delete if not longer neede.
         """
-        # querystring = "segs[0].walls[0].kval"
-        querystring = "segs.0.walls.0.kval"
-        queries, maxilocs = shared.expand_query(querystring,
-                                                self.flat_input)
-        expected_maxilocs = []
+        tree = TestShared.get_tree()
+        model_path= "segs.:@IDXSEG.walls.:@IDXWALL.temps"
+        query = "segs.0.walls.0.kval"
+        paths = tree.prune_from_path(query, model_path).expand_path(query, flat=True)
         expected_length = 1 
-        length = len(queries)
-        self.assertTrue( maxilocs == expected_maxilocs and
-                         length == expected_length)
+        length = len(paths)
+        self.assertTrue( length == expected_length )
 
 
     def test_query_all(self):
@@ -149,21 +168,21 @@ class TestShared(unittest.TestCase):
         self.assertTrue( len( list( shared.traverse(l0) ) ) == 7 )
 
 
-    def test_shape(self):
-        # Infer the shape of the provision
-        cfg, inputdata = get_data()
-        path = cfg["provides"][0]["path"]
-        shape = shared.path_shape(path, inputdata, ".", ":")
-        self.assertSequenceEqual( shape, [2, 2] )
+    # def test_shape(self):
+    #     # Infer the shape of the provision
+    #     cfg, inputdata = get_data()
+    #     path = cfg["provides"][0]["path"]
+    #     shape = shared.path_shape(path, inputdata, ".", ":")
+    #     self.assertSequenceEqual( shape, [2, 2] )
 
 
-    def test_expand(self):
-        # Expand provision into its constituents
-        cfg, inputdata = get_data()
-        path = cfg["provides"][0]["path"]
-        shape = shared.path_shape(path, inputdata, ".", ":")
-        paths = shared.path_expand(path, shape, ":")      
-        self.assertTrue( len( list(shared.traverse(paths)) ) == shape[0]*shape[1] )
+    # def test_expand(self):
+    #     # Expand provision into its constituents
+    #     cfg, inputdata = get_data()
+    #     path = cfg["provides"][0]["path"]
+    #     shape = shared.path_shape(path, inputdata, ".", ":")
+    #     paths = shared.path_expand(path, shape, ":")      
+    #     self.assertTrue( len( list(shared.traverse(paths)) ) == shape[0]*shape[1] )
 
 
     def test_x(self):
@@ -299,7 +318,7 @@ class TestTree(unittest.TestCase):
         # path = "segments[:@IDX_SEG].layers[:@IDX_LAY].test.positions[:@IDX_POS]"
         path = "segments[IDX_SEG].layers[:@IDX_LAY].test.positions[:@IDX_POS]"
 
-        tree, paths = shared.LengthTree.from_data(path, input_data)
+        tree = shared.LengthTree.from_data(path, input_data)
         tree_as_list = tree.to_list()
         # print(tree_as_list)
         # TODO test paths in this case
@@ -315,9 +334,8 @@ class TestTree(unittest.TestCase):
         """No lengths since there are no index IDs in path 
         """
         path = "segments.layers.positions"
-        expected_tree = None
-        calculated_tree, _ = shared.LengthTree.from_data(path, {})
-        self.assertEqual( expected_tree, calculated_tree )
+        calculated_tree = shared.LengthTree.from_data(path, {})
+        self.assertIsInstance( calculated_tree, shared.DummyLengthTree )
 
 
     def test_0(self):
@@ -458,7 +476,7 @@ class TestTree(unittest.TestCase):
         self.assertListEqual( tree.to_list(), expected_lengths )
 
 
-    def test_expand_1(self):
+    def test_expand_mpath1(self):
         """Expand to full template path
         """
         path = "segments.:@IDX_SEG.layers.:@IDX_LAY.test.positions.:@IDX_POS"
@@ -508,9 +526,10 @@ class TestTree(unittest.TestCase):
         self.assertSequenceEqual( paths, expected_paths )
 
 
-    def test_expand_2(self):
+    def test_expand_mpath2(self):
         """Expand to full template path
         """
+        # path = "segments[:@IDX_SEG].layers[:@IDX_LAY].test"
         path = "segments.:@IDX_SEG.layers.:@IDX_LAY.test"
         seg_node = shared.LengthNode(2)
         lay_nodes = shared.LengthNode(2), shared.LengthNode(2)
@@ -527,10 +546,11 @@ class TestTree(unittest.TestCase):
                           'segments.1.layers.1.test',]]
 
         paths = tree.expand_path(path)
+        print(paths)
         self.assertSequenceEqual( paths, expected_paths )
 
 
-    def test_expand_3(self):
+    def test_expand_mpath3(self):
         """Prune tree before expanding. Two indices vary so 
         expanded paths is 2D
         """
@@ -556,7 +576,7 @@ class TestTree(unittest.TestCase):
         self.assertSequenceEqual( paths, expected_paths )
 
 
-    def test_expand_4(self):
+    def test_expand_mpath4(self):
         """Prune tree before expanding. Ine index varies so 
         expanded paths is 1D
         """
@@ -570,6 +590,62 @@ class TestTree(unittest.TestCase):
                          ]
         paths = self.tree.expand_path(path)
         self.assertSequenceEqual( paths, expected_paths )
+
+
+    def test_expand_mpath5(self):
+        """Expand subscription path with two wildcards gives a nested list
+        """
+        input_data =  {'items': [{'attr': {'items': [{'path': 2}, {'path': 1}]}}, 
+                                {'attr': {'items': [{'path': 3}, {'path': 4}]}}], 
+                      'some_number': 33}
+        path_consumed_for_name = {'attrs': 'items[:@IDX1].attr.items[:@IDX2].path',
+                                  'number': 'some_number'}
+        expected_result  = {'attrs': [['items.0.attr.items.0.path',
+                                       'items.0.attr.items.1.path'],
+                                      ['items.1.attr.items.0.path',
+                                       'items.1.attr.items.1.path']], 
+                            'number': ['some_number']}
+        tree_for_name = {name: shared.LengthTree.from_data(path, input_data)
+                         for name, path in path_consumed_for_name.items()}
+
+        for name, path in path_consumed_for_name.items():
+            path_consumed_for_name[name] = shared.convert_to_internal_path(path)
+
+        result = {name: tree.expand_path(path_consumed_for_name[name],
+                                         as_internal_path=True)
+                  for name, tree in tree_for_name.items()}
+
+        self.assertDictEqual(expected_result, result)
+
+
+    def test_expand_mpath6(self):
+        """As test 8 but the consumed path only subscribes to element 0 
+        of the (leftmost) items. Thus, the expasion leads to a flat list 
+        corresponding to the (rightmost) items
+        """
+        input_data =  {'items_a': [{'attr': {'items': [{'path': 2}, {'path': 1}]}}, 
+                                 {'attr': {'items': [{'path': 3}, {'path': 4}]}}],
+                       'some_number': 33}
+
+        path_consumed_for_name = {'attrs': 'items_a[1@IDX1].attr.items[:@IDX2].path',
+                                  'number': 'some_number'}
+
+        expected_result  = {'attrs': ['items_a.1.attr.items.0.path',
+                                      'items_a.1.attr.items.1.path'], 
+                            'number': ['some_number']}
+
+        tree_for_name = {name: shared.LengthTree.from_data(path, input_data)
+                         for name, path in path_consumed_for_name.items()}
+
+        for name, path in path_consumed_for_name.items():
+            path_consumed_for_name[name] = shared.convert_to_internal_path(path)
+
+        result = {name: tree.expand_path(path_consumed_for_name[name],
+                                         as_internal_path=True)
+                  for name, tree in tree_for_name.items()}
+
+
+        self.assertDictEqual(expected_result, result)
 
 
 if __name__ == '__main__':

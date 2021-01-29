@@ -2,15 +2,17 @@ import logging
 import multiprocessing
 import copy
 from typing import Dict
-from .shared import (idxs_for_matches,
+from .shared import (idxids_from_path, idxs_for_matches,
+                     get_idx_context,
+                     check_path_match,
+                     clean_idxids_from_path,
                      get_iloc_indices,
                      set_ilocs_on_path,
                      traverse,
-                     list_from_shape,
                      reshape,
-                     path_shape,
-                     path_expand,
+                     convert_to_internal_path,
                      HubitError)
+from hubit import shared
 
 class HubitWorkerError(HubitError):
     pass
@@ -19,41 +21,43 @@ class HubitWorkerError(HubitError):
 class _Worker:
     """
     """
+    @staticmethod
+    def bindings_from_idxs(bindings, idxval_for_idxid):
+        """
+        replace index IDs with the actual indices
+        """
+        if len(idxval_for_idxid) == 0:
+            # No index values so just convert to internal path
+            return {binding['name']: convert_to_internal_path(binding['path'])
+                    for binding in bindings}
+            # return bindings
+        else:
+            return {binding['name']: 
+                    convert_to_internal_path(
+                        set_ilocs_on_path(binding['path'], 
+                                        [idxval_for_idxid[idxid] 
+                                        for idxid in clean_idxids_from_path(binding['path'])],
+                                        )) 
+                    for binding in bindings}
+            # return {binding['name']: 
+            #             set_ilocs_on_path(binding['path'], 
+            #                             [idxval_for_idxid[idxid] 
+            #                             for idxid in clean_idxids_from_path(binding['path'])],
+            #                             ) 
+            #         for binding in bindings}
 
-    # @staticmethod
-    # def get_lengths(pstr, inputdata, sepstr, wcilocstr, idxold=0):
-    #     """
-    #     No homogeneity assumption
-    #     """
-    #     if pstr.count(wcilocstr) == 0: 
-    #         return {}
 
-    #     pcmps = [int(pcmp) if pcmp.isdigit() else pcmp for pcmp in pstr.split(sepstr)]
-
-    #     idx = pcmps[idxold:].index(wcilocstr) 
-    #     cidx = idx + idxold
-    #     m = len(get_from_datadict(inputdata, pcmps[:cidx]))
-    #     _id = sepstr.join([str(cmp) for cmp in pcmps[:cidx]])
-    #     counts = {_id : m}
-
-    #     for _m in range(m):
-    #         pcmps[idx] = _m
-    #         _pstr = sepstr.join([str(cmp) for cmp in pcmps])
-    #         counts.update(Worker.get_lengths(_pstr, inputdata, sepstr, wcilocstr, idxold=cidx-1))
-
-    #     return counts
 
 
     @staticmethod
-    def get_bindings(bindings, query_path, ilocstr, query_indices=None):
+    def get_bindings(bindings, query_path):
         """Make symbolic binding specific i.e. replace index IDs 
         with actual indices based on query
 
         Args:
             bindings (List[str]): List of bindings 
             query_path (str): Query path
-            ilocstr (str): Index identification string
-            query_indices (List[int], optional): TODO [description]. Defaults to None.
+            idxids: TODO
 
         Raises:
             HubitWorkerError: Raised if query does not match any of the bindings
@@ -62,67 +66,54 @@ class _Worker:
             [type]: TODO [description]
         """
         binding_paths = [binding['path'] for binding in bindings]
+        # Get indices in binding_paths list that match the query
+        idxs = idxs_for_matches(query_path, binding_paths, accept_idx_wildcard=False)
+        if len(idxs) == 0:
+            fstr = 'Query "{}" did not match attributes provided by worker ({}).'
+            raise HubitWorkerError(fstr.format(query_path,
+                                                ", ".join(binding_paths)))
 
-        if query_indices is None:
-            # Get indices in binding_paths list that match the query
-            idxs = idxs_for_matches(query_path, binding_paths, ilocstr)
-            if len(idxs) == 0:
-                fstr = 'Query "{}" did not match attributes provided by worker ({}).'
-                raise HubitWorkerError(fstr.format(query_path,
-                                                   ", ".join(binding_paths)))
+        
+        # Get the location indices from query. Using the first binding path that 
+        # matched the query suffice
+        idxval_for_idxid = {}
+        for binding in bindings:
+            if check_path_match(query_path, binding['path'], accept_idx_wildcard=False):
+                idxids = clean_idxids_from_path( binding['path'] )
+                idxs = get_iloc_indices(query_path,
+                                        convert_to_internal_path(binding['path']),
+                                        idxids)
+                idxval_for_idxid.update( dict( zip(idxids, idxs)) )
+                break
 
-            # Get the location indices from query. Using the first binding path that 
-            # matched the query suffice
-            _indices_from_query = get_iloc_indices(query_path,
-                                                   binding_paths[idxs[0]],
-                                                   ilocstr)
-        else:
-            _indices_from_query = query_indices
+        path_for_name = _Worker.bindings_from_idxs(bindings, idxval_for_idxid)
 
-        # replace ILOCSTR with the actual indices
-        keyvalpairs = [(binding['name'], set_ilocs_on_path(binding['path'],
-                                                           _indices_from_query,
-                                                           ilocstr)) 
-                        for binding in bindings]
-
-        return dict(keyvalpairs), _indices_from_query
+        return path_for_name, idxval_for_idxid
 
 
     @staticmethod
-    def expand(path_for_name, inputdata):
+    def expand(path_for_name, tree_for_idxcontext, model_path_for_name):
         paths_for_name = {}
-        shape_for_name = {}
         for name, path in path_for_name.items():
-            if not ":" in path:
-                paths_for_name[name] = [path]
-                shape_for_name[name] = [1]
-                continue
- 
-            shape_for_name[name] = path_shape(path, inputdata, ".", ":")
-            paths_for_name[name] = path_expand(path, shape_for_name[name], ":")
+            tree = tree_for_idxcontext[ get_idx_context( model_path_for_name[name] ) ]
+            pruned_tree = tree.prune_from_path(convert_to_internal_path( path ),
+                                               convert_to_internal_path( model_path_for_name[name] ),
+                                               inplace=False)
 
-        return paths_for_name, shape_for_name
-
+            paths_for_name[name] = pruned_tree.expand_path(path, 
+                                                           as_internal_path=True)
+        return paths_for_name
 
 
-    # @staticmethod
-    # def asdict(values, pstrs):
-    #     """
-    #     values are results stored in a nested list due to iloc wildcard(s)
-    #     attrnames are the correspondning path strings
-    #     return a dict of results 
-    #     """
-    #     return {pstr:value for pstr, value in zip(traverse(pstrs), traverse(values))}
-
-
-
-    def __init__(self, hmodel, name, cfg, inputdata, query, func, 
-                 version, ilocstr, multiprocess=False, dryrun=False):
+    def __init__(self, hmodel, name, cfg, query, func, 
+                 version, tree_for_idxcontext, multiprocess=False, dryrun=False):
         """
         If inputdata is None the worker cannot work but can still 
         render itself and print.
 
-        querystring for one specific location ie no [:]
+        query for one specific location ie no [:]
+        query is an internal path
+
         """
         self.func = func # function to excecute 
         self.name = name # name of the component
@@ -131,6 +122,8 @@ class _Worker:
         self.use_multiprocessing = multiprocess # flag indicating if multiprocessing should be used
         self.job = None # For referencing the job if using multiprocessing
         self.query = query
+        self.tree_for_idxcontext = tree_for_idxcontext
+        self.cfg = cfg
 
         if dryrun:
             # If worker should perform a dry run set the worker function to "work_dryrun"
@@ -151,6 +144,9 @@ class _Worker:
         self.inputval_for_path = {} 
         self.resultval_for_path = {} 
 
+        # Which indices are specified for each index ID  
+        self.idxval_for_idxid = {}
+
         if self.use_multiprocessing:
             # Using a pool for multiple queries block for any multi-processing in the worker
             mgr = multiprocessing.Manager()
@@ -159,49 +155,72 @@ class _Worker:
             self.results =  {}
 
 
-        # TODO: assumes provider has the all ilocs defined
-        if "provides" in cfg:
-            (self.rpath_provided_for_name,
-             self.ilocs) = _Worker.get_bindings(cfg["provides"],
-                                                query,
-                                                ilocstr)
-        else:
-            raise HubitWorkerError( 'No provider for Hubit model component "{}"'.format(self.name) )
+        # TODO
+        # 1) Prune tree corresponding to query 
+        # 2) Prune remaining trees based idxval_for_idxid (method does no exist yet on LengthTree)
 
+        # TODO: assumes provider has the all ilocs defined.
+        # Model path for input provisions with ilocs from query 
+        if "provides" in cfg:
+            self.rpath_provided_for_name, self.idxval_for_idxid =\
+                _Worker.get_bindings(cfg["provides"],
+                                     query)
+            self.provided_mpath_for_name = {binding['name']: binding['path'] 
+                                            for binding in cfg["provides"]}
+        else:
+            self.provided_mpath_for_name = None
+            raise HubitWorkerError( 'No provider for Hubit \
+                                     model component "{}"'.format(self.name) )
+
+        # Model path for input dependencies with ilocs from query 
         if _Worker.consumes_type(cfg, "input"):
-            self.ipath_consumed_for_name, _ = _Worker.get_bindings(cfg["consumes"]["input"],
-                                                                    query,
-                                                                    ilocstr,
-                                                                    query_indices=self.ilocs)
+            # print('idxval_for_idxid', idxval_for_idxid, query)
+            # print(cfg["consumes"]["input"])
+            self.ipath_consumed_for_name = \
+                _Worker.bindings_from_idxs(cfg["consumes"]["input"],
+                                           self.idxval_for_idxid)
+            # Allow model path lookup by internal name
+            iconsumed_mpath_for_name = {binding['name']: binding['path'] 
+                                        for binding in cfg["consumes"]["input"]}
         else:
             self.ipath_consumed_for_name = {}
+            iconsumed_mpath_for_name  = {}
 
 
+        # Model path for results dependencies with ilocs from query 
         if _Worker.consumes_type(cfg, "results"):
-            self.rpath_consumed_for_name, _ = _Worker.get_bindings(cfg["consumes"]["results"],
-                                                                    query,
-                                                                    ilocstr,
-                                                                    query_indices=self.ilocs)
+            self.rpath_consumed_for_name = \
+                _Worker.bindings_from_idxs(cfg["consumes"]["results"],
+                                           self.idxval_for_idxid)
+            rconsumed_mpath_for_name = {binding['name']: binding['path'] 
+                                        for binding in cfg["consumes"]["results"]}
         else:
             self.rpath_consumed_for_name = {}
+            rconsumed_mpath_for_name = {}
             
-
-
 
         self._id = self.idstr()
 
-        # Expand queries containing iloc wildcard
-        if inputdata is not None:
-            self.ipaths_consumed_for_name, _ = _Worker.expand(self.ipath_consumed_for_name,
-                                                              inputdata)
+        # Expand model paths containing iloc wildcards
+        if not tree_for_idxcontext == {}:
+            print('XXXXXXXXXXXXXXXX', self.ipath_consumed_for_name)
+            print('XXXXXXXXXXXXXXXX', self.rpath_consumed_for_name)
+            print('XXXXXXXXXXXXXXXX', self.rpath_provided_for_name)
+            self.ipaths_consumed_for_name = _Worker.expand(self.ipath_consumed_for_name,
+                                                           tree_for_idxcontext,
+                                                           iconsumed_mpath_for_name,
+                                                           )
+            print('YYYYYYYYYYYYYYY', self.ipaths_consumed_for_name)
+            # efwf
 
-            self.rpaths_consumed_for_name, _ = _Worker.expand(self.rpath_consumed_for_name,
-                                                              inputdata)
+            self.rpaths_consumed_for_name = _Worker.expand(self.rpath_consumed_for_name,
+                                                           tree_for_idxcontext,
+                                                           rconsumed_mpath_for_name,
+                                                           )
 
-            # Expand from abstract path with : to list of paths with actual ilocs
-            (self.rpaths_provided_for_name,
-            self.shape_provided_for_name) = _Worker.expand(self.rpath_provided_for_name,
-                                                           inputdata)
+            self.rpaths_provided_for_name = _Worker.expand(self.rpath_provided_for_name,
+                                                           tree_for_idxcontext,
+                                                           self.provided_mpath_for_name)
 
             self.iname_for_path = {path: key 
                                    for key, paths 
@@ -214,6 +233,23 @@ class _Worker:
                                    for path in traverse(paths)}
 
         logging.info( f'Worker "{self.name}" was deployed for query "{self.query}"')
+
+
+    def mpath_for_name(self, type):
+
+        def make_map(bindings):
+            return {binding['name']: binding['path'] for binding in bindings}
+
+        if type == "provides": # provides is always present in worker
+            return make_map(self.cfg["provides"])
+        elif type in ("results", "input"):
+            if _Worker.consumes_type(self.cfg, type):
+                return make_map(self.cfg["consumes"][type])
+            else:
+                return {}
+        else:
+            raise HubitWorkerError(f'Unknown type "{type}"')
+
 
     @staticmethod
     def consumes_type(cfg: Dict, consumption_type: str) -> bool:
@@ -282,10 +318,13 @@ class _Worker:
         """
         self.hmodel._set_worker_working(self)
         for name in self.rpath_provided_for_name.keys():
-            self.results[name] = list_from_shape(self.shape_provided_for_name[name])
+            tree = self.tree_for_idxcontext[ get_idx_context( self.provided_mpath_for_name[name] ) ]
+            self.results[name] = tree.none_like()
 
 
     def join(self):
+        """Join process 
+        """
         if self.job is not None:
             self.job.join()
 
@@ -316,9 +355,10 @@ class _Worker:
         logging.info( f'Worker "{self.name}" finished for query "{self.query}"')
 
 
-    def reshape(self, path_for_name, val_for_path):
+    @staticmethod
+    def reshape(path_for_name, val_for_path):
         """
-        Convert val_for_pathstr to val_for_attrname i.e. 
+        Convert val_for_path to val_for_name i.e. 
         from external names to internal names with expected shapes
         """
         return {name: reshape(path, val_for_path)
@@ -337,13 +377,12 @@ class _Worker:
         if self.is_ready_to_work():
             logging.debug( "Let the work begin: {}".format(self.workfun) )
 
-            self.inputval_for_name = self.reshape(self.ipaths_consumed_for_name,
-                                                  self.inputval_for_path
-                                                  )
-
-            self.resultval_for_name = self.reshape(self.rpaths_consumed_for_name,
-                                                   self.resultval_for_path
-                                                   )
+            self.inputval_for_name = _Worker.reshape(self.ipaths_consumed_for_name,
+                                                     self.inputval_for_path
+                                                    )
+            self.resultval_for_name = _Worker.reshape(self.rpaths_consumed_for_name,
+                                                      self.resultval_for_path
+                                                      )
 
 
             self.workfun()
@@ -399,7 +438,11 @@ class _Worker:
         Make an ID string for the worker class that will be the same 
         if all ilocs are the same for the same component
         """
-        return 'name={} v{} ilocs={}'.format(self.name, self.version, self.ilocs)
+        return 'name={} v{} idxs={}'.format(self.name,
+                                            self.version,
+                                            '&'.join([f'{k}={v}'
+                                                      for k,v in 
+                                                      self.idxval_for_idxid.items()]))
 
 
     def __str__(self):

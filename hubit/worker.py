@@ -102,7 +102,7 @@ class _Worker:
         render itself and print.
 
         query for one specific location ie no [:]
-        query is an internal path
+        query is an internal path (dot-path)
 
         """
         self.func = func # function to excecute 

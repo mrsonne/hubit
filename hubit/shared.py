@@ -511,7 +511,11 @@ class LengthTree:
             nodes = self.nodes_for_level[idx_level]
             paths_current_level = []
 
-            if not IDX_WILDCARD in idxid: 
+            if path_type == 'query' and not IDX_WILDCARD in idxid: 
+                # for query paths we only look for IDX_WILDCARD (tgtstr)
+                # and therefor cannot handle fixed ilocs. For list[0].some_attr.numbers[:] 
+                # the first level in the tree will have one child which would erroneously 
+                # be inserted at the numbers wildcard 
                 continue
             
             for _path, node in zip(paths, nodes):

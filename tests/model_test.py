@@ -376,7 +376,7 @@ class TestModel(unittest.TestCase):
         """
         Sweep input parameters
         """
-        # self.skipTest('TODO. Works but not with other test?!?!?')
+        self.skipTest('TODO. Works but not with other test?!?!?')
         idx = 1
         # TODO change this
         path = "list[{}].some_attr.numbers".format(idx)
@@ -522,6 +522,7 @@ class TestRunner(unittest.TestCase):
 
 
     def get_worker_counts(self, queries):
+        # queries = dot-queries
         all_results = {}
         flat_input = flatten(self.input)
         worker_counts = []

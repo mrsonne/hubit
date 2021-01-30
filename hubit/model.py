@@ -889,7 +889,10 @@ class HubitModel:
         _response = {}
         for qpath_org, qpaths_expanded in queries_for_query.items():
             if not qpaths_expanded[0] == convert_to_internal_path( qpath_org ):
-                
+
+                # Get the index IDs from the original query
+                idxids = idxids_from_path(qpath_org)
+
                 # Get pruned tree
                 tree = self._tree_for_qpath[qpath_org]
 
@@ -897,10 +900,13 @@ class HubitModel:
                 values = tree.none_like()
 
                 # Extract iloc indices for each query in the expanded query
-                for qstr in qpaths_expanded:
+                for qpath in qpaths_expanded:
                     mpath = convert_to_internal_path( self._modelpath_for_querypath[qpath_org] )
-                    ilocs = get_iloc_indices(qstr, mpath, tree.level_names)
-                    values = set_element(values, response[qstr], 
+                    ilocs = get_iloc_indices(qpath, mpath, tree.level_names)
+                    # Only keep ilocs that come from an expansion... otherwise 
+                    # the dimensions of "values" do no match
+                    ilocs = [iloc for iloc, idxid in zip(ilocs, idxids) if idxid == IDX_WILDCARD]
+                    values = set_element(values, response[qpath], 
                                          [int(iloc) for iloc in ilocs])
                 _response[qpath_org] = values
             else:

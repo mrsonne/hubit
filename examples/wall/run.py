@@ -5,7 +5,7 @@ from itertools import product
 from hubit.model import HubitModel, HubitModelQueryError
 THISPATH = os.path.dirname(os.path.realpath(__file__))
 
-logging.basicConfig(level=logging.INFO)
+# logging.basicConfig(level=logging.INFO)
 
 def get_model(render=True):
     """Create a HubutModel instance from a model file.
@@ -56,14 +56,14 @@ def query(hmodel, render=True, mpworkers=False):
     #     print(err)
 
     # Make the queries
-    # queries = ["segments[:].layers[:].outer_temperature"] # not ok
-    # queries = ["segments[0].layers[:].outer_temperature"] # not ok
-    # queries = ["segments[0].layers[0].outer_temperature"] # ok  
-    # queries = ["segments[:].layers[1].k_therm"] # not ok
-    # queries = ["segments[0].layers[0].k_therm"] # ok
-    queries = ["segments[0].layers[:].k_therm"] # not ok. response only contains 0,0 result
-    # queries = ["segments[:].layers[0].k_therm"] # almost ok except compress   
-    # queries = ["segments[:].layers[:].k_therm"] # not ok
+    # queries = ["segments[:].layers[:].outer_temperature"] # not ok. Only results for 0,0 and 1,1
+    queries = ["segments[0].layers[:].outer_temperature"] 
+    # queries = ["segments[0].layers[0].outer_temperature"]   
+    # queries = ["segments[:].layers[1].k_therm"] 
+    # queries = ["segments[0].layers[0].k_therm"] 
+    # queries = ["segments[0].layers[:].k_therm"] 
+    # queries = ["segments[:].layers[0].k_therm"] 
+    # queries = ["segments[:].layers[:].k_therm"] # not ok. Only results for 0,0 and 1,1
 
     # Render the query
     if render:

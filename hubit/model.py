@@ -885,7 +885,6 @@ class HubitModel:
         in list2 the compressed response will be a nested list like 
         [[00, 01, 02], [10, 11, 12]]
         """
-        print('response', response)
         _response = {}
         for qpath_org, qpaths_expanded in queries_for_query.items():
             if not qpaths_expanded[0] == convert_to_internal_path( qpath_org ):

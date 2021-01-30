@@ -168,23 +168,6 @@ class TestShared(unittest.TestCase):
         self.assertTrue( len( list( shared.traverse(l0) ) ) == 7 )
 
 
-    # def test_shape(self):
-    #     # Infer the shape of the provision
-    #     cfg, inputdata = get_data()
-    #     path = cfg["provides"][0]["path"]
-    #     shape = shared.path_shape(path, inputdata, ".", ":")
-    #     self.assertSequenceEqual( shape, [2, 2] )
-
-
-    # def test_expand(self):
-    #     # Expand provision into its constituents
-    #     cfg, inputdata = get_data()
-    #     path = cfg["provides"][0]["path"]
-    #     shape = shared.path_shape(path, inputdata, ".", ":")
-    #     paths = shared.path_expand(path, shape, ":")      
-    #     self.assertTrue( len( list(shared.traverse(paths)) ) == shape[0]*shape[1] )
-
-
     def test_x(self):
         self.skipTest('Feature not used yet... and not sure what it is')
         cfg, inputdata = get_data()
@@ -626,8 +609,6 @@ class TestTree(unittest.TestCase):
                                  {'attr': {'items': [{'path': 3}, {'path': 4}]}}],
                        'some_number': 33}
 
-        # TODO
-        # problem since expand skipped since no IDXWILDCARD
         path_consumed_for_name = {'attrs': 'items_a[1@IDX1].attr.items[:@IDX2].path',
                                   'number': 'some_number'}
 

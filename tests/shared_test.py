@@ -104,34 +104,34 @@ class TestShared(unittest.TestCase):
         return tree
 
 
-    def test_expand_mpath(self):
-        """Expand a query that uses : to its constituents
+    # def test_expand_mpath(self):
+    #     """Expand a query that uses : to its constituents
 
-        TODO: move to Tree Test or delete if not longer neede.
-        """
-        tree = TestShared.get_tree()
-        query= "segs.:@IDXSEG.walls.:@IDXWALL.temps"
-        paths = tree.expand_path(query, flat=True)
-        expected_length = sum( [node.nchildren() 
-                                for node in tree.nodes_for_level[-1]]
-                             )
-        length = len(paths)
-        self.assertTrue( length == expected_length )
+    #     TODO: move to Tree Test or delete if not longer neede.
+    #     """
+    #     tree = TestShared.get_tree()
+    #     query= "segs.:@IDXSEG.walls.:@IDXWALL.temps"
+    #     paths = tree.expand_path(query, flat=True)
+    #     expected_length = sum( [node.nchildren() 
+    #                             for node in tree.nodes_for_level[-1]]
+    #                          )
+    #     length = len(paths)
+    #     self.assertTrue( length == expected_length )
 
 
-    def test_expand_mpath2(self):
-        """Expand a query that does not use : to its constituents
-        i.e. itself
+    # def test_expand_mpath2(self):
+    #     """Expand a query that does not use : to its constituents
+    #     i.e. itself
 
-        TODO: move to Tree Test or delete if not longer neede.
-        """
-        tree = TestShared.get_tree()
-        model_path= "segs.:@IDXSEG.walls.:@IDXWALL.temps"
-        query = "segs.0.walls.0.kval"
-        paths = tree.prune_from_path(query, model_path).expand_path(query, flat=True)
-        expected_length = 1 
-        length = len(paths)
-        self.assertTrue( length == expected_length )
+    #     TODO: move to Tree Test or delete if not longer neede.
+    #     """
+    #     tree = TestShared.get_tree()
+    #     model_path= "segs.:@IDXSEG.walls.:@IDXWALL.temps"
+    #     query = "segs.0.walls.0.kval"
+    #     paths = tree.prune_from_path(query, model_path).expand_path(query, flat=True)
+    #     expected_length = 1 
+    #     length = len(paths)
+    #     self.assertTrue( length == expected_length )
 
 
     def test_query_all(self):
@@ -479,7 +479,7 @@ class TestTree(unittest.TestCase):
     def test_expand_mpath1(self):
         """Expand to full template path
         """
-        path = "segments.:@IDX_SEG.layers.:@IDX_LAY.test.positions.:@IDX_POS"
+        path = "segments[:@IDX_SEG].layers[:@IDX_LAY].test.positions[:@IDX_POS]"
 
         # 1 + 3 + 2 values for segment 0 and 5 + 1 + 2 + 4 values for segment 1
         # All all 18 elements
@@ -522,15 +522,15 @@ class TestTree(unittest.TestCase):
                            ]
                          ]
 
-        paths = self.tree.expand_path(path)
+        paths = self.tree.expand_path(path, as_internal_path=True)
         self.assertSequenceEqual( paths, expected_paths )
 
 
     def test_expand_mpath2(self):
         """Expand to full template path
         """
-        # path = "segments[:@IDX_SEG].layers[:@IDX_LAY].test"
-        path = "segments.:@IDX_SEG.layers.:@IDX_LAY.test"
+        path = "segments[:@IDX_SEG].layers[:@IDX_LAY].test"
+        # path = "segments.:@IDX_SEG.layers.:@IDX_LAY.test"
         seg_node = shared.LengthNode(2)
         lay_nodes = shared.LengthNode(2), shared.LengthNode(2)
         seg_node.set_children(lay_nodes)
@@ -540,10 +540,10 @@ class TestTree(unittest.TestCase):
         level_names = 'IDX_SEG', 'IDX_LAY'
         tree = shared.LengthTree(nodes, level_names)
         # 2  values for segment 0 and 2 values for segment 1
-        expected_paths = [['segments.0.layers.0.test',
-                          'segments.0.layers.1.test'],
-                          ['segments.1.layers.0.test',
-                          'segments.1.layers.1.test',]]
+        expected_paths = [['segments[0].layers[0].test',
+                          'segments[0].layers[1].test'],
+                          ['segments[1].layers[0].test',
+                          'segments[1].layers[1].test',]]
 
         paths = tree.expand_path(path)
         print(paths)
@@ -554,22 +554,23 @@ class TestTree(unittest.TestCase):
         """Prune tree before expanding. Two indices vary so 
         expanded paths is 2D
         """
-        path = "segments.0.layers.:@IDX_LAY.test.positions.:@IDX_POS"
-        template_path = "segments.:@IDX_SEG.layers.:@IDX_LAY.test.positions.:@IDX_POS"
-        self.tree.prune_from_path(path, template_path)
+        path = "segments[0].layers[:@IDX_LAY].test.positions[:@IDX_POS]"
+        template_path = "segments[:@IDX_SEG].layers[:@IDX_LAY].test.positions[:@IDX_POS]"
+        self.tree.prune_from_path( shared.convert_to_internal_path(path),
+                                   shared.convert_to_internal_path(template_path))
         # 1 + 3 + 2 values for segment 0
         expected_paths = [
                            [
-                              'segments.0.layers.0.test.positions.0',
+                              'segments[0].layers[0].test.positions[0]',
                            ],
                            [
-                             'segments.0.layers.1.test.positions.0',
-                             'segments.0.layers.1.test.positions.1',
-                             'segments.0.layers.1.test.positions.2',
+                             'segments[0].layers[1].test.positions[0]',
+                             'segments[0].layers[1].test.positions[1]',
+                             'segments[0].layers[1].test.positions[2]',
                            ],
                            [
-                             'segments.0.layers.2.test.positions.0',
-                             'segments.0.layers.2.test.positions.1',
+                             'segments[0].layers[2].test.positions[0]',
+                             'segments[0].layers[2].test.positions[1]',
                            ]
                         ]
         paths = self.tree.expand_path(path)
@@ -580,13 +581,14 @@ class TestTree(unittest.TestCase):
         """Prune tree before expanding. Ine index varies so 
         expanded paths is 1D
         """
-        path = "segments.0.layers.:@IDX_LAY.test.positions.1"
-        template_path = "segments.:@IDX_SEG.layers.:@IDX_LAY.test.positions.:@IDX_POS"
-        self.tree.prune_from_path(path, template_path)
+        path = "segments[0].layers[:@IDX_LAY].test.positions[1]"
+        template_path = "segments[:@IDX_SEG].layers[:@IDX_LAY].test.positions[:@IDX_POS]"
+        self.tree.prune_from_path( shared.convert_to_internal_path(path),
+                                   shared.convert_to_internal_path(template_path))
         # 1 + 3 + 2 values for segment 0
         expected_paths = [
-                           'segments.0.layers.1.test.positions.1',
-                           'segments.0.layers.2.test.positions.1',
+                           'segments[0].layers[1].test.positions[1]',
+                           'segments[0].layers[2].test.positions[1]',
                          ]
         paths = self.tree.expand_path(path)
         self.assertSequenceEqual( paths, expected_paths )
@@ -600,19 +602,16 @@ class TestTree(unittest.TestCase):
                       'some_number': 33}
         path_consumed_for_name = {'attrs': 'items[:@IDX1].attr.items[:@IDX2].path',
                                   'number': 'some_number'}
-        expected_result  = {'attrs': [['items.0.attr.items.0.path',
-                                       'items.0.attr.items.1.path'],
-                                      ['items.1.attr.items.0.path',
-                                       'items.1.attr.items.1.path']], 
+        expected_result  = {'attrs': [['items[0].attr.items[0].path',
+                                       'items[0].attr.items[1].path'],
+                                      ['items[1].attr.items[0].path',
+                                       'items[1].attr.items[1].path']], 
                             'number': ['some_number']}
         tree_for_name = {name: shared.LengthTree.from_data(path, input_data)
                          for name, path in path_consumed_for_name.items()}
 
-        for name, path in path_consumed_for_name.items():
-            path_consumed_for_name[name] = shared.convert_to_internal_path(path)
-
         result = {name: tree.expand_path(path_consumed_for_name[name],
-                                         as_internal_path=True)
+                                         as_internal_path=False)
                   for name, tree in tree_for_name.items()}
 
         self.assertDictEqual(expected_result, result)
@@ -627,21 +626,19 @@ class TestTree(unittest.TestCase):
                                  {'attr': {'items': [{'path': 3}, {'path': 4}]}}],
                        'some_number': 33}
 
+        # TODO
+        # problem since expand skipped since no IDXWILDCARD
         path_consumed_for_name = {'attrs': 'items_a[1@IDX1].attr.items[:@IDX2].path',
                                   'number': 'some_number'}
 
-        expected_result  = {'attrs': ['items_a.1.attr.items.0.path',
-                                      'items_a.1.attr.items.1.path'], 
+        expected_result  = {'attrs': ['items_a[1].attr.items[0].path',
+                                      'items_a[1].attr.items[1].path'], 
                             'number': ['some_number']}
 
         tree_for_name = {name: shared.LengthTree.from_data(path, input_data)
                          for name, path in path_consumed_for_name.items()}
 
-        for name, path in path_consumed_for_name.items():
-            path_consumed_for_name[name] = shared.convert_to_internal_path(path)
-
-        result = {name: tree.expand_path(path_consumed_for_name[name],
-                                         as_internal_path=True)
+        result = {name: tree.expand_path(path_consumed_for_name[name], path_type='model')
                   for name, tree in tree_for_name.items()}
 
 

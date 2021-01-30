@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, List
 import logging
 import importlib
 import os
@@ -11,7 +11,10 @@ import yaml
 from datetime import datetime
 from threading import Thread, Event
 from .worker import _Worker
-from .shared import (DummyLengthTree, IDX_WILDCARD, LengthTree, convert_to_internal_path, idxs_for_matches,
+from .shared import (IDX_WILDCARD,
+                     LengthTree,
+                     convert_to_internal_path,
+                     idxs_for_matches,
                      flatten,
                      get_idx_context,
                      set_ilocs_on_path,
@@ -104,7 +107,7 @@ def _get(queryrunner,
     if flat_results is None: flat_results = {}
 
     # Expand the query and get the max ilocs for each query
-    queries_for_query = {qstr1: queryrunner.model._expand_query(qstr1) 
+    queries_for_query = {qstr1: queryrunner.model._expand_query(qstr1)
                          for qstr1 in queries}
     _queries = [qstr 
                 for qstrs in queries_for_query.values()
@@ -711,15 +714,15 @@ class HubitModel:
         tstart = time.time()
 
         # form all combinations
-        pkeys, pvalues = zip(*input_values_for_path.items())
-        ppvalues = list(itertools.product(*pvalues))
+        paths, pvalues = zip( *input_values_for_path.items() )
+        ppvalues = list( itertools.product(*pvalues) )
         
         args = []
         inps = []
         for pvalues in ppvalues:
             _flat_input = copy.deepcopy(self.flat_input)
-            for key, val in zip(pkeys, pvalues):
-                _flat_input[key] = val
+            for path, val in zip(paths, pvalues):
+                _flat_input[path] = val
             qrun = _QueryRunner(self, mpworkers=False)
             flat_results = {}
             args.append( (qrun, queries, _flat_input, flat_results) )
@@ -846,7 +849,7 @@ class HubitModel:
         return cmp['provides'][idx]['path']
 
 
-    def _expand_query(self, qpath: str):
+    def _expand_query(self, qpath: str) -> List[str]:
         """
         Expand query so that any index wildcards are converte to 
         real indies
@@ -858,23 +861,15 @@ class HubitModel:
         self._modelpath_for_querypath[qpath] = mpath
         idxcontext = get_idx_context(mpath)
         tree = self.tree_for_idxcontext[idxcontext]
-        ipath = convert_to_internal_path(qpath)
-        # print('tree', tree)
-        print('ipath', ipath)
-        # print(convert_to_internal_path(mpath))
-        pruned_tree = tree.prune_from_path(ipath,
+        pruned_tree = tree.prune_from_path(convert_to_internal_path(qpath),
                                            convert_to_internal_path(mpath),
                                            inplace=False)
-        # Remove fixed levels?
 
         # Store tree 
         self._tree_for_qpath[qpath] = pruned_tree
 
-        # print('qpath', qpath)
-        # print('pruned_tree', pruned_tree)
-
         # Expand the path 
-        return pruned_tree.expand_path(ipath,
+        return pruned_tree.expand_path(qpath,
                                        flat=True,
                                        path_type='query',
                                        as_internal_path=True)
@@ -894,11 +889,13 @@ class HubitModel:
         _response = {}
         for qpath_org, qpaths_expanded in queries_for_query.items():
             if not qpaths_expanded[0] == convert_to_internal_path( qpath_org ):
-
+                
+                # Get pruned tree
                 tree = self._tree_for_qpath[qpath_org]
 
                 # Initialize list to collect all iloc indices for each wildcard 
                 values = tree.none_like()
+
                 # Extract iloc indices for each query in the expanded query
                 for qstr in qpaths_expanded:
                     mpath = convert_to_internal_path( self._modelpath_for_querypath[qpath_org] )
@@ -1050,9 +1047,10 @@ class _QueryRunner:
 
         queries should be expanded i.e. explicit in terms of iloc
 
+        qpaths are internal (dot-path)
+
         paths in skip_paths are skipped
         """
-        print("qpaths", qpaths)
         _skip_paths = copy.copy(skip_paths)
         for qpath in qpaths:
             # Skip if the queried data will be provided

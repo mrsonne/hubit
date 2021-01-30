@@ -27,24 +27,14 @@ class _Worker:
         replace index IDs with the actual indices
         """
         if len(idxval_for_idxid) == 0:
-            # No index values so just convert to internal path
-            return {binding['name']: convert_to_internal_path(binding['path'])
-                    for binding in bindings}
-            # return bindings
+            return {binding['name']: binding['path'] for binding in bindings}
         else:
             return {binding['name']: 
-                    convert_to_internal_path(
                         set_ilocs_on_path(binding['path'], 
-                                        [idxval_for_idxid[idxid] 
-                                        for idxid in clean_idxids_from_path(binding['path'])],
-                                        )) 
+                                          [idxval_for_idxid[idxid] 
+                                          for idxid in clean_idxids_from_path(binding['path'])],
+                                          ) 
                     for binding in bindings}
-            # return {binding['name']: 
-            #             set_ilocs_on_path(binding['path'], 
-            #                             [idxval_for_idxid[idxid] 
-            #                             for idxid in clean_idxids_from_path(binding['path'])],
-            #                             ) 
-            #         for binding in bindings}
 
 
 
@@ -80,7 +70,7 @@ class _Worker:
         for binding in bindings:
             if check_path_match(query_path, binding['path'], accept_idx_wildcard=False):
                 idxids = clean_idxids_from_path( binding['path'] )
-                idxs = get_iloc_indices(query_path,
+                idxs = get_iloc_indices(convert_to_internal_path(query_path),
                                         convert_to_internal_path(binding['path']),
                                         idxids)
                 idxval_for_idxid.update( dict( zip(idxids, idxs)) )
@@ -203,15 +193,10 @@ class _Worker:
 
         # Expand model paths containing iloc wildcards
         if not tree_for_idxcontext == {}:
-            print('XXXXXXXXXXXXXXXX', self.ipath_consumed_for_name)
-            print('XXXXXXXXXXXXXXXX', self.rpath_consumed_for_name)
-            print('XXXXXXXXXXXXXXXX', self.rpath_provided_for_name)
             self.ipaths_consumed_for_name = _Worker.expand(self.ipath_consumed_for_name,
                                                            tree_for_idxcontext,
                                                            iconsumed_mpath_for_name,
                                                            )
-            print('YYYYYYYYYYYYYYY', self.ipaths_consumed_for_name)
-            # efwf
 
             self.rpaths_consumed_for_name = _Worker.expand(self.rpath_consumed_for_name,
                                                            tree_for_idxcontext,

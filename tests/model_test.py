@@ -308,22 +308,22 @@ class TestModel(unittest.TestCase):
         self.assertDictEqual(response, expected_response)
 
 
-    def test_comsume_2_idxids_idxwc(self):
-        mpworkers = False
-        self.hmodel.set_input(self.input)
-        response = self.hmodel.get(['first_coor[0].second_coor[:].value'],
-                                    mpworkers=mpworkers,
-                                    validate=False)
-        print(response)
+    # def test_comsume_2_idxids_idxwc(self):
+    #     mpworkers = False
+    #     self.hmodel.set_input(self.input)
+    #     response = self.hmodel.get(['first_coor[0].second_coor[:].value'],
+    #                                 mpworkers=mpworkers,
+    #                                 validate=False)
+    #     print(response)
 
 
-    def test_comsume_2_idxids_idxwc_a(self):
-        mpworkers = False
-        self.hmodel.set_input(self.input)
-        response = self.hmodel.get(['first_coor[:].second_coor[0].value'],
-                                    mpworkers=mpworkers,
-                                    validate=False)
-        print(response)
+    # def test_comsume_2_idxids_idxwc_a(self):
+    #     mpworkers = False
+    #     self.hmodel.set_input(self.input)
+    #     response = self.hmodel.get(['first_coor[:].second_coor[0].value'],
+    #                                 mpworkers=mpworkers,
+    #                                 validate=False)
+    #     print(response)
 
 
     def test_get_slice(self):
@@ -376,7 +376,10 @@ class TestModel(unittest.TestCase):
         """
         Sweep input parameters
         """
+        self.skipTest('TODO')
         idx = 1
+        # TODO change this
+        # path = "list[{}].some_attr.numbers".format(idx)
         path = "list.{}.some_attr.numbers".format(idx)
         input_values_for_path = {path: ([1., 2., 3.],
                                         [4., 5., 6.]),
@@ -386,12 +389,17 @@ class TestModel(unittest.TestCase):
         responses, inps, _ = self.hmodel.get_many(queries,
                                                   input_values_for_path)
 
+        print('responses', responses)
         expected_results = []
         calc_responses = []
+        # TODO unsafe test since it it depends on logic that creates inps
         for flat_inp, response in zip(inps, responses):
             inp = inflate(flat_inp)
             expected_results.append( level0_results_at_idx( inp, idx ) )
             calc_responses.append( response[self.querystr_level0] )
+        
+        print('calc_responses', calc_responses)
+        print( 'expected_results', expected_results)
         self.assertSequenceEqual(calc_responses,
                                  expected_results)
 
@@ -401,9 +409,9 @@ def subscriptions_for_query(query, query_runner):
     """Get subscriptions from worker
     """
     w = query_runner._worker_for_query(query)
-    consumes = list(w.ipath_consumed_for_name.values())
-    consumes += list(w.rpath_consumed_for_name.values())
-    provides = list(w.rpath_provided_for_name.values())
+    consumes = list( w.ipath_consumed_for_name.values() )
+    consumes += list( w.rpath_consumed_for_name.values() )
+    provides = list( w.rpath_provided_for_name.values() )
     return consumes, provides
 
 
@@ -414,13 +422,13 @@ def subscriptions_for_component_idx(model_data, comp_idx, iloc, idxid):
 
     consumes = []
     try:
-        consumes.extend( [ convert_to_internal_path( binding['path'] ) 
+        consumes.extend( [ binding['path'] 
                          for binding in model_data[comp_idx]["consumes"]["input"] ] )
     except KeyError:
         pass
 
     try:
-        consumes.extend( [ convert_to_internal_path( binding['path'] ) 
+        consumes.extend( [ binding['path'] 
                           for binding in model_data[comp_idx]["consumes"]["results"] ] )
     except KeyError:
         pass
@@ -428,9 +436,8 @@ def subscriptions_for_component_idx(model_data, comp_idx, iloc, idxid):
     # Replace ilocstr with actual iloc 
     consumes = [path.replace(idxid, ilocstr) for path in consumes]
 
-    provides = [ convert_to_internal_path( binding['path'] )
-                for binding in model_data[comp_idx]["provides"]]
-    provides = [path.replace(idxid, ilocstr) for path in provides]
+    provides = [ binding['path'] for binding in model_data[comp_idx]["provides"] ]
+    provides = [ path.replace(idxid, ilocstr) for path in provides ]
 
     return consumes, provides
 
@@ -450,17 +457,15 @@ class TestRunner(unittest.TestCase):
 
         # Query which does not consume results
         self.idx = 1
-        self.querystr_level0 = "list.{}.some_attr.two_x_numbers".format(self.idx)
-        # self.querystr_level0 = "list[{}].some_attr.two_x_numbers".format(self.idx)
-        self.querystr_level1 = "list.{}.some_attr.two_x_numbers_x_factor".format(self.idx)
-        # self.querystr_level1 = "list[{}].some_attr.two_x_numbers_x_factor".format(self.idx)
+        self.querystr_level0 = "list[{}].some_attr.two_x_numbers".format(self.idx)
+        self.querystr_level1 = "list[{}].some_attr.two_x_numbers_x_factor".format(self.idx)
 
 
     def test_worker_comp1(self):
         """
         """
-        # Component index in model
-        comp_idx = 0
+        # Component index in model (TODO: brittle)
+        comp_idx = 1
         qstr = self.querystr_level0
 
         (worker_consumes,
@@ -485,15 +490,13 @@ class TestRunner(unittest.TestCase):
         """
         """
         # Component index in model
-        comp_idx = 1
+        comp_idx = 2
         qstr = self.querystr_level1
 
         (worker_consumes,
         worker_provides) = subscriptions_for_query(qstr,
                                                    self.qr)
 
-        # Component index in model
-        comp_idx = 1
         (worker_consumes_expected,
         worker_provides_expected) = subscriptions_for_component_idx(self.model_data,
                                                                     comp_idx,
@@ -571,7 +574,8 @@ class TestRunner(unittest.TestCase):
         worker_counts = self.get_worker_counts(queries)
         expected_worker_counts = [1, 
                                  ]
-        self.assertListEqual(worker_counts, expected_worker_counts)
+        self.assertListEqual(worker_counts,
+                             expected_worker_counts)
 
 
     def test_number_of_workers_multiple_levels(self):
@@ -589,9 +593,12 @@ class TestRunner(unittest.TestCase):
         """Query multiple attributes that are actually supplied by the 
         same component. Therefore, only one worker should be deployed.
         """
+
+        # _deploy take internal paths
         queries = [('list.0.some_attr.inner_list.0.yval',
                     'list.0.some_attr.inner_list.1.yval',)
                   ]
+
         worker_counts = self.get_worker_counts(queries)
         expected_worker_counts = [1,]
         self.assertListEqual(worker_counts, expected_worker_counts)

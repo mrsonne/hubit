@@ -464,12 +464,12 @@ class LengthTree:
         # if len(idxs):
         #     pcmps[idxs[0]] = level_name
         # _path = '.'.join(pcmps)
-        return re.sub("\.([^\.]+){}".format(level_name),
-                        '.{}'.format(level_name),
-                        path), level_name
+        # return re.sub("\.([^\.]+){}".format(level_name),
+        #                 '.{}'.format(level_name),
+        #                 path), level_name
         # For epath
-        # return re.sub("\[([^\.]+){}]".format(level_name), 
-        #               f'.{level_name}', path),level_name
+        return re.sub("\[([^\.]+){}]".format(level_name), 
+                      f'[{level_name}]', path),level_name
 
 
     precessor_for_pathtype = {'model': preprocess_model_path,
@@ -499,31 +499,24 @@ class LengthTree:
             defined by the tree if flat = False. Otherwise a 
             flat list.
         """
-
         # Get the appropriate path preprocessor
         path_preprocessor = LengthTree.precessor_for_pathtype[path_type]
 
-        print(self)
+        # Get the content of the braces
+        idxids = idxids_from_path(path)
+
         # Expand the path (and do some pruning)
         paths = [path]
-        for idx_level, level_name in enumerate(self.level_names):
+        for idx_level, (level_name, idxid) in enumerate( zip(self.level_names, idxids)):
             nodes = self.nodes_for_level[idx_level]
             paths_current_level = []
 
-            # print('nnodes', level_name, len(nodes), nodes[0].nchildren())
-            # if len(nodes) == 1 and nodes[0].nchildren() == 1: continue
-
-            # the first idx is set so the frist idx with : (level 2) 
-            # is expanded with the enumeration from level 1 
+            if not IDX_WILDCARD in idxid: 
+                continue
             
-            for path, node in zip(paths, nodes):
-                # print('path', path)
+            for _path, node in zip(paths, nodes):
                 
-                _path, tgtstr = path_preprocessor(path, level_name)
-                # print(_path, tgtstr)
-
-                for child in node.children:
-                    print(child)
+                _path, tgtstr = path_preprocessor(_path, level_name)
 
                 # Replace level_name with indices of children
                 paths_current_level.extend([_path.replace(tgtstr, 
@@ -532,8 +525,6 @@ class LengthTree:
 
             paths = paths_current_level
         
-        # print(paths)
-        # fwef
         if as_internal_path:
             paths = [convert_to_internal_path(path) for path in paths]
 

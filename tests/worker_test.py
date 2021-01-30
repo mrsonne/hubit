@@ -318,14 +318,14 @@ class TestWorker(unittest.TestCase):
         bindings = [{"name": "k_therm" ,
                      "path": "segments[IDX_SEG].layers[:@IDX_LAY].k_therm"
                     }]
-        querystring = "segments.0.layers.0.k_therm"
+        querystring = "segments[0].layers[0].k_therm"
         idxids = "IDX_SEG", "IDX_LAY"
         path_for_name, _ = _Worker.get_bindings(bindings,
                                                 querystring)
         # This is what will be provided for the query: The attribute 'k_therm' 
         # for all layers for the specific index ID _IDX=0
         # expected_path_for_name = {"k_therm": "segments.0.layers.:.k_therm"}
-        expected_path_for_name = {"k_therm": "segments.0.layers.:@IDX_LAY.k_therm"}
+        expected_path_for_name = {"k_therm": "segments[0].layers[:@IDX_LAY].k_therm"}
         self.assertDictEqual(expected_path_for_name, path_for_name)
 
 
@@ -336,7 +336,7 @@ class TestWorker(unittest.TestCase):
         provides = [{"name": "k_therm" ,
                      "path": "segments[IDX_SEG].layers[:@IDX_LAY].k_therm"
                     }]
-        querystring = "segments.0.layers.:.k_therm"
+        querystring = "segments[0].layers[:].k_therm"
         idxids = "IDX_SEG", "IDX_LAY"
         with self.assertRaises(HubitWorkerError) as context:
             _Worker.get_bindings(provides,

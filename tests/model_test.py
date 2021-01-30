@@ -307,22 +307,24 @@ class TestModel(unittest.TestCase):
         self.assertDictEqual(response, expected_response)
 
 
-    # def test_comsume_2_idxids_idxwc(self):
-    #     mpworkers = False
-    #     self.hmodel.set_input(self.input)
-    #     response = self.hmodel.get(['first_coor[0].second_coor[:].value'],
-    #                                 mpworkers=mpworkers,
-    #                                 validate=False)
-    #     print(response)
+    def test_comsume_2_idxids_idxwc(self):
+        mpworkers = False
+        self.hmodel.set_input(self.input)
+        response = self.hmodel.get(['first_coor[0].second_coor[:].value'],
+                                    mpworkers=mpworkers,
+                                    validate=False)
+        expected_response = {'first_coor[0].second_coor[:].value': [1.0, 2.0]}
+        self.assertDictEqual(response, expected_response)
 
 
-    # def test_comsume_2_idxids_idxwc_a(self):
-    #     mpworkers = False
-    #     self.hmodel.set_input(self.input)
-    #     response = self.hmodel.get(['first_coor[:].second_coor[0].value'],
-    #                                 mpworkers=mpworkers,
-    #                                 validate=False)
-    #     print(response)
+    def test_comsume_2_idxids_idxwc_a(self):
+        mpworkers = False
+        self.hmodel.set_input(self.input)
+        response = self.hmodel.get(['first_coor[:].second_coor[0].value'],
+                                    mpworkers=mpworkers,
+                                    validate=False)
+        expected_response = {'first_coor[:].second_coor[0].value': [1.0, 3.0]}
+        self.assertDictEqual(response, expected_response)
 
 
     def test_get_slice(self):

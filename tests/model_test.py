@@ -376,11 +376,11 @@ class TestModel(unittest.TestCase):
         """
         Sweep input parameters
         """
-        self.skipTest('TODO')
+        # self.skipTest('TODO. Works but not with other test?!?!?')
         idx = 1
         # TODO change this
-        # path = "list[{}].some_attr.numbers".format(idx)
-        path = "list.{}.some_attr.numbers".format(idx)
+        path = "list[{}].some_attr.numbers".format(idx)
+        # path = "list.{}.some_attr.numbers".format(idx)
         input_values_for_path = {path: ([1., 2., 3.],
                                         [4., 5., 6.]),
                                 }

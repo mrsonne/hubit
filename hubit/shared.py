@@ -398,50 +398,6 @@ class LengthTree:
         return _items
 
 
-    # def expand_query_path(self,
-    #                       qpath: str,
-    #                       flat: bool=False,
-    #                       as_internal_path: bool=False) -> List[str]:
-    #     """Expand user query path with wildcardd based on tree.
-
-    #     Example: 
-    #         list[:].some_attr.numbers -> [list[0].some_attr.numbers
-    #         list[1].some_attr.numbers, list[2].some_attr.numbers] 
-
-
-    #     Args:
-    #         path (str): Hubit user query path with wildcards and index IDs
-    #         flat (bool): Return expansion result as a flat list.
-    #         as_internal_path (bool): Return expansion result as internal paths
-
-    #     Returns:
-    #         [List]: Paths from expansion. Arranged in the shape 
-    #         defined by the tree if flat = False. Otherwise a 
-    #         flat list.
-    #     """
-    #     paths = [qpath]
-    #     for idx_level in range(len(self.level_names)):
-    #         nodes = self.nodes_for_level[idx_level]
-    #         paths_current_level = []
-    #         for path, node in zip(paths, nodes):
-
-    #             # Replace IDX_WILDCARD with indices of children
-    #             paths_current_level.extend([path.replace(IDX_WILDCARD, 
-    #                                                      str(child.index if child is not None else idx), 1) 
-    #                                         for idx, child in enumerate(node.children)])
-
-    #         paths = paths_current_level
-        
-    #     if as_internal_path:
-    #         paths = [convert_to_internal_path(path) for path in paths]
-
-
-    #     if flat: 
-    #         return paths
-    #     else:
-    #         return self.reshape(paths)
-
-
     def preprocess_query_path(path, *args, **kwargs):
         """
         Dummy preprocessor for query paths
@@ -706,38 +662,6 @@ def _length_for_iterpaths(connecting_paths: List[str],
                         for curidx in range(length)]
 
     return out, paths_next
-
-
-
-# def lengths_for_path(path: str, input_data: Dict) -> Any:
-#     """Infer lengths of lists in 'input_data' that correspond 
-#     to index IDs in the path.
-
-#     Args:
-#         path (str): Hubit user path
-#         input_data (Dict): Input data
-
-#     Returns:
-#         Any: None if no index IDs found in 'path' else list og lengths
-#     """
-#     idxids = idxids_from_path(path)
-#     clean_idxids = [idxid.split('@')[1] if '@' in idxid 
-#                     else idxid
-#                     for idxid in idxids]
-    
-#     # Handle no index IDs
-#     if len(idxids) == 0: 
-#         return None, None
-
-#     # Handle all IDs are digits 
-#     if all([is_digit(idxid) for idxid in idxids]): 
-#         return [], [path]
-
-#     connecting_paths = _paths_between_idxids(path, idxids)
-#     lengths, paths = _length_for_iterpaths(connecting_paths[:-1], input_data)
-#     if not connecting_paths[-1] == '':
-#         paths = ['{}.{}'.format(path, connecting_paths[-1]) for path in paths]
-#     return tuple(zip(clean_idxids, lengths)), paths
 
 
 def idxids_from_path(path: str) -> List[str]:
@@ -1012,46 +936,6 @@ def get_iloc_indices(query_path: str,
     return tuple(idxs)
 
 
-# def expand_query(path):
-#     """
-#     querystr = "segs.:.walls.temps"
-#     all_input = {"segs.0.walls.temps" : 1, "segs.1.walls.temps" : 2, "segs.2.walls.temps" : None}
-#     result = "segs.0.walls.temps", "segs.1.walls.temps", "segs.2.walls.temps"
-#     """
-
-    # ********************** 
-    # OLD JUNK BELOW
-    # ********************** 
-    # sepstr = "."
-    # wcstr = ":"
-    # querycmps = querystr.split(sepstr)
-    # # At which indices are the wildcard encountered
-    # wcidxs = [idx for idx, qcmp in enumerate(querycmps) if qcmp == wcstr]
-    # # Find maximal iloc for the indices with wildcards
-    # maxilocs = []
-    # for icount, cmpidx in enumerate(wcidxs):
-    #     for path in flat_input.keys():
-    #         pathcmps = path.split(sepstr)
-    #         try:
-    #             pathcmp = int(pathcmps[cmpidx])
-    #         except IndexError: # too few components in path
-    #             continue
-    #         except ValueError: # cannot cast component to int
-    #             continue
-                
-    #         try:
-    #             maxilocs[icount] = max(pathcmp, maxilocs[icount])
-    #         except IndexError:
-    #             maxilocs.append(pathcmp)
-
-    # # Make all query combinations
-    # queries = []
-    # for ilocs in itertools.product(*[range(maxval + 1) for maxval in maxilocs]):
-    #     queries.append(set_ilocs_on_path(querystr, [str(iloc) for iloc in ilocs], wcstr))
-
-    # return queries, maxilocs
-
-
 # def query_all(providerstrings, flat_input, ilocstr):
 #     """
 #     Assumes complete input
@@ -1060,37 +944,6 @@ def get_iloc_indices(query_path: str,
 #             for path in providerstrings
 #             for qry in expand_query(path.replace(ilocstr, ":"), flat_input)]
     
-
-
-# def path_shape(path, inputdata, sepstr, ilocwcchar):
-#     """
-#     From the input data infer the shape corresponding to the iloc 
-#     wildcard character (ilocwcchar) in the path.
-#     Rectagular data assumed.
-#     """
-#     nwc = path.count(ilocwcchar)
-#     shape = []
-#     pcmps = path.split(sepstr)
-#     cidx = 0
-#     for _ in range(nwc):
-#         idx = pcmps[cidx:].index(ilocwcchar) 
-#         cidx += idx
-#         shape.append(len(get_from_datadict(inputdata, pcmps[:cidx])))
-#         pcmps[cidx] = '0'
-
-#     return shape
-
-
-# def path_expand(path, shape, ilocwcchar):
-#     """
-#     Expand a path string according to the shape. 
-#     The result is a nested list of path strings
-#     """
-#     paths = get_nested_list([s-1 for s in shape])
-#     for ilocs in itertools.product(*[range(nitm) for nitm in shape]):
-#         #pstrs.append(set_ilocs_on_pathstrpstr, [str(iloc) for iloc in ilocs], ilocwcchar))
-#         set_element(paths, set_ilocs_on_path(path, [str(iloc) for iloc in ilocs], ilocwcchar), ilocs)
-#     return paths
 
 
 def set_nested_item(data, keys, val):
@@ -1105,110 +958,6 @@ def get_nested_item(data, keys):
 
 def get_idx_context(path):
     return '-'.join(clean_idxids_from_path(path))
-
-
-# def expand_new(path: str, template_path: str, all_lengths: List):
-#     """Expand path with wildcard based on lengths in "all_lengths"
-
-#     Args:
-#         path (str): Hubit internal path with wildcards
-#         template_path (str): Hubit internal path corresponding to paths with all wildcards present
-#         all_lengths (List): Lengths object from "lengths_for_path"
-
-#     Returns:
-#         [List]: Paths arranged in the correct shape according to all_lengths
-#     """
-#     nlevels = len(all_lengths)
-#     _all_lengths = copy.copy(all_lengths)
-#     print(_all_lengths)
-#     print(path)
-#     # Prune length tree if some levels are fixed in path
-#     fixed_idx_for_level = {}
-#     for level in range(nlevels):
-#         idxid_current, _ = _all_lengths[level]
-#         print(_all_lengths)
-#         if not idxid_current in path:
-#             # Get fixed index from path
-#             idx = int(get_iloc_indices(path,
-#                                        template_path,
-#                                        [f':@{idxid_current}]')[0])
-#             fixed_idx_for_level[level] = idx
-
-#             # The current level is fixed so level above
-#             _all_lengths[level-1][1] = [1]
-#             # At all levels from below the current level keep only data 
-#             # corrensponding to the fixed index
-#             print('XXXX', _all_lengths)
-#             for idx_level, (_, sizes) in enumerate(_all_lengths[level+1:], start=level+1):
-#                 print(sizes)
-#                 _all_lengths[idx_level][1] = sizes[idx]
-
-#     print('final', _all_lengths)
-#     # Expand the path (and do some pruning)
-#     paths = [path]
-#     for level in range(nlevels):
-#         idxid_current, lengths = _all_lengths[level]
-#         paths_current_level = []
-#         # did_break = False
-#         for path, length in zip(paths, list(traverse(lengths))):
-
-#             if not level in fixed_idx_for_level:
-#                 paths_current_level.extend([path.replace(f':@{idxid_current}', str(idx)) 
-#                                            for idx in range(length)])
-#             else:
-#                 idx = fixed_idx_for_level[level]
-#                 # print(_all_lengths)
-#                 paths_current_level = paths
-
-#                 if idx >= length:
-#                     # The fixed index is not legal in the context of indices above
-#                     paths_current_level.remove(path)
-
-#                     # Get all indices above the illegal path 
-#                     idxs = [int(get_iloc_indices(path,
-#                                                  template_path,
-#                                                  f':@{_all_lengths[lev][0]}')[0]) 
-#                             for lev in range(level+1)] 
-
-#                     # We need to subtract one element in the size tree node above the illegal path
-#                     # Indices to level above illegal path
-#                     idxs = idxs[:-1]
-#                     sizes_at_level = _all_lengths[level][1]
-#                     if isinstance(sizes_at_level, int):
-#                         val = sizes_at_level 
-#                     else:
-#                         val = get_nested_item(sizes_at_level, idxs)
-    
-#                     if val > 1:
-#                         set_nested_item(sizes_at_level, idxs, val - 1)
-#                     else:
-#                         if isinstance(sizes_at_level, int):
-#                             _all_lengths[level-1][1] -= 1
-#                         else:
-#                             items = get_nested_item(sizes_at_level, idxs[:-1])
-#                             print(items)
-#                             items.pop(idxs[-1])
-#                             print(items)
-#                             set_nested_item(sizes_at_level, idxs[:-1], items)
-#                             print(_all_lengths)
-
-#                     break
-
-#         paths = paths_current_level
-
-#     print('_all_lengths', _all_lengths)
-#     for _, sizes in reversed(_all_lengths):
-#         print('sizes 1', sizes)
-#         try:
-#             if len(sizes) < 1: continue
-#         except TypeError:
-#             # not a list so not need to split
-#             continue 
-
-#         print('sizes', sizes)
-#         paths = split_items(paths, list(traverse(sizes)))
-
-#     return paths
 
 
 def split_items(items: List, sizes: List[int]) -> List:

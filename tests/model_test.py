@@ -298,6 +298,7 @@ class TestModel(unittest.TestCase):
                 test()
 
     def test_comsume_2_idxids(self):
+        """Level 1 fixed, level 2 fixed"""
         mpworkers = False
         self.hmodel.set_input(self.input)
         response = self.hmodel.get(['first_coor[0].second_coor[0].value'],
@@ -308,6 +309,7 @@ class TestModel(unittest.TestCase):
 
 
     def test_comsume_2_idxids_idxwc(self):
+        """Level 1 fixed, index wildcard on level 2"""
         mpworkers = False
         self.hmodel.set_input(self.input)
         response = self.hmodel.get(['first_coor[0].second_coor[:].value'],
@@ -318,6 +320,7 @@ class TestModel(unittest.TestCase):
 
 
     def test_comsume_2_idxids_idxwc_a(self):
+        """Index wildcard on level 1. Level 2 fixed"""
         mpworkers = False
         self.hmodel.set_input(self.input)
         response = self.hmodel.get(['first_coor[:].second_coor[0].value'],
@@ -325,6 +328,18 @@ class TestModel(unittest.TestCase):
                                     validate=False)
         expected_response = {'first_coor[:].second_coor[0].value': [1.0, 3.0]}
         self.assertDictEqual(response, expected_response)
+
+
+    def test_comsume_2_idxids_2_idxwc(self):
+        """Level 1 fixed, index wildcard on level 2"""
+        mpworkers = False
+        self.hmodel.set_input(self.input)
+        response = self.hmodel.get(['first_coor[:].second_coor[:].value'],
+                                    mpworkers=mpworkers,
+                                    validate=False)
+        print(response)
+        # expected_response = {'first_coor[0].second_coor[:].value': [1.0, 2.0]}
+        # self.assertDictEqual(response, expected_response)
 
 
     def test_get_slice(self):

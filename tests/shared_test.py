@@ -509,10 +509,14 @@ class TestTree(unittest.TestCase):
         self.assertSequenceEqual( paths, expected_paths )
 
 
-    def test_expand_mpath2(self):
-        """Expand to full template path
+    def test_expand_path2(self):
+        """Expand path
         """
-        path = "segments[:@IDX_SEG].layers[:@IDX_LAY].test"
+        paths = ("segments[:@IDX_SEG].layers[:@IDX_LAY].test",
+                 "segments[:].layers[:].test"
+               )
+        path_types = ('model', 'query')
+
         # path = "segments.:@IDX_SEG.layers.:@IDX_LAY.test"
         seg_node = shared.LengthNode(2)
         lay_nodes = shared.LengthNode(2), shared.LengthNode(2)
@@ -528,9 +532,12 @@ class TestTree(unittest.TestCase):
                           ['segments[1].layers[0].test',
                           'segments[1].layers[1].test',]]
 
-        paths = tree.expand_path(path)
-        print(paths)
-        self.assertSequenceEqual( paths, expected_paths )
+
+        for path, path_type in zip( paths, path_types):
+            with self.subTest(path=path, path_type=path_type):
+                expanded_paths = tree.expand_path(path, path_type=path_type)
+                print('expanded_paths', expanded_paths)
+                self.assertSequenceEqual( expanded_paths, expected_paths )
 
 
     def test_expand_mpath3(self):

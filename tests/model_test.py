@@ -338,8 +338,8 @@ class TestModel(unittest.TestCase):
                                     mpworkers=mpworkers,
                                     validate=False)
         print(response)
-        # expected_response = {'first_coor[0].second_coor[:].value': [1.0, 2.0]}
-        # self.assertDictEqual(response, expected_response)
+        expected_response = {'first_coor[0].second_coor[:].value': [1.0, 2.0]}
+        self.assertDictEqual(response, expected_response)
 
 
     def test_get_slice(self):

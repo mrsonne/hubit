@@ -478,9 +478,10 @@ class LengthTree:
                 
                 _path, tgtstr = path_preprocessor(_path, level_name)
 
-                # Replace level_name with indices of children
+                # Replace tgtstr with indices of children. Only replace first occurence
+                # from left since query strings may have multiple index wildcards (:)
                 paths_current_level.extend([_path.replace(tgtstr, 
-                                                          str(child.index if child is not None else idx)) 
+                                                          str(child.index if child is not None else idx), 1) 
                                             for idx, child in enumerate(node.children)])
 
             paths = paths_current_level

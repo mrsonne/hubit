@@ -338,7 +338,7 @@ class TestModel(unittest.TestCase):
                                     mpworkers=mpworkers,
                                     validate=False)
         print(response)
-        expected_response = {'first_coor[0].second_coor[:].value': [1.0, 2.0]}
+        expected_response = {'first_coor[:].second_coor[:].value': [[1., 2.], [3., 4.]]}
         self.assertDictEqual(response, expected_response)
 
 

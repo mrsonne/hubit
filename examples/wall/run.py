@@ -5,7 +5,7 @@ from itertools import product
 from hubit.model import HubitModel, HubitModelQueryError
 THISPATH = os.path.dirname(os.path.realpath(__file__))
 
-# logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO)
 
 def get_model(render=True):
     """Create a HubutModel instance from a model file.
@@ -56,14 +56,14 @@ def query(hmodel, render=True, mpworkers=False):
     #     print(err)
 
     # Make the queries
-    # queries = ["segments[:].layers[:].outer_temperature"] # not ok. Only results for 0,0 and 1,1
-    queries = ["segments[0].layers[:].outer_temperature"] 
+    queries = ["segments[:].layers[:].outer_temperature"] 
+    # queries = ["segments[0].layers[:].outer_temperature"] 
     # queries = ["segments[0].layers[0].outer_temperature"]   
     # queries = ["segments[:].layers[1].k_therm"] 
     # queries = ["segments[0].layers[0].k_therm"] 
     # queries = ["segments[0].layers[:].k_therm"] 
     # queries = ["segments[:].layers[0].k_therm"] 
-    # queries = ["segments[:].layers[:].k_therm"] # not ok. Only results for 0,0 and 1,1
+    # queries = ["segments[:].layers[:].k_therm"] 
 
     # Render the query
     if render:
@@ -75,7 +75,7 @@ def query(hmodel, render=True, mpworkers=False):
 
 
 def query_with_precomputed_results(hmodel, mpworkers=False):
-    queries = ["segments.:.layers.:.outer_temperature"]
+    queries = ["segments[:].layers[:].outer_temperature"]
 
     # First query
     response = hmodel.get(queries,
@@ -86,10 +86,11 @@ def query_with_precomputed_results(hmodel, mpworkers=False):
                           mpworkers=mpworkers,
                           reuse_results=True)
 
-    print(response)
+    print('response', response)
     # Get the full results object
     results = hmodel.get_results()
-    print(results)
+    print('results', results)
+    print('outer_temperature', results['segments'][0]['layers'][1]['outer_temperature'])
 
 
 def query_with_custom_results(hmodel, mpworkers=False):
@@ -113,7 +114,7 @@ def query_with_custom_results(hmodel, mpworkers=False):
                                 }
                     }
     hmodel.set_results(results_data)
-    response = hmodel.get(["segments.:.layers.:.outer_temperature"],
+    response = hmodel.get(["segments[:].layers[:].outer_temperature"],
                           mpworkers=mpworkers,
                           reuse_results=True)
     print(response)

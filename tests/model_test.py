@@ -337,7 +337,6 @@ class TestModel(unittest.TestCase):
         response = self.hmodel.get(['first_coor[:].second_coor[:].value'],
                                     mpworkers=mpworkers,
                                     validate=False)
-        print(response)
         expected_response = {'first_coor[:].second_coor[:].value': [[1., 2.], [3., 4.]]}
         self.assertDictEqual(response, expected_response)
 

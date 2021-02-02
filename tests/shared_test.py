@@ -512,10 +512,14 @@ class TestTree(unittest.TestCase):
     def test_expand_path2(self):
         """Expand path
         """
-        paths = ("segments[:@IDX_SEG].layers[:@IDX_LAY].test",
-                 "segments[:].layers[:].test"
-               )
-        path_types = ('model', 'query')
+        paths = (
+                 "segments[:@IDX_SEG].layers[:@IDX_LAY].test",
+                 "segments[:].layers[:].test",
+                )
+        path_types = (
+                        'model', 
+                        'query',
+                     )
 
         # path = "segments.:@IDX_SEG.layers.:@IDX_LAY.test"
         seg_node = shared.LengthNode(2)
@@ -536,7 +540,6 @@ class TestTree(unittest.TestCase):
         for path, path_type in zip( paths, path_types):
             with self.subTest(path=path, path_type=path_type):
                 expanded_paths = tree.expand_path(path, path_type=path_type)
-                print('expanded_paths', expanded_paths)
                 self.assertSequenceEqual( expanded_paths, expected_paths )
 
 

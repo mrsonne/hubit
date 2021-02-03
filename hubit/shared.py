@@ -432,6 +432,21 @@ class LengthTree:
                               'query': preprocess_query_path,
                              }
 
+    def normalize_path(self,
+                       qpath: str):
+        """ Handle negative indices """
+
+        idxids = idxids_from_path(qpath)
+        _path = copy.copy(qpath)
+
+        for idx_level, (level_name, idxid) in enumerate( zip(self.level_names, idxids)):
+            nodes = self.nodes_for_level[idx_level]
+
+            if is_digit(idxid) and int(idxid) < 0:
+                _path = _path.replace(idxid, str( nodes[0].nchildren() + int(idxid)), 1)
+        return _path
+
+
     def expand_path(self,
                     path: str,
                     flat: bool=False,

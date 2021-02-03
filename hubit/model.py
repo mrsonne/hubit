@@ -195,6 +195,9 @@ class HubitModel:
         # Stores trees for query
         self._tree_for_qpath = {}
 
+        # Stores normalized query paths
+        self._normqpath_for_qpath = {}
+
         # Store the model path that matches the query
         self._modelpath_for_querypath = {}
 
@@ -861,15 +864,18 @@ class HubitModel:
         self._modelpath_for_querypath[qpath] = mpath
         idxcontext = get_idx_context(mpath)
         tree = self.tree_for_idxcontext[idxcontext]
-        pruned_tree = tree.prune_from_path(convert_to_internal_path(qpath),
+        qpath_normalized = tree.normalize_path(qpath)
+        pruned_tree = tree.prune_from_path(convert_to_internal_path(qpath_normalized),
                                            convert_to_internal_path(mpath),
                                            inplace=False)
-
         # Store tree 
         self._tree_for_qpath[qpath] = pruned_tree
 
+        # Store tree 
+        self._normqpath_for_qpath[qpath] = qpath_normalized
+
         # Expand the path 
-        return pruned_tree.expand_path(qpath,
+        return pruned_tree.expand_path(qpath_normalized,
                                        flat=True,
                                        path_type='query',
                                        as_internal_path=True)
@@ -887,14 +893,16 @@ class HubitModel:
         """
         _response = {}
         for qpath_org, qpaths_expanded in queries_for_query.items():
-            if not qpaths_expanded[0] == convert_to_internal_path( qpath_org ):
-
+            if (qpaths_expanded[0] == convert_to_internal_path( qpath_org ) or
+                qpaths_expanded[0] == convert_to_internal_path( self._normqpath_for_qpath[qpath_org] )
+                ):
+                _response[qpath_org] = response[qpaths_expanded[0]]
+            else:
                 # Get the index IDs from the original query
                 idxids = idxids_from_path(qpath_org)
 
                 # Get pruned tree
                 tree = self._tree_for_qpath[qpath_org]
-
                 # Initialize list to collect all iloc indices for each wildcard 
                 values = tree.none_like()
 
@@ -908,9 +916,7 @@ class HubitModel:
                     values = set_element(values, response[qpath], 
                                          [int(iloc) for iloc in ilocs])
                 _response[qpath_org] = values
-            else:
-                _response[qpath_org] = response[qpaths_expanded[0]]
-
+ 
         return _response
 
 

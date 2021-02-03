@@ -189,7 +189,6 @@ class TestModel(unittest.TestCase):
         """
         Validate query for last list element.
         """
-        self.skipTest('Broken')
         self.hmodel.set_input(self.input)
         queries = [self.querystr_level0_last]
         is_ok = self.hmodel.validate(queries)
@@ -363,14 +362,13 @@ class TestModel(unittest.TestCase):
         """
         Query last list element
         """
-        self.skipTest('Broken')
         self.hmodel.set_input(self.input)
         queries = [self.querystr_level0_last]
         for mpworkers in self.mpworkers_values:
             with self.subTest(mpworkers=mpworkers):
                 response = self.hmodel.get(queries,
                                            mpworkers=mpworkers)
-                self.assertSequenceEqual(response[self.querystr_level0], 
+                self.assertSequenceEqual(response[self.querystr_level0_last], 
                                          self.expected_result_level0)
 
 

@@ -56,7 +56,8 @@ def query(hmodel, render=True, mpworkers=False):
     #     print(err)
 
     # Make the queries
-    queries = ["segments[:].layers[:].outer_temperature"] 
+    # queries = ["segments[:].layers[:].outer_temperature"] 
+    queries = ["segments[:].layers[-1].outer_temperature"] # not ok
     # queries = ["segments[0].layers[:].outer_temperature"] 
     # queries = ["segments[0].layers[0].outer_temperature"]   
     # queries = ["segments[:].layers[1].k_therm"] 

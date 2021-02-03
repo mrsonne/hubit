@@ -203,7 +203,8 @@ class LengthTree:
         return obj
 
 
-    def fix_idx_at_level(self, idx_value: int,
+    def fix_idx_at_level(self, 
+                         idx_value: int,
                          level_idx: int,
                          inplace: bool=True):
         """Fix the nodes at level_idx to the value idx
@@ -220,10 +221,9 @@ class LengthTree:
             LengthTree: Fixed tree. If inplace=True the instance itself is also modified.
         """
         obj = self if inplace else copy.deepcopy(self)
-
         nodes_to_be_deleted = []
         for node in obj.nodes_for_level[level_idx]:
-            # Keep child corresponding to idx  remove the rest
+            # Keep child corresponding to idx remove the rest
             idx_others = list(range(node.nchildren()))
             if idx_value in idx_others:
                 # idx can be provided
@@ -237,7 +237,8 @@ class LengthTree:
             try:
                 node.remove()
             except HubitIndexError:
-                raise HubitIndexError(f'Cannot find index {idx_value} for index ID {obj.level_names[level_idx]}')
+                raise HubitIndexError(f'Cannot find index {idx_value} '
+                                      f'for index ID {obj.level_names[level_idx]}')
         return obj
 
 

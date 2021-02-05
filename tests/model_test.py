@@ -154,7 +154,7 @@ class TestModel(unittest.TestCase):
         with open(fpath, 'w') as handle:
             yaml.dump(yaml.load(model, Loader=yaml.FullLoader), handle,
                       default_flow_style=False)
-        _ = HubitModel.from_file(fpath)
+        HubitModel.from_file(fpath)
         self.assertTrue(True)
 
 
@@ -387,6 +387,7 @@ class TestModel(unittest.TestCase):
                 print(response)
 
 
+
     def test_sweep(self):
         """
         Sweep input parameters
@@ -404,10 +405,6 @@ class TestModel(unittest.TestCase):
         responses, inps, _ = self.hmodel.get_many(queries,
                                                   input_values_for_path)
 
-        for inp in inps:
-            print(inp[path])
-
-        print('responses', responses)
         expected_results = []
         calc_responses = []
         for flat_inp, response in zip(inps, responses):

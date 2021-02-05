@@ -857,6 +857,9 @@ class HubitModel:
         Expand query so that any index wildcards are converte to 
         real indies
 
+        TODO: NEgative indices... prune_tree requires real indices but normalize 
+        path require all IDX_WILDCARDs be expanded to get the context
+
         # TODO: Save pruned trees so the worker need not prune top level trees again
         # TODO: save component so we dont have to find top level components again
         """
@@ -864,18 +867,18 @@ class HubitModel:
         self._modelpath_for_querypath[qpath] = mpath
         idxcontext = get_idx_context(mpath)
         tree = self.tree_for_idxcontext[idxcontext]
-        qpath_normalized = tree.normalize_path(qpath)
-        pruned_tree = tree.prune_from_path(convert_to_internal_path(qpath_normalized),
+        # qpath_normalized = tree.normalize_path(qpath)
+        pruned_tree = tree.prune_from_path(convert_to_internal_path(qpath),
                                            convert_to_internal_path(mpath),
                                            inplace=False)
         # Store tree 
         self._tree_for_qpath[qpath] = pruned_tree
 
-        # Store tree 
-        self._normqpath_for_qpath[qpath] = qpath_normalized
+        # Store normalized paths 
+        # self._normqpath_for_qpath[qpath] = qpath_normalized
 
         # Expand the path 
-        return pruned_tree.expand_path(qpath_normalized,
+        return pruned_tree.expand_path(qpath,
                                        flat=True,
                                        path_type='query',
                                        as_internal_path=True)
@@ -893,8 +896,9 @@ class HubitModel:
         """
         _response = {}
         for qpath_org, qpaths_expanded in queries_for_query.items():
-            if (qpaths_expanded[0] == convert_to_internal_path( qpath_org ) or
-                qpaths_expanded[0] == convert_to_internal_path( self._normqpath_for_qpath[qpath_org] )
+            if (qpaths_expanded[0] == convert_to_internal_path( qpath_org ) 
+                # or
+                # qpaths_expanded[0] == convert_to_internal_path( self._normqpath_for_qpath[qpath_org] )
                 ):
                 _response[qpath_org] = response[qpaths_expanded[0]]
             else:

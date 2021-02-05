@@ -725,7 +725,7 @@ class HubitModel:
         for pvalues in ppvalues:
             _flat_input = copy.deepcopy(self.flat_input)
             for path, val in zip(paths, pvalues):
-                _flat_input[path] = val
+                _flat_input[ convert_to_internal_path(path) ] = val
             qrun = _QueryRunner(self, mpworkers=False)
             flat_results = {}
             args.append( (qrun, queries, _flat_input, flat_results) )

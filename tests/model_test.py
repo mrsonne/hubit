@@ -395,8 +395,8 @@ class TestModel(unittest.TestCase):
         # self.skipTest('TODO. Works but not with other test?!?!?')
         idx = 1
         # TODO change this
-        # path = "list[{}].some_attr.numbers".format(idx)
-        path = "list.{}.some_attr.numbers".format(idx)
+        path = "list[{}].some_attr.numbers".format(idx)
+        ipath = convert_to_internal_path(path)
         input_values_for_path = {path: ([1., 2., 3.],
                                         [4., 5., 6.]),
                                 }
@@ -414,7 +414,7 @@ class TestModel(unittest.TestCase):
 
         for idx, flat_inp in enumerate(inps):
             with self.subTest():
-                self.assertListEqual(flat_inp[path], input_values_for_path[path][idx])
+                self.assertListEqual(flat_inp[ipath], input_values_for_path[path][idx])
 
         with self.subTest():
             self.assertSequenceEqual(calc_responses,

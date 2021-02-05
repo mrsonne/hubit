@@ -433,18 +433,36 @@ class LengthTree:
                               'query': preprocess_query_path,
                              }
 
+
+    def _node_for_idxs(self, idxs: List[int]):
+        """
+        Get the node corresponding to a list of indices
+        """
+        if len(idxs) == 0:
+            node = self.nodes_for_level[0][0]
+        else:
+            node = self.nodes_for_level[0][0].children[idxs[0]]
+            for node_idx in idxs[1:]:
+                node = node.children[node_idx]
+        return node
+
+
     def normalize_path(self,
                        qpath: str):
-        """ Handle negative indices """
+        """ Handle negative indices 
+        As stated in "test_normalize_path2" the normalization in general depends
+        on the context
+        """
 
         idxids = idxids_from_path(qpath)
         _path = copy.copy(qpath)
 
-        for idx_level, (level_name, idxid) in enumerate( zip(self.level_names, idxids)):
-            nodes = self.nodes_for_level[idx_level]
-
+        for idx_level, idxid in enumerate( idxids ):
             if is_digit(idxid) and int(idxid) < 0:
-                _path = _path.replace(idxid, str( nodes[0].nchildren() + int(idxid)), 1)
+                # Get index context i.e. indices prior to current level
+                _idx_context = [int(idx) for idx in idxids_from_path(_path)[:idx_level]]
+                node = self._node_for_idxs(_idx_context)
+                _path = _path.replace(idxid, str( node.nchildren() + int(idxid)), 1)
         return _path
 
 

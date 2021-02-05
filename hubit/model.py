@@ -735,21 +735,17 @@ class HubitModel:
             _nproc = len(args)
         else:
             _nproc = max(nproc, 1)
-        pool = Pool(_nproc)
-        # Results are ordered as input but only accessible after completion
-        results = pool.starmap_async(_get, args, callback=callback)
-        pool.close()
-        while len(active_children()) > 1:
-            logging.debug('waiting')
-            time.sleep(POLLTIME_LONG)
-        pool.join()
-        responses, flat_results = zip(*results.get())
-        results = [inflate(item) for item in flat_results]
 
-        # Results in random order so we need an ID
-        # but callback is called in each query 
-        # multiple_results = [pool.apply_async(get, _args, callback=cb) for _args in args]
-        # responses = [result.get(timeout=99999) for result in multiple_results]
+        with Pool(_nproc) as pool:
+            # Results are ordered as input but only accessible after completion
+            # results = pool.starmap_async(_get, args)
+            # results.wait()
+            # responses, flat_results = zip( *results.get() )
+            # results = [inflate(item) for item in flat_results]
+
+            results = pool.starmap(_get, args)
+            responses, flat_results = zip( *results )
+            results = [inflate(item) for item in flat_results]
 
         logging.info('Queries processed in {} s'.format(time.time() - tstart))
 

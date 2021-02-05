@@ -417,7 +417,7 @@ class TestModel(unittest.TestCase):
 
         for idx, flat_inp in enumerate(inps):
             with self.subTest():
-                self.assertListEqual(flat_inp[path], input_values_for_path[path][0])
+                self.assertListEqual(flat_inp[path], input_values_for_path[path][idx])
 
         with self.subTest():
             self.assertSequenceEqual(calc_responses,

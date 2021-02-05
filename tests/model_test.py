@@ -391,11 +391,11 @@ class TestModel(unittest.TestCase):
         """
         Sweep input parameters
         """
-        self.skipTest('TODO. Works but not with other test?!?!?')
+        # self.skipTest('TODO. Works but not with other test?!?!?')
         idx = 1
         # TODO change this
-        path = "list[{}].some_attr.numbers".format(idx)
-        # path = "list.{}.some_attr.numbers".format(idx)
+        # path = "list[{}].some_attr.numbers".format(idx)
+        path = "list.{}.some_attr.numbers".format(idx)
         input_values_for_path = {path: ([1., 2., 3.],
                                         [4., 5., 6.]),
                                 }
@@ -404,19 +404,24 @@ class TestModel(unittest.TestCase):
         responses, inps, _ = self.hmodel.get_many(queries,
                                                   input_values_for_path)
 
+        for inp in inps:
+            print(inp[path])
+
         print('responses', responses)
         expected_results = []
         calc_responses = []
-        # TODO unsafe test since it it depends on logic that creates inps
         for flat_inp, response in zip(inps, responses):
             inp = inflate(flat_inp)
             expected_results.append( level0_results_at_idx( inp, idx ) )
             calc_responses.append( response[self.querystr_level0] )
-        
-        print('calc_responses', calc_responses)
-        print( 'expected_results', expected_results)
-        self.assertSequenceEqual(calc_responses,
-                                 expected_results)
+
+        for idx, flat_inp in enumerate(inps):
+            with self.subTest():
+                self.assertListEqual(flat_inp[path], input_values_for_path[path][0])
+
+        with self.subTest():
+            self.assertSequenceEqual(calc_responses,
+                                    expected_results)
 
 
 

@@ -128,18 +128,17 @@ def make_sweep(hmodel, nproc=4):
         hmodel (HubitModel): Hubit model to be used
         nproc (int, optional): Number of processes
     """
-    queries = ["segments.0.layers.:.outer_temperature"] 
+    queries = ["segments[0].layers[:].outer_temperature"] 
 
     # For segment 0 sweep over multiple inputs created as the Cartesian product of the input perturbations 
-    input_values_for_path = {"segments.0.layers.0.material": ('brick', 'concrete'),
-                             "segments.0.layers.0.thickness": (0.08, 0.12, 0.15, 0.46,),
+    input_values_for_path = {"segments[0].layers[0].material": ('brick', 'concrete'),
+                             "segments[0].layers[0].thickness": (0.08, 0.12, 0.15, 0.46,),
                             }
 
 
     responses, inps, _ = hmodel.get_many(queries,
                                          input_values_for_path,
                                          nproc=nproc)
-
     for inp, response in zip(inps, responses):
         print('Input',
               inp["segments.0.layers.0.material"],

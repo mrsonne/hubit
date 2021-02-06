@@ -1,12 +1,17 @@
 # Calculations for a wall
 
-```
-     __________
-    |          |
-    |          |
-    |__________|
-    |__________|
-    
+In this example we consider a wall that consists of two segments as shown in 
+the illustraton below.
+
+``` 
+     ________________
+    |   segment 2   |
+    |               |
+    |               | 2.5 m
+    |_______________|
+    |   segment 1   | 1.5 m
+    |_______________|
+           3.0 m
 ```
 
 Both engineering and management. Same model results provided controlled by query.

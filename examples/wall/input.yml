@@ -8,6 +8,8 @@ segments:
           material: brick
         - thickness: 0.02
           material: air
+        - thickness: 0.075
+          material: rockwool
         - thickness: 0.1
           material: brick
       inside:

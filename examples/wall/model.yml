@@ -53,3 +53,23 @@
     results: 
       - name: ks_walls 
         path: segments[IDX_SEG].layers[:@IDX_LAY].k_therm
+
+
+- # Component that calculates the heat flows from dimensions an heat fluxes
+  path: ./components/heat_flow.py
+
+  func_name: heat_flow
+
+  provides:
+    - name: heat_flow
+      path: segments[IDX_SEG].heat_flow
+  
+  consumes:
+    input: 
+      - name: width
+        path: segments[IDX_SEG].width
+      - name: height
+        path: segments[IDX_SEG].height
+    results: 
+    - name: heat_flux
+      path: segments[IDX_SEG].heat_flux

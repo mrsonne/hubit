@@ -749,6 +749,7 @@ class HubitModel:
 
         logging.info('Queries processed in {} s'.format(time.time() - tstart))
 
+        # TODO convert inps to external paths
         return responses, inps, results
 
 

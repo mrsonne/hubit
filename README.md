@@ -141,3 +141,6 @@ results = model.results()
 
 In this case, the second the calculation corresponding to the query `car.price` will not require the "wheel_price" tool to be executed since the results are provided from a previous calculation. This allows for results patching.
 
+In the examples all calculation are, for simplicity, carried out directly in the 
+hubit component, but the component could hjust as well wrap a C library or request 
+data from a web server.

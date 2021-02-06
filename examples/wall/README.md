@@ -56,9 +56,9 @@ load or a latency in a web service.
 
 #### Engineering models
 
-1. Segment-layer thermal conductivities (`thermal_conductivity.py`).
-2. Segment thermal profiles and heat flux (`thermal_profile.py`).
-3. Segment heat flow (`heat_flow.py`).
+1. Segment-layer thermal conductivities (`components/thermal_conductivity.py`).
+2. Segment thermal profiles and heat flux (`components/thermal_profile.py`).
+3. Segment heat flow (`components/heat_flow.py`).
 4. Segment-layer volumes (``).
 5. Segment-layer weights (``).
 6. Maximum heat flow (``).

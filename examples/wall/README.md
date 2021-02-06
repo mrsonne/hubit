@@ -41,38 +41,36 @@ number of layers in the two segments differ which highlight `hubit`s capability
 to handle non-rectangular data models.
 
 ## Model
-
-Both engineering and management. Same model results provided controlled by query.
-
-Using different queries it is therefore straight forward to set up different reports 
-for management, for clients, for independant verification agencies, and 
-for internal design engineers.
-
+The wall model is defined in `model.yml` and contain calculation components 
+that may service e.g. engineering and management. In general using different 
+queries it is straight forward to set up different reports for different stakeholder 
+be it management, internal design engineers, clients or independant verification agencies.
 
 ### Components
 The source code for all components can be found in the `components` folder. The 
-components can be divided into engineering models and management model.
+components can, in this example, schematically be divided into engineering 
+components and management components.
 
-A time delay has been added to the component to simulate heavier computational 
-load or a latency in a web service.
-
-#### Engineering models
+#### Engineering components
 
 1. Segment-layer thermal conductivities (`components/thermal_conductivity.py`).
 2. Segment thermal profiles and heat flux (`components/thermal_profile.py`).
 3. Segment heat flow (`components/heat_flow.py`).
-4. Segment-layer volumes (``).
-5. Segment-layer weights (``).
-6. Maximum heat flow (``).
+4. Segment-layer volumes (`MAKE ME`).
+5. Segment-layer weights (`MAKE ME`).
+6. Maximum heat flow (`MAKE ME`).
 
-The heat flow (3) could be calculated in the thermal profile (2) but in this example
+The heat flow (3) could be calculated in the thermal profile (2) but here
 it is kept as a separate component to increase modularity and to maximize the speed-up 
 obtained by multi-processing.
 
-#### Management models
+#### Management components
 
-* Segment costs (``).
-* Total cost (``).
+* Segment costs (`MAKE ME`).
+* Total cost (`MAKE ME`).
+
+In the example a time delay has been added to the component to simulate 
+heavier computational load or a latency in a web service.
 
 ## Example calculations
 The purpose of the examples are summarized below. A more thorough description 

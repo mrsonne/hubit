@@ -1,10 +1,10 @@
 # Calculations for a wall
 
 In this example we consider a wall that consists of two segments 
-as shown in a face view in the illustraton below. Segment 
-dimensions not to scale.
+as shown in the illustraton below. 
 
 ``` 
+Wall face view (not to scale)
      ________________
     |   segment 1   | 1.5 m
     | ______________|
@@ -14,9 +14,11 @@ dimensions not to scale.
            3.0 m
 ```
 
-A side view of the wall is shown below. Segment and layer dimensions not to scale.
+A side view of the wall is shown below.
 
 ```
+Wall side view (not to scale)
+
      brick air  rockwool 
        |    |   |     brick
        |    |   |     |

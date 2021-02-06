@@ -3,7 +3,9 @@
 
 segments:
     # First segment
-    - layers:
+    - width: 3. # [m]
+      height: 1.5 # [m]
+      layers:
         - thickness: 0.1 # [m]
           material: brick
         - thickness: 0.02
@@ -17,7 +19,9 @@ segments:
       outside:
         temperature: 273.
     # Second segment
-    - layers:
+    - width: 3. # [m]
+      height: 2.5 # [m]
+      layers:
         - thickness: 0.15
           material: concrete
         - thickness: 0.025

@@ -18,3 +18,17 @@ for internal design engineers.
 
 * Segment cost
 * Total cost
+
+## Examples
+
+The pupose of the examples are summarized below. A more thorough description 
+can be found in the documentation in the individual files.
+
+* `run_queries.py` contains
+* `run_precompute.py`
+* `run_set_results.py`
+* `run_sweep.py`
+
+From the project root run for example 
+`python3 -m examples.wall.run_queries`
+

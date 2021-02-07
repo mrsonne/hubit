@@ -133,3 +133,39 @@
     results:
       - name: volume
         path: segments[IDX_SEG].layers[IDX_LAY].volume
+
+- # Component that calculates the cost for one wall segment
+  path: ./components/segment_cost.py
+
+  func_name: cost
+
+  provides:
+    - name: cost
+      path: segments[IDX_SEG].cost
+  
+  consumes:
+    input: 
+      - name: materials
+        path: segments[IDX_SEG].layers[:@IDX_LAY].material
+    results:
+      - name: weights
+        path: segments[IDX_SEG].layers[:@IDX_LAY].weight
+
+- # Component that calculates the cost for the entire wall
+  path: ./components/total_cost.py
+
+  func_name: total_wall_cost
+
+  provides:
+    - name: cost
+      path: total_cost
+  
+  consumes:
+    input:
+      # TODO: have to use dummy input since Hubit always expects input consumption... 
+      - name: material
+        path: segments[IDX_SEG].layers[:@IDX_LAY].material
+    results:
+      - name: segment_costs
+        path: segments[:@IDX_SEG].cost
+

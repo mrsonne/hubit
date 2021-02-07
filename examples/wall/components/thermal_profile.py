@@ -18,12 +18,13 @@ def thermal_prof(_input_consumed, _results_consumed, results_provided):
     T_in = _input_consumed["temp_in"]
     T_out = _input_consumed["temp_out"]
 
-    # Calculate total thermal resistance
+    # Calculate total thermal resistance and overall heat transfer number
     Rs = [t/k for (k, t) in zip(ks, thicknesses)]
     R_tot = sum(Rs)
+    htn = 1. / R_tot
 
     # Calculate heat flux [J/s/m^2]
-    q = - ( T_out - T_in ) / R_tot
+    q = - ( T_out - T_in ) * htn
 
     # Calculate temperature changes in the positive direction 
     temp_changes = [ -q*R for R in Rs ]
@@ -35,6 +36,7 @@ def thermal_prof(_input_consumed, _results_consumed, results_provided):
 
     results_provided["outer_temperature_all_layers"] = T_outer_all_layers
     results_provided["heat_flux"] = q
+    results_provided["heat_transfer_number"] = htn
 
 def version():
     return 1.0

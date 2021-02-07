@@ -38,9 +38,12 @@
 
   provides:
     - name: outer_temperature_all_layers
-      path: segments[IDX_SEG].layers[:@IDX_LAY].outer_temperature
-    - name: heat_flux
-      path: segments[IDX_SEG].heat_flux
+      path: segments[IDX_SEG].layers[:@IDX_LAY].outer_temperature # K
+    - name: heat_flux 
+      path: segments[IDX_SEG].heat_flux # W/m^2
+    - name: heat_transfer_number
+      path: segments[IDX_SEG].heat_transfer_number #W/m^2/K
+
   
   consumes:
     input: 
@@ -53,7 +56,6 @@
     results: 
       - name: ks_walls 
         path: segments[IDX_SEG].layers[:@IDX_LAY].k_therm
-
 
 - # Component that calculates the heat flows from dimensions an heat fluxes
   path: ./components/heat_flow.py
@@ -73,3 +75,23 @@
     results: 
     - name: heat_flux
       path: segments[IDX_SEG].heat_flux
+
+
+- # Component that calculates the average heat transfer number
+  path: ./components/heat_transfer_number.py
+
+  func_name: heat_transfer_number
+
+  provides:
+    - name: heat_transfer_number
+      path: heat_transfer_number
+  
+  consumes:
+    input: 
+      - name: widths
+        path: segments[:@IDX_SEG].width
+      - name: heights
+        path: segments[:@IDX_SEG].height
+    results: 
+    - name: heat_transfer_numbers
+      path: segments[:@IDX_SEG].heat_transfer_number

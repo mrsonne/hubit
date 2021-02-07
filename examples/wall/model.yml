@@ -85,6 +85,8 @@
   provides:
     - name: heat_transfer_number
       path: heat_transfer_number
+    - name: energy_class
+      path: energy_class
   
   consumes:
     input: 

@@ -11,7 +11,7 @@ def make_sweep(hmodel: HubitModel, nproc:Any=None) -> None:
         nproc (Any, optional): Number of processes. Default is None and 
         leaves it to Hubit to determine the number of processes to use.
     """
-    queries = ["segments[0].layers[:].outer_temperature"] 
+    queries = ['heat_transfer_number', 'energy_class', 'total_cost']
 
     # For segment 0 sweep over multiple inputs created as the 
     # Cartesian product of the input perturbations 

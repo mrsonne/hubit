@@ -377,5 +377,38 @@ class TestWorker(unittest.TestCase):
                     multiprocess=False,
                     dryrun=True)
 
+
+    def test_bindings_from_idxs_0(self):
+        """
+        Substitute idxids with idxs
+        """
+        bindings = [ 
+                    {'name': 'heat_flux', 
+                     'path': 'segments[IDX_SEG].heat_flux'}
+                   ]
+
+        idxval_for_idxid = {'IDX_SEG': '3'}
+        path_for_name = _Worker.bindings_from_idxs(bindings, idxval_for_idxid)
+        expected_path_for_name = {'heat_flux': 
+                                  'segments[3].heat_flux'}
+        self.assertDictEqual(path_for_name, expected_path_for_name)
+
+
+    def test_bindings_from_idxs_1(self):
+        """
+        Substitute idxids with idxs. Second index ID contains a wildcard 
+        and should be left as is  
+        """
+        bindings = [{'name': 'outer_temperature_all_layers', 
+                     'path': 'segments[IDX_SEG].layers[:@IDX_LAY].outer_temperature'}, 
+                   ]
+
+        idxval_for_idxid = {'IDX_SEG': '0'}
+        path_for_name = _Worker.bindings_from_idxs(bindings, idxval_for_idxid)
+        expected_path_for_name = {'outer_temperature_all_layers': 
+                                  'segments[0].layers[:@IDX_LAY].outer_temperature'}
+        self.assertDictEqual(path_for_name, expected_path_for_name)
+
+
 if __name__ == '__main__':
     unittest.main()

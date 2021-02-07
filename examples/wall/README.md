@@ -50,46 +50,43 @@ response = hmodel.get(query)
 
 Behind the scenes `hubit` constructs and executes the call graph for the query. Only components that provide results that are necessary for constructing the response are spawned. Therefore, the query `segment[0].cost` would only spawn calculations required to calculate the cost of wall segment 0 while the query `total_cost` envokes cost calculations for all segments. To understand more on this behavior read the "Call graph" section below.
 
-By using different queries it is straight forward to set up various reports, each with a customized content, based on the same model and the same input. Such different reports can service different 
-stakeholders e.g. management, internal design engineers, clients or independant verification agencies.
+By using different queries it is straight forward to set up reports for different audiences, each with a customized content, but based on the same model and the same input. Such different reports can service different stakeholders e.g. management, internal design engineers, clients or independant verification agencies.
 
 ### Components
-The source code for the components can be found in the `components` folder. To facilitate the description, let us divide the components into two categories: engineering components and management components. These categories are somewhat arbitrary and are actually not required in `hubit`.
+The source code for the components can be found in the `components` folder and are referenced from `model.yml`. To facilitate the description, let us divide the components into two categories: engineering components and management components. These categories are somewhat arbitrary and are actually not required in `hubit`.
 
-In the some of the components a time delay has been added to simulate a heavier computational load or a latency in a web service.
+In this example a time delay has been added in some of the components to simulate a heavier computational load or a latency in a web service.
 
 #### Engineering components
 These calculations encompass the physics part of the wall model.
 
 1. `thermal_conductivity.py`. Simple lookup of thermal condutivities based on the material name.
-2. `thermal_profile.py`. Calculation of the temperature of all wall layers in a segment as well 
+2. `thermal_profile.py`. A calculation of the temperature for all wall layers in a segment as well 
 as the heat flux in the segment. We assume one-dimensional heat flow, and thus each segment can be treated independently.
-3. `heat_flow.py`. The heat flow through a segment.
-4. `MAKE ME`. Calculate the total heat flow through the wall (all segments) and find the segment with the highest heat flow. 
+3. `heat_flow.py`. Calculates the heat flow through a segment.
+4. `MAKE ME`. Calculates the total heat flow through the wall (all segments) and finds the segment with the highest heat flow. 
 5. `MAKE ME`. Overall heat transfer number and wall energy classification.
 
-The heat flow (3) could have been included in the thermal profile (2), but here it is kept as a separate component to increase modularity and to maximize the potential speed-up obtained by multi-processing.
+Many (all) of the components could have been joined in a single component, but here they are kept as  separate components to increase modularity, assure that any query only spawns a minimum of calculations and to maximize the potential speed-up obtained by multi-processing.
 
-To support the cost calculations (see below) two extra components are included
+To support the cost calculations (see below) two extra engineering components are included
 
-6. `MAKE ME`. Calculate the volume of wall layers. 
-7. `MAKE ME`. Calculate the weight of wall layers.
+6. `MAKE ME`. Calculates the volume of wall layers. 
+7. `MAKE ME`. Calculates the weight of wall layers.
 
 #### Management components
 
-8. `MAKE ME`. Wall segment costs.
-9. `MAKE ME`. Wall total cost.
+8. `segment_cost.py`. Calculates segment costs.
+9. `total_cost.py`. Calculates total cost.
 
 
-#### Call graph
+#### Call graph & multi-processing
 
-Even driven. Cascade
+`hubit` is event driven and components are spawned dynamically. The bindings that are used to setup the relations between components are defined in `model.yml`
 
-from the bindings `hubit` figures out that for the thermal profiles calculations each segment is independent and can therefore these components can be executed asyncronously in separate processes. 
+To illustrate the cascading spawning of calculations let us consider a query to the wall `total_cost`. In the model file the total cost is _provided_ by `total_cost.py`. Furher, the model file reveals that the `total_cost.py` _subscribes_ to the costs for all segments which are, in turn, provided by `segment_cost.py`. Since the segment costs are not in the results data to begin with `hubit` spawns the `segment_cost.py` calculation. To calculate the segment cost, the cost of each layer must be calculated (`layer_cost.py`), which, in turn, requires the layer weight (`layer_weight.py`) to be calculated and the material price to be looked up (`material_price.py`). So the original query triggers a cascade of queries and spawns calculations. These calculations are put on hold until the necessary data is avalable. When the data necessary for a calculation becomes available it will triggers the calculation which, when complete, will  provide data that may trigger other calculations that are pending.
 
- below and to see how the is defined in a `hubit` composite model please look at `model.yml`
-
-
+From the bindings defined in the model `hubit` figures out that the cost calculation in each wall segment is independent and therefore the segment cost calculations that are required for the total cost can be executed asyncronously in separate processes. The same goes for the layer weight calculations  and material price lookups.
 
 ## Example calculations
 The purpose of the examples are summarized below. A more thorough description can be found in the documentation in the individual files.

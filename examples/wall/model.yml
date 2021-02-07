@@ -114,3 +114,20 @@
         path: segments[IDX_SEG].height
       - name: thickness
         path: segments[IDX_SEG].layers[IDX_LAY].thickness
+
+- # Component that calculates the volume for one wall layer in one segment
+  path: ./components/weight.py
+
+  func_name: weight
+
+  provides:
+    - name: weight
+      path: segments[IDX_SEG].layers[IDX_LAY].weight
+  
+  consumes:
+    input: 
+      - name: material
+        path: segments[IDX_SEG].layers[IDX_LAY].material
+    results:
+      - name: volume
+        path: segments[IDX_SEG].layers[IDX_LAY].volume

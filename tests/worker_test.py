@@ -1,19 +1,8 @@
-from hubit import shared
 import unittest
+from unittest.mock import Mock
 import yaml
+from hubit import shared
 from hubit.worker import _Worker, HubitWorkerError
-
-class DummyModel:
-
-    def __init__(self):
-        pass
-    
-    def _set_worker(self, worker):
-        pass
-
-    def _set_worker_working(self, worker):
-        pass
-
 
 class TestWorker(unittest.TestCase):
 
@@ -140,7 +129,10 @@ class TestWorker(unittest.TestCase):
 
         TODO: split in multiple tests
         """
-        hmodel = DummyModel()
+        hmodel = Mock()
+        hmodel._set_worker
+        hmodel._set_worker_working
+
         cname = None
         func = None
         version = None

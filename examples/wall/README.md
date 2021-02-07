@@ -36,19 +36,35 @@ Wall side view (not to scale)
     concrete   |     concrete 
                styrofoam 
 ```
-The wall material and dimensions can be found in `input.yml`. Note that the 
-number of layers in the two segments differ which highlight `hubit`s capability 
+
+The wall materials, dimensions and other input can be found in wall input file `input.yml`. 
+Note that the number of wall layers in the two segments differ, which highlights `hubit`s capability 
 to handle non-rectangular data models.
 
 ## Model
-The wall model is defined in `model.yml` and contain calculation components 
-that may service e.g. engineering and management. In general using different 
-queries it is straight forward to set up different reports for different stakeholder 
-be it management, internal design engineers, clients or independant verification agencies.
+The wall composite model is defined in `model.yml` and define calculation components 
+that provides cetain results. With the model in place `hubit` allows users to query the 
+results data structure. For examples to get the "total_cost" and "total_heat_loss" 
+would look like this
+
+```python
+from hubit import HubitModel
+hmodel = HubitModel("model.yml")
+query = ["total_cost", "total_heat_loss"]
+response = hmodel.get(query)
+```
+Behind the scenes `hubit` construct and executes the call graph for the query. Only 
+components that provide results necessary for constructing the response are spawned.
+
+By using different queries it is straight forward to set up different reports, each with 
+a customized content, based on the same model and the same input i.e. with a single 
+source of truth. Such different reports can service different 
+stakeholders be it management, internal design engineers, clients or independant 
+verification agencies.
 
 ### Components
-The source code for all components can be found in the `components` folder. The 
-components can, in this example, schematically be divided into engineering 
+The source code for all components can be found in the `components` folder. To ease 
+the discription let us divide the components into two categories: engineering 
 components and management components.
 
 #### Engineering components

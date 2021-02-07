@@ -95,3 +95,22 @@
     results: 
     - name: heat_transfer_numbers
       path: segments[:@IDX_SEG].heat_transfer_number
+
+
+- # Component that calculates the volume for one wall layer in one segment
+  path: ./components/volume.py
+
+  func_name: volume
+
+  provides:
+    - name: volume
+      path: segments[IDX_SEG].layers[IDX_LAY].volume
+  
+  consumes:
+    input: 
+      - name: width
+        path: segments[IDX_SEG].width
+      - name: height
+        path: segments[IDX_SEG].height
+      - name: thickness
+        path: segments[IDX_SEG].layers[IDX_LAY].thickness

@@ -70,20 +70,19 @@ These calculations encompass the physics part of the wall model.
 2. `thermal_profile.py`. A calculation of the temperature for all wall layers in a segment as well 
 as the heat flux in the segment. We assume one-dimensional heat flow, and thus each segment can be treated independently.
 3. `heat_flow.py`. Calculates the heat flow through a segment.
-4. `MAKE ME`. Calculates the total heat flow through the wall (all segments) and finds the segment with the highest heat flow. 
-5. `MAKE ME`. Overall heat transfer number and wall energy classification.
+4. `heat_transfer_number.py`. Overall heat transfer number and wall energy classification.
 
 Many (all) of the components could have been joined in a single component, but here they are kept as  separate components to increase modularity, assure that any query only spawns a minimum of calculations and to maximize the potential speed-up obtained by multi-processing.
 
 To support the cost calculations (see below) two extra engineering components are included
 
-6. `MAKE ME`. Calculates the volume of wall layers. 
-7. `MAKE ME`. Calculates the weight of wall layers.
+5. `volume.py`. Calculates the volume of wall layers. 
+6. `MAKE ME`. Calculates the weight of wall layers.
 
 #### Management components
 
-8. `segment_cost.py`. Calculates segment costs.
-9. `total_cost.py`. Calculates total cost.
+7. `segment_cost.py`. Calculates segment costs.
+8. `total_cost.py`. Calculates total cost.
 
 
 #### Call graph & multi-processing

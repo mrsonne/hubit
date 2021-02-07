@@ -20,8 +20,8 @@ def termal_query(hmodel: HubitModel, render=True, mpworkers=False) -> None:
 
     # Make the queries
     queries = (
+                ["segments[:].heat_flow"], 
                 ["segments[:].layers[:].outer_temperature"], 
-                ["segments[0].layers[:].outer_temperature"], 
                 ["segments[0].layers[0].outer_temperature"],   
                 ["segments[:].layers[1].k_therm"], 
                 ["segments[0].layers[0].k_therm"],

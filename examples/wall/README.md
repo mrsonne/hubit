@@ -48,6 +48,12 @@ query = ["total_cost", "total_heat_loss"]
 response = hmodel.get(query)
 ```
 
+The response is
+
+```python
+{"total_cost": XXXXX}
+```
+
 Behind the scenes `hubit` constructs and executes the call graph for the query. Only components that provide results that are necessary for constructing the response are spawned. Therefore, the query `segment[0].cost` would only spawn calculations required to calculate the cost of wall segment 0 while the query `total_cost` envokes cost calculations for all segments. To understand more on this behavior read the "Call graph" section below.
 
 By using different queries it is straight forward to set up reports for different audiences, each with a customized content, but based on the same model and the same input. Such different reports can service different stakeholders e.g. management, internal design engineers, clients or independant verification agencies.
@@ -88,6 +94,25 @@ To illustrate the cascading spawning of calculations let us consider a query to 
 
 From the bindings defined in the model `hubit` figures out that the cost calculation in each wall segment is independent and therefore the segment cost calculations that are required for the total cost can be executed asyncronously in separate processes. The same goes for the layer weight calculations  and material price lookups.
 
+As we have seen previouly, the response to the `total_cost` query is
+
+```python
+{"total_cost": XXXXX}
+```
+
+All the results can also be accessed 
+
+```python
+hmodel.get_results()
+XXXXXXX
+```
+
+which reveals all the number that were calculated to answer the query.
+
+
+
+
+
 ## Example calculations
 The purpose of the examples are summarized below. A more thorough description can be found in the documentation in the individual files.
 
@@ -98,3 +123,4 @@ The purpose of the examples are summarized below. A more thorough description ca
 
 To run an example run the script from the project root for example `python3 -m examples.wall.run_queries`
 
+In all of the example you can toggle the multi-processing flag to see the preformance difference with and witout multi-processing.

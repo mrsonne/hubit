@@ -2,7 +2,7 @@ import logging
 import multiprocessing
 import copy
 from typing import Dict
-from .shared import (idxids_from_path, idxs_for_matches,
+from .shared import (idxs_for_matches,
                      get_idx_context,
                      check_path_match,
                      clean_idxids_from_path,
@@ -12,7 +12,6 @@ from .shared import (idxids_from_path, idxs_for_matches,
                      reshape,
                      convert_to_internal_path,
                      HubitError)
-from hubit import shared
 
 class HubitWorkerError(HubitError):
     pass
@@ -22,16 +21,22 @@ class _Worker:
     """
     """
     @staticmethod
-    def bindings_from_idxs(bindings, idxval_for_idxid):
+    def bindings_from_idxs(bindings, idxval_for_idxid) -> Dict:
         """
         replace index IDs with the actual indices
+        if idxid from binding path not found in idxval_for_idxid it 
+        must correspond to a IDX_WILDCARD in the binding path. 
+        IDX_WILDCARD ignored in set_ilocs_on_path. Dealt with in expansion
+
+        Returns path for name 
         """
         if len(idxval_for_idxid) == 0:
             return {binding['name']: binding['path'] for binding in bindings}
         else:
             return {binding['name']: 
                         set_ilocs_on_path(binding['path'], 
-                                          [idxval_for_idxid[idxid] 
+                                          [idxval_for_idxid[idxid] if idxid in idxval_for_idxid 
+                                          else None 
                                           for idxid in clean_idxids_from_path(binding['path'])],
                                           ) 
                     for binding in bindings}

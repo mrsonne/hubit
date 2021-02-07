@@ -77,7 +77,7 @@ Many (all) of the components could have been joined in a single component, but h
 To support the cost calculations (see below) two extra engineering components are included
 
 5. `volume.py`. Calculates the volume of wall layers. 
-6. `MAKE ME`. Calculates the weight of wall layers.
+6. `weight.py`. Calculates the weight of wall layers.
 
 #### Management components
 

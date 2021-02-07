@@ -53,32 +53,42 @@ hmodel = HubitModel("model.yml")
 query = ["total_cost", "total_heat_loss"]
 response = hmodel.get(query)
 ```
-Behind the scenes `hubit` construct and executes the call graph for the query. Only 
-components that provide results necessary for constructing the response are spawned.
 
-By using different queries it is straight forward to set up different reports, each with 
+Behind the scenes `hubit` construct and executes the call graph for the query. Only 
+components that provide results that are necessary for constructing the 
+response are spawned. Therefore, the query `segment[0].cost` would only spawn calculations
+required to calculate the cost of wall segment 0 while the query `total_cost` envokes cost 
+calculations for all segments. To understand more on this behavior read the 
+"Components" section below.
+
+By using different queries it is straight forward to set up various reports, each with 
 a customized content, based on the same model and the same input i.e. with a single 
 source of truth. Such different reports can service different 
-stakeholders be it management, internal design engineers, clients or independant 
+stakeholders e.g. management, internal design engineers, clients or independant 
 verification agencies.
 
 ### Components
-The source code for all components can be found in the `components` folder. To ease 
-the discription let us divide the components into two categories: engineering 
-components and management components.
+The source code for all components can be found in the `components` folder. 
+To facilitate the description, let us divide the components into two categories: 
+engineering components and management components. These categories are somewhat 
+arbitrary and are actually not needed in `hubit`.
 
 #### Engineering components
+These calculations encompass the physics part of the wall model.
 
-1. Segment-layer thermal conductivities (`components/thermal_conductivity.py`).
-2. Segment thermal profiles and heat flux (`components/thermal_profile.py`).
-3. Segment heat flow (`components/heat_flow.py`).
-4. Segment-layer volumes (`MAKE ME`).
-5. Segment-layer weights (`MAKE ME`).
-6. Maximum heat flow (`MAKE ME`).
+1. `thermal_conductivity.py`. Simple lookup of thermal condutivities based on the material name.
+2. `components/thermal_profile.py`. Calculation of the temperature of all wall layers in a segment as well as the heat flux. 
+3. `components/heat_flow.py`. The heat flow through a segment.
+4. `MAKE ME`. Calculate the total heat flow through the wall (all segments) and find the segment with the highest heat flow. 
 
-The heat flow (3) could be calculated in the thermal profile (2) but here
+The heat flow (3) could be calculated in the thermal profile (2), but here
 it is kept as a separate component to increase modularity and to maximize the speed-up 
 obtained by multi-processing.
+
+To support the cost calculations (see below) two extra components are included
+
+5. `MAKE ME`. Calculate the volume of wall layers. 
+6. `MAKE ME`. Calculate the weight of wall layers.
 
 #### Management components
 
@@ -87,6 +97,10 @@ obtained by multi-processing.
 
 In the example a time delay has been added to the component to simulate 
 heavier computational load or a latency in a web service.
+
+Even driven. Cascade
+ below and to see how the is defined in a 
+`hubit` composite model please look at `model.yml`
 
 ## Example calculations
 The purpose of the examples are summarized below. A more thorough description 

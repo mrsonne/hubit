@@ -4,7 +4,7 @@ In this example we consider a wall that consists of two segments
 as shown in the illustraton below. 
 
 ``` 
-Wall face view (not to scale)
+Face view wall (not to scale)
      ________________
     |   segment 1   | 1.5 m
     | ______________|
@@ -14,27 +14,28 @@ Wall face view (not to scale)
            3.0 m
 ```
 
-A side view of the wall is shown below.
+Each wall segment consists of different layers as shown in the 
+side view of the wall below.
 
 ```
-Wall side view (not to scale)
+Side view of the wall (not to scale)
 
-     brick air  rockwool 
-       |    |   |     brick
-       |    |   |     |
-       v    v   v     v
-    ______________________
-    |      | |    |      |
-    |      | |    |      | segment 1
-    ----------------------
-    |         | |        |
-    |         | |        | segment 2
-    |         | |        |
-    ----------------------
-       ^       ^     ^ 
-       |       |     |
-    concrete   |     concrete 
-               styrofoam 
+                      brick air  rockwool 
+                        |    |   |     brick
+                        |    |   |     |
+            Inside      v    v   v     v    Outside
+                     ______________________
+                     |      | |    |      | segment 1
+temperature = 320 K  |      | |    |      | temperature = 273 K   
+                     ----------------------        
+                     |         | |        |      
+                     |         | |        | segment 2
+temperature = 300 K  |         | |        | temperature = 273 K
+                     ----------------------
+                        ^       ^     ^ 
+                        |       |     |
+                     concrete   |     concrete 
+                              styrofoam 
 ```
 
 The wall materials, dimensions and other input can be found in wall input file `input.yml`. 
@@ -59,7 +60,7 @@ components that provide results that are necessary for constructing the
 response are spawned. Therefore, the query `segment[0].cost` would only spawn calculations
 required to calculate the cost of wall segment 0 while the query `total_cost` envokes cost 
 calculations for all segments. To understand more on this behavior read the 
-"Components" section below.
+"Call graph" section below.
 
 By using different queries it is straight forward to set up various reports, each with 
 a customized content, based on the same model and the same input i.e. with a single 
@@ -71,19 +72,22 @@ verification agencies.
 The source code for all components can be found in the `components` folder. 
 To facilitate the description, let us divide the components into two categories: 
 engineering components and management components. These categories are somewhat 
-arbitrary and are actually not needed in `hubit`.
+arbitrary and are actually not required in `hubit`.
+
+In the some of the components a time delay has been added to simulate a 
+heavier computational load or a latency in a web service.
 
 #### Engineering components
 These calculations encompass the physics part of the wall model.
 
 1. `thermal_conductivity.py`. Simple lookup of thermal condutivities based on the material name.
-2. `components/thermal_profile.py`. Calculation of the temperature of all wall layers in a segment as well as the heat flux. 
-3. `components/heat_flow.py`. The heat flow through a segment.
+2. `thermal_profile.py`. Calculation of the temperature of all wall layers in a segment as well as the heat flux. 
+3. `heat_flow.py`. The heat flow through a segment.
 4. `MAKE ME`. Calculate the total heat flow through the wall (all segments) and find the segment with the highest heat flow. 
 
-The heat flow (3) could be calculated in the thermal profile (2), but here
-it is kept as a separate component to increase modularity and to maximize the speed-up 
-obtained by multi-processing.
+The heat flow (3) could have been included in the thermal profile (2), but here
+it is kept as a separate component to increase modularity and to maximize the 
+potentil speed-up obtained by multi-processing.
 
 To support the cost calculations (see below) two extra components are included
 
@@ -92,11 +96,11 @@ To support the cost calculations (see below) two extra components are included
 
 #### Management components
 
-* Segment costs (`MAKE ME`).
-* Total cost (`MAKE ME`).
+7. `MAKE ME`. Wall segment costs.
+8. `MAKE ME`. Wall total cost.
 
-In the example a time delay has been added to the component to simulate 
-heavier computational load or a latency in a web service.
+
+#### Call graph
 
 Even driven. Cascade
  below and to see how the is defined in a 

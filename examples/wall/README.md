@@ -115,6 +115,10 @@ which reveals all the number that were calculated to answer the query.
 ## Example calculations
 The purpose of the examples are summarized below. A more thorough description can be found in the documentation in the individual files.
 
+To run an example run the script from the project root for example `python3 -m examples.wall.run_queries`
+
+In all of the example you can toggle the multi-processing flag to see the preformance difference with and witout multi-processing.
+
 ### `run_render.py` 
 To get a graphical overview of a model `hubit`' can render the model if Graphviz is installed. The wall model is shown below  
 
@@ -128,12 +132,16 @@ As the illustrations reveal, the rendering is not yet entirely robust.
 
 ### `run_queries.py` show examples of some queries.
 
-and render a query.
+run various queries in different ways.
 
-* `run_precompute.py` shows how results from a query can be reused in a subsequent query. 
-* `run_set_results.py` shows how to manually set results on the model to bypass a model component.
-* `run_sweep.py` shows how to perform a sweep over input values.
+### `run_precompute.py` 
+shows how results from a query can be reused in a subsequent query. 
 
-To run an example run the script from the project root for example `python3 -m examples.wall.run_queries`
+### `run_set_results.py` 
 
-In all of the example you can toggle the multi-processing flag to see the preformance difference with and witout multi-processing.
+shows how to manually set results on the model to bypass a model component.
+
+### `run_sweep.py` 
+
+shows how to perform a sweep over input values.
+

@@ -3,7 +3,7 @@ from .utils import get_model, HubitModel
 
 logging.basicConfig(level=logging.INFO)
 
-def termal_query(hmodel: HubitModel, render=True, mpworkers=False) -> None:
+def termal_query(hmodel: HubitModel, mpworkers: bool=False) -> None:
     """Demonstrates some query functionality into the thermal part of the
     wall composite model.
 
@@ -20,19 +20,17 @@ def termal_query(hmodel: HubitModel, render=True, mpworkers=False) -> None:
 
     # Make the queries
     queries = (
-                ["segments[:].heat_flow"], 
-                ["segments[:].layers[:].outer_temperature"], 
-                ["segments[0].layers[0].outer_temperature"],   
-                ["segments[:].layers[1].k_therm"], 
-                ["segments[0].layers[0].k_therm"],
-                ["segments[0].layers[:].k_therm"], 
-                ["segments[:].layers[0].k_therm"],
-                ["segments[:].layers[:].k_therm"],
+                # ["segments[:].layers[:].weight"],
+                ["heat_transfer_number", 'energy_class', 'total_cost'], 
+                # ["segments[:].heat_flow"], 
+                # ["segments[:].layers[:].outer_temperature"], 
+                # ["segments[0].layers[0].outer_temperature"],   
+                # ["segments[:].layers[1].k_therm"], 
+                # ["segments[0].layers[0].k_therm"],
+                # ["segments[0].layers[:].k_therm"], 
+                # ["segments[:].layers[0].k_therm"],
+                # ["segments[:].layers[:].k_therm"],
               ) 
-
-    # Render the query
-    if render:
-        hmodel.render(queries[0])
 
     # Run queries one by one (slow)
     for query in queries:
@@ -54,6 +52,6 @@ def termal_query(hmodel: HubitModel, render=True, mpworkers=False) -> None:
 
 
 if __name__ == '__main__': # Main guard required on windows if mpworkers = True
-    hmodel = get_model(render=False)
+    hmodel = get_model()
     use_multiprocessing = True
-    termal_query(hmodel, render=False, mpworkers=use_multiprocessing)
+    termal_query(hmodel, mpworkers=use_multiprocessing)

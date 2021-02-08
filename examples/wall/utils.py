@@ -4,7 +4,7 @@ from hubit.model import HubitModel
 
 THISPATH = os.path.dirname(os.path.realpath(__file__))
 
-def get_model(render: bool=True) -> HubitModel:
+def get_model() -> HubitModel:
     """Create a HubutModel instance from a model file.
 
     Args:
@@ -32,7 +32,4 @@ def get_model(render: bool=True) -> HubitModel:
     # Validate model 
     hmodel.validate()
 
-    # Render model
-    if render:
-        hmodel.render()
     return hmodel

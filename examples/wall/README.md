@@ -126,7 +126,7 @@ To get a graphical overview of a `hubit` model the model can be rendered if Grap
 
 The rendering is not yet entirely robust and is work in progress.
 
-### `run_queries.py` show examples of some queries.
+### `run_queries.py`
 This example runs various queries. First the queries are submitted individually, which causes redundant calculations. Second, all the queries are submitted together in which case `hubit` will assure that the same result is not calculate multiple times.
 
 ### `run_precompute.py` 

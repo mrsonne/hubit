@@ -5,7 +5,7 @@ ks = {'brick': 0.47,
       'air': 0.025,
       'styrofoam': 0.033,
       'glasswool': 0.030,
-      'rockwool': 0.032}
+      'rockwool': 0.034}
 
 def thermal_conductivity(_input_consumed, _results_consumed, results_provided):
       """Use 'material' in the input to compute the corresponding thermal

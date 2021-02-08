@@ -118,7 +118,7 @@ The purpose of the examples are summarized below. A more thorough description ca
 ### `run_render.py` 
 Render the model 
 
-![](https://github.com/mrsonne/hubit/tree/develop/examples/wall/images/model_wall.png "Wall model")
+![](https://github.com/mrsonne/hubit/blob/develop/examples/wall/images/model_wall.png "Wall model")
 
 ### `run_queries.py` show examples of some queries.
 

@@ -116,9 +116,15 @@ which reveals all the number that were calculated to answer the query.
 The purpose of the examples are summarized below. A more thorough description can be found in the documentation in the individual files.
 
 ### `run_render.py` 
-Render the model 
+To get a graphical overview of a model `hubit`' can render the model if Graphviz is installed. The wall model is shown below  
 
 ![](https://github.com/mrsonne/hubit/blob/develop/examples/wall/images/model_wall.png "Wall model")
+
+`hubit` can also render a query as illustrated below 
+
+![](https://github.com/mrsonne/hubit/blob/develop/examples/wall/images/query_wall.png "Wall query")
+
+As the illustrations reveal, the rendering is not yet entirely robust.
 
 ### `run_queries.py` show examples of some queries.
 

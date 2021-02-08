@@ -96,7 +96,7 @@ From the bindings defined in the model `hubit` figures out that the cost calcula
 As we have previously seen, the response to the `'heat_transfer_number'` query is
 
 ```python
-{"'heat_transfer_number'": 0.7250940507045455}
+{'heat_transfer_number': 0.7250940507045455}
 ```
 
 All the results can also be accessed using `hmodel.get_results()` which yields

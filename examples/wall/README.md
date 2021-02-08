@@ -93,24 +93,36 @@ To illustrate the cascading spawning of calculations let us consider a query to 
 
 From the bindings defined in the model `hubit` figures out that the cost calculation in each wall segment is independent and therefore the segment cost calculations that are required for the total cost can be executed asyncronously in separate processes. The same goes for the layer weight calculations  and material price lookups.
 
-As we have seen previouly, the response to the `total_cost` query is
+As we have previously seen, the response to the `'heat_transfer_number'` query is
 
 ```python
-{"total_cost": XXXXX}
+{"'heat_transfer_number'": 0.7250940507045455}
 ```
 
-All the results can also be accessed 
+All the results can also be accessed using `hmodel.get_results()` which yields
 
 ```python
-hmodel.get_results()
-XXXXXXX
+{'energy_class': 'B',
+ 'heat_transfer_number': 0.7250940507045455,
+ 'segments': {0: {'heat_flux': 13.134093452714046,
+                  'heat_transfer_number': 0.2794487968662563,
+                  'layers': {0: {'k_therm': 0.47,
+                                 'outer_temperature': 317.20551203133743},
+                             1: {'k_therm': 0.025,
+                                 'outer_temperature': 306.6982372691662},
+                             2: {'k_therm': 0.034,
+                                 'outer_temperature': 275.79448796866257},
+                             3: {'k_therm': 0.47, 'outer_temperature': 273.0}}},
+              1: {'heat_flux': 26.79699248120301,
+                  'heat_transfer_number': 0.9924812030075189,
+                  'layers': {0: {'k_therm': 1.1,
+                                 'outer_temperature': 296.34586466165416},
+                             1: {'k_therm': 0.033,
+                                 'outer_temperature': 276.0451127819549},
+                             2: {'k_therm': 1.1, 'outer_temperature': 273.0}}}}}
 ```
 
-which reveals all the number that were calculated to answer the query.
-
-
-
-
+The results object contains all the numbers that were calculated to create the response.
 
 ## Example calculations
 The purpose of the examples are summarized below. To run an example run the script from the project root for example `python3 -m examples.wall.run_queries`. In some of the example you can toggle the multi-processing flag to see the preformance difference with and without multi-processing.

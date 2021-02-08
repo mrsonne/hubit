@@ -115,7 +115,15 @@ which reveals all the number that were calculated to answer the query.
 ## Example calculations
 The purpose of the examples are summarized below. A more thorough description can be found in the documentation in the individual files.
 
-* `run_queries.py` show examples of some queries.
+### `run_render.py` 
+Render the model 
+
+![](https://github.com/mrsonne/hubit/tree/develop/examples/wall/images/model_wall.png "Wall model")
+
+### `run_queries.py` show examples of some queries.
+
+and render a query.
+
 * `run_precompute.py` shows how results from a query can be reused in a subsequent query. 
 * `run_set_results.py` shows how to manually set results on the model to bypass a model component.
 * `run_sweep.py` shows how to perform a sweep over input values.

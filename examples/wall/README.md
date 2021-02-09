@@ -142,12 +142,14 @@ The rendering is not yet entirely robust and is work in progress.
 This example runs various queries. First the queries are submitted individually, which causes redundant calculations. Second, all the queries are submitted together in which case `hubit` will assure that the same result is not calculate multiple times.
 
 ### `run_precompute.py` 
-After completing a query the `hubit` model instance will store the results. If a new query is submitted using the same model and the `reuse_results` flag is set to `True`, `hubit` will use the cached results instead of re-calculating them. For example, if the layer costs are queried first followed by a query for the wall total cost, which comsumes the layer cost, the layer cost will not be calculated in the second query.
+After completing a query the `hubit` model instance will store the results. If a new query is submitted using the same model and the `reuse_results` flag is set to `True`, `hubit` will use the cached results instead of re-calculating them i.e. `hubit` will bypass the components that provide the cached results. For example, if the layer costs are queried first followed by a query for the wall total cost, which comsumes the layer cost, the layer cost will not be calculated in the second query.
 
 The results can be retrived using the `get_results()` method on the `hubit` model instance and can then be saved to disk or otherwise persisted.
 
 ### `run_set_results.py` 
-shows how to manually set results on the model to bypass a model component.
+Results can be manually set results on the model using `hmodel.set_results(results_data)`. In subsequent queries `hubit` will then ommit re-calculating the results that have been set thus bypassing the components that provide the set results.
+    
+The values that are set manually could represent some new measurements that we want to see the effect of when propagated in through the remaining components downstream of the component that is normally responsible for calculating the results that are manually set. Or the values could represent persisted results that we want to augment without running the entire model again. 
 
 ### `run_sweep.py` 
 shows how to perform a sweep over input values.

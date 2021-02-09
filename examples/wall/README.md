@@ -147,10 +147,10 @@ After completing a query the `hubit` model instance will store the results. If a
 The results can be retrived using the `get_results()` method on the `hubit` model instance and can then be saved to disk or otherwise persisted.
 
 ### `run_set_results.py` 
-Results can be manually set results on the model using `hmodel.set_results(results_data)`. In subsequent queries `hubit` will then ommit re-calculating the results that have been set thus bypassing the components that provide the set results.
+Results can be manually set on the model using the `set_results(results_data)` method on a `hubit` model instance. In subsequent queries `hubit` will then ommit re-calculating the results that have been set, thus bypassing the coresponding providers.
     
-The values that are set manually could represent some new measurements that we want to see the effect of when propagated in through the remaining components downstream of the component that is normally responsible for calculating the results that are manually set. Or the values could represent persisted results that we want to augment without running the entire model again. 
+The values that are manually set could represent some new measurements that you want to see the effect of when propagated in through the remaining components downstream of the component that is bypassed. The values could also represent persisted results that we want to augment without running the entire model again. 
 
 ### `run_sweep.py` 
-shows how to perform a sweep over input values.
+`hubit` can sweep over different values of the input attributes. The example shows the energy class and cost for different value of the insulation thickness and for different values of the insulation material. 
 

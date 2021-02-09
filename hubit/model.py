@@ -1,4 +1,5 @@
-from typing import Any, List
+from __future__ import annotations
+from typing import Any, Callable, List, Tuple, Dict
 import logging
 import importlib
 import os
@@ -34,6 +35,8 @@ POLLTIME = 0.1
 POLLTIME_LONG = 0.25
 THISPATH = os.path.dirname(os.path.realpath(__file__))
 
+def _default_skipfun(flat_input: Dict) -> bool:
+    return False
 
 
 class HubitModelNoInputError(HubitError):
@@ -690,9 +693,11 @@ class HubitModel:
                                                      fname_for_path )
 
 
-
-    def get_many(self, queries, input_values_for_path,
-                 nproc=None):
+    def get_many(self,
+                 queries: List[str], 
+                 input_values_for_path: Dict,
+                 skipfun: Callable[[Dict], bool]=_default_skipfun,
+                 nproc: Any=None) -> Tuple:
         """Will perform a full factorial sampling of the  
         input points specified in 'input_values_for_path'. 
 
@@ -700,8 +705,9 @@ class HubitModel:
         if __name__ == '__main__':
 
         Args:
-            queries ([List]): Query path items
-            input_values_for_path ([Dict]): Dictionary with keys representing path items. The corresponding values should be an iterable with elements representing discrete values for the attribute at the path.
+            queries (List): Query path items
+            input_values_for_path (Dict): Dictionary with keys representing path items. The corresponding values should be an iterable with elements representing discrete values for the attribute at the path.
+            skipfun (Callable): If returns True the factor combination is skipped
             nproc (int, optional): Number of processes to use. Defaults to None. If not specified a suitable default is used.
 
         Raises:
@@ -716,8 +722,10 @@ class HubitModel:
 
         tstart = time.time()
 
-        # form all combinations
+        # Get paths to change in paths and the values each path should assume in pvalues
         paths, pvalues = zip( *input_values_for_path.items() )
+
+        # List of tuples each containing values for each path in paths 
         ppvalues = list( itertools.product(*pvalues) )
         
         args = []
@@ -726,6 +734,8 @@ class HubitModel:
             _flat_input = copy.deepcopy(self.flat_input)
             for path, val in zip(paths, pvalues):
                 _flat_input[ convert_to_internal_path(path) ] = val
+
+            if skipfun(_flat_input): continue
             qrun = _QueryRunner(self, mpworkers=False)
             flat_results = {}
             args.append( (qrun, queries, _flat_input, flat_results) )
@@ -737,12 +747,6 @@ class HubitModel:
             _nproc = max(nproc, 1)
 
         with Pool(_nproc) as pool:
-            # Results are ordered as input but only accessible after completion
-            # results = pool.starmap_async(_get, args)
-            # results.wait()
-            # responses, flat_results = zip( *results.get() )
-            # results = [inflate(item) for item in flat_results]
-
             results = pool.starmap(_get, args)
             responses, flat_results = zip( *results )
             results = [inflate(item) for item in flat_results]

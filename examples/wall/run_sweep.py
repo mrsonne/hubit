@@ -1,9 +1,23 @@
 import logging
+from math import isclose
 from operator import getitem
-from typing import Any
+from typing import Any, Dict
 from .utils import get_model, HubitModel
-from hubit.shared import convert_to_internal_path
+from hubit.shared import convert_to_internal_path, inflate
 logging.basicConfig(level=logging.INFO)
+
+
+def skipfun(flat_input: Dict) -> bool:
+    """
+    Skip factor combination if the thickness of the two segments differ
+    """
+    input = inflate(flat_input)
+    seg_thcks = [ sum([layer["thickness"] for layer in segment["layers"].values()]) 
+                  for segment in input["segments"].values() ]
+    ref = seg_thcks[0]
+    return not all( [isclose(ref, seg_thck, rel_tol=1e-5) 
+                    for seg_thck in seg_thcks[1:]] )
+
 
 def make_sweep(hmodel: HubitModel, nproc:Any=None) -> None:
     """Run a parameter sweep
@@ -18,23 +32,24 @@ def make_sweep(hmodel: HubitModel, nproc:Any=None) -> None:
     # For segment 0 sweep over multiple inputs created as the 
     # Cartesian product of the input perturbations 
     input_values_for_path = {"segments[0].layers[2].material": ('rockwool', 'glasswool'),
-                             "segments[0].layers[2].thickness": (0.05, 0.15, 0.25, 0.35),
-                             "segments[1].layers[1].thickness": (0.025, 0.04, 0.055),
+                             "segments[0].layers[2].thickness": (0.04, 0.08, 0.12, 0.16),
+                             "segments[1].layers[1].thickness": (0.025, 0.065, 0.105),
                             }
 
     input_paths = list(input_values_for_path.keys())
     # TODO implement zip-style get_many
     responses, inps, _ = hmodel.get_many(queries,
                                          input_values_for_path,
+                                         skipfun=skipfun,
                                          nproc=nproc)
 
     # Print results in a primitive table
-    header_for_path = {"segments[0].layers[2].material": 'Seg0 Material',
-                       "segments[0].layers[2].thickness": 'Seg0 Thickness',
-                       "segments[1].layers[1].thickness": 'Seg1 Thickness',
+    header_for_path = {"segments[0].layers[2].material": 'Seg0 Ins. Mat.',
+                       "segments[0].layers[2].thickness": 'Seg0 Ins. Thck. [m]',
+                       "segments[1].layers[1].thickness": 'Seg1 Ins. Thck. [m]',
                        }
     headers = [header_for_path[path] for path in input_paths] + list(responses[0].keys())
-    widths = [len(header) + 1 for header in headers]
+    widths = [len(header) + 5 for header in headers]
     fstr = ''.join( [f'{{:<{width}}}' for width in widths])
     sepstr = sum(widths)*'-'
     lines = ['\nInsulation sweep', sepstr]

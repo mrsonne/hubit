@@ -35,7 +35,10 @@ POLLTIME = 0.1
 POLLTIME_LONG = 0.25
 THISPATH = os.path.dirname(os.path.realpath(__file__))
 
-def _default_skipfun(flat_input: Dict) -> bool:
+def _default_skipfun(value_for_path: Dict) -> bool:
+    """
+    value_for_path is a flat dict with internal paths as keys
+    """
     return False
 
 

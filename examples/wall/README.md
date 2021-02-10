@@ -6,9 +6,12 @@ In this example we consider a wall that consists of two segments as shown in the
 Face view wall (not to scale)
      ________________
     |   segment 1   | 1.5 m
-    | ______________|
+    |_______________|
     |               | 
-    |   segment 2   | 2.5 m
+    |   segment 2   | 2.0 m
+    |_______________|
+    |               | 
+    |   segment 3   | 2.0 m
     |_______________|
            3.0 m
 ```
@@ -22,18 +25,22 @@ Side view of the wall (not to scale)
                         |    |   |     brick
                         |    |   |     |
             Inside      v    v   v     v    Outside
-                     ______________________
-                     |      | |    |      | segment 1
+                     ----------------------
+                     |      | |    |      | segment 1 (wall)
 temperature = 320 K  |      | |    |      | temperature = 273 K   
                      ----------------------        
+                                      || ||      
+                                      || || segment 2 (window: glass-air-glass)
+temperature = 300 K                   || || temperature = 273 K
+                     ----------------------
                      |         | |        |      
-                     |         | |        | segment 2
+                     |         | |        | segment 3 (wall)
 temperature = 300 K  |         | |        | temperature = 273 K
                      ----------------------
                         ^       ^     ^ 
                         |       |     |
                      concrete   |     concrete 
-                              styrofoam 
+                               EPS 
 ```
 
 The wall materials, dimensions and other input can be found in wall input file `input.yml`. Note that the number of wall layers in the two segments differ, which illustrates that `hubit`' can handle non-rectangular data models.
@@ -81,7 +88,7 @@ To support the cost calculations (see below) two extra engineering components ar
 
 #### Management components
 
-7. `segment_cost.py`. Calculates wall segment cost.
+7. `segment_cost.py`. Calculates wall segment cost. Notice how segments with type 'window' are handle differently.
 8. `total_cost.py`. Calculates wall total cost.
 
 
@@ -96,14 +103,14 @@ From the bindings defined in the model `hubit` figures out that the cost calcula
 As we have previously seen, the response to the `'heat_transfer_number'` query is
 
 ```python
-{'heat_transfer_number': 0.7250940507045455}
+{'heat_transfer_number': 0.8888377547279751}
 ```
 
 All the results can also be accessed using `hmodel.get_results()` which yields
 
 ```python
-{'energy_class': 'B',
- 'heat_transfer_number': 0.7250940507045455,
+{'energy_class': 'C',
+ 'heat_transfer_number': 0.8888377547279751,
  'segments': {0: {'heat_flux': 13.134093452714046,
                   'heat_transfer_number': 0.2794487968662563,
                   'layers': {0: {'k_therm': 0.47,
@@ -113,7 +120,15 @@ All the results can also be accessed using `hmodel.get_results()` which yields
                              2: {'k_therm': 0.034,
                                  'outer_temperature': 275.79448796866257},
                              3: {'k_therm': 0.47, 'outer_temperature': 273.0}}},
-              1: {'heat_flux': 26.79699248120301,
+              1: {'heat_flux': 33.540372670807464,
+                  'heat_transfer_number': 1.2422360248447208,
+                  'layers': {0: {'k_therm': 0.8,
+                                 'outer_temperature': 299.91614906832297},
+                             1: {'k_therm': 0.025,
+                                 'outer_temperature': 273.083850931677},
+                             2: {'k_therm': 0.8,
+                                 'outer_temperature': 272.99999999999994}}},
+              2: {'heat_flux': 26.79699248120301,
                   'heat_transfer_number': 0.9924812030075189,
                   'layers': {0: {'k_therm': 1.1,
                                  'outer_temperature': 296.34586466165416},
@@ -153,4 +168,24 @@ The values that are manually set could represent some new measurements that you 
 
 ### `run_sweep.py` 
 `hubit` can sweep over different values of the input attributes. The example shows the energy class and cost for different value of the insulation thickness and for different values of the insulation material. 
+
+For the example sweep the table below summarizes the results.
+
+```
+Wall sweep
+-------------------------------------------------------------------------------------------------------------------------
+Inner Mat.   Outer Mat.   Seg0 Ins. Thck. [m]   Seg1 Ins. Thck. [m]   heat_transfer_number   energy_class   total_cost
+-------------------------------------------------------------------------------------------------------------------------
+brick        brick        0.08                  0.025                 0.80                   C              2761
+brick        brick        0.12                  0.065                 0.65                   B              2804
+brick        concrete     0.08                  0.025                 0.84                   C              1746
+brick        concrete     0.12                  0.065                 0.66                   B              1789
+concrete     brick        0.08                  0.025                 0.84                   C              1619
+concrete     brick        0.12                  0.065                 0.66                   B              1662
+concrete     concrete     0.08                  0.025                 0.89                   C              604
+concrete     concrete     0.12                  0.065                 0.68                   B              647
+-------------------------------------------------------------------------------------------------------------------------
+```
+
+The information in the table would conveniently be visualized in a parallel coordinates plot. 
 

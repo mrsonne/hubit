@@ -741,11 +741,13 @@ class HubitModel:
             args.append( (qrun, queries, _flat_input, flat_results) )
             inps.append(_flat_input)
 
+        if len(args) == 0:
+            raise HubitError('No args found for sweep')
+
         if nproc is None:
             _nproc = len(args)
         else:
             _nproc = max(nproc, 1)
-
         with Pool(_nproc) as pool:
             results = pool.starmap(_get, args)
             responses, flat_results = zip( *results )

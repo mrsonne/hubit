@@ -2,9 +2,11 @@
 densities = {'brick': 2000.,
              'concrete': 1835., 
              'air': 0.,
-             'styrofoam': 25.,
+             'EPS': 25.,
              'glasswool': 11.,
-             'rockwool': 60.}
+             'rockwool': 60.,
+             'glass': 2200.
+            }
 
 
 def weight(_input_consumed, _results_consumed, results_provided):

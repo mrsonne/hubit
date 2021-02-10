@@ -147,6 +147,8 @@
     input: 
       - name: materials
         path: segments[IDX_SEG].layers[:@IDX_LAY].material
+      - name: type
+        path: segments[IDX_SEG].type
     results:
       - name: weights
         path: segments[IDX_SEG].layers[:@IDX_LAY].weight

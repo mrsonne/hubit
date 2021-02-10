@@ -2,33 +2,49 @@
 # used by a specific query are required
 
 segments:
-    # First segment
-    - width: 3. # [m]
-      height: 1.5 # [m]
-      layers:
-        - thickness: 0.1 # [m]
-          material: brick
-        - thickness: 0.02
-          material: air
-        - thickness: 0.08
-          material: rockwool
-        - thickness: 0.1
-          material: brick
-      inside:
-        temperature: 320. # allow temprature to vary between segments
-      outside:
-        temperature: 273.
-    # Second segment
-    - width: 3. # [m]
-      height: 2.5 # [m]
-      layers:
-        - thickness: 0.15
-          material: concrete
-        - thickness: 0.025
-          material: styrofoam
-        - thickness: 0.125
-          material: concrete
-      inside:
-        temperature: 300.
-      outside:
-        temperature: 273.
+  # First segment
+  - type: wall
+    width: 3. # [m]
+    height: 1.5 # [m]
+    layers:
+      - thickness: 0.1 # [m]
+        material: brick
+      - thickness: 0.02
+        material: air
+      - thickness: 0.08
+        material: rockwool
+      - thickness: 0.1
+        material: brick
+    inside:
+      temperature: 320. # allow temprature to vary between segments
+    outside:
+      temperature: 273.
+  # Second segment
+  - type: window
+    width: 3. # [m]
+    height: 2. # [m]
+    layers:
+      - thickness: 0.002
+        material: glass
+      - thickness: 0.02
+        material: air
+      - thickness: 0.002
+        material: glass
+    inside:
+      temperature: 300.
+    outside:
+      temperature: 273.
+  - type: wall
+    width: 3. # [m]
+    height: 2. # [m]
+    layers:
+      - thickness: 0.15
+        material: concrete
+      - thickness: 0.025
+        material: EPS
+      - thickness: 0.125
+        material: concrete
+    inside:
+      temperature: 300.
+    outside:
+      temperature: 273.

@@ -3,9 +3,11 @@ from time import sleep
 ks = {'brick': 0.47,
       'concrete': 1.1,
       'air': 0.025,
-      'styrofoam': 0.033,
+      'EPS': 0.033,
       'glasswool': 0.030,
-      'rockwool': 0.034}
+      'rockwool': 0.034,
+      'glass': 0.8,
+     }
 
 def thermal_conductivity(_input_consumed, _results_consumed, results_provided):
       """Use 'material' in the input to compute the corresponding thermal

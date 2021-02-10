@@ -49,16 +49,16 @@ The wall materials, dimensions and other input can be found in wall input file `
 The wall composite model is defined in `model.yml` and define calculation components that provides cetain results. With the model in place `hubit` allows users to query the results data structure. For examples to get the "total_cost" and "total_heat_loss" would look like this
 
 ```python
-from hubit import HubitModel
+from hubit.model import HubitModel
 hmodel = HubitModel("model.yml")
-query = ["total_cost", "total_heat_loss"]
+query = ["total_cost", "heat_transfer_number"]
 response = hmodel.get(query)
 ```
 
 The response is
 
 ```python
-{'heat_transfer_number': 0.7250940507045455, 'total_cost': 15480131.5875}
+{'total_cost': 2365.600380096421, 'heat_transfer_number': 0.8888377547279751}
 ```
 
 Behind the scenes `hubit` constructs and executes the call graph for the query. Only components that provide results that are necessary for constructing the response are spawned. Therefore, the query `segment[0].cost` would only spawn calculations required to calculate the cost of wall segment 0 while the query `total_cost` envokes cost calculations for all segments. To understand more on this behavior read the "Call graph" section below.

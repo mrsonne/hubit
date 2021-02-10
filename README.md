@@ -40,7 +40,7 @@ sudo apt install graphviz
 
 ## Terminology
 
-To use `hubi` your existing tools need to be wrapped as `hubit` _component_s. A `hubit` comopnent is simply a tool from your ecosystem wrapped to comply with certain `hubit` standards. In `hubit` a component 
+To use `hubit` your existing tools each need to be wrapped as a `hubit` _component_. A `hubit` comopnent is simply a tool from your ecosystem wrapped to comply with certain `hubit` standards. In `hubit` a component 
 
 - _consumes_ attributes from the shared input data structure, 
 - may _consume_ attributes from the shared results data structure, and 

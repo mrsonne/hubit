@@ -281,7 +281,7 @@ class TestTree(unittest.TestCase):
                                   test:
                                     positions: [1, 2, 3, 4, 5]
                                 - thickness: 0.025
-                                  material: styrofoam
+                                  material: EPS
                                   test:
                                     positions: [1,]
                                 - thickness: 0.1

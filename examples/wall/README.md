@@ -96,7 +96,40 @@ To support the cost calculations (see below) two extra engineering components ar
 
 `hubit` is event driven and components are spawned dynamically. The bindings that are used to setup the relations between components are defined in `model.yml`
 
-To illustrate the cascading spawning of calculations let us consider a query to the wall `total_cost`. In the model file the total cost is _provided_ by `total_cost.py`. Furher, the model file reveals that the `total_cost.py` _subscribes_ to the costs for all segments which are, in turn, provided by `segment_cost.py`. Since the segment costs are not in the results data to begin with `hubit` spawns the `segment_cost.py` calculation. To calculate the segment cost, the cost of each layer must be calculated (`layer_cost.py`), which, in turn, requires the layer weight (`layer_weight.py`) to be calculated and the material price to be looked up (`material_price.py`). So the original query triggers a cascade of queries and spawns calculations. These calculations are put on hold until the necessary data is avalable. When the data necessary for a calculation becomes available it will triggers the calculation which, when complete, will  provide data that may trigger other calculations that are pending.
+To illustrate the cascading spawning of calculations let us consider a query to the wall `total_cost`. In the model file the total cost is _provided_ by `total_cost.py`. 
+
+```
+  path: ./components/total_cost.py
+  func_name: total_wall_cost
+  provides:
+    - name: cost
+      path: total_cost
+  consumes:
+    results:
+      - name: segment_costs
+        path: segments[:@IDX_SEG].cost
+```
+
+Furher, the model file reveals that the `total_cost.py` _consumes_ the costs for all segments (`segments[:@IDX_SEG].cost`) which are, in turn, provided by `segment_cost.py` as seen from the component definition below, which is also taken from `model.yml`. 
+
+```
+  path: ./components/segment_cost.py
+  func_name: cost
+  provides:
+    - name: cost
+      path: segments[IDX_SEG].cost
+  consumes:
+    input: 
+      - name: materials
+        path: segments[IDX_SEG].layers[:@IDX_LAY].material
+      - name: type
+        path: segments[IDX_SEG].type
+    results:
+      - name: weights
+        path: segments[IDX_SEG].layers[:@IDX_LAY].weight
+```
+
+Since the segment costs are not in the results data to begin with `hubit` spawns the `segment_cost.py` calculation. To calculate the segment cost, the material (`segments[IDX_SEG].layers[:@IDX_LAY].material`) and the weight (`segments[IDX_SEG].layers[:@IDX_LAY].weight`) must be known for each layer in the segment. The weights are calculated in `weight.py` and the material is used to look up a price. The weight _consumes_ the layer volume calculated in `volume.py`. So the original query triggers a cascade of queries and spawns calculations. These calculations are put on hold until the necessary data is avalable. When the data required for a calculation becomes available it will triggers the calculation which, when complete, will  provide data that may trigger other calculations that are pending.
 
 From the bindings defined in the model `hubit` figures out that the cost calculation in each wall segment is independent and therefore the segment cost calculations that are required for the total cost can be executed asyncronously in separate processes. The same goes for the layer weight calculations  and material price lookups.
 

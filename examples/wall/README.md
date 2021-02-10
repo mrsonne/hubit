@@ -4,7 +4,7 @@ In this example we consider a wall that consists of two segments as shown in the
 
 ``` 
 Face view wall (not to scale)
-     ________________
+     _______________
     |   segment 1   | 1.5 m
     |_______________|
     |               | 

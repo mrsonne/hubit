@@ -30,6 +30,6 @@ def query_with_precomputed_results(hmodel: HubitModel, mpworkers: bool=False) ->
 
 
 if __name__ == '__main__': # Main guard required on windows if mpworkers = True
-    hmodel = get_model(render=False)
+    hmodel = get_model()
     use_multiprocessing = True
     query_with_precomputed_results(hmodel, mpworkers=use_multiprocessing)

@@ -38,7 +38,7 @@ sudo apt install graphviz
 ------------------
 
 
-## Terminology & `hubit` models
+## Terminology & example
 
 ### Components
 To use `hubit` your existing tools each need to be wrapped as a `hubit` _component_. A `hubit` component has bindings to the input data and to the results data. The bindings define which attributes the component
@@ -133,7 +133,7 @@ provides :
 
 The binding name should match the key used in the component when setting the value on `results_provided`. Using the index specifier `IDX_CAR` in the binding path enables `hubit` to store the car price at the same car index where the input was taken from. Note that the component is unaware of which car (car index) the input represents. 
 
-Collecting the component bindings the final result looks like this
+Collecting the bindings the final result looks like this
 
 ```yml
 provides : 
@@ -206,15 +206,17 @@ If the prices for all the car parts are also of interest we should refactor the 
 Notice that the first component subscribes to a specific part index (`IDX_PART`) for a specific car index (`IDX_CAR`). The allows the component to store results data on a specific part index for a specific car index. The first component (price for each component) could look something like this
 
 ```python
-count = _input_consumed['part_count'] 
-name = _input_consumed['part_name'] 
-results_provided['part_price'] = count*my_lookup_function(name)
+def part_price(_input_consumed, _results_consumed, results_provided):
+  count = _input_consumed['part_count'] 
+  name = _input_consumed['part_name'] 
+  results_provided['part_price'] = count*my_lookup_function(name)
 ```
 
 The second component (car price) could look like this
 
 ```python
-results_provided['car_price'] = sum( _results_consumed['prices'] )
+def car_price(_input_consumed, _results_consumed, results_provided):
+  results_provided['car_price'] = sum( _results_consumed['prices'] )
 ```
 
 ### Running
@@ -226,7 +228,8 @@ XXXX
 
 Examples section below lists more examples that illustrate more `hubit` functionality.
 
-### Examples
+
+# Examples
 
 In the examples all calculation are, for simplicity, carried out directly in the 
 hubit component, but the component could hjust as well wrap a C library or request 

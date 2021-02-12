@@ -987,12 +987,12 @@ class _QueryRunner:
                 func, version = components[component_id]
                 return func, version, components
 
+            sys.path.insert(0, path)
             spec = importlib.util.spec_from_file_location(module_name,
                                                           file_path)
             module = importlib.util.module_from_spec(spec)
             sys.modules[spec.name] = module
             spec.loader.exec_module(module)
-            sys.path.insert(0, path)
         elif 'module' in cfgdata:
             module = importlib.import_module(cfgdata["module"])
             component_id = f'{cfgdata["module"]}{func_name}'

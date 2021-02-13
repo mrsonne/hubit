@@ -418,6 +418,42 @@ class TestTree(unittest.TestCase):
             self.tree.prune_from_path(path, self.template_path)
 
 
+    def test_prune(self):
+
+        def print_test(tree):
+            nodes = tree.nodes_for_level[0]
+            for node in nodes:
+                print('node', node)
+                for child in node.children:
+                    print('child', child)
+
+        idx_car_node = shared.LengthNode(2)
+        idx_parts_nodes = shared.LengthNode(5), shared.LengthNode(4)
+        idx_car_node.set_children(idx_parts_nodes)
+        nodes = [idx_car_node]
+        nodes.extend( idx_parts_nodes )
+        level_names = 'IDX_CAR', 'IDX_CAR'
+        tree = shared.LengthTree(nodes, level_names)
+        clipped_tree = tree.clip_at_level('IDX_CAR', inplace=False)
+
+        # nodes or bottom level
+        nodes = clipped_tree.nodes_for_level[-1]
+
+        # all children should be None at bottom level
+        children_is_none = [ all([child is None 
+                                  for child in node.children]) 
+                             for node in nodes]
+
+        with self.subTest():
+            self.assertTrue( all(children_is_none) )
+
+        with self.subTest():
+            self.assertTrue( len(clipped_tree.level_names) == 1 )
+
+        with self.subTest():
+            self.assertTrue( len(clipped_tree.nodes_for_level) == 1 )
+
+
     def test_7(self):
         """4-level tree
         """

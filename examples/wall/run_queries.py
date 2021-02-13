@@ -4,13 +4,18 @@ from .utils import get_model, HubitModel
 
 logging.basicConfig(level=logging.INFO)
 
-def simple_query():
-    query = ["total_cost", "heat_transfer_number"]
+def simple_query() -> None:
+    query = [
+            #  "total_cost", 
+             'segments[:].cost'
+            #  "heat_transfer_number"
+            ]
     response = hmodel.get(query)
     print(response)
 
 
-def thermal_query(hmodel: HubitModel, mpworkers: bool=False) -> None:
+def query(hmodel: HubitModel,
+          mpworkers: bool=False) -> None:
     """Demonstrates some query functionality into the thermal part of the
     wall composite model.
 
@@ -70,4 +75,4 @@ if __name__ == '__main__': # Main guard required on windows if mpworkers = True
     hmodel = get_model()
     use_multiprocessing = True
     # simple_query()
-    thermal_query(hmodel, mpworkers=use_multiprocessing)
+    query(hmodel, mpworkers=use_multiprocessing)

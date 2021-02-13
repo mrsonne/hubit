@@ -79,6 +79,7 @@ class LengthNode:
                 # Remove child from tree
                 child.tree.nodes_for_level[child.level].remove(child)
                 child.remove_decendants()
+        self.children = [None for _ in range(len(self.children))]
 
     
     def __str__(self):

@@ -1,0 +1,25 @@
+
+cars:
+  - name: fast
+    parts: 
+      - count: 4
+        name: wheel1
+      - count: 1
+        name: chassis1
+      - count: 2
+        name: bumper
+      - count: 1
+        name: engine1
+      - count: 1
+        name: radio
+  - name: 4wd
+    parts: 
+      - count: 4
+        name: wheel2
+      - count: 1
+        name: chassis2
+      - count: 2
+        name: bumper
+      - count: 1
+        name: engine14
+        

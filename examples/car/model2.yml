@@ -1,0 +1,27 @@
+- path: ./components/part_price.py 
+  func_name: part_price
+  consumes:
+    input:
+      - name: part_name
+        path: cars[IDX_CAR].parts[IDX_PART].name 
+      - name: part_count
+        path: cars[IDX_CAR].parts[IDX_PART].count
+  provides:
+    - name: part_price
+      path: cars[IDX_CAR].parts[IDX_PART].price
+
+- path: ./components/car_price.py 
+  func_name: car_price
+  consumes:
+  # TODO remove input binding after enhancement XXXX
+    input:
+      - name: part_name
+        path: cars[IDX_CAR].name 
+    results:
+      - name: prices
+        path: cars[IDX_CAR].parts[:@IDX_PART].price
+  provides : 
+    - name: car_price 
+      path: cars[IDX_CAR].price
+    # - name: test
+    #   path: cars[IDX_CAR].parts[:@IDX_PART].test

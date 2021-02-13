@@ -104,9 +104,9 @@ class DummyLengthTree:
         return self
 
 
-    def clip_at_level(self, *args, **kwargs) -> DummyLengthTree:
-        return self
-
+    def clip_at_level(self, inplace: bool=True, *args, **kwargs) -> DummyLengthTree:
+        return self if inplace else copy.deepcopy(self)
+    
 
     def fix_idx_at_level(self, *args, **kwargs):
         pass

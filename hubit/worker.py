@@ -35,7 +35,8 @@ class _Worker:
         else:
             return {binding['name']: 
                         set_ilocs_on_path(binding['path'], 
-                                          [idxval_for_idxid[idxid] if idxid in idxval_for_idxid 
+                                          [idxval_for_idxid[idxid] 
+                                          if idxid in idxval_for_idxid 
                                           else None 
                                           for idxid in clean_idxids_from_path(binding['path'])],
                                           ) 

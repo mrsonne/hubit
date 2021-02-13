@@ -164,6 +164,7 @@ class LengthTree:
         for node in obj.nodes_for_level[level_idx]:
             node.remove_decendants()
         obj.level_names = obj.level_names[:level_idx + 1]
+        obj.nodes_for_level = obj.nodes_for_level[:level_idx + 1]
         return obj
 
 

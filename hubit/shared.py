@@ -197,7 +197,7 @@ class LengthTree:
                 if idxstr == IDX_WILDCARD: continue
 
                 idx = int(idxstr)
-                # Prune the tree to reflex that the index is fixed
+                # Prune the tree to reflect that the index is fixed
                 obj.fix_idx_at_level(idx, level_idx)
 
         return obj
@@ -552,7 +552,13 @@ class LengthTree:
         for idx, (name, nodes) in enumerate(zip(self.level_names, self.nodes_for_level)):
             nparents = len({node.parent for node in nodes if node.parent is not None})
             nchildren = sum( [node.nchildren() for node in nodes] )
-            lines.append(f'level={idx} ({name}), nodes={len(nodes)}, parents={nparents}, children={nchildren}')
+            children_is_none = [ all([child is None for child in node.children]) for node in nodes]
+            lines.append(f'level={idx} ({name}), '
+                         f'nodes={len(nodes)}, '
+                         f'parents={nparents}, '
+                         f'children={nchildren}, '
+                         f'children_is_none={children_is_none}'
+                         )
 
         lines.append('--------------------')
         lines.append('Lengths')

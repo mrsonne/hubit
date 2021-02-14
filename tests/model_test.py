@@ -84,6 +84,25 @@ def setUpModule():
                       path: list[IDX1].some_attr.x_to_y_fact
                     - name: xvals
                       path: list[IDX1].some_attr.inner_list[:@IDX2].xval
+
+        -   # Does nothing exceppt test that it's OK not to have the cosumes section
+            func_name: fun5
+            path: ./components/comp5.py
+            provides:
+                - name: yval
+                  path: number5
+
+        -   # Does nothing except test that it's OK not to have the input section
+            func_name: fun6
+            path: ./components/comp6.py
+            provides:
+                - name: yval
+                  path: number6
+            consumes:
+                results:
+                    - name: yval2
+                      path: list[IDX1].some_attr.two_x_numbers
+
         """
 
         yml_input = """

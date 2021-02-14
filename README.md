@@ -112,7 +112,7 @@ The strings in square braces are called _index specifiers_. The index specifier 
 With the input data and bindings shown above, the content of `_input_consumed` in the `price` function for the car at index 1 will be 
 
 ```python
-{'part_counts': [4, 1, 2, 1], 'part_names':  ['wheel2', 'chassis2', 'bumper', 'engine14']}
+    {'part_counts': [4, 1, 2, 1], 'part_names':  ['wheel2', 'chassis2', 'bumper', 'engine14']}
 ```
 
 Inside the component the data in `_input_consumed` (and possibly data in `_results_consumed`) can be used to calculate the car price. 
@@ -207,16 +207,16 @@ Notice that the first component subscribes to a specific part index (`IDX_PART`)
 
 ```python
 def part_price(_input_consumed, _results_consumed, results_provided):
-  count = _input_consumed['part_count'] 
-  name = _input_consumed['part_name'] 
-  results_provided['part_price'] = count*my_lookup_function(name)
+    count = _input_consumed['part_count'] 
+    name = _input_consumed['part_name'] 
+    results_provided['part_price'] = count*my_lookup_function(name)
 ```
 
 The second component (car price) could look like this
 
 ```python
 def car_price(_input_consumed, _results_consumed, results_provided):
-  results_provided['car_price'] = sum( _results_consumed['prices'] )
+    results_provided['car_price'] = sum( _results_consumed['prices'] )
 ```
 
 ### Running

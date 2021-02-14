@@ -173,7 +173,7 @@ All the results can also be accessed using `hmodel.get_results()` which yields
 The results object contains all the numbers that were calculated to create the response.
 
 ## Example calculations
-The purpose of the examples are summarized below. To run an example run the script from the project root for example `python3 -m examples.wall.run_queries`. In some of the example you can toggle the multi-processing flag to see the preformance difference with and without multi-processing.
+The purpose of the examples are summarized below. To run an example run the script from the project root for example `python3 -m examples.wall.run_queries`. In some of the examples you can toggle the multi-processing flag to see the preformance difference with and without multi-processing. The performace change obtained by activating multi-processing depends on the time spent in the components. You can try to adjust the sleep time in `thermal_conductivity.py` and `thermal_profile.py`.
 
 ### `run_render.py` 
 To get a graphical overview of a `hubit` model the model can be rendered if Graphviz is installed. The wall model is illustrated below  

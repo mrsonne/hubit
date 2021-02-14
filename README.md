@@ -14,7 +14,7 @@ Compatible with __Python 3.7__.
 ## Motivation
 Many work places have a rich ecosystem of stand-alone tools. These tools may be developped/maintained by different teams using different programming laguages and using different input/output dat models and serialize data in various ways. Neverthetheless, the tools often depend on results provided the other tools leading to complicated and errorprone (manual) workflows.
 
-By defining input and results data structures that are shared between your tools `hubit` allows all your Python-wrapable tools to be seamlessly executed asynchronously as a single model. Asynchronous multi-processor execution assures a better utilization of the available CPU resources compared to sequential execution single-processor. In practice this performance improvement compensates the management overhead introduced by `hubit`.
+By defining input and results data structures that are shared between your tools `hubit` allows all your Python-wrapable tools to be seamlessly executed asynchronously as a single model. Asynchronous multi-processor execution often assures a better utilization of the available CPU resources compared to sequential execution single-processor. This is especially true when some time is spent in the components. In practice this performance improvement compensates the management overhead introduced by `hubit`.
 
 ## Getting started
 

@@ -195,6 +195,16 @@ class HubitModel:
         self.component_for_name = {component['func_name']: component 
                                    for component in cfg}
 
+
+        # Insert empty if section if missing
+        for component in self.component_for_name.values():
+            if not 'consumes' in component:
+                component['consumes'] = {}
+
+            if not 'input' in component['consumes']:
+                component['consumes']['input'] = {}
+
+
         # Stores length tree. Filled when set_input() is called 
         self.tree_for_idxcontext = {}
 

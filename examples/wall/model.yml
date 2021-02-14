@@ -163,10 +163,6 @@
       path: total_cost
   
   consumes:
-    input:
-      # TODO: have to use dummy input since Hubit always expects input consumption... 
-      - name: material
-        path: segments[IDX_SEG].layers[:@IDX_LAY].material
     results:
       - name: segment_costs
         path: segments[:@IDX_SEG].cost

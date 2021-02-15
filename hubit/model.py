@@ -136,18 +136,15 @@ def _get(queryrunner,
                                       flat_results, flat_input,
                                       dryrun=dryrun)
 
-        # TODO: why this, why timeout??
-        while watcher.is_alive():
-            watcher.join(timeout=1.)
     except (Exception, KeyboardInterrupt) as err:
         the_err = err
         shutdown_event.set()
 
+    watcher.join()
+
+    # Join workers
     queryrunner._join_workers()
 
-    # Join thread
-    if watcher.is_alive():
-        watcher.join()
 
     if the_err is None:
         # print(flat_results)

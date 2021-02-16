@@ -15,6 +15,7 @@ Compatible with __Python 3.7__.
 Many work places have a rich ecosystem of stand-alone tools. These tools may be developped/maintained by different teams using different programming languages and using different input/output data models. Neverthetheless, the tools often depend on results provided the other tools leading to complicated and errorprone (manual) workflows.
 
 By defining input and results data structures that are shared between your tools `hubit` allows all your Python-wrapable tools to be seamlessly executed asynchronously as a single model. Asynchronous multi-processor execution often assures a better utilization of the available CPU resources compared to sequential execution single-processor. This is especially true when some time is spent in each component. In practice this performance improvement often compensates the management overhead introduced by `hubit`.
+Executing a fixed call graph is faster than executing the same call graph dynamically created by `hubit`. Nevertheless, a fixed call graph will typically encompass all relevant calculations and provide all results, which in many cases will represent wasteful compute since only a subset of the results are actually needed. `hubit` dynamically cretaes the smallest possible call graph that can provide the results that satisfy the user's query.  
 
 ## Getting started
 

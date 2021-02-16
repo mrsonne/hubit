@@ -133,8 +133,14 @@ def _get(queryrunner,
     the_err = None
     try:
         watcher.start()
-
-        with Manager() as manager:
+        if queryrunner.mpworkers:
+            with Manager() as manager:
+                success = queryrunner._deploy(manager, _queries, extracted_input,
+                                              flat_results, flat_input, 
+                                              dryrun=dryrun)
+                watcher.join()
+        else:
+            manager = None
             success = queryrunner._deploy(manager, _queries, extracted_input,
                                           flat_results, flat_input, 
                                           dryrun=dryrun)
@@ -1023,7 +1029,10 @@ class _QueryRunner:
         return func, version, components
 
 
-    def _worker_for_query(self, manager, query_path:str, dryrun: bool=False) -> Any:
+    def _worker_for_query(self,
+                          manager,
+                          query_path:str,
+                          dryrun: bool=False) -> Any:
         """Creates instance of the worker class that can respond to the query
 
         Args:
@@ -1058,7 +1067,6 @@ class _QueryRunner:
                            func,
                            version, 
                            self.model.tree_for_idxcontext,
-                           multiprocess=self.mpworkers,
                            dryrun=dryrun)
         except RuntimeError:
             return None
@@ -1095,7 +1103,9 @@ class _QueryRunner:
 
             # Figure out which component can provide a response to the query
             # and get the corresponding worker
-            worker = self._worker_for_query(manager, qpath, dryrun=dryrun)
+            worker = self._worker_for_query(manager,
+                                            qpath,
+                                            dryrun=dryrun)
             # if worker is None: return False
 
             # Skip if the queried data will be provided

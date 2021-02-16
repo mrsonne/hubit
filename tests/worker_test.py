@@ -49,7 +49,6 @@ class TestWorker(unittest.TestCase):
                         func, 
                         version,
                         tree,
-                        multiprocess=False,
                         dryrun=True)
 
 
@@ -88,7 +87,6 @@ class TestWorker(unittest.TestCase):
                     func, 
                     version,
                     tree_for_idxcontext,
-                    multiprocess=False,
                     dryrun=True)
 
 
@@ -121,7 +119,6 @@ class TestWorker(unittest.TestCase):
                         func,
                         version,
                         tree,
-                        multiprocess=False,
                         dryrun=True)
 
 
@@ -181,7 +178,6 @@ class TestWorker(unittest.TestCase):
                     func,
                     version,
                     tree_for_idxcontext,
-                    multiprocess=False, # Avoid race conditions
                     dryrun=True # Use dryrun to easily predict the result
                     )
 
@@ -300,7 +296,6 @@ class TestWorker(unittest.TestCase):
                     func, 
                     version,
                     tree_for_idxcontext,
-                    multiprocess=False,
                     dryrun=True)
 
 
@@ -381,7 +376,6 @@ class TestWorker(unittest.TestCase):
                     func, 
                     version,
                     tree_for_idxcontext,
-                    multiprocess=False,
                     dryrun=True)
 
 

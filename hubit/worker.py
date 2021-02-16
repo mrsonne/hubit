@@ -101,7 +101,7 @@ class _Worker:
         return paths_for_name
 
 
-    def __init__(self, hmodel, name, cfg, query, func, 
+    def __init__(self, manager, hmodel, name, cfg, query, func, 
                  version, tree_for_idxcontext, multiprocess=False, dryrun=False):
         """
         If inputdata is None the worker cannot work but can still 
@@ -111,6 +111,9 @@ class _Worker:
         query is an internal path (dot-path)
 
         """
+        if multiprocess and manager is None:
+            raise HubitWorkerError('Provide a multiprocess manager to use multiprocessing')
+
         self.func = func # function to excecute 
         self.name = name # name of the component
         self.version = version # Version of the component
@@ -143,10 +146,8 @@ class _Worker:
         # Which indices are specified for each index ID  
         self.idxval_for_idxid = {}
 
-        if self.use_multiprocessing:
-            # Using a pool for multiple queries block for any multi-processing in the worker
-            mgr = multiprocessing.Manager()
-            self.results =  mgr.dict() 
+        if manager is not None:
+            self.results =  manager.dict() 
         else:
             self.results =  {}
 

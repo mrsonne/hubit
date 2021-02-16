@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import Any, Callable, List, Tuple, Dict
+from multiprocessing import Manager
 import logging
 import importlib
 import os
@@ -126,21 +127,23 @@ def _get(queryrunner,
     watcher = Thread(target=queryrunner._watcher,
                      args=(_queries, flat_results, shutdown_event))
     watcher.daemon = True
-    watcher.start()
 
     # remeber to send SIGTERM for processes
     # https://stackoverflow.com/questions/11436502/closing-all-threads-with-a-keyboard-interrupt
     the_err = None
     try:
-        success = queryrunner._deploy(_queries, extracted_input,
-                                      flat_results, flat_input,
-                                      dryrun=dryrun)
+        watcher.start()
+
+        with Manager() as manager:
+            success = queryrunner._deploy(manager, _queries, extracted_input,
+                                          flat_results, flat_input, 
+                                          dryrun=dryrun)
+            watcher.join()
 
     except (Exception, KeyboardInterrupt) as err:
         the_err = err
         shutdown_event.set()
 
-    watcher.join()
 
     # Join workers
     queryrunner._join_workers()
@@ -382,7 +385,9 @@ class HubitModel:
                                              cname,
                                              component_data,
                                              components={})
-                workers.append(_Worker(self,
+                manager = None
+                workers.append(_Worker(manager,
+                                       self,
                                        cname, 
                                        component_data, 
                                        dummy_query,
@@ -1018,7 +1023,7 @@ class _QueryRunner:
         return func, version, components
 
 
-    def _worker_for_query(self, query_path:str, dryrun: bool=False) -> Any:
+    def _worker_for_query(self, manager, query_path:str, dryrun: bool=False) -> Any:
         """Creates instance of the worker class that can respond to the query
 
         Args:
@@ -1045,7 +1050,8 @@ class _QueryRunner:
 
         # Create and return worker
         try:
-            return _Worker(self,
+            return _Worker(manager,
+                           self,
                            func_name,
                            component_data,
                            query_path,
@@ -1068,7 +1074,7 @@ class _QueryRunner:
             worker.set_consumed_input(path, val)
 
 
-    def _deploy(self, qpaths, extracted_input, 
+    def _deploy(self, manager, qpaths, extracted_input, 
                 flat_results, all_input, skip_paths=[],
                 dryrun=False):
         """Create workers
@@ -1089,7 +1095,7 @@ class _QueryRunner:
 
             # Figure out which component can provide a response to the query
             # and get the corresponding worker
-            worker = self._worker_for_query(qpath, dryrun=dryrun)
+            worker = self._worker_for_query(manager, qpath, dryrun=dryrun)
             # if worker is None: return False
 
             # Skip if the queried data will be provided
@@ -1126,7 +1132,7 @@ class _QueryRunner:
                     self.observers_for_query[path_next] = [worker]
             
             # Deploy workers for the dependencies
-            success = self._deploy(queries_next,
+            success = self._deploy(manager, queries_next,
                                    extracted_input,
                                    flat_results,
                                    all_input,

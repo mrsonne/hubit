@@ -444,7 +444,8 @@ class TestModel(unittest.TestCase):
 def subscriptions_for_query(query, query_runner):
     """Get subscriptions from worker
     """
-    w = query_runner._worker_for_query(query)
+    manager = None
+    w = query_runner._worker_for_query(manager, query)
     consumes = list( w.ipath_consumed_for_name.values() )
     consumes += list( w.rpath_consumed_for_name.values() )
     provides = list( w.rpath_provided_for_name.values() )
@@ -553,8 +554,10 @@ class TestRunner(unittest.TestCase):
         """
         No provider for query since the query has not provider. 
         """
+        manager = None
         with self.assertRaises(HubitModelQueryError) as context:
-            self.qr._worker_for_query("i.dont.exist")
+            self.qr._worker_for_query(manager, 
+                                      "i.dont.exist")
 
 
     def get_worker_counts(self, queries):
@@ -562,8 +565,9 @@ class TestRunner(unittest.TestCase):
         all_results = {}
         flat_input = flatten(self.input)
         worker_counts = []
+        manager = None
         for q in queries:
-            self.qr._deploy(q, flat_input, 
+            self.qr._deploy(manager, q, flat_input, 
                             all_results, flat_input, dryrun=True)
             worker_counts.append( len(self.qr.workers) )
 

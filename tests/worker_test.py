@@ -7,7 +7,8 @@ from hubit.worker import _Worker, HubitWorkerError
 class TestWorker(unittest.TestCase):
 
     def setUp(self):
-        pass
+        self.manager = None
+
 
 
     def test_1(self):
@@ -40,7 +41,8 @@ class TestWorker(unittest.TestCase):
                     
         querystring = 'shared.attr.path'
         with self.assertRaises(HubitWorkerError) as context:
-            w = _Worker(hmodel,
+            w = _Worker(self.manager,
+                        hmodel,
                         cname,
                         comp_data,
                         querystring,
@@ -78,7 +80,8 @@ class TestWorker(unittest.TestCase):
 
         # Query something known to exist
         querystring = comp_data['provides'][0]['path']
-        w = _Worker(hmodel,
+        w = _Worker(self.manager,
+                    hmodel,
                     cname,
                     comp_data,
                     querystring,
@@ -110,7 +113,8 @@ class TestWorker(unittest.TestCase):
         querystring = 'shared.results.attr1.path'
 
         with self.assertRaises(HubitWorkerError) as context:
-            w = _Worker(hmodel,
+            w = _Worker(self.manager,
+                        hmodel,
                         cname,
                         cfg,
                         querystring,
@@ -169,7 +173,8 @@ class TestWorker(unittest.TestCase):
         tree_for_idxcontext = shared.tree_for_idxcontext([cfg],
                                                          inputdata)
 
-        w = _Worker(hmodel,
+        w = _Worker(self.manager,
+                    hmodel,
                     cname,
                     cfg,
                     querystring,
@@ -287,7 +292,8 @@ class TestWorker(unittest.TestCase):
 
 
         querystr = shared.convert_to_internal_path(querystr)
-        w = _Worker(hmodel,
+        w = _Worker(self.manager,
+                    hmodel,
                     cname,
                     comp_data,
                     querystr,
@@ -367,7 +373,8 @@ class TestWorker(unittest.TestCase):
 
 
         querystr = shared.convert_to_internal_path(querystr)
-        w = _Worker(hmodel,
+        w = _Worker(self.manager,
+                    hmodel,
                     cname,
                     comp_data,
                     querystr,

@@ -61,14 +61,17 @@ def query(hmodel: HubitModel,
     # results caching that acknowleges that the first query actually produces 
     # the results for all the remaining queries 
     queries = [item for query in queries for item in query]
+    time3 = time.time()
     response = hmodel.get(queries,
                           mpworkers=mpworkers)
     print(response)
-    time3 = time.time()
+    time4 = time.time()
+
 
     print( f'\nSummary' )
     print( f'Time for separate queries: {time2 - time1:.1f} s' )
-    print( f'Time for joint queries: {time3 - time2:.1f} s' )
+    print( f'Time for joint queries: {time4 - time3:.1f} s' )
+
 
 
 if __name__ == '__main__': # Main guard required on windows if mpworkers = True

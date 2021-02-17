@@ -319,6 +319,7 @@ class _Worker:
         """Join process 
         """
         if self.job is not None:
+            self.job.terminate()
             self.job.join()
 
 

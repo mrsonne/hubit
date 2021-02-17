@@ -46,7 +46,7 @@ temperature = 300 K  |         | |        | temperature = 273 K
 The wall materials, dimensions and other input can be found in wall input file `input.yml`. Note that the number of wall layers in the two segments differ, which illustrates that `hubit`' can handle non-rectangular data models.
 
 ## Model
-The wall model is defined in `model.yml` and define bindings between calculation components that provides cetain results. The components are explained in greater detail later. With the model in place `hubit` allows users to query the results data structure. For example, to get the "total_cost" and "total_heat_loss" for the wall we would write
+The wall model is defined in `model.yml` and define bindings between calculation components that provides certain results. The components are explained in greater detail later. With the model in place `hubit` allows users to query the results data structure. For example, to get the "total_cost" and "total_heat_loss" for the wall we would write
 
 ```python
 from hubit.model import HubitModel
@@ -61,16 +61,16 @@ The response to the query is
 {'total_cost': 2365.600380096421, 'heat_transfer_number': 0.8888377547279751}
 ```
 
-Behind the scenes `hubit` constructs and executes the call graph for the query. Only components that provide results that are necessary for constructing the response are spawned. Therefore, the query `segment[0].cost` would only spawn calculations required to calculate the cost of wall segment 0 while the query `total_cost` envokes cost calculations for all segments. To understand more about this behavior read the "Call graph" section below.
+Behind the scenes `hubit` constructs and executes the call graph for the query. Only components that provide results that are necessary for constructing the response are spawned. Therefore, the query `segment[0].cost` would only spawn calculations required to calculate the cost of wall segment 0 while the query `total_cost` invokes cost calculations for all segments. To understand more about this behavior read the "Call graph" section below.
 
-By using different queries it is straight forward to set up reports for different audiences, each with a customized content, but based on the same model and the same input. Such different reports can service different stakeholders e.g. management, internal design engineers, clients or independant verification agencies.
+By using different queries it is straight forward to set up reports for different audiences, each with a customized content, but based on the same model and the same input. Such different reports can service different stakeholders e.g. management, internal design engineers, clients or independent verification agencies.
 
 ### Components
 The source code for the wall model components can be found in the `components` folder and are referenced from `model.yml`. A time delay has been added in some of the components to simulate a heavy computational load or a latency in a web service. The time delay illustrates the asynchronous capabilities in `hubit`.
 
 Some of the calculation components deals with the physics part of the wall model. These components include
 
-1. `thermal_conductivity.py`. Simple lookup of thermal condutivities based on the material name.
+1. `thermal_conductivity.py`. Simple lookup of thermal conductivities based on the material name.
 2. `thermal_profile.py`. A calculation of the temperature for all wall layers in a segment as well 
 as the heat flux in the segment. We assume one-dimensional heat flow, and thus each segment can be treated independently.
 3. `heat_flow.py`. Calculates the heat flow through a segment.
@@ -106,7 +106,7 @@ To illustrate the cascade of events that spawn the necessary calculations let us
         path: segments[:@IDX_SEG].cost
 ```
 
-Furher, the model file reveals that the `total_cost.py` _consumes_ the costs for all segments (`segments[:@IDX_SEG].cost`). The segment costs are, in turn, provided by `segment_cost.py` as seen from the component definition below, which is also taken from `model.yml`. 
+Further, the model file reveals that the `total_cost.py` _consumes_ the costs for all segments (`segments[:@IDX_SEG].cost`). The segment costs are, in turn, provided by `segment_cost.py` as seen from the component definition below, which is also taken from `model.yml`. 
 
 ```yml
   path: ./components/segment_cost.py
@@ -127,7 +127,7 @@ Furher, the model file reveals that the `total_cost.py` _consumes_ the costs for
 
 Since the segment costs are not in the results data to begin with `hubit` spawns the `segment_cost.py` calculation. To calculate the segment cost, the material and segment weight must be known for each layer in the segment since these attributes are specified in the `consumes` section. The segment cost component expects the layer materials and weights to be available at `segments[IDX_SEG].layers[:@IDX_LAY].material` and `segments[IDX_SEG].layers[:@IDX_LAY].weight`,  respectively. 
 
-The weights are calculated in `weight.py` and the material (part of the input) is used to look up a price in `segment_cost.py`. Inspecting `model.yml` shows that the weight compoent _consumes_ the layer volume calculated in `volume.py`. So the original query triggers a cascade of new auxiliary queries that each may spawn new calculations. The calculations are put on hold until the all required data is available. Once this data becomes available the calculation starts and may, after completion, provide data that trigger other pending calculations. Since the cost and heat transfer calculatios for each wall segment are independent the event-driven architecture allows `hubit` to execute these calculations for each wall segment in parallel if the multi-processing flag is set to `True`.
+The weights are calculated in `weight.py` and the material (part of the input) is used to look up a price in `segment_cost.py`. Inspecting `model.yml` shows that the weight component _consumes_ the layer volume calculated in `volume.py`. So the original query triggers a cascade of new auxiliary queries that each may spawn new calculations. The calculations are put on hold until the all required data is available. Once this data becomes available the calculation starts and may, after completion, provide data that trigger other pending calculations. Since the cost and heat transfer calculations for each wall segment are independent the event-driven architecture allows `hubit` to execute these calculations for each wall segment in parallel if the multi-processing flag is set to `True`.
 
 As we have previously seen, the response to the `'heat_transfer_number'` query is
 
@@ -168,7 +168,7 @@ All the results that were used to process the query can be accessed using `hmode
 
 
 ## Example calculations
-The purpose of the examples are summarized below. To run an example using the `hubit` source code run the example script from the project root e.g. `python3 -m examples.wall.run_queries`. In some of the examples you can toggle the multi-processing flag to see the preformance difference with and without multi-processing. The performace change obtained by activating multi-processing depends on the time spent in the components. You can try to adjust the sleep time in `thermal_conductivity.py` and `thermal_profile.py`.
+The purpose of the examples are summarized below. To run an example using the `hubit` source code run the example script from the project root e.g. `python3 -m examples.wall.run_queries`. In some of the examples you can toggle the multi-processing flag to see the performance difference with and without multi-processing. The performance change obtained by activating multi-processing depends on the time spent in the components. You can try to adjust the sleep time in `thermal_conductivity.py` and `thermal_profile.py`.
 
 ### `run_render.py` 
 To get a graphical overview of a `hubit` model the model can be rendered **if Graphviz is installed**. The rendition of the wall model is shown below  
@@ -185,12 +185,12 @@ The rendering feature is not yet entirely robust and is work in progress.
 This example runs various queries. First the queries are submitted individually, which causes redundant calculations. Second, all the queries are submitted together in which case `hubit` will assure that the same result is not calculate multiple times.
 
 ### `run_precompute.py` 
-After completing a query the `hubit` model instance will store the results. If a new query is submitted using the same model and the `reuse_results` flag is set to `True`, `hubit` will use the cached results instead of re-calculating them i.e. `hubit` will bypass the components that provide the cached results. For example, if the layer costs are queried first followed by a query for the wall total cost, which comsumes the layer cost, the layer cost will not be calculated in the second query.
+After completing a query the `hubit` model instance will store the results. If a new query is submitted using the same model and the `reuse_results` flag is set to `True`, `hubit` will use the cached results instead of re-calculating them i.e. `hubit` will bypass the components that provide the cached results. For example, if the layer costs are queried first followed by a query for the wall total cost, which consumes the layer cost, the layer cost will not be calculated in the second query.
 
-The results can be retrived using the `get_results()` method on the `hubit` model instance and can then be saved to disk or otherwise persisted.
+The results can be retrieved using the `get_results()` method on the `hubit` model instance and can then be saved to disk or otherwise persisted.
 
 ### `run_set_results.py` 
-Results can be manually set on the model using the `set_results()` method on a `hubit` model instance. In subsequent queries `hubit` will then ommit re-calculating the results that have been set, thus bypassing the coresponding providers. The values that are manually set could represent some new measurements that you want to see the effect of when propagated in through the remaining components downstream of the component that is bypassed. The values could also represent persisted results that you want to augment with additional results or analyses without running the entire model again. 
+Results can be manually set on the model using the `set_results()` method on a `hubit` model instance. In subsequent queries `hubit` will then omit re-calculating the results that have been set, thus bypassing the corresponding providers. The values that are manually set could represent some new measurements that you want to see the effect of when propagated in through the remaining components downstream of the component that is bypassed. The values could also represent persisted results that you want to augment with additional results or analyses without running the entire model again. 
 
 ### `run_sweep.py` 
 `hubit` can sweep over different values of the input attributes. The example shows the energy class and cost for different value of the insulation thickness and for different values of the wall materials. 

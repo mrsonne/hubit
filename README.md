@@ -213,41 +213,41 @@ def car_price(_input_consumed, _results_consumed, results_provided):
 After loading the model into `hubit` and the input data set you are ready to run calculations. To get results from a a model requires you to submit a _query_, which tells `hubit` what attributes from the results data structure you want to have calculated. After `hubit` has processed the query, i.e. executed relevant components, the values of the queried attributes are returned in the _response_. Below are two examples of queries and the corresponding responses.
 
 ```python
-    # Load model from file
-    hmodel = HubitModel.from_file('model1.yml',
-                                  name='car')
+# Load model from file
+hmodel = HubitModel.from_file('model1.yml',
+                              name='car')
 
-    # Load the input
-    with open(os.path.join(THISPATH, "input.yml"), "r") as stream:
-        input_data = yaml.load(stream, Loader=yaml.FullLoader)
+# Load the input
+with open(os.path.join(THISPATH, "input.yml"), "r") as stream:
+    input_data = yaml.load(stream, Loader=yaml.FullLoader)
 
-    # Set the input on the model object
-    hmodel.set_input(input_data)
+# Set the input on the model object
+hmodel.set_input(input_data)
 
-    # Query the model
-    query = ['cars[0].price']
-    response = hmodel.get(query)
+# Query the model
+query = ['cars[0].price']
+response = hmodel.get(query)
 ```
 
 The respose looks like this
 
 ```python
-    print(response)
-    {'cars[0].price': 4280.0}
+print(response)
+{'cars[0].price': 4280.0}
 ```
 
 A query for parts prices for all cars looks like this
 
 ```python
-    query = ['cars[:].parts[:].price']
-    response = hmodel.get(query)
+query = ['cars[:].parts[:].price']
+response = hmodel.get(query)
 ```
 
 and the corresponding response is
 
 ```python
-    {'cars[:].parts[:].price': [[480.0, 1234.0, 178.0, 2343.0, 45.0],
-                                [312.0, 1120.0, 178.0, 3400.0]],
+{'cars[:].parts[:].price': [[480.0, 1234.0, 178.0, 2343.0, 45.0],
+                            [312.0, 1120.0, 178.0, 3400.0]],
 ```
 
 The Examples section below lists more examples that illustrate more `hubit` functionality.

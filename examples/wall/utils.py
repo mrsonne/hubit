@@ -18,8 +18,8 @@ def get_model() -> HubitModel:
     modelfile = os.path.join(THISPATH, model_file)
     modelname = 'wall'
     hmodel = HubitModel.from_file(modelfile,
-                                name=modelname,
-                                output_path='./tmp')
+                                  name=modelname,
+                                  output_path='./tmp')
 
     # Load the input
     inputfile = os.path.join(THISPATH, "input.yml")

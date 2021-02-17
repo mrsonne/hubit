@@ -368,21 +368,28 @@ class HubitModel:
             # Run validation since this returns (dummy) workers
             workers = self._validate_query(queries, mpworkers=False)
 
-            # Make a node for the response
-            dot.node(name="_Response",
-                     label="Response",
-                     shape=io_shape,
-                     color=results_color,
-                     fontcolor=results_color)
+            with dot.subgraph(name='user',
+                              node_attr={'shape': 'box'}) as subgraph:
+                subgraph.attr(label='User', color='black', style="dashed", rank='same')
 
-            # Make a node for the query
-            dot.node(name="_Query", 
-                     label='\n'.join(queries),
-                     shape=io_shape,
-                     color=input_color,
-                     fontsize=fontsize_small,
-                     fontname=fontname,
-                     fontcolor=input_color)
+
+                # Make a node for the response
+                subgraph.node(name="_Response",
+                              label="Response",
+                              shape=io_shape,
+                              color=results_color,
+                              fontsize=fontsize_small,
+                              fontname=fontname,
+                              fontcolor=results_color)
+
+                # Make a node for the query
+                subgraph.node(name='_Query', 
+                              label='\n'.join(queries),
+                              shape=io_shape,
+                              color=input_color,
+                              fontsize=fontsize_small,
+                              fontname=fontname,
+                              fontcolor=input_color)
         else:
             # Render a model
 
@@ -443,8 +450,12 @@ class HubitModel:
         if isquery:
             # Draw edge from the query to the results
             dot.edge('_Query',
-                     results_object_ids[0],
-                     lhead=prefix_results,
+                     results_object_ids[0], # some node in subgraph
+                     lhead=prefix_results, # anchor head at subgraph edge
+                     label='query',
+                     fontsize=fontsize_small,
+                     fontcolor=input_color,
+                     fontname=fontname,
                      constraint="false",
                      arrowsize=arrowsize,
                      color=input_color,
@@ -469,6 +480,8 @@ class HubitModel:
                                      input_object_ids[0],
                                      subgraph,
                                      arrowsize,
+                                     fontsize_small,
+                                     fontname,
                                      input_color,
                                      direction=-direction)
 
@@ -482,6 +495,8 @@ class HubitModel:
                                      results_object_ids[0],
                                      subgraph,
                                      arrowsize,
+                                     fontsize_small,
+                                     fontname,
                                      results_color,
                                      direction=direction)
 
@@ -494,6 +509,8 @@ class HubitModel:
                                          results_object_ids[0], 
                                          subgraph,
                                          arrowsize,
+                                         fontsize_small,
+                                         fontname,
                                          results_color,
                                          direction=-direction,
                                          constraint="false",
@@ -513,6 +530,8 @@ class HubitModel:
                         cluster_node_id,
                         dot,
                         arrowsize,
+                        fontsize,
+                        fontname,
                         color,
                         direction=1,
                         constraint="true",
@@ -570,14 +589,18 @@ class HubitModel:
                              shape='parallelogram',
                              fillcolor=color,
                              color=color,
+                             fontsize=fontsize,
                              fontcolor=color,
+                             fontname=fontname,
                              peripheries=peripheries)
                     dot.node(_id_next,
                              pcmp_next,
                              shape='parallelogram',
                              fillcolor=color,
                              color=color,
+                             fontsize=fontsize,
                              fontcolor=color,
+                             fontname=fontname,
                              peripheries=peripheries_next)
                     t = _id, _id_next
                     # _direction = 1

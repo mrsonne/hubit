@@ -290,14 +290,6 @@ class _Worker:
         return out
 
 
-        # Work only with :
-        # return {pstr:val for attrname, pstrs in self.rpaths_provided_for_name.items() \
-        #                  for pstr, val in zip(traverse(pstrs), traverse(self.results[attrname]))}
-
-        # Does not work with :
-        # return {pathstr:self.results[key] for key, pathstr in self.rpath_provided_for_name.items()}
-
-
     def results_ready(self):
         """
         Checks that all attributes provided have been calculated

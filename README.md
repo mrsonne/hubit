@@ -1,6 +1,6 @@
 ﻿# hubit - a calculation hub  
 
-`hubit` is a orchestration hub for your existing calculation tools. It allows you to 
+`hubit` is an event-driven orchestration hub for your existing calculation tools. It allows you to 
 
 - execute calculation tools as one composite model with a loose coupling,
 - query the model for specific results thus avoiding explicitely coding (fixed) call graphs and running superfluous calculations,

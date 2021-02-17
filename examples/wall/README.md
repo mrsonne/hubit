@@ -179,6 +179,8 @@ To get a graphical overview of a `hubit` model the model can be rendered **if Gr
 
 ![](https://github.com/mrsonne/hubit/blob/develop/examples/wall/images/query_wall.png "Wall query")
 
+Notice how the graph representing the query only includes a subset of all the model components. When a query is rendered only the relevant components for that particular query are shown.
+
 The rendering feature is work in progress. In the illustrations above we have shown
 
 * calculation components in yellow ovals,

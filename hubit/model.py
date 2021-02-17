@@ -327,24 +327,30 @@ class HubitModel:
             logging.debug('Error: Rendering requires "graphviz", but it could not be imported')
             raise err
 
-        calccolor = "gold2"
+        # Some settings
+        calc_color = "gold2"
+        calc_shape = 'ellipse'
+        calc_style = "filled"
         arrowsize = ".5"
-        inputcolor = "lightpink3"
-        resultscolor = "aquamarine3"
+        input_color = "lightpink3"
+        results_color = "aquamarine3"
+        io_shape = 'box'
         renderformat = "png"
+        fontname = "monospace"
+        fontsize_small = '9'
 
         # strict=True assures that only one edge is drawn although many may be defined
         dot = Digraph(comment='hubit model', format=renderformat, strict=True)
         dot.attr(compound='true')
 
-        # Get the dat and user
+        # Get the date and user
         fstr = 'Hubit model: {}\nRendered at {} by {}'
         dot.attr(label=fstr.format(self.name,
                                    datetime.now().strftime("%b %d %Y %H:%M"),
                                    subprocess.check_output(['whoami']).decode("ascii", 
                                                                                errors="ignore").replace("\\", "/"),),
-                 fontsize='9',
-                 fontname="monospace")
+                 fontsize=fontsize_small,
+                 fontname=fontname)
 
 
 
@@ -358,21 +364,25 @@ class HubitModel:
             filename = 'query'
 
             direction = -1
+
             # Run validation since this returns (dummy) workers
             workers = self._validate_query(queries, mpworkers=False)
 
-            dot.node("_Response",
-                     "Response",
-                     shape='box',
-                     color=resultscolor,
-                     fontcolor=resultscolor)
+            # Make a node for the response
+            dot.node(name="_Response",
+                     label="Response",
+                     shape=io_shape,
+                     color=results_color,
+                     fontcolor=results_color)
 
-            dot.node("_Query", '\n'.join(queries),
-                     shape='box',
-                     color=inputcolor,
-                     fontsize='9',
-                     fontname="monospace",
-                     fontcolor=inputcolor)
+            # Make a node for the query
+            dot.node(name="_Query", 
+                     label='\n'.join(queries),
+                     shape=io_shape,
+                     color=input_color,
+                     fontsize=fontsize_small,
+                     fontname=fontname,
+                     fontcolor=input_color)
         else:
             # Render a model
 
@@ -381,20 +391,22 @@ class HubitModel:
             direction = -1 
             workers = []
             for component_data in self.cfg:
-                cname = component_data['func_name']
+                func_name = component_data['func_name']
                 path = component_data["provides"][0]['path']
                 dummy_query = convert_to_internal_path(set_ilocs_on_path(path,
-                                                                         ['0' for _ in idxids_from_path(path)])) 
+                                                                        ['0' for _ in idxids_from_path(path)])) 
+                
+                # Get function and version to init the worker
                 (func,
                  version,
                  _) = _QueryRunner._get_func(self.base_path,
-                                             cname,
+                                             func_name,
                                              component_data,
                                              components={})
                 manager = None
                 workers.append(_Worker(manager,
                                        self,
-                                       cname, 
+                                       func_name, 
                                        component_data, 
                                        dummy_query,
                                        func, version, 
@@ -406,49 +418,71 @@ class HubitModel:
         if not file_idstr == '':
             filename = '{}_{}'.format(filename, file_idstr)
 
-        # Component nodes from workers
-        with dot.subgraph() as s:
-            s.attr(rank = 'same')
+        # Component (calculation) nodes from workers
+        with dot.subgraph() as subgraph:
+            subgraph.attr(rank='same')
             for w in workers:
-                s.node(w.name, w.name + '\nv {}'.format(w.version), fontname="monospace",
-                       shape='ellipse', style="filled", fillcolor=calccolor, fontsize="10")
+                subgraph.node(name=w.name, # Name identifier of the node
+                              label=w.name + '\nv {}'.format(w.version),
+                              fontname=fontname,
+                              shape=calc_shape,
+                              style=calc_style,
+                              fillcolor=calc_color,
+                              fontsize=fontsize_small)
 
 
         # Extract object names to allow pointing to e.g. results cluster. 
         # This requires one node id in the cluster
         prefix_results = "cluster_results"
         prefix_input = "cluster_input"
+
         (input_object_ids,
          results_object_ids) = self._get_binding_ids(prefix_input,
                                                      prefix_results)
 
         if isquery:
-            dot.edge('_Query', results_object_ids[0], lhead=prefix_results, constraint="false",
-                     arrowsize=arrowsize, color=inputcolor, arrowhead="box")
-
-            dot.edge(results_object_ids[0], '_Response', ltail=prefix_results, 
+            # Draw edge from the query to the results
+            dot.edge('_Query',
+                     results_object_ids[0],
+                     lhead=prefix_results,
+                     constraint="false",
                      arrowsize=arrowsize,
-                     color=resultscolor)
+                     color=input_color,
+                     arrowhead="box")
+
+            # Draw edge from the results to the response
+            dot.edge(results_object_ids[0],
+                     '_Response',
+                     ltail=prefix_results, 
+                     arrowsize=arrowsize,
+                     color=results_color)
 
 
         for w in workers:
-            with dot.subgraph(name='cluster_input', node_attr={'shape': 'box'}) as c:
-                c.attr(label='Input', color=inputcolor, style="dashed")
-                self._render_objects(w.name, w.mpath_for_name("input"),
-                                     "cluster_input", prefix_input, input_object_ids[0],
-                                     c, arrowsize, inputcolor, direction=-direction)
+            with dot.subgraph(name='cluster_input',
+                              node_attr={'shape': 'box'}) as subgraph:
+                subgraph.attr(label='Input', color=input_color, style="dashed")
+                self._render_objects(w.name,
+                                     w.mpath_for_name("input"),
+                                     "cluster_input",
+                                     prefix_input,
+                                     input_object_ids[0],
+                                     subgraph,
+                                     arrowsize,
+                                     input_color,
+                                     direction=-direction)
 
-            with dot.subgraph(name='cluster_results', node_attr={'shape': 'box'}) as c:
-                c.attr(label='Results', color=resultscolor, style="dashed")
+            with dot.subgraph(name='cluster_results', node_attr={'shape': 'box'}) as subgraph:
+                subgraph.attr(label='Results', color=results_color, style="dashed")
                 self._render_objects(w.name, w.mpath_for_name("provides"),
                                      "cluster_results", prefix_results, results_object_ids[0],
-                                     c, arrowsize, resultscolor, direction=direction)
+                                     subgraph, arrowsize, results_color, direction=direction)
 
                 # Not all components cosume results
                 try:
                     self._render_objects(w.name, w.mpath_for_name("results"), 
                                          "cluster_results", prefix_results, results_object_ids[0], 
-                                         c, arrowsize, resultscolor, direction=-direction,
+                                         subgraph, arrowsize, results_color, direction=-direction,
                                          constraint="false", render_objects=False)
                 except KeyError:
                     pass
@@ -457,8 +491,18 @@ class HubitModel:
         return dot, filename
 
 
-    def _render_objects(self, cname, cdata, clusterid, prefix, cluster_node_id, dot, arrowsize,
-               color, direction=1, constraint="true", render_objects=True):
+    def _render_objects(self,
+                        cname,
+                        cdata,
+                        clusterid,
+                        prefix,
+                        cluster_node_id,
+                        dot,
+                        arrowsize,
+                        color,
+                        direction=1,
+                        constraint="true",
+                        render_objects=True):
         """
         The constraint attribute, which lets you add edges which are 
         visible but don't affect layout.
@@ -480,7 +524,7 @@ class HubitModel:
                 except KeyError:
                     names_for_nodeids[t] = [pathcmps[-1]]
             else:
-                skipped.append(pathcmps[0])
+                skipped.append( pathcmps[0] )
                 # t = obj_in_cluster, cname
 
             nobjs = len(pathcmps) - 1
@@ -505,13 +549,20 @@ class HubitModel:
                         peripheries_next = '1'
 
                     _id = f'{prefix}_{pcmp}'
-                    _id_next = f'{prefix}{pcmp_next}'
+                    _id_next = f'{prefix}_{pcmp_next}'
                     ids.extend([_id, _id_next])
-                    dot.node(_id, pcmp, shape='box',
-                             fillcolor=color, color=color,
-                             fontcolor=color, peripheries=peripheries)
-                    dot.node(_id_next, pcmp_next, shape='box',
-                             fillcolor=color, color=color,
+                    dot.node(_id,
+                             pcmp,
+                             shape='box',
+                             fillcolor=color,
+                             color=color,
+                             fontcolor=color,
+                             peripheries=peripheries)
+                    dot.node(_id_next,
+                             pcmp_next,
+                             shape='box',
+                             fillcolor=color,
+                             color=color,
                              fontcolor=color,
                              peripheries=peripheries_next)
                     t = _id, _id_next
@@ -549,22 +600,24 @@ class HubitModel:
 
     def _get_binding_ids(self, prefix_input, prefix_results):
         """
+        Get list of objects from model that need redering e.g. layers and segment.
+        These object name are prefixed to cluster them
         """
         results_object_ids = set()
         input_object_ids = set()
         for component in self.cfg:
             binding = component["provides"]
-            results_object_ids.update(['{}{}'.format(prefix_results, objname) 
+            results_object_ids.update(['{}_{}'.format(prefix_results, objname) 
                                        for objname in self._get_path_cmps(binding)])
 
             binding = component["consumes"]["input"]
-            input_object_ids.update(['{}{}'.format(prefix_input, objname) 
+            input_object_ids.update(['{}_{}'.format(prefix_input, objname) 
                                      for objname in self._get_path_cmps(binding)])
 
             # Not all components consume results
             try:
                 binding = component["consumes"]["results"]
-                results_object_ids.update(['{}{}'.format(prefix_results, objname) 
+                results_object_ids.update(['{}_{}'.format(prefix_results, objname) 
                                            for objname in self._get_path_cmps(binding)])
             except KeyError:
                 pass

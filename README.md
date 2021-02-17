@@ -3,19 +3,19 @@
 `hubit` is an event-driven orchestration hub for your existing calculation tools. It allows you to 
 
 - execute calculation tools as one composite model with a loose coupling,
-- query the model for specific results thus avoiding explicitely coding (fixed) call graphs and running superfluous calculations,
+- query the model for specific results thus avoiding explicitly coding (fixed) call graphs and running superfluous calculations,
 - make parameter sweeps,
 - feed old results into new calculations thus augmenting old results objects,
-- run your exisitng tools in asyncronously in multiple processes,
+- run your existing tools in asynchronously in multiple processes,
 - visualize the composite model i.e. your existing tools and the attributes that flow between them.
 
 Compatible with __Python 3.7__.
 
 ## Motivation
-Many work places have a rich ecosystem of stand-alone tools. These tools may be developped/maintained by different teams using different programming languages and using different input/output data models. Neverthetheless, the tools often depend on results provided the other tools leading to complicated and errorprone (manual) workflows.
+Many work places have a rich ecosystem of stand-alone tools. These tools may be developed/maintained by different teams using different programming languages and using different input/output data models. Nevertheless, the tools often depend on results provided the other tools leading to complicated and error-prone (manual) workflows.
 
-By defining input and results data structures that are shared between your tools `hubit` allows all your Python-wrapable tools to be seamlessly executed asynchronously as a single model. Asynchronous multi-processor execution often assures a better utilization of the available CPU resources compared to sequential execution single-processor. This is especially true when some time is spent in each component. In practice this performance improvement often compensates the management overhead introduced by `hubit`.
-Executing a fixed call graph is faster than executing the same call graph dynamically created by `hubit`. Nevertheless, a fixed call graph will typically encompass all relevant calculations and provide all results, which in many cases will represent wasteful compute since only a subset of the results are actually needed. `hubit` dynamically cretaes the smallest possible call graph that can provide the results that satisfy the user's query.  
+By defining input and results data structures that are shared between your tools `hubit` allows all your Python-wrappable tools to be seamlessly executed asynchronously as a single model. Asynchronous multi-processor execution often assures a better utilization of the available CPU resources compared to sequential execution single-processor. This is especially true when some time is spent in each component. In practice this performance improvement often compensates the management overhead introduced by `hubit`.
+Executing a fixed call graph is faster than executing the same call graph dynamically created by `hubit`. Nevertheless, a fixed call graph will typically encompass all relevant calculations and provide all results, which in many cases will represent wasteful compute since only a subset of the results are actually needed. `hubit` dynamically creates the smallest possible call graph that can provide the results that satisfy the user's query.  
 
 ## Getting started
 
@@ -125,7 +125,7 @@ In the model file the binding below will make sure that data stored in `results_
 
 ```yml
 provides: 
-    - name: car_price # internal name in the compoment
+    - name: car_price # internal name in the component
       path: cars[IDX_CAR].price # path in the shared data model
 ```
 
@@ -133,7 +133,7 @@ The value in the binding name should match the key used in the component when se
 
 ```yml
 provides : 
-    - name: car_price # internal name in the compoment
+    - name: car_price # internal name in the component
       path: cars[IDX_CAR].price # path in the shared data model
 consumes:
     input:
@@ -243,7 +243,7 @@ A query for parts prices for all cars looks like this
     response = hmodel.get(query)
 ```
 
-and the corresponsing response is
+and the corresponding response is
 
 ```python
     {'cars[:].parts[:].price': [[480.0, 1234.0, 178.0, 2343.0, 45.0],
@@ -259,5 +259,5 @@ hubit component, but the component could just as well wrap a C library, request
 data from a web server or use an installed Python package. The examples are summarized below.
 
 * `examples/car`. This examples encompass the two car models shown above.
-* `examples/wall`. This example illustrates heat flow calculations and cost calclations for a wall with two segments. Each wall segment has multiple wall layers that consist of different materials. The example demonstrates simple queries, multi-processing, reusing previouly calculated results, setting results manually and input parameter sweeps.
+* `examples/wall`. This example illustrates heat flow calculations and cost calculations for a wall with two segments. Each wall segment has multiple wall layers that consist of different materials. The example demonstrates simple queries, multi-processing, reusing previously calculated results, setting results manually and input parameter sweeps.
 

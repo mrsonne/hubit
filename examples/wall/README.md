@@ -168,10 +168,10 @@ All the results that were used to process the query can be accessed using `hmode
 
 
 ## Example calculations
-The purpose of the examples are summarized below. To run an example run the script from the project root for example `python3 -m examples.wall.run_queries`. In some of the examples you can toggle the multi-processing flag to see the preformance difference with and without multi-processing. The performace change obtained by activating multi-processing depends on the time spent in the components. You can try to adjust the sleep time in `thermal_conductivity.py` and `thermal_profile.py`.
+The purpose of the examples are summarized below. To run an example using the `hubit` source code run the example script from the project root e.g. `python3 -m examples.wall.run_queries`. In some of the examples you can toggle the multi-processing flag to see the preformance difference with and without multi-processing. The performace change obtained by activating multi-processing depends on the time spent in the components. You can try to adjust the sleep time in `thermal_conductivity.py` and `thermal_profile.py`.
 
 ### `run_render.py` 
-To get a graphical overview of a `hubit` model the model can be rendered if Graphviz is installed. The wall model is illustrated below  
+To get a graphical overview of a `hubit` model the model can be rendered **if Graphviz is installed**. The rendition of the wall model is shown below  
 
 ![](https://github.com/mrsonne/hubit/blob/develop/examples/wall/images/model_wall.png "Wall model")
 
@@ -179,7 +179,7 @@ To get a graphical overview of a `hubit` model the model can be rendered if Grap
 
 ![](https://github.com/mrsonne/hubit/blob/develop/examples/wall/images/query_wall.png "Wall query")
 
-The rendering is not yet entirely robust and is work in progress.
+The rendering feature is not yet entirely robust and is work in progress.
 
 ### `run_queries.py`
 This example runs various queries. First the queries are submitted individually, which causes redundant calculations. Second, all the queries are submitted together in which case `hubit` will assure that the same result is not calculate multiple times.
@@ -190,12 +190,10 @@ After completing a query the `hubit` model instance will store the results. If a
 The results can be retrived using the `get_results()` method on the `hubit` model instance and can then be saved to disk or otherwise persisted.
 
 ### `run_set_results.py` 
-Results can be manually set on the model using the `set_results(results_data)` method on a `hubit` model instance. In subsequent queries `hubit` will then ommit re-calculating the results that have been set, thus bypassing the coresponding providers.
-    
-The values that are manually set could represent some new measurements that you want to see the effect of when propagated in through the remaining components downstream of the component that is bypassed. The values could also represent persisted results that we want to augment without running the entire model again. 
+Results can be manually set on the model using the `set_results()` method on a `hubit` model instance. In subsequent queries `hubit` will then ommit re-calculating the results that have been set, thus bypassing the coresponding providers. The values that are manually set could represent some new measurements that you want to see the effect of when propagated in through the remaining components downstream of the component that is bypassed. The values could also represent persisted results that you want to augment with additional results or analyses without running the entire model again. 
 
 ### `run_sweep.py` 
-`hubit` can sweep over different values of the input attributes. The example shows the energy class and cost for different value of the insulation thickness and for different values of the insulation material. 
+`hubit` can sweep over different values of the input attributes. The example shows the energy class and cost for different value of the insulation thickness and for different values of the wall materials. 
 
 For the example sweep the table below summarizes the results.
 
@@ -215,5 +213,5 @@ concrete     concrete     0.12                  0.065                 0.68      
 -------------------------------------------------------------------------------------------------------------------------
 ```
 
-The information in the table would conveniently be visualized in a parallel coordinates plot. 
+The information in the table could conveniently be visualized in a parallel coordinates plot. 
 

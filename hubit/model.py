@@ -461,7 +461,7 @@ class HubitModel:
         for w in workers:
             with dot.subgraph(name='cluster_input',
                               node_attr={'shape': 'box'}) as subgraph:
-                subgraph.attr(label='Input', color=input_color, style="dashed")
+                subgraph.attr(label='Input data', color=input_color, style="dashed")
                 self._render_objects(w.name,
                                      w.mpath_for_name("input"),
                                      "cluster_input",
@@ -472,18 +472,32 @@ class HubitModel:
                                      input_color,
                                      direction=-direction)
 
-            with dot.subgraph(name='cluster_results', node_attr={'shape': 'box'}) as subgraph:
-                subgraph.attr(label='Results', color=results_color, style="dashed")
-                self._render_objects(w.name, w.mpath_for_name("provides"),
-                                     "cluster_results", prefix_results, results_object_ids[0],
-                                     subgraph, arrowsize, results_color, direction=direction)
+            with dot.subgraph(name='cluster_results',
+                              node_attr={'shape': 'box'}) as subgraph:
+                subgraph.attr(label='Results data', color=results_color, style="dashed")
+                self._render_objects(w.name,
+                                     w.mpath_for_name("provides"),
+                                     "cluster_results",
+                                     prefix_results,
+                                     results_object_ids[0],
+                                     subgraph,
+                                     arrowsize,
+                                     results_color,
+                                     direction=direction)
 
                 # Not all components cosume results
                 try:
-                    self._render_objects(w.name, w.mpath_for_name("results"), 
-                                         "cluster_results", prefix_results, results_object_ids[0], 
-                                         subgraph, arrowsize, results_color, direction=-direction,
-                                         constraint="false", render_objects=False)
+                    self._render_objects(w.name,
+                                         w.mpath_for_name("results"), 
+                                         "cluster_results",
+                                         prefix_results,
+                                         results_object_ids[0], 
+                                         subgraph,
+                                         arrowsize,
+                                         results_color,
+                                         direction=-direction,
+                                         constraint="false",
+                                         render_objects=False)
                 except KeyError:
                     pass
 
@@ -553,14 +567,14 @@ class HubitModel:
                     ids.extend([_id, _id_next])
                     dot.node(_id,
                              pcmp,
-                             shape='box',
+                             shape='parallelogram',
                              fillcolor=color,
                              color=color,
                              fontcolor=color,
                              peripheries=peripheries)
                     dot.node(_id_next,
                              pcmp_next,
-                             shape='box',
+                             shape='parallelogram',
                              fillcolor=color,
                              color=color,
                              fontcolor=color,

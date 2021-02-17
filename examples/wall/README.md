@@ -1,6 +1,6 @@
 # Calculations for a wall
 
-In this example we consider a wall that consists of two segments as shown in the illustraton below. 
+In this example we consider a wall that consists of three segments as shown in the illustration below. 
 
 ``` 
 Face view wall (not to scale)
@@ -16,7 +16,7 @@ Face view wall (not to scale)
            3.0 m
 ```
 
-Each wall segment consists of different layers as shown in the side view of the wall below.
+Each wall segment consists of different layers as shown in the side view below.
 
 ```
 Side view of the wall (not to scale)
@@ -26,7 +26,7 @@ Side view of the wall (not to scale)
                         |    |   |     |
             Inside      v    v   v     v    Outside
                      ----------------------
-                     |      | |    |      | segment 1 (wall)
+                     |      | |    |      | segment 1 (wall: brick-air-rockwool)
 temperature = 320 K  |      | |    |      | temperature = 273 K   
                      ----------------------        
                                       || ||      
@@ -34,7 +34,7 @@ temperature = 320 K  |      | |    |      | temperature = 273 K
 temperature = 300 K                   || || temperature = 273 K
                      ----------------------
                      |         | |        |      
-                     |         | |        | segment 3 (wall)
+                     |         | |        | segment 3 (wall: concrete-concrete-EPS)
 temperature = 300 K  |         | |        | temperature = 273 K
                      ----------------------
                         ^       ^     ^ 
@@ -46,59 +46,55 @@ temperature = 300 K  |         | |        | temperature = 273 K
 The wall materials, dimensions and other input can be found in wall input file `input.yml`. Note that the number of wall layers in the two segments differ, which illustrates that `hubit`' can handle non-rectangular data models.
 
 ## Model
-The wall composite model is defined in `model.yml` and define calculation components that provides cetain results. With the model in place `hubit` allows users to query the results data structure. For examples to get the "total_cost" and "total_heat_loss" would look like this
+The wall model is defined in `model.yml` and define bindings between calculation components that provides cetain results. The components are explained in greater detail later. With the model in place `hubit` allows users to query the results data structure. For example, to get the "total_cost" and "total_heat_loss" for the wall we would write
 
 ```python
 from hubit.model import HubitModel
-hmodel = HubitModel("model.yml")
+hmodel = HubitModel.from_file('model.yml', name='wall')
 query = ["total_cost", "heat_transfer_number"]
 response = hmodel.get(query)
 ```
 
-The response is
+The response to the query is
 
 ```python
 {'total_cost': 2365.600380096421, 'heat_transfer_number': 0.8888377547279751}
 ```
 
-Behind the scenes `hubit` constructs and executes the call graph for the query. Only components that provide results that are necessary for constructing the response are spawned. Therefore, the query `segment[0].cost` would only spawn calculations required to calculate the cost of wall segment 0 while the query `total_cost` envokes cost calculations for all segments. To understand more on this behavior read the "Call graph" section below.
+Behind the scenes `hubit` constructs and executes the call graph for the query. Only components that provide results that are necessary for constructing the response are spawned. Therefore, the query `segment[0].cost` would only spawn calculations required to calculate the cost of wall segment 0 while the query `total_cost` envokes cost calculations for all segments. To understand more about this behavior read the "Call graph" section below.
 
 By using different queries it is straight forward to set up reports for different audiences, each with a customized content, but based on the same model and the same input. Such different reports can service different stakeholders e.g. management, internal design engineers, clients or independant verification agencies.
 
 ### Components
-The source code for the components can be found in the `components` folder and are referenced from `model.yml`. To facilitate the description, let us divide the components into two categories: engineering components and management components. These categories are somewhat arbitrary and are actually not required in `hubit`.
+The source code for the wall model components can be found in the `components` folder and are referenced from `model.yml`. A time delay has been added in some of the components to simulate a heavy computational load or a latency in a web service. The time delay illustrates the asynchronous capabilities in `hubit`.
 
-In this example a time delay has been added in some of the components to simulate a heavier computational load or a latency in a web service.
-
-#### Engineering components
-These calculations encompass the physics part of the wall model.
+Some of the calculation components deals with the physics part of the wall model. These components include
 
 1. `thermal_conductivity.py`. Simple lookup of thermal condutivities based on the material name.
 2. `thermal_profile.py`. A calculation of the temperature for all wall layers in a segment as well 
 as the heat flux in the segment. We assume one-dimensional heat flow, and thus each segment can be treated independently.
 3. `heat_flow.py`. Calculates the heat flow through a segment.
-4. `heat_transfer_number.py`. Calculates the overall heat transfer number and wall energy classification. The wall  energy classification ranges from A to D where A indicates the most insulating wall (best) and D indicates the least insulating wall (worst).
+4. `heat_transfer_number.py`. Calculates the overall heat transfer number and wall energy classification. The wall energy classification ranges from A to D where A indicates the most insulating wall (best) and D indicates the least insulating wall (worst).
 
-Many (all) of the components could have been joined in a single component, but here they are kept as  separate components to increase modularity, assure that any query only spawns a minimum of calculations and to maximize the potential speed-up obtained by multi-processing.
+Many (all) of the components could have been joined in a single component, but here they are kept as  separate components to increase modularity, to assure that any query only spawns a minimum of calculations and to maximize the potential speed-up obtained by multi-processing.
 
-To support the cost calculations (see below) two extra engineering components are included
+The wall cost is calculated by the two components below
 
-5. `volume.py`. Calculates the volume of wall layers. 
-6. `weight.py`. Calculates the weight of wall layers.
+5. `segment_cost.py`. Calculates wall segment cost. In the code notice how segments with type 'window' are handled differently compared to other segments types.
+6. `total_cost.py`. Calculates wall total cost.
 
-#### Management components
+To support the cost calculations two extra engineering components are included
 
-7. `segment_cost.py`. Calculates wall segment cost. Notice how segments with type 'window' are handle differently.
-8. `total_cost.py`. Calculates wall total cost.
-
+7. `volume.py`. Calculates the volume of wall layers. 
+8. `weight.py`. Calculates the weight of wall layers.
 
 #### Call graph & multi-processing
 
-`hubit` is event driven and components are spawned dynamically. The bindings that are used to setup the relations between components are defined in `model.yml`
+`hubit` is event-driven and components are spawned dynamically. The bindings that are used to set up the relations between components are defined in `model.yml`
 
-To illustrate the cascading spawning of calculations let us consider a query to the wall `total_cost`. In the model file the total cost is _provided_ by `total_cost.py`. 
+To illustrate the cascade of events that spawn the necessary calculations let us consider a query for the wall `total_cost`. In the model file the total cost is _provided_ by `total_cost.py`. 
 
-```
+```yml
   path: ./components/total_cost.py
   func_name: total_wall_cost
   provides:
@@ -110,9 +106,9 @@ To illustrate the cascading spawning of calculations let us consider a query to 
         path: segments[:@IDX_SEG].cost
 ```
 
-Furher, the model file reveals that the `total_cost.py` _consumes_ the costs for all segments (`segments[:@IDX_SEG].cost`) which are, in turn, provided by `segment_cost.py` as seen from the component definition below, which is also taken from `model.yml`. 
+Furher, the model file reveals that the `total_cost.py` _consumes_ the costs for all segments (`segments[:@IDX_SEG].cost`). The segment costs are, in turn, provided by `segment_cost.py` as seen from the component definition below, which is also taken from `model.yml`. 
 
-```
+```yml
   path: ./components/segment_cost.py
   func_name: cost
   provides:
@@ -129,9 +125,9 @@ Furher, the model file reveals that the `total_cost.py` _consumes_ the costs for
         path: segments[IDX_SEG].layers[:@IDX_LAY].weight
 ```
 
-Since the segment costs are not in the results data to begin with `hubit` spawns the `segment_cost.py` calculation. To calculate the segment cost, the material (`segments[IDX_SEG].layers[:@IDX_LAY].material`) and the weight (`segments[IDX_SEG].layers[:@IDX_LAY].weight`) must be known for each layer in the segment. The weights are calculated in `weight.py` and the material is used to look up a price. The weight _consumes_ the layer volume calculated in `volume.py`. So the original query triggers a cascade of queries and spawns calculations. These calculations are put on hold until the necessary data is avalable. When the data required for a calculation becomes available it will triggers the calculation which, when complete, will  provide data that may trigger other calculations that are pending.
+Since the segment costs are not in the results data to begin with `hubit` spawns the `segment_cost.py` calculation. To calculate the segment cost, the material and segment weight must be known for each layer in the segment since these attributes are specified in the `consumes` section. The segment cost component expects the layer materials and weights to be available at `segments[IDX_SEG].layers[:@IDX_LAY].material` and `segments[IDX_SEG].layers[:@IDX_LAY].weight`,  respectively. 
 
-From the bindings defined in the model `hubit` figures out that the cost calculation in each wall segment is independent and therefore the segment cost calculations that are required for the total cost can be executed asyncronously in separate processes. The same goes for the layer weight calculations  and material price lookups.
+The weights are calculated in `weight.py` and the material (part of the input) is used to look up a price in `segment_cost.py`. Inspecting `model.yml` shows that the weight compoent _consumes_ the layer volume calculated in `volume.py`. So the original query triggers a cascade of new auxiliary queries that each may spawn new calculations. The calculations are put on hold until the all required data is available. Once this data becomes available the calculation starts and may, after completion, provide data that trigger other pending calculations. Since the cost and heat transfer calculatios for each wall segment are independent the event-driven architecture allows `hubit` to execute these calculations for each wall segment in parallel if the multi-processing flag is set to `True`.
 
 As we have previously seen, the response to the `'heat_transfer_number'` query is
 
@@ -139,7 +135,7 @@ As we have previously seen, the response to the `'heat_transfer_number'` query i
 {'heat_transfer_number': 0.8888377547279751}
 ```
 
-All the results can also be accessed using `hmodel.get_results()` which yields
+All the results that were used to process the query can be accessed using `hmodel.get_results()`
 
 ```python
 {'energy_class': 'C',
@@ -170,7 +166,6 @@ All the results can also be accessed using `hmodel.get_results()` which yields
                              2: {'k_therm': 1.1, 'outer_temperature': 273.0}}}}}
 ```
 
-The results object contains all the numbers that were calculated to create the response.
 
 ## Example calculations
 The purpose of the examples are summarized below. To run an example run the script from the project root for example `python3 -m examples.wall.run_queries`. In some of the examples you can toggle the multi-processing flag to see the preformance difference with and without multi-processing. The performace change obtained by activating multi-processing depends on the time spent in the components. You can try to adjust the sleep time in `thermal_conductivity.py` and `thermal_profile.py`.

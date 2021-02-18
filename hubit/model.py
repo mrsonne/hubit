@@ -380,11 +380,11 @@ class HubitModel:
             with dot.subgraph(name='cluster_request',
                               node_attr={'shape': 'box'}) as subgraph:
                 subgraph.attr(rank='same', 
-                            label='User request',
-                            fontcolor=request_dark_color,
-                            style="filled",
-                            fillcolor=request_light_color,
-                            color=request_light_color)
+                              label='User request',
+                              fontcolor=request_dark_color,
+                              style="filled",
+                              fillcolor=request_light_color,
+                              color=request_light_color)
 
 
 
@@ -514,6 +514,7 @@ class HubitModel:
             with dot.subgraph(name='cluster_results',
                               node_attr={'shape': 'box'}) as subgraph:
                 subgraph.attr(label='Results data',
+                              labelloc="b",
                               color=results_light_color,
                               fillcolor=results_light_color,
                               fontcolor=results_dark_color,
@@ -574,7 +575,7 @@ class HubitModel:
         ids = []
         skipped = []
         names_for_nodeids = {}
-        for _, path in cdata.items():
+        for name, path in cdata.items():
             pathcmps_old = convert_to_internal_path( path ).split(".")
             pathcmps = remove_braces_from_path(path).split(".")
             # Collect data for connecting to nearest objects 
@@ -582,10 +583,16 @@ class HubitModel:
             if len(pathcmps) > 1:
                 _id = f'{prefix}_{pathcmps[-2]}'
                 t = _id, cname
+                attr_name = pathcmps[-1]
+                if direction == 1:
+                    attr_map = f'{attr_name} ➔ {name}'
+                else:
+                    # if we are on the results end start with internal components name and map to data model name
+                    attr_map = f'{name} ➔ {attr_name}'
                 try:
-                    names_for_nodeids[t].append(pathcmps[-1])
+                    names_for_nodeids[t].append( attr_map)
                 except KeyError:
-                    names_for_nodeids[t] = [pathcmps[-1]]
+                    names_for_nodeids[t] = [ attr_map ]
             else:
                 skipped.append( pathcmps[0] )
                 # t = obj_in_cluster, cname
@@ -634,8 +641,6 @@ class HubitModel:
                              fontname=fontname,
                              peripheries=peripheries_next)
                     t = _id, _id_next
-                    # t = _id_next, _id
-                    # _direction = 1
                     dot.edge(*t[::direction],
                              arrowsize=str(float(arrowsize)*1.5),
                              color=color,

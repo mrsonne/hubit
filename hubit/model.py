@@ -555,6 +555,29 @@ class HubitModel:
 
         return dot, filename
 
+    @staticmethod
+    def _add_object_for_index(idx, dot, prefix, pathcmps, pathcmps_old, idxids,
+                              color, fontsize, fontname):
+        pcmp = pathcmps[idx]
+        # check the next component in the original pathstr (doesnt work for repeated keys)
+        pcmp_old = pathcmps_old[pathcmps_old.index(pcmp) + 1]
+        if IDX_WILDCARD in pcmp_old  or pcmp_old in idxids:
+            peripheries = '2' # use multiple outlines to indicate lists 
+        else:
+            peripheries = '1'
+        _id = f'{prefix}_{pcmp}'
+
+        dot.node(_id,
+                    pcmp,
+                    shape='parallelogram',
+                    color=color,
+                    fillcolor=color,
+                    style='filled',
+                    fontsize=fontsize,
+                    fontname=fontname,
+                    peripheries=peripheries
+                    )
+        return _id
 
     def _render_objects(self,
                         cname,
@@ -574,6 +597,8 @@ class HubitModel:
         The constraint attribute, which lets you add edges which are 
         visible but don't affect layout.
         https://stackoverflow.com/questions/2476575/how-to-control-node-placement-in-graphviz-i-e-avoid-edge-crossings
+
+        # TODO: this function needs cleaning
         """
         ids = []
         skipped = []
@@ -604,46 +629,22 @@ class HubitModel:
             nobjs = len(pathcmps) - 1
             if nobjs > 0 and render_objects:
 
-                # Connect objects
+                # Add and connect objects
                 for idx in range(nobjs - 1): # dont include last object since we use "next"
-                    pcmp = pathcmps[idx]
-                    pcmp_next = pathcmps[idx + 1]
 
-                    # check the next component in the original pathstr (doesnt work for repeated keys)
-                    pcmp_old = pathcmps_old[pathcmps_old.index(pcmp) + 1]
-                    if IDX_WILDCARD in pcmp_old  or pcmp_old in idxids:
-                        peripheries = '2' # use multiple outlines to indicate lists 
-                    else:
-                        peripheries = '1'
+                    # Add node for objetc at idx and get back the id
+                    _id = HubitModel._add_object_for_index(idx, dot, prefix, pathcmps, 
+                                                           pathcmps_old, idxids,
+                                                           color, fontsize, fontname)
 
-                    pcmp_old = pathcmps_old[pathcmps_old.index(pcmp_next) + 1]
-                    if IDX_WILDCARD in pcmp_old or pcmp_old in idxids:
-                        peripheries_next = '2'
-                    else:
-                        peripheries_next = '1'
+                    # Add node for objetc at idx + 1 and get back the id
+                    _id_next = HubitModel._add_object_for_index(idx + 1, dot, prefix, pathcmps, 
+                                                                pathcmps_old, idxids,
+                                                                color, fontsize, fontname)
 
-                    _id = f'{prefix}_{pcmp}'
-                    _id_next = f'{prefix}_{pcmp_next}'
                     ids.extend([_id, _id_next])
-                    dot.node(_id,
-                             pcmp,
-                             shape='parallelogram',
-                             color=color,
-                             fillcolor=color,
-                             style='filled',
-                             fontsize=fontsize,
-                             fontname=fontname,
-                             peripheries=peripheries
-                             )
-                    dot.node(_id_next,
-                             pcmp_next,
-                             shape='parallelogram',
-                             color=color,
-                             fillcolor=color,
-                             style='filled',
-                             fontsize=fontsize,
-                             fontname=fontname,
-                             peripheries=peripheries_next)
+
+                    # Connect current object with next
                     t = _id, _id_next
                     dot.edge(*t[::direction],
                              arrowsize=str(float(arrowsize)*1.5),

@@ -15,6 +15,7 @@ from threading import Thread, Event
 from .worker import _Worker
 from .shared import (IDX_WILDCARD,
                      LengthTree,
+                     clean_idxids_from_path,
                      convert_to_internal_path,
                      idxs_for_matches,
                      flatten,
@@ -513,12 +514,14 @@ class HubitModel:
 
             with dot.subgraph(name='cluster_results',
                               node_attr={'shape': 'box'}) as subgraph:
+
                 subgraph.attr(label='Results data',
-                              labelloc="b",
+                              labelloc="b", # place at the bottom
                               color=results_light_color,
                               fillcolor=results_light_color,
                               fontcolor=results_dark_color,
                               style="filled")
+
                 self._render_objects(w.name,
                                      w.mpath_for_name("provides"),
                                      "cluster_results",
@@ -576,6 +579,7 @@ class HubitModel:
         skipped = []
         names_for_nodeids = {}
         for name, path in cdata.items():
+            idxids = clean_idxids_from_path( path )
             pathcmps_old = convert_to_internal_path( path ).split(".")
             pathcmps = remove_braces_from_path(path).split(".")
             # Collect data for connecting to nearest objects 
@@ -607,13 +611,13 @@ class HubitModel:
 
                     # check the next component in the original pathstr (doesnt work for repeated keys)
                     pcmp_old = pathcmps_old[pathcmps_old.index(pcmp) + 1]
-                    if pcmp_old == IDX_WILDCARD or pcmp_old == self.ilocstr:
-                        peripheries = '2'
+                    if IDX_WILDCARD in pcmp_old  or pcmp_old in idxids:
+                        peripheries = '2' # use multiple outlines to indicate lists 
                     else:
                         peripheries = '1'
 
                     pcmp_old = pathcmps_old[pathcmps_old.index(pcmp_next) + 1]
-                    if pcmp_old == IDX_WILDCARD or pcmp_old == self.ilocstr:
+                    if IDX_WILDCARD in pcmp_old or pcmp_old in idxids:
                         peripheries_next = '2'
                     else:
                         peripheries_next = '1'

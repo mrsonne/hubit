@@ -173,11 +173,11 @@ The purpose of the examples are summarized below. To run an example using the `h
 ### `run_render.py` 
 To get a graphical overview of a `hubit` model the model can be rendered **if Graphviz is installed**. The rendition of the wall model is shown below  
 
-![](https://github.com/mrsonne/hubit/blob/develop/examples/wall/images/model_wall.png "Wall model")
+<img src="https://github.com/mrsonne/hubit/blob/develop/examples/wall/images/model_wall.png" width="600">
 
 `hubit` can also render a query as illustrated below 
 
-![](https://github.com/mrsonne/hubit/blob/develop/examples/wall/images/query_wall.png "Wall query")
+<img src="https://github.com/mrsonne/hubit/blob/develop/examples/wall/images/query_wall.png" width="350">
 
 Notice how the graph representing the query only includes a subset of all the model components. When a query is rendered only the relevant components for that particular query are shown. In the illustrations above we have shown
 

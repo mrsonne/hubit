@@ -328,13 +328,22 @@ class HubitModel:
             raise err
 
         # Some settings
-        calc_color = "gold2"
+        calc_color = '#F7DC6F'
+        calc_dark_color = '#D4AC0D'
+        calc_light_color = '#FCF3CF'
+        input_color = '#EC7063'
+        input_dark_color = '#CB4335'
+        input_light_color = '#FADBD8' 
+        results_color = "#52BE80"
+        results_light_color = "#D4EFDF"
+        results_dark_color = "#1E8449"
+        request_color = '#5499C7'
+        request_dark_color = '#1F618D'
+        request_light_color = '#D4E6F1' 
         calc_shape = 'ellipse'
         calc_style = "filled"
         arrowsize = ".5"
-        input_color = "lightpink3"
-        results_color = "aquamarine3"
-        io_shape = 'box'
+        request_shape = 'box'
         renderformat = "png"
         fontname = "monospace"
         fontsize_small = '9'
@@ -368,28 +377,25 @@ class HubitModel:
             # Run validation since this returns (dummy) workers
             workers = self._validate_query(queries, mpworkers=False)
 
-            with dot.subgraph(name='user',
+            with dot.subgraph(name='cluster_request',
                               node_attr={'shape': 'box'}) as subgraph:
-                subgraph.attr(label='User', color='black', style="dashed", rank='same')
+                subgraph.attr(rank='same', 
+                            label='User request',
+                            fontcolor=request_dark_color,
+                            style="filled",
+                            fillcolor=request_light_color,
+                            color=request_light_color)
 
 
-                # Make a node for the response
-                subgraph.node(name="_Response",
-                              label="Response",
-                              shape=io_shape,
-                              color=results_color,
-                              fontsize=fontsize_small,
-                              fontname=fontname,
-                              fontcolor=results_color)
 
                 # Make a node for the query
                 subgraph.node(name='_Query', 
                               label='\n'.join(queries),
-                              shape=io_shape,
-                              color=input_color,
+                              shape=request_shape,
+                              color="none",
                               fontsize=fontsize_small,
                               fontname=fontname,
-                              fontcolor=input_color)
+                              )
         else:
             # Render a model
 
@@ -426,8 +432,15 @@ class HubitModel:
             filename = '{}_{}'.format(filename, file_idstr)
 
         # Component (calculation) nodes from workers
-        with dot.subgraph() as subgraph:
-            subgraph.attr(rank='same')
+        with dot.subgraph(name='cluster_calcs',
+                          node_attr={'shape': 'box'}) as subgraph:
+            subgraph.attr(rank='same', 
+                          label='Calculations',
+                          fontcolor=calc_dark_color,
+                          style="filled",
+                          fillcolor=calc_light_color,
+                          color=calc_light_color)
+
             for w in workers:
                 subgraph.node(name=w.name, # Name identifier of the node
                               label=w.name + '\nv {}'.format(w.version),
@@ -435,6 +448,7 @@ class HubitModel:
                               shape=calc_shape,
                               style=calc_style,
                               fillcolor=calc_color,
+                              color=calc_color,
                               fontsize=fontsize_small)
 
 
@@ -452,27 +466,39 @@ class HubitModel:
             dot.edge('_Query',
                      results_object_ids[0], # some node in subgraph
                      lhead=prefix_results, # anchor head at subgraph edge
+                     ltail='cluster_request', # anchor head at subgraph edge
                      label='query',
                      fontsize=fontsize_small,
-                     fontcolor=input_color,
+                     fontcolor=request_color,
                      fontname=fontname,
                      constraint="false",
                      arrowsize=arrowsize,
-                     color=input_color,
-                     arrowhead="box")
+                     color=request_color,
+                     )
 
-            # Draw edge from the results to the response
-            dot.edge(results_object_ids[0],
-                     '_Response',
-                     ltail=prefix_results, 
+            dot.edge(results_object_ids[0], # some node in subgraph
+                     '_Query',
+                     ltail=prefix_results, # anchor head at subgraph edge
+                     lhead='cluster_request', # anchor head at subgraph edge
+                     label='response',
+                     fontsize=fontsize_small,
+                     fontcolor=request_color,
+                     fontname=fontname,
+                     constraint="false",
                      arrowsize=arrowsize,
-                     color=results_color)
+                     color=request_color,
+                     )
+
 
 
         for w in workers:
             with dot.subgraph(name='cluster_input',
                               node_attr={'shape': 'box'}) as subgraph:
-                subgraph.attr(label='Input data', color=input_color, style="dashed")
+                subgraph.attr(label='Input data', 
+                              color=input_light_color,
+                              fillcolor=input_light_color,
+                              fontcolor=input_dark_color,
+                              style="filled")
                 self._render_objects(w.name,
                                      w.mpath_for_name("input"),
                                      "cluster_input",
@@ -487,7 +513,11 @@ class HubitModel:
 
             with dot.subgraph(name='cluster_results',
                               node_attr={'shape': 'box'}) as subgraph:
-                subgraph.attr(label='Results data', color=results_color, style="dashed")
+                subgraph.attr(label='Results data',
+                              color=results_light_color,
+                              fillcolor=results_light_color,
+                              fontcolor=results_dark_color,
+                              style="filled")
                 self._render_objects(w.name,
                                      w.mpath_for_name("provides"),
                                      "cluster_results",
@@ -587,28 +617,32 @@ class HubitModel:
                     dot.node(_id,
                              pcmp,
                              shape='parallelogram',
-                             fillcolor=color,
                              color=color,
+                             fillcolor=color,
+                             style='filled',
                              fontsize=fontsize,
-                             fontcolor=color,
                              fontname=fontname,
-                             peripheries=peripheries)
+                             peripheries=peripheries
+                             )
                     dot.node(_id_next,
                              pcmp_next,
                              shape='parallelogram',
-                             fillcolor=color,
                              color=color,
+                             fillcolor=color,
+                             style='filled',
                              fontsize=fontsize,
-                             fontcolor=color,
                              fontname=fontname,
                              peripheries=peripheries_next)
                     t = _id, _id_next
+                    # t = _id_next, _id
                     # _direction = 1
                     dot.edge(*t[::direction],
                              arrowsize=str(float(arrowsize)*1.5),
                              color=color,
                              constraint=constraint,
-                             arrowhead="none")
+                            #  arrowhead="diamond",
+                             arrowhead="none",
+                             )
 
         HubitModel._edge_with_label(names_for_nodeids,
                                     color,

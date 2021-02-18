@@ -251,11 +251,16 @@ and the corresponding response is
 ```
 
 ## Rendering
-`hubit` can render models and queries. In the example below we have rendered the query `cars[0].price` i.e. the price of the car at index 0.
+If Graphviz is installed `hubit` can render models and queries. In the example below we have rendered the query `cars[0].price` i.e. the price of the car at index 0.
 
-![](https://github.com/mrsonne/hubit/blob/develop/examples/car/images/query_car_2.png "Car query")
+![](https://github.com/mrsonne/hubit/blob/develop/examples/car/images/query_car_2.png | width=300)
 
-The graph illustrates the input data structure, the results data structure, the calculation components involved in creating the response as well as hints at which attributes flow in and out of these components. 
+The graph illustrates the input data structure, the results data structure, the calculation components involved in creating the response as well as hints at which attributes flow in and out of these components. The graph was created using the command below
+
+```python
+queries = ['cars[0].price']
+hmodel.render(queries=queries)
+```
 
 The Examples section below lists more examples that illustrate more `hubit` functionality.
 

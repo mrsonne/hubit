@@ -559,12 +559,16 @@ class HubitModel:
     def _add_object_for_index(idx, dot, prefix, pathcmps, pathcmps_old, idxids,
                               color, fontsize, fontname):
         pcmp = pathcmps[idx]
+        peripheries = '1'
         # check the next component in the original pathstr (doesnt work for repeated keys)
-        pcmp_old = pathcmps_old[pathcmps_old.index(pcmp) + 1]
-        if IDX_WILDCARD in pcmp_old  or pcmp_old in idxids:
-            peripheries = '2' # use multiple outlines to indicate lists 
-        else:
-            peripheries = '1'
+        try:
+            # Check if the path component after the current indicates a list 
+            pcmp_old = pathcmps_old[ pathcmps_old.index(pcmp) + 1 ]
+            if IDX_WILDCARD in pcmp_old  or pcmp_old in idxids:
+                peripheries = '2' # use multiple outlines to indicate lists 
+        except IndexError:
+            pass
+
         _id = f'{prefix}_{pcmp}'
 
         dot.node(_id,
@@ -630,12 +634,15 @@ class HubitModel:
             if nobjs > 0 and render_objects:
 
                 # Add and connect objects
-                for idx in range(nobjs - 1): # dont include last object since we use "next"
+                for idx in range(nobjs): 
 
                     # Add node for objetc at idx and get back the id
                     _id = HubitModel._add_object_for_index(idx, dot, prefix, pathcmps, 
                                                            pathcmps_old, idxids,
                                                            color, fontsize, fontname)
+                    
+                    # exclude bottom-most level (attributes)
+                    if idx >= nobjs - 1: continue
 
                     # Add node for objetc at idx + 1 and get back the id
                     _id_next = HubitModel._add_object_for_index(idx + 1, dot, prefix, pathcmps, 

@@ -250,6 +250,13 @@ and the corresponding response is
                             [312.0, 1120.0, 178.0, 3400.0]],
 ```
 
+## Rendering
+`hubit` can render models and queries. In the example below we have rendered the query `cars[0].price` i.e. the price of the car at index 0.
+
+![](https://github.com/mrsonne/hubit/blob/develop/examples/car/images/query_car_2.png "Car query")
+
+The graph illustrates the input data structure, the results data structure, the calculation components involved in creating the response as well as hints at which attributes flow in and out of these components. 
+
 The Examples section below lists more examples that illustrate more `hubit` functionality.
 
 # Examples

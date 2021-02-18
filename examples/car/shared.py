@@ -4,9 +4,9 @@ from hubit.model import HubitModel
 
 THISPATH = os.path.dirname(os.path.realpath(__file__))
 
-def get_model(filename):
+def get_model(filename, model_id=''):
     hmodel = HubitModel.from_file(os.path.join(THISPATH, filename),
-                                name='car',
+                                name=f'car_{model_id}',
                                 output_path='./tmp')
 
     # Load the input

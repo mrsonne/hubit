@@ -351,7 +351,7 @@ class HubitModel:
 
         # strict=True assures that only one edge is drawn although many may be defined
         dot = Digraph(comment='hubit model', format=renderformat, strict=True)
-        dot.attr(compound='true')
+        dot.attr(compound='true', ratio='1.')
 
         # Get the date and user
         fstr = 'Hubit model: {}\nRendered at {} by {}'

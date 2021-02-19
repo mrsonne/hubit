@@ -558,30 +558,32 @@ class HubitModel:
     @staticmethod
     def _add_object_for_index(idx, dot, prefix, pathcmps, pathcmps_old, idxids,
                               color, fontsize, fontname):
-        pcmp = pathcmps[idx]
+        path_component = pathcmps[idx]
         peripheries = '1'
+        is_list = False
         # check the next component in the original pathstr (doesnt work for repeated keys)
         try:
             # Check if the path component after the current indicates a list 
-            pcmp_old = pathcmps_old[ pathcmps_old.index(pcmp) + 1 ]
-            if IDX_WILDCARD in pcmp_old  or pcmp_old in idxids:
-                peripheries = '2' # use multiple outlines to indicate lists 
+            pcmp_old = pathcmps_old[ pathcmps_old.index(path_component) + 1 ]
+            if IDX_WILDCARD in pcmp_old or pcmp_old in idxids:
+                peripheries = '1' # use multiple outlines to indicate lists 
+                is_list = True
         except IndexError:
             pass
 
-        _id = f'{prefix}_{pcmp}'
+        _id = f'{prefix}_{path_component}'
 
         dot.node(_id,
-                    pcmp,
-                    shape='parallelogram',
-                    color=color,
-                    fillcolor=color,
-                    style='filled',
-                    fontsize=fontsize,
-                    fontname=fontname,
-                    peripheries=peripheries
-                    )
-        return _id
+                 path_component + (' ☰' if is_list else ''),
+                 shape='parallelogram',
+                 color=color,
+                 fillcolor=color,
+                 style='filled',
+                 fontsize=fontsize,
+                 fontname=fontname,
+                 peripheries=peripheries
+                 )
+        return _id, is_list
 
     def _render_objects(self,
                         cname,
@@ -609,10 +611,12 @@ class HubitModel:
         names_for_nodeids = {}
         for name, path in cdata.items():
             idxids = clean_idxids_from_path( path )
+            # Path with braces and index specifiers
             pathcmps_old = convert_to_internal_path( path ).split(".")
             pathcmps = remove_braces_from_path(path).split(".")
             # Collect data for connecting to nearest objects 
             # and labeling the edge with the attributes consumed/provided
+
             if len(pathcmps) > 1:
                 _id = f'{prefix}_{pathcmps[-2]}'
                 t = _id, cname
@@ -637,28 +641,34 @@ class HubitModel:
                 for idx in range(nobjs): 
 
                     # Add node for objetc at idx and get back the id
-                    _id = HubitModel._add_object_for_index(idx, dot, prefix, pathcmps, 
-                                                           pathcmps_old, idxids,
-                                                           color, fontsize, fontname)
+                    _id, is_list = HubitModel._add_object_for_index(idx, dot, prefix, pathcmps, 
+                                                                    pathcmps_old, idxids,
+                                                                    color, fontsize, fontname)
                     
                     # exclude bottom-most level (attributes)
                     if idx >= nobjs - 1: continue
 
                     # Add node for objetc at idx + 1 and get back the id
-                    _id_next = HubitModel._add_object_for_index(idx + 1, dot, prefix, pathcmps, 
-                                                                pathcmps_old, idxids,
-                                                                color, fontsize, fontname)
+                    _id_next, is_list_next = HubitModel._add_object_for_index(idx + 1, 
+                                                    dot, prefix, pathcmps, 
+                                                    pathcmps_old, idxids,
+                                                    color, fontsize, fontname)
 
                     ids.extend([_id, _id_next])
 
                     # Connect current object with next
-                    t = _id, _id_next
-                    dot.edge(*t[::direction],
+                    t = _id, _id_next 
+                    dot.edge(
+                             _id, _id_next,
+                             taillabel="1 ",
+                             headlabel="* " if is_list_next else "1 ", # add space between label and edge
+                             fontsize=fontsize,
                              arrowsize=str(float(arrowsize)*1.5),
                              color=color,
                              constraint=constraint,
-                            #  arrowhead="diamond",
                              arrowhead="none",
+                             arrowtail="diamond",
+                             dir='both',
                              )
 
         HubitModel._edge_with_label(names_for_nodeids,

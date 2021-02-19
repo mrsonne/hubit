@@ -144,7 +144,7 @@ consumes:
 ### Index specifiers
 `hubit` infers indices based on the input data and the index specifiers for the binding paths in the `consumes.input` sections. Therefore, index identifiers used in binding paths in the `consumes.results` and `provides` sections should always be defined in binding paths in the `consumes.input` sections. 
 
-Note that only binding paths that are consumed can contain index specifiers with the prefix `:@`. Binding paths for provided attributes, on the other hand, should always represent a specific location i.e. can only contain pure index identifiers. For this reason the binding below are invalid
+Note that only binding paths that are consumed can contain index specifiers with the prefix `:@`. Binding paths for provided attributes, on the other hand, should always represent a specific location i.e. can only contain pure index identifiers. For this reason the binding below is invalid
 
 ```yml
 provides : 
@@ -156,7 +156,7 @@ consumes:
           path: cars[IDX_CAR].parts[:@IDX_PART].name
 ```
 
-Further, to provide a meaningful index mapping, the pure index identifiers in the binding paths in the `provides` section should also appear as pure index identifiers in the `consumes.input` section. For this reason the binding below are invalid
+Further, to provide a meaningful index mapping, the pure index identifiers in the binding paths in the `provides` section should also appear as pure index identifiers in the `consumes.input` section. For this reason the binding below is invalid
 
 ```yml
 provides : 

@@ -26,7 +26,7 @@ Side view of the wall (not to scale)
                         |    |   |     |
             Inside      v    v   v     v    Outside
                      ----------------------
-                     |      | |    |      | segment 1 (wall: brick-air-rockwool)
+                     |      | |    |      | segment 1 (wall: brick-air-rockwool-brick)
 temperature = 320 K  |      | |    |      | temperature = 273 K   
                      ----------------------        
                                       || ||      
@@ -34,7 +34,7 @@ temperature = 320 K  |      | |    |      | temperature = 273 K
 temperature = 300 K                   || || temperature = 273 K
                      ----------------------
                      |         | |        |      
-                     |         | |        | segment 3 (wall: concrete-concrete-EPS)
+                     |         | |        | segment 3 (wall: concrete-EPS-concrete)
 temperature = 300 K  |         | |        | temperature = 273 K
                      ----------------------
                         ^       ^     ^ 

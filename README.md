@@ -255,7 +255,7 @@ If Graphviz is installed `hubit` can render models and queries. In the example b
 
 <img src="https://github.com/mrsonne/hubit/blob/develop/examples/car/images/query_car_2.png" width="1000">
 
-The graph illustrates the input data structure, the results data structure, the calculation components involved in creating the response as well as hints at which attributes flow in and out of these components. The graph was created using the command below
+The graph illustrates the input data structure, the results data structure, the calculation components involved in creating the response as well as hints at which attributes flow in and out of these components. The graph was created using the command below. The triple bar icon ≡ indicates that the node is accessed by index and should therefore be a list.
 
 ```python
 queries = ['cars[0].price']

@@ -179,7 +179,7 @@ To get a graphical overview of a `hubit` model the model can be rendered **if Gr
 
 <img src="https://github.com/mrsonne/hubit/blob/develop/examples/wall/images/query_wall.png" width="1000">
 
-Notice how the graph representing the query only includes a subset of all the model components. When a query is rendered only the relevant components for that particular query are shown. In the illustrations above we have shown
+Notice how the graph representing the query only includes a subset of all the model components. When a query is rendered only the relevant components for that particular query are shown. 
 
 ### `run_queries.py`
 This example runs various queries. First the queries are submitted individually, which causes redundant calculations. Second, all the queries are submitted together in which case `hubit` will assure that the same result is not calculate multiple times.

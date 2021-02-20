@@ -43,7 +43,7 @@ temperature = 300 K  |         | |        | temperature = 273 K
                                EPS 
 ```
 
-The wall materials, dimensions and other input can be found in wall input file `input.yml`. Note that the number of wall layers in the two segments differ, which illustrates that `hubit`' can handle non-rectangular data models.
+The wall materials, dimensions and other input can be found in wall input file `input.yml`. Note that the number of wall layers in the two segments differ, which illustrates that `hubit` can handle non-rectangular data models.
 
 ## Model
 The wall model is defined in `model.yml` and define bindings between calculation components that provides certain results. The components are explained in greater detail later. With the model in place `hubit` allows users to query the results data structure. For example, to get the "total_cost" and "total_heat_loss" for the wall we would write

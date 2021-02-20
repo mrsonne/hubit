@@ -209,6 +209,31 @@ def car_price(_input_consumed, _results_consumed, results_provided):
     results_provided['car_price'] = sum( _results_consumed['prices'] )
 ```
 
+### Paths
+To tie together the binding and the python code you need to add the path of the python file to the model file `model.yml`. For the first car model it could look like this.
+
+```yml
+- path: ./components/price1.py 
+  func_name: price
+  provides : 
+    - name: car_price
+      path: cars[IDX_CAR].price
+  consumes:
+    input:
+      - name: part_names
+        path: cars[IDX_CAR].parts[:@IDX_PART].name
+      - name: part_counts
+        path: cars[IDX_CAR].parts[:@IDX_PART].count
+```
+
+The specified path should be relative to model's `base_path` which defaults to the location of the model file when the model is initialized using the `from_file` method. To specify a module in site packages replace the `path` attribute in the model file with a `module` attribute. This could look like this 
+
+```yml
+module: hubit_components.price1
+```
+
+where `hubit_components` is a package you have created that contains the module `price1`.
+
 ### Running
 After loading the model into `hubit` and the input data set you are ready to run calculations. To get results from a a model requires you to submit a _query_, which tells `hubit` what attributes from the results data structure you want to have calculated. After `hubit` has processed the query, i.e. executed relevant components, the values of the queried attributes are returned in the _response_. Below are two examples of queries and the corresponding responses.
 

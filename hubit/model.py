@@ -586,7 +586,7 @@ class HubitModel:
         return _id, is_list
 
     def _render_objects(self,
-                        cname,
+                        fun_name,
                         cdata,
                         clusterid,
                         prefix,
@@ -606,38 +606,49 @@ class HubitModel:
 
         # TODO: this function needs cleaning
         """
+
+        def get_attr_map(name, path, attr_name, direction, use_path=True):
+            if direction == 1:
+                attr_map = f'{path} ➔ {name}' if use_path else f'{attr_name} ➔ {name}'
+            else:
+                # if we are on the results end start with internal components name and map to data model name
+                attr_map = f'{name} ➔ {path}' if use_path else f'{name} ➔ {attr_name}'
+            return attr_map
+
+
         ids = []
         skipped = []
-        names_for_nodeids = {}
+        label_for_edgeid = {}
         for name, path in cdata.items():
             idxids = clean_idxids_from_path( path )
-            # Path with braces and index specifiers
+
+            # Path components with braces and index specifiers
             pathcmps_old = convert_to_internal_path( path ).split(".")
+
+            # Path components with node names only
             pathcmps = remove_braces_from_path(path).split(".")
+
             # Collect data for connecting to nearest objects 
             # and labeling the edge with the attributes consumed/provided
-
             if len(pathcmps) > 1:
-                _id = f'{prefix}_{pathcmps[-2]}'
-                t = _id, cname
-                attr_name = pathcmps[-1]
-                if direction == 1:
-                    attr_map = f'{attr_name} ➔ {name}'
-                else:
-                    # if we are on the results end start with internal components name and map to data model name
-                    attr_map = f'{name} ➔ {attr_name}'
+                should_skip = False
+                data_node_id = f'{prefix}_{pathcmps[-2]}'
+                data_to_fun_edge_id = data_node_id, fun_name
+                attr_map = get_attr_map(name, path, pathcmps[-1], direction)
+ 
                 try:
-                    names_for_nodeids[t].append( attr_map)
+                    label_for_edgeid[data_to_fun_edge_id].append( attr_map)
                 except KeyError:
-                    names_for_nodeids[t] = [ attr_map ]
+                    label_for_edgeid[data_to_fun_edge_id] = [ attr_map ]
             else:
+                # If not nested save it and skip
+                should_skip = True
                 skipped.append( pathcmps[0] )
-                # t = obj_in_cluster, cname
 
-            nobjs = len(pathcmps) - 1
-            if nobjs > 0 and render_objects:
+            if not should_skip and render_objects:
 
                 # Add and connect objects
+                nobjs = len(pathcmps) - 1
                 for idx in range(nobjs): 
 
                     # Add node for objetc at idx and get back the id
@@ -657,7 +668,6 @@ class HubitModel:
                     ids.extend([_id, _id_next])
 
                     # Connect current object with next
-                    t = _id, _id_next 
                     dot.edge(
                              _id, _id_next,
                              taillabel="1 ",
@@ -671,13 +681,15 @@ class HubitModel:
                              dir='both',
                              )
 
-        HubitModel._edge_with_label(names_for_nodeids,
+        # Connect data objects with calculations with consumes attributes on edges
+        HubitModel._edge_with_label(label_for_edgeid,
                                     color,
                                     constraint,
                                     direction,
                                     arrowsize,
                                     dot)
 
+        # Render nodes that were skipped since they are not connected to other data nodes
         if len(skipped) > 0:
             if direction == 1:
                 clusterid_tail = clusterid
@@ -686,8 +698,8 @@ class HubitModel:
                 clusterid_tail = None
                 clusterid_head = clusterid
 
-            names_for_nodeids = {(cluster_node_id, cname): skipped}
-            HubitModel._edge_with_label(names_for_nodeids,
+            label_for_edgeid = {(cluster_node_id, fun_name): skipped}
+            HubitModel._edge_with_label(label_for_edgeid,
                                         color, constraint,
                                         direction, arrowsize,
                                         dot, ltail=clusterid_tail,

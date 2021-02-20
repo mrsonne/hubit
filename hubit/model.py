@@ -1154,7 +1154,9 @@ class _QueryRunner:
             tuple: function handle, function version, and component dict
         """
         if 'path' in cfgdata and 'module' in cfgdata:
-            raise HubitModelComponentError(f'Please specify either "module" or "path" for component with func_name "{func_name}""')
+            raise HubitModelComponentError(f'Please specify either "module" '
+                                           f'or "path" for component with ' 
+                                           f'func_name "{func_name}"')
 
 
         if 'path' in cfgdata:
@@ -1181,7 +1183,9 @@ class _QueryRunner:
                 func, version = components[component_id]
                 return func, version, components
         else:
-            raise HubitModelComponentError(f'Please specify either "module" or "path" for component with func_name "{func_name}""')
+            raise HubitModelComponentError(f'Please specify either "module" '
+                                           f'or "path" for component with '
+                                           f'func_name "{func_name}"')
 
         func = getattr(module, func_name)
         try:

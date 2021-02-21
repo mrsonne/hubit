@@ -1,4 +1,4 @@
-- path: ./components/part_price.py 
+- path: ./components/mod2_cmp1.py 
   func_name: part_price
   consumes:
     input:
@@ -10,7 +10,7 @@
     - name: part_price
       path: cars[IDX_CAR].parts[IDX_PART].price
 
-- path: ./components/car_price.py 
+- path: ./components/mod2_cmp2.py 
   func_name: car_price
   consumes:
     results:

@@ -2,12 +2,12 @@
 
 `hubit` is an event-driven orchestration hub for your existing calculation tools. It allows you to 
 
-- execute calculation tools as one composite model with a loose coupling,
+- execute calculation tools as one composite model with a loose coupling between the model components,
 - query the model for specific results thus avoiding explicitly coding (fixed) call graphs and running superfluous calculations,
 - make parameter sweeps,
 - feed old results into new calculations thus augmenting old results objects,
 - easily run your existing tools in asynchronously in multiple processes,
-- visualize the composite model i.e. your existing tools and the attributes that flow between them.
+- visualize the composite model i.e. visualize your existing tools and the attributes that flow between them.
 
 Compatible with __Python 3.7__.
 
@@ -177,7 +177,15 @@ consumes:
 Since the component consumes all indices of the parts list, storing the price data at a specific part index is not possible.
 
 ### Model refactoring
-If the prices for all the car parts are also of interest we can refactor the model to have two components; one component that looks up the price and stores it in the results data and another component that sums the prices. The relevant part of the model file could look like this
+
+The flexibility in the `hubit` bindings allows you to fit the interfaces of your existing tools. Further, this flexibility allows you to refactor your components to get a more modular model and allow to optimize for speed when multiprocessing is used. Below we will show three different versions of the car model and outline some key differences in when multiprocessing is used.
+
+#### Model 1
+Model 1 is the one described above where the car price is calculated in a single component i.e. in a single process. Such an approch works well if the lookup of parts prices is fast and the car calculation is also fast calculation. If, however, we imagine a scenario where the lookup is fast while the car price calculation is slow and further imagine that another component is consuming the parts prices then the car price calculation would be a bottleneck. In such cases splitting up the lookup and price calculation would probably boost performance.
+
+#### Model 2
+Here we will split up the parts price lookup and the car price calculation into two separate components.
+Further, we want the lookup component to get the price for one part only and store it in the results data. In other words, we want each lookup to occur in a separate process. When all the lookup processes are done another component will sum the part prices to get the total car price. The relevant part of the model file could look like this
 
 ```yml
 - consumes:
@@ -215,7 +223,12 @@ def car_price(_input_consumed, _results_consumed, results_provided):
     results_provided['car_price'] = sum( _results_consumed['prices'] )
 ```
 
-In this refactored model `hubit` will, when sumitting a query for the car prices using the multi-processor flag, execute each `part_price` calculation in a multiple asynchronous process. If the `part_price` calculation were lengthy e.g. due to latancy and other compoents subscibe to the individual part prices, asynchronous execution could be advantageous for the overall execution time. If, however, the `part_price` calculation is fast the overhead introduced by multi-processing may render synchronous single-processor execution faster.
+In this refactored model `hubit` will, when submitting a query for the car prices using the multi-processor flag, execute each `part_price` calculation in a asynchronous process. If the `part_price` lookup is fast, the overhead introduced by multi-processing performing all the lookups in a single componet, but still keeping the lookup separate from the price calculation, could be a good solution. 
+
+#### Model 3
+In this version of the model we want all lookups to take place in a single process and the car price calculation to take place in another component. 
+
+XXXXXXX
 
 ### Paths
 To tie together the bindings with the the Python code that does the actual work you need to add the path of the Python source code file to the model file. For the first car model it could look like this.

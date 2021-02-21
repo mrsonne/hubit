@@ -14,7 +14,7 @@ Compatible with __Python 3.7__.
 ## Motivation
 Many work places have developed a rich ecosystem of stand-alone tools. These tools may be developed/maintained by different teams using different programming languages and using different input/output data models. Nevertheless, the tools often depend on results provided the other tools leading to complicated and error-prone (manual) workflows.
 
-By defining input and results data structures that are shared between your tools `hubit` allows all your Python-wrappable tools to be seamlessly executed asynchronously as a single model. Asynchronous multi-processor execution often assures a better utilization of the available CPU resources compared to sequential execution single-processor. This is especially true when some time is spent in each component. In practice this performance improvement often compensates the management overhead introduced by `hubit`.
+By defining input and results data structures that are shared between your tools `hubit` allows all your Python-wrappable tools to be seamlessly executed asynchronously as a single model. Asynchronous multi-processor execution often assures a better utilization of the available CPU resources compared to sequential single-processor execution. This is especially true when some time is spent in each component. In practice this performance improvement often compensates the management overhead introduced by `hubit`.
 Executing a fixed call graph is faster than executing the same call graph dynamically created by `hubit`. Nevertheless, a fixed call graph will typically encompass all relevant calculations and provide all results, which in many cases will represent wasteful compute since only a subset of the results are actually needed. `hubit` dynamically creates the smallest possible call graph that can provide the results that satisfy the user's query.  
 
 ## Getting started
@@ -46,7 +46,7 @@ To use `hubit` your existing tools each need to be wrapped as a `hubit` _compone
 - _consumes_ from the shared results data structure, and 
 - _provides_ to the shared results data structure. 
 
-From the bindings `hubit` checks that all required input data and results data is available before a component is executed. The bindings are defined in a `hubit` _model file_. 
+From the bindings `hubit` checks that all required input data and results data is available before a component is executed. The bindings are defined in a _model file_. 
 
 ### Component wrapper
 As an example imagine that we are calculating the price of a car. Below you can see some pseudo code for the calulation for the car price calculation. The example is available in `examples\car\` 
@@ -67,7 +67,7 @@ def price(_input_consumed, _results_consumed, results_provided):
     results_provided['car_price'] = result
 ```
 
-The main function in a component (`price` in the example above) should expect the arguments `_input_consumed`, `_results_consumed` and `results_provided` in that order. Results data calculated in the components should only be added to the latter. The values corresponding to the keys `part_counts` and `part_names` in `_input_consumed` are controlled by the bindings in the model file. 
+The main function in a component (`price` in the example above) should expect the arguments `_input_consumed`, `_results_consumed` and `results_provided` in that order. Results data calculated in the components should only be added to the latter. The values stored in the keys `part_counts` and `part_names` in `_input_consumed` are controlled by the bindings in the model file. 
 
 ### Model file & bindings
 Before we look at the bindings let us look at the input data. The input can, like in the example below, be defined in a yml file. In the car example the input data is a list containing two cars each with a number of parts
@@ -96,7 +96,7 @@ cars:
           name: engine14
 ```
 
-The `price` function above expects a list of part names stored in the attribute `part_names` and a list of the corresponding part counts stored in the attribute `part_counts`. To achieve this behavior the model file should contain the lines below.
+The `price` function above expects a list of part names be stored in the key `part_names` and a list of the corresponding part counts be stored in the key `part_counts`. To achieve this behavior the model file should contain the lines below.
 
 ```yml
 consumes:
@@ -107,7 +107,7 @@ consumes:
           path: cars[IDX_CAR].parts[:@IDX_PART].count
 ```
 
-The strings in square braces are called _index specifiers_. The index specifier `:@IDX_PART` refers to all items for the _index identifier_ `IDX_PARTS`'. In this case the specifier contains a slice and an index identifier. The index identifier can be any string that does not include the characters `:` or `@`. The index specifier `IDX_CAR` is actually an index identifier (no `:@` prefix) and refers to a specific car. 
+The strings in square braces are called _index specifiers_. The index specifier `:@IDX_PART` refers to all items for the _index identifier_ `IDX_PARTS`. In this case the specifier contains a slice and an index identifier. The index identifier can be any string that does not include the characters `:` or `@`. The index specifier `IDX_CAR` is actually an index identifier (no `:@` prefix) and refers to a specific car. 
 
 With the input data and bindings shown above, the content of `_input_consumed` in the `price` function for the car at index 1 will be 
 
@@ -115,7 +115,9 @@ With the input data and bindings shown above, the content of `_input_consumed` i
     {'part_counts': [4, 1, 2, 1], 'part_names':  ['wheel2', 'chassis2', 'bumper', 'engine14']}
 ```
 
-i.e. the components will have all counts and part names for a single car. Inside the component the data in `_input_consumed` (and possibly data in `_results_consumed`) should suffice to calculate the car price. In the last line of the `price` function, the car price is added to the results
+i.e. the components will have all counts and part names for a single car. The binding should be set up so that the data in `_input_consumed` (and possibly data in `_results_consumed`) suffice to calculate the car price. 
+
+In the last line of the `price` function, the car price is added to the results
 
 ```python
     results_provided['car_price'] = result
@@ -129,7 +131,9 @@ provides:
       path: cars[IDX_CAR].price # path in the shared data model
 ```
 
-The value in the binding name should match the key used in the component when setting the value on `results_provided`. It is the index specifier `IDX_CAR` in the binding path that tells `hubit` to store the car price at the same car index as where the input was taken from. Note that the component itself is unaware of which car (car index) the input represents. Collecting the bindings we get
+The value in the binding name should match the key used in the component when setting the value on `results_provided`. It is the index specifier `IDX_CAR` in the binding path that tells `hubit` to store the car price at the same car index as where the input was taken from. Note that the component itself is unaware of which car (car index) the input represents. 
+
+Collecting the bindings we get
 
 ```yml
 provides : 
@@ -139,10 +143,12 @@ consumes:
     input:
         - name: part_name
           path: cars[IDX_CAR].parts[:@IDX_PART].name
+        - name: part_counts
+          path: cars[IDX_CAR].parts[:@IDX_PART].count
 ```
 
 ### Index specifiers
-`hubit` infers indices based on the input data and the index specifiers for the binding paths in the `consumes.input` sections. Therefore, index identifiers used in binding paths in the `consumes.results` and `provides` sections should always be defined in binding paths in the `consumes.input` sections. 
+`hubit` infers indices based on the input data and the index specifiers for the binding paths in the `consumes.input` section. Therefore, index identifiers used in binding paths in the `consumes.results` and `provides` sections should always be defined in binding paths in the `consumes.input` sections. 
 
 Note that only binding paths that are consumed can contain index specifiers with the prefix `:@`. Binding paths for provided attributes, on the other hand, should always represent a specific location i.e. can only contain pure index identifiers. For this reason the binding below is invalid
 
@@ -209,8 +215,10 @@ def car_price(_input_consumed, _results_consumed, results_provided):
     results_provided['car_price'] = sum( _results_consumed['prices'] )
 ```
 
+In this refactored model `hubit` will, when sumitting a query for the car prices using the multi-processor flag, execute each `part_price` calculation in a multiple asynchronous process. If the `part_price` calculation were lengthy e.g. due to latancy and other compoents subscibe to the individual part prices, asynchronous execution could be advantageous for the overall execution time. If, however, the `part_price` calculation is fast the overhead introduced by multi-processing may render synchronous single-processor execution faster.
+
 ### Paths
-To tie together the binding and the python code you need to add the path of the python file to the model file `model.yml`. For the first car model it could look like this.
+To tie together the bindings with the the Python code that does the actual work you need to add the path of the Python source code file to the model file. For the first car model it could look like this.
 
 ```yml
 - path: ./components/price1.py 
@@ -226,7 +234,7 @@ To tie together the binding and the python code you need to add the path of the 
         path: cars[IDX_CAR].parts[:@IDX_PART].count
 ```
 
-The specified path should be relative to model's `base_path` which defaults to the location of the model file when the model is initialized using the `from_file` method. To specify a module in site packages replace the `path` attribute in the model file with a `module` attribute. This could look like this 
+The specified path should be relative to model's `base_path`, which defaults to the location of the model file when the model is initialized using the `from_file` method. To specify a module in site packages replace the `path` attribute in the model file with a `module` attribute. This could look like this 
 
 ```yml
 module: hubit_components.price1
@@ -235,7 +243,7 @@ module: hubit_components.price1
 where `hubit_components` is a package you have created that contains the module `price1`.
 
 ### Running
-After loading the model into `hubit` and the input data set you are ready to run calculations. To get results from a a model requires you to submit a _query_, which tells `hubit` what attributes from the results data structure you want to have calculated. After `hubit` has processed the query, i.e. executed relevant components, the values of the queried attributes are returned in the _response_. Below are two examples of queries and the corresponding responses.
+To get results from a a model requires you to submit a _query_, which tells `hubit` what attributes from the results data structure you want to have calculated. After `hubit` has processed the query, i.e. executed relevant components, the values of the queried attributes are returned in the _response_. Below are two examples of queries and the corresponding responses.
 
 ```python
 # Load model from file
@@ -280,7 +288,7 @@ If Graphviz is installed `hubit` can render models and queries. In the example b
 
 <img src="https://github.com/mrsonne/hubit/blob/develop/examples/car/images/query_car_2.png" width="1000">
 
-The graph illustrates the input data structure, the results data structure, the calculation components involved in creating the response as well as hints at which attributes flow in and out of these components. The graph was created using the command below. The triple bar icon ≡ indicates that the node is accessed by index and should therefore be a list.
+The graph illustrates nodes in the input data structure, nodes in the the results data structure, the calculation components involved in creating the response as well as hints at which attributes flow in and out of these components. The triple bar icon ≡ indicates that the node is accessed by index and should therefore be a list. The graph was created using the command below. 
 
 ```python
 queries = ['cars[0].price']

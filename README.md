@@ -150,23 +150,11 @@ consumes:
 ### Index specifiers
 `hubit` infers indices based on the input data and the index specifiers for the binding paths in the `consumes.input` section. Therefore, index identifiers used in binding paths in the `consumes.results` and `provides` sections should always be defined in binding paths in the `consumes.input` sections. 
 
-Note that only binding paths that are consumed can contain index specifiers with the prefix `:@`. Binding paths for provided attributes, on the other hand, should always represent a specific location i.e. can only contain pure index identifiers. For this reason the binding below is invalid
+Further, to provide a meaningful index mapping, the index specifier used in a binding path in the `provides` section should always be equally or less specific compared to the corresponding index specifier in the `consumes.input` section. For this reason the binding below is invalid
 
 ```yml
 provides : 
-    - name: part_price 
-      path: cars[IDX_CAR].parts[:@IDX_PART].name # INVALID
-consumes:
-    input:
-        - name: part_name
-          path: cars[IDX_CAR].parts[:@IDX_PART].name
-```
-
-Further, to provide a meaningful index mapping, the pure index identifiers in the binding paths in the `provides` section should also appear as pure index identifiers in the `consumes.input` section. For this reason the binding below is invalid
-
-```yml
-provides : 
-    - name: part_price 
+    - name: part_name 
       path: cars[IDX_CAR].parts[IDX_PART].name # INVALID
 consumes:
     input:
@@ -174,7 +162,26 @@ consumes:
           path: cars[IDX_CAR].parts[:@IDX_PART].name
 ```
 
-Since the component consumes all indices of the parts list, storing the price data at a specific part index is not possible.
+Since the component consumes all indices of the parts list, storing the price data at a specific part index is not possible. The bindings below are, however, valid
+
+```yml
+provides : 
+    # Assign a 'part_names' attribute to the car object. 
+    # Could be a a list of all part names for that car
+    - name: part_names 
+      path: cars[IDX_CAR].part_names # 
+    # Assign a 'concatenates_part_names' attribute to the car object.
+    # Could be a string with all part names concatenated
+    - name: concatenates_part_names 
+      path: cars[IDX_CAR].concatenates_part_names 
+    # Assign a 'price' attribute each part object in the car object.
+    - name: parts_price
+      path: cars[IDX_CAR].parts[:@IDX_PART].price 
+consumes:
+    input:
+        - name: part_name
+          path: cars[IDX_CAR].parts[:@IDX_PART].name
+```
 
 ### Model refactoring
 

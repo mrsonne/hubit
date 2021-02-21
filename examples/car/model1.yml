@@ -1,4 +1,4 @@
-- path: ./components/price1.py 
+- path: ./components/mod1_cmp1.py 
   func_name: price
   provides : 
     - name: car_price

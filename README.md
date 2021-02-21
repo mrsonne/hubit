@@ -184,7 +184,7 @@ The flexibility in the `hubit` bindings allows you to match the interfaces of yo
 Model 1 is the one described above where the car price is calculated in a single component i.e. in a single process. Such an approch works well if the lookup of parts prices is fast and the car calculation is also fast calculation. If, however, the lookup is fast while the car price calculation is slow and we imagine that another component is consuming the parts prices, then the car price calculation would be a bottleneck. In such cases, splitting the lookup from the price calculation would probably boost performance. Models 2 and 3 present two different ways of approaching such a split.
 
 #### Model 2
-In this version of the model the parts price lookup and the car price calculation is split into two separate components. Further, we want the lookup component to get the price for one part only. In other words, we want each lookup to happen in a separate asynchonous process. When all the lookup processes are done another component should sum the parts prices to get the total car price. The relevant sections of the model file could look like this
+In this version of the model the parts price lookup and the car price calculation is split into two separate components. Further, the component responsible for the lookup should retrieve the price for one part only. In other words, we want each lookup to happen in a separate asynchonous process. When all the lookup processes are done another component should sum the parts prices to get the total car price. The relevant sections of the model file could look like this
 
 ```yml
 - consumes:
@@ -225,9 +225,31 @@ def car_price(_input_consumed, _results_consumed, results_provided):
 In this refactored model `hubit` will, when submitting a query for the car price using the multi-processor flag, execute each `part_price` calculation in a separate asynchronous process. If the `part_price` lookup is fast, the overhead introduced by multi-processing may be render model 2 less attractive. In such cases performing all the lookups in a single componet, but still keeping the lookup separate from the price calculation, could be a good solution. 
 
 #### Model 3
-In this version of the model we want all lookups to take place in a single process and the car price calculation to take place in another component. 
+In this version of the model we want all lookups to take place in one single process and the car price calculation to take place in another process. For the lookup component, the relevant sections of the model file could look like this
 
-XXXXXXX
+```yml
+consumes:
+  input:
+    - name: parts_name
+      path: cars[IDX_CAR].parts[:@IDX_PART].name 
+    - name: parts_count
+      path: cars[IDX_CAR].parts[:@IDX_PART].count
+provides:
+  - name: parts_price
+    path: cars[IDX_CAR].parts[:@IDX_PART].price
+```
+
+Notice that the component consumes all part indices (`:@IDX_PART`) for a specific car index (`IDX_CAR`). This allows the component to store results data on all part indices for a specific car index. The first component (price for one component) could look something like this
+
+```python
+def part_price(_input_consumed, _results_consumed, results_provided):
+    counts = _input_consumed['parts_count'] 
+    names = _input_consumed['parts_name'] 
+    results_provided['parts_price'] = [ count*my_lookup_function(name)
+                                         for count, name in zip(counts, names) ]
+```
+
+In this model, the car price component is identical to the one used in model 2.
 
 ### Paths
 To tie together the bindings with the the Python code that does the actual work you need to add the path of the Python source code file to the model file. For the first car model it could look like this.

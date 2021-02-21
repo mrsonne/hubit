@@ -178,14 +178,13 @@ Since the component consumes all indices of the parts list, storing the price da
 
 ### Model refactoring
 
-The flexibility in the `hubit` bindings allows you to fit the interfaces of your existing tools. Further, this flexibility allows you to refactor your components to get a more modular model and allow to optimize for speed when multiprocessing is used. Below we will show three different versions of the car model and outline some key differences in when multiprocessing is used.
+The flexibility in the `hubit` bindings allows you to match the interfaces of your existing tools. Further, this flexibility allows you to refactor your components to get a model with good modularity and allows you to optimize for speed when multi-processing is used. Below we will show three different versions of the car model and outline some key differences in when multi-processing is used.
 
 #### Model 1
-Model 1 is the one described above where the car price is calculated in a single component i.e. in a single process. Such an approch works well if the lookup of parts prices is fast and the car calculation is also fast calculation. If, however, we imagine a scenario where the lookup is fast while the car price calculation is slow and further imagine that another component is consuming the parts prices then the car price calculation would be a bottleneck. In such cases splitting up the lookup and price calculation would probably boost performance.
+Model 1 is the one described above where the car price is calculated in a single component i.e. in a single process. Such an approch works well if the lookup of parts prices is fast and the car calculation is also fast calculation. If, however, the lookup is fast while the car price calculation is slow and we imagine that another component is consuming the parts prices, then the car price calculation would be a bottleneck. In such cases, splitting the lookup from the price calculation would probably boost performance. Models 2 and 3 present two different ways of approaching such a split.
 
 #### Model 2
-Here we will split up the parts price lookup and the car price calculation into two separate components.
-Further, we want the lookup component to get the price for one part only and store it in the results data. In other words, we want each lookup to occur in a separate process. When all the lookup processes are done another component will sum the part prices to get the total car price. The relevant part of the model file could look like this
+In this version of the model the parts price lookup and the car price calculation is split into two separate components. Further, we want the lookup component to get the price for one part only. In other words, we want each lookup to happen in a separate asynchonous process. When all the lookup processes are done another component should sum the parts prices to get the total car price. The relevant sections of the model file could look like this
 
 ```yml
 - consumes:
@@ -207,7 +206,7 @@ Further, we want the lookup component to get the price for one part only and sto
       path: cars[IDX_CAR].price
 ```
 
-Notice that the first component consumes a specific part index (`IDX_PART`) for a specific car index (`IDX_CAR`). This allows the component to store results data on a specific part index for a specific car index. The first component (price for each component) could look something like this
+Notice that the first component consumes a specific part index (`IDX_PART`) for a specific car index (`IDX_CAR`). This allows the component to store results data on a specific part index for a specific car index. The first component (price for one component) could look something like this
 
 ```python
 def part_price(_input_consumed, _results_consumed, results_provided):
@@ -223,7 +222,7 @@ def car_price(_input_consumed, _results_consumed, results_provided):
     results_provided['car_price'] = sum( _results_consumed['prices'] )
 ```
 
-In this refactored model `hubit` will, when submitting a query for the car prices using the multi-processor flag, execute each `part_price` calculation in a asynchronous process. If the `part_price` lookup is fast, the overhead introduced by multi-processing performing all the lookups in a single componet, but still keeping the lookup separate from the price calculation, could be a good solution. 
+In this refactored model `hubit` will, when submitting a query for the car price using the multi-processor flag, execute each `part_price` calculation in a separate asynchronous process. If the `part_price` lookup is fast, the overhead introduced by multi-processing may be render model 2 less attractive. In such cases performing all the lookups in a single componet, but still keeping the lookup separate from the price calculation, could be a good solution. 
 
 #### Model 3
 In this version of the model we want all lookups to take place in a single process and the car price calculation to take place in another component. 

@@ -1,4 +1,4 @@
-# hubit - a calculation hub  
+﻿# hubit - a calculation hub  
 
 `hubit` is an event-driven orchestration hub for your existing calculation tools. It allows you to 
 
@@ -147,41 +147,46 @@ consumes:
           path: cars[IDX_CAR].parts[:@IDX_PART].count
 ```
 
-### Index specifiers
-`hubit` infers indices based on the input data and the index specifiers for the binding paths in the `consumes.input` section. Therefore, index identifiers used in binding paths in the `consumes.results` and `provides` sections should always be defined in binding paths in the `consumes.input` sections. 
+### Index specifiers & index contexts
+`hubit` infers indices and list lengths based on the input data and the index specifiers *defined* for binding paths in the `consumes.input` section. Therefore, index identifiers *used* in binding paths in the `consumes.results` and `provides` sections should always be exist in binding paths in `consumes.input`. 
 
-Further, to provide a meaningful index mapping, the index specifier used in a binding path in the `provides` section should always be equally or less specific compared to the corresponding index specifier in the `consumes.input` section. For this reason the binding below is invalid
+Further, to provide a meaningful index mapping, the index specifier used in a binding path in the `provides` section should be identical to the corresponding index specifier in the `consumes.input`. The first binding in the example below has a more specific index specifier (for the identifier `IDX_PART`) and is therefore invalid. The second binding is valid.
 
 ```yml
 provides : 
+    # INVALID
     - name: part_name 
-      path: cars[IDX_CAR].parts[IDX_PART].name # INVALID
+      path: cars[IDX_CAR].parts[IDX_PART].name # more specific for the part index
+
+    # VALID: Assign a 'price' attribute each part object in the car object.
+    - name: parts_price
+      path: cars[IDX_CAR].parts[:@IDX_PART].price # index specifier for parts is equal to consumes.input.path
 consumes:
     input:
         - name: part_name
           path: cars[IDX_CAR].parts[:@IDX_PART].name
 ```
 
-Since the component consumes all indices of the parts list, storing the price data at a specific part index is not possible. The bindings below are, however, valid
+In the invalid binding above, the component consumes all indices of the parts list and therefore storing the price data at a specific part index is not possible. The bindings below are valid since `IDX_PART` is omitted for the bindings in the `provides` section
 
 ```yml
 provides : 
     # Assign a 'part_names' attribute to the car object. 
     # Could be a a list of all part names for that car
     - name: part_names 
-      path: cars[IDX_CAR].part_names # 
+      path: cars[IDX_CAR].part_names # index specifier for parts omitted
+
     # Assign a 'concatenates_part_names' attribute to the car object.
     # Could be a string with all part names concatenated
     - name: concatenates_part_names 
-      path: cars[IDX_CAR].concatenates_part_names 
-    # Assign a 'price' attribute each part object in the car object.
-    - name: parts_price
-      path: cars[IDX_CAR].parts[:@IDX_PART].price 
+      path: cars[IDX_CAR].concatenates_part_names # index specifier for parts omitted
 consumes:
     input:
         - name: part_name
           path: cars[IDX_CAR].parts[:@IDX_PART].name
 ```
+
+In addition to defining the index identifiers the input sections also defines index contexts. The index context is the order and hierarchy of the index identifiers. For example an input binding `cars[IDX_CAR].parts[IDX_PART].price` would define both the index identifiers `IDX_CAR` and `IDX_PART` as well as define the index context `IDX_CAR -> IDX_PART`. This index contex shows that a part index exists only in the context of a car index. Index identifiers should be used in a unique context i.e. if one input binding defines `cars[IDX_CAR].parts[IDX_PART].price` then defining or using `parts[IDX_PART].cars[IDX_CAR].price` is not allowed.
 
 ### Model refactoring
 

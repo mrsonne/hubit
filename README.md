@@ -1,4 +1,4 @@
-﻿# hubit - a calculation hub  
+# hubit - a calculation hub  
 
 `hubit` is an event-driven orchestration hub for your existing calculation tools. It allows you to 
 
@@ -337,6 +337,23 @@ hmodel.render(queries=queries)
 ```
 
 The Examples section below lists more examples that illustrate more `hubit` functionality.
+
+### Validation
+
+Running
+
+```python
+hmodel.validate()
+```
+will validate various aspects of the model.
+
+Running
+
+```python
+hmodel.validate(['cars[0].price'])
+```
+will validate various aspects of the query.
+
 
 # Examples
 

@@ -193,10 +193,10 @@ In addition to defining the index identifiers the input sections also defines in
 The flexibility in the `hubit` bindings allows you to match the interfaces of your existing tools. Further, this flexibility allows you to refactor your components to get a model with good modularity and allows you to optimize for speed when multi-processing is used. Below we will show three different versions of the car model and outline some key differences in when multi-processing is used.
 
 #### Model 1
-Model 1 is the one described above where the car price is calculated in a single component i.e. in a single process. Such an approch works well if the lookup of parts prices is fast and the car calculation is also fast calculation. If, however, the lookup is fast while the car price calculation is slow and we imagine that another component is consuming the parts prices, then the car price calculation would be a bottleneck. In such cases, splitting the lookup from the price calculation would probably boost performance. Models 2 and 3 present two different ways of approaching such a split.
+Model 1 is the one described above where the car price is calculated in a single component i.e. in a single process. Such an approch works well if the lookup of parts prices is fast and the car price calculation is also fast. If, however, the lookup is fast while the car price calculation is slow, and we imagine that another component is consuming the parts prices, then the car price calculation would be a bottleneck. In such cases, splitting the lookup from the price calculation would probably boost performance. Models 2 and 3 present two different ways of implementing such a split.
 
 #### Model 2
-In this version of the model the parts price lookup and the car price calculation is split into two separate components. Further, the component responsible for the lookup should retrieve the price for one part only. In other words, we want each lookup to happen in a separate asynchonous process. When all the lookup processes are done another component should sum the parts prices to get the total car price. The relevant sections of the model file could look like this
+In this version of the model the parts price lookup and the car price calculation functionalities are implemented in two separate components. Further, the component responsible for the price lookup retrieves the price for one part only. In other words, each lookup will happen in a separate asynchonous process. When all the lookup processes are done, the price component sums the parts prices to get the total car price. The relevant sections of the model file could look like this
 
 ```yml
 - consumes:
@@ -237,7 +237,7 @@ def car_price(_input_consumed, _results_consumed, results_provided):
 In this refactored model `hubit` will, when submitting a query for the car price using the multi-processor flag, execute each `part_price` calculation in a separate asynchronous process. If the `part_price` lookup is fast, the overhead introduced by multi-processing may be render model 2 less attractive. In such cases performing all the lookups in a single componet, but still keeping the lookup separate from the price calculation, could be a good solution. 
 
 #### Model 3
-In this version of the model we want all lookups to take place in one single process and the car price calculation to take place in another process. For the lookup component, the relevant sections of the model file could look like this
+In this version of the model all lookups take place in one single process and the car price calculation  takes place in another process. For the lookup component, the relevant sections of the model file could look like this
 
 ```yml
 consumes:
@@ -261,7 +261,7 @@ def part_price(_input_consumed, _results_consumed, results_provided):
                                          for count, name in zip(counts, names) ]
 ```
 
-In this model, the car price component is identical to the one used in model 2.
+In this model, the car price component is identical to the one used in model 2 and is omitted here.
 
 ### Paths
 To tie together the bindings with the the Python code that does the actual work you need to add the path of the Python source code file to the model file. For the first car model it could look like this.

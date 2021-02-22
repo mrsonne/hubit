@@ -2,12 +2,12 @@
 
 `hubit` is an event-driven orchestration hub for your existing calculation tools. It allows you to 
 
-- execute calculation tools as one composite model with a loose coupling between the model components,
+- execute calculation tools as one `hubit` composite model with a loose coupling between the model components,
 - query the model for specific results thus avoiding explicitly coding (fixed) call graphs and running superfluous calculations,
 - make parameter sweeps,
 - feed old results into new calculations thus augmenting old results objects,
 - easily run your existing tools in asynchronously in multiple processes,
-- visualize the composite model i.e. visualize your existing tools and the attributes that flow between them.
+- visualize your `hubit` composite model i.e. visualize your existing tools and the attributes that flow between them.
 
 Compatible with __Python 3.7__.
 

@@ -1,4 +1,4 @@
-﻿[![Build Status](https://travis-ci.org/mrsonne/dacite.svg?branch=master)](https://travis-ci.org/mrsonne/hubit)
+﻿[![Build Status](https://travis-ci.com/mrsonne/hubit.svg?branch=master)](https://travis-ci.org/mrsonne/hubit)
 [![Coverage Status](https://coveralls.io/repos/github/mrsonne/hubit/badge.svg)](https://coveralls.io/github/mrsonne/hubit)
 
 # hubit - a calculation hub  

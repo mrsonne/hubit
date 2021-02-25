@@ -12,7 +12,7 @@
 - easily run your existing tools in asynchronously in multiple processes,
 - visualize your `hubit` composite model i.e. visualize your existing tools and the attributes that flow between them.
 
-Compatible with __Python 3.7__.
+Compatible with __Python 3.7+__.
 
 ## Motivation
 Many work places have developed a rich ecosystem of stand-alone tools. These tools may be developed/maintained by different teams using different programming languages and using different input/output data models. Nevertheless, the tools often depend on results provided the other tools leading to complicated and error-prone (manual) workflows.

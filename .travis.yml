@@ -1,0 +1,20 @@
+dist: xenial
+language: python
+python:
+- 3.6
+- 3.7
+- 3.8
+- 3.9-dev
+install:
+- pip install pipenv  
+- pipenv install --dev
+script:
+- coverage run --source=. -m unittest discover -s ./tests -p "*_test.py"
+- coverage report -m --omit='./tests/*','./examples/*','./docs/*','setup.py' 
+# - black --check .
+# - mypy dacite
+# - pylint dacite
+after_success:
+  coveralls
+stages:
+- test

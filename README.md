@@ -1,5 +1,5 @@
 ﻿[![Build Status](https://travis-ci.com/mrsonne/hubit.svg?branch=master)](https://travis-ci.org/mrsonne/hubit)
-[![Coverage Status](https://coveralls.io/repos/github/mrsonne/hubit/badge.svg)](https://coveralls.io/github/mrsonne/hubit)
+[![Coverage Status](https://coveralls.io/repos/github/mrsonne/hubit/badge.svg?branch=master)](https://coveralls.io/github/mrsonne/hubit?branch=master)
 
 # hubit - a calculation hub  
 

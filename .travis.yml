@@ -8,7 +8,7 @@ python:
 before_install:
   - sudo apt-get install graphviz
 install:
-  - pip install -e .[test]
+  - pip install -e .[dev]
 script:
   - coverage run --source=. -m unittest discover -s ./tests -p "*_test.py"
   - coverage report -m --omit='./tests/*','./examples/*','./docs/*','setup.py' 

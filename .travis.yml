@@ -18,3 +18,7 @@ after_success:
   coveralls
 stages:
   - test
+branches:
+  only:
+  - master
+  - develop

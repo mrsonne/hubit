@@ -1,4 +1,7 @@
-﻿# hubit - a calculation hub  
+﻿[![Build Status](https://travis-ci.org/mrsonne/dacite.svg?branch=master)](https://travis-ci.org/mrsonne/hubit)
+[![Coverage Status](https://coveralls.io/repos/github/mrsonne/hubit/badge.svg)](https://coveralls.io/github/mrsonne/hubit)
+
+# hubit - a calculation hub  
 
 `hubit` is an event-driven orchestration hub for your existing calculation tools. It allows you to 
 

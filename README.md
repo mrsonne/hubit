@@ -115,7 +115,7 @@ The strings in square braces are called _index specifiers_. The index specifier 
 With the input data and bindings shown above, the content of `_input_consumed` in the `price` function for the car at index 1 will be 
 
 ```python
-    {'part_counts': [4, 1, 2, 1], 'part_names':  ['wheel2', 'chassis2', 'bumper', 'engine14']}
+{'part_counts': [4, 1, 2, 1], 'part_names':  ['wheel2', 'chassis2', 'bumper', 'engine14']}
 ```
 
 i.e. the components will have all counts and part names for a single car. The binding should be set up so that the data in `_input_consumed` (and possibly data in `_results_consumed`) suffice to calculate the car price. 
@@ -123,7 +123,7 @@ i.e. the components will have all counts and part names for a single car. The bi
 In the last line of the `price` function, the car price is added to the results
 
 ```python
-    results_provided['car_price'] = result
+results_provided['car_price'] = result
 ```
 
 In the model file the binding below will make sure that data stored in `results_provided['car_price']` is transferred to a results data object at the same car index as where the input data was taken from.

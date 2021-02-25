@@ -1,0 +1,169 @@
+# The model file is a list of Hubit components
+# The order of the components is not important
+# To allow for some comments the attributes have been 
+# separated by blank lines in this example
+
+- # Component that retrieves thermal conductivities
+
+  # Path where the module with the component is located
+  path: ./components/thermal_conductivity.py 
+  # specify module in site packages
+  # module: hubit_components.thermal_conductivity
+  
+  # Function name in the module
+  func_name: thermal_conductivity 
+  
+  # The model component provides the thermal conductivity for  
+  # for one layer in one segment 
+  provides : 
+    - name: k_therm # internal name in the compoment
+      path: segments[IDX_SEG].layers[IDX_LAY].k_therm # path in the shared data model
+
+  consumes:
+    # To compute the thermal conductivities the material 
+    # for the layer in the segment need be known. These should 
+    # be provided in the input file for each layer in each 
+    # segment
+    input:
+      - name: material
+        path: segments[IDX_SEG].layers[IDX_LAY].material
+
+  
+- # Component that calculates the thermal profile
+  path: ./components/thermal_profile.py
+  # if the module were in site packages use the "module" attribute  
+  # module: hubit_components.thermal_profile
+
+  func_name: thermal_prof
+
+  provides:
+    - name: outer_temperature_all_layers
+      path: segments[IDX_SEG].layers[:@IDX_LAY].outer_temperature # K
+    - name: heat_flux 
+      path: segments[IDX_SEG].heat_flux # W/m^2
+    - name: heat_transfer_number
+      path: segments[IDX_SEG].heat_transfer_number #W/m^2/K
+
+  
+  consumes:
+    input: 
+      - name: temp_in
+        path: segments[IDX_SEG].inside.temperature
+      - name: temp_out
+        path: segments[IDX_SEG].outside.temperature
+      - name: thicknesses
+        path: segments[IDX_SEG].layers[:@IDX_LAY].thickness
+    results: 
+      - name: ks_walls 
+        path: segments[IDX_SEG].layers[:@IDX_LAY].k_therm
+
+- # Component that calculates the heat flows from dimensions an heat fluxes
+  path: ./components/heat_flow.py
+
+  func_name: heat_flow
+
+  provides:
+    - name: heat_flow
+      path: segments[IDX_SEG].heat_flow
+  
+  consumes:
+    input: 
+      - name: width
+        path: segments[IDX_SEG].width
+      - name: height
+        path: segments[IDX_SEG].height
+    results: 
+    - name: heat_flux
+      path: segments[IDX_SEG].heat_flux
+
+
+- # Component that calculates the average heat transfer number
+  path: ./components/heat_transfer_number.py
+
+  func_name: heat_transfer_number
+
+  provides:
+    - name: heat_transfer_number
+      path: heat_transfer_number
+    - name: energy_class
+      path: energy_class
+  
+  consumes:
+    input: 
+      - name: widths
+        path: segments[:@IDX_SEG].width
+      - name: heights
+        path: segments[:@IDX_SEG].height
+    results: 
+    - name: heat_transfer_numbers
+      path: segments[:@IDX_SEG].heat_transfer_number
+
+
+- # Component that calculates the volume for one wall layer in one segment
+  path: ./components/volume.py
+
+  func_name: volume
+
+  provides:
+    - name: volume
+      path: segments[IDX_SEG].layers[IDX_LAY].volume
+  
+  consumes:
+    input: 
+      - name: width
+        path: segments[IDX_SEG].width
+      - name: height
+        path: segments[IDX_SEG].height
+      - name: thickness
+        path: segments[IDX_SEG].layers[IDX_LAY].thickness
+
+- # Component that calculates the volume for one wall layer in one segment
+  path: ./components/weight.py
+
+  func_name: weight
+
+  provides:
+    - name: weight
+      path: segments[IDX_SEG].layers[IDX_LAY].weight
+  
+  consumes:
+    input: 
+      - name: material
+        path: segments[IDX_SEG].layers[IDX_LAY].material
+    results:
+      - name: volume
+        path: segments[IDX_SEG].layers[IDX_LAY].volume
+
+- # Component that calculates the cost for one wall segment
+  path: ./components/segment_cost.py
+
+  func_name: cost
+
+  provides:
+    - name: cost
+      path: segments[IDX_SEG].cost
+  
+  consumes:
+    input: 
+      - name: materials
+        path: segments[IDX_SEG].layers[:@IDX_LAY].material
+      - name: type
+        path: segments[IDX_SEG].type
+    results:
+      - name: weights
+        path: segments[IDX_SEG].layers[:@IDX_LAY].weight
+
+- # Component that calculates the cost for the entire wall
+  path: ./components/total_cost.py
+
+  func_name: total_wall_cost
+
+  provides:
+    - name: cost
+      path: total_cost
+  
+  consumes:
+    results:
+      - name: segment_costs
+        path: segments[:@IDX_SEG].cost
+

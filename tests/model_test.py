@@ -20,8 +20,8 @@ pathlib.Path(TMP_DIR).mkdir(parents=True, exist_ok=True)
 def setUpModule():
     global yml_input
     global model
-    from .shared_data import model as model
-    from .shared_data import yml_input as yml_input
+    from tests.shared_data import model as model
+    from tests.shared_data import yml_input as yml_input
 
 
 def level0_results_at_idx(input, idx):

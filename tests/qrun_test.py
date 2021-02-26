@@ -14,8 +14,8 @@ REL_TMP_DIR = "./tmp"
 def setUpModule():
     global yml_input
     global model
-    from .shared_data import model as model
-    from .shared_data import yml_input as yml_input
+    from tests.shared_data import model as model
+    from tests.shared_data import yml_input as yml_input
 
 
 def subscriptions_for_query(query, query_runner):

@@ -30,14 +30,16 @@ from .shared import (
     tree_for_idxcontext,
 )
 
-from .errors import (HubitError,
+from .errors import (
+    HubitError,
     HubitModelNoInputError,
     HubitModelNoResultsError,
     HubitModelValidationError,
-    HubitModelQueryError
+    HubitModelQueryError,
 )
 
 THISPATH = os.path.dirname(os.path.realpath(__file__))
+
 
 def _default_skipfun(value_for_path: Dict) -> bool:
     """

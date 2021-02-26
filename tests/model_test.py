@@ -322,6 +322,5 @@ class TestModel(unittest.TestCase):
         with self.subTest():
             self.assertSequenceEqual(calc_responses, expected_results)
 
-
     if __name__ == "__main__":
         unittest.main()

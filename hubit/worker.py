@@ -15,6 +15,7 @@ from .shared import (
 )
 from .errors import HubitWorkerError
 
+
 class _Worker:
     """"""
 

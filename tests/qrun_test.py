@@ -10,11 +10,13 @@ from hubit.shared import flatten
 THIS_DIR = os.path.dirname(os.path.realpath(__file__))
 REL_TMP_DIR = "./tmp"
 
+
 def setUpModule():
     global yml_input
     global model
     from .shared_data import model as model
     from .shared_data import yml_input as yml_input
+
 
 def subscriptions_for_query(query, query_runner):
     """Get subscriptions from worker"""
@@ -24,6 +26,7 @@ def subscriptions_for_query(query, query_runner):
     consumes += list(w.rpath_consumed_for_name.values())
     provides = list(w.rpath_provided_for_name.values())
     return consumes, provides
+
 
 def subscriptions_for_component_idx(model_data, comp_idx, iloc, idxid):
     """Get subscriptions from model"""
@@ -55,7 +58,6 @@ def subscriptions_for_component_idx(model_data, comp_idx, iloc, idxid):
 
 class TestRunner(unittest.TestCase):
     def setUp(self):
-
 
         self.model_data = yaml.load(model, Loader=yaml.FullLoader)
         self.hmodel = HubitModel(

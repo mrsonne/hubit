@@ -8,8 +8,10 @@ from typing import Any
 
 from .worker import _Worker
 from .errors import HubitModelComponentError
+
 POLLTIME = 0.1
 POLLTIME_LONG = 0.25
+
 
 class _QueryRunner:
     def __init__(self, model, mpworkers):

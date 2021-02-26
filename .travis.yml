@@ -11,7 +11,7 @@ install:
 script:
 - coverage run --source=hubit -m unittest discover -s ./tests -p "*_test.py"
 - coverage report -m
-- black --check .
+# - black --check .
 after_success: coveralls
 stages:
 - test

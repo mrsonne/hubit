@@ -144,7 +144,13 @@ def _get(
 
 
 class HubitModel:
-    def __init__(self, cfg, base_path=os.getcwd(), output_path="./", name="NA"):
+    def __init__(
+        self,
+        cfg: Dict[str, Any],
+        base_path: str = os.getcwd(),
+        output_path: str = "./",
+        name: str = "NA",
+    ):
         """Initialize a Hubit model
 
         Args:
@@ -154,7 +160,7 @@ class HubitModel:
             name (str, optional): Model name. Defaults to 'NA'.
 
         Raises:
-            HubitError: [description]
+            HubitError: If output_path is an absolute path or if components function names are not unique.
         """
 
         if os.path.isabs(output_path):
@@ -225,7 +231,7 @@ class HubitModel:
                 )
         return cls(components, name=name, output_path=output_path, base_path=base_path)
 
-    def set_input(self, input_data):
+    def set_input(self, input_data: Dict[str, Any]) -> HubitModel:
         """
         Set the (hierarchical) input on the model
 
@@ -241,7 +247,7 @@ class HubitModel:
         self._input_is_set = True
         return self
 
-    def set_results(self, results_data):
+    def set_results(self, results_data: Dict[str, Any]) -> HubitModel:
         """
         Set the (hierarchical) results on the model
 
@@ -254,7 +260,7 @@ class HubitModel:
         self.flat_results = flatten(results_data)
         return self
 
-    def render(self, queries=[], file_idstr=""):
+    def render(self, queries: List[str] = [], file_idstr: str = "") -> None:
         """Renders graph representing the model or the query.
         If 'queries' is not provided (or is empty) the model
         is rendered while the query is rendered if 'queries'
@@ -273,7 +279,7 @@ class HubitModel:
         if os.path.exists(filepath):
             os.remove(filepath)
 
-    def _get_dot(self, queries, file_idstr):
+    def _get_dot(self, queries: List[str], file_idstr: str):
         """
         Construct dot object and get the filename.
 

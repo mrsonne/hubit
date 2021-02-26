@@ -12,13 +12,8 @@ from .shared import (
     traverse,
     reshape,
     convert_to_internal_path,
-    HubitError,
 )
-
-
-class HubitWorkerError(HubitError):
-    pass
-
+from .errors import HubitWorkerError
 
 class _Worker:
     """"""

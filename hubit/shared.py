@@ -7,17 +7,10 @@ from functools import reduce
 from operator import getitem
 from typing import Any, List, Dict, Tuple
 
+from .errors import HubitIndexError
 
 IDX_WILDCARD = ":"
 REGEX_IDXID = r"\[(.*?)\]"
-
-
-class HubitError(Exception):
-    pass
-
-
-class HubitIndexError(HubitError):
-    pass
 
 
 class LengthNode:

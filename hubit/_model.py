@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import List, Dict
+from typing import List, Dict, Any
 from multiprocessing import Manager
 import logging
 import os
@@ -33,7 +33,7 @@ from .errors import (
 THISPATH = os.path.dirname(os.path.realpath(__file__))
 
 
-def default_skipfun(value_for_path: Dict) -> bool:
+def default_skipfun(_: Dict[str, Any]) -> bool:
     """
     value_for_path is a flat dict with internal paths as keys
     """

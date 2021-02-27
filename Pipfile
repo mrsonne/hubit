@@ -4,9 +4,12 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-hubit = {editable = true, path = "."}
+hubit = {editable = true, extras = ["dev"], path = "."}
 
 [dev-packages]
 
 [requires]
 python_version = "3.8"
+
+[pipenv]
+allow_prereleases = true

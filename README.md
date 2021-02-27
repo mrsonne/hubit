@@ -341,8 +341,8 @@ If Graphviz is installed `hubit` can render models and queries. In the example b
 The graph illustrates nodes in the input data structure, nodes in the the results data structure, the calculation components involved in creating the response as well as hints at which attributes flow in and out of these components. The triple bar icon ≡ indicates that the node is accessed by index and should therefore be a list. The graph was created using the command below. 
 
 ```python
-queries = ['cars[0].price']
-hmodel.render(queries=queries)
+query = ['cars[0].price']
+hmodel.render(query)
 ```
 
 The Examples section below lists more examples that illustrate more `hubit` functionality.

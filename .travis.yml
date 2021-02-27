@@ -12,6 +12,7 @@ script:
 - coverage run --source=hubit -m unittest discover -s ./tests -p "*_test.py"
 - coverage report -m
 - black --check .
+- mypy hubit/model.py
 after_success: coveralls
 stages:
 - test

@@ -11,6 +11,7 @@ from multiprocessing import Pool
 from .qrun import _QueryRunner
 from ._model import _HubitModel, _get, default_skipfun
 from .shared import (
+    LengthTree,
     convert_to_internal_path,
     flatten,
     inflate,
@@ -26,7 +27,7 @@ from .errors import (
 class HubitModel(_HubitModel):
     def __init__(
         self,
-        cfg: Dict[str, Any],
+        cfg: List[Dict[str, Any]],
         base_path: str = os.getcwd(),
         output_path: str = "./",
         name: str = "NA",
@@ -34,7 +35,7 @@ class HubitModel(_HubitModel):
         """Initialize a Hubit model
 
         Args:
-            cfg (Dict): Model configuration
+            cfg (List): List of components
             base_path (str, optional): Base path for the model. Defaults to current working directory.
             output_path (str, optional): Output path relative to base_path. Defaults to './'.
             name (str, optional): Model name. Defaults to 'NA'.
@@ -47,7 +48,6 @@ class HubitModel(_HubitModel):
             raise HubitError("Output path should be relative")
 
         self.ilocstr = "_IDX"
-        self.module_for_clsname = {}
         self.cfg = cfg
 
         fnames = [component["func_name"] for component in cfg]
@@ -68,23 +68,23 @@ class HubitModel(_HubitModel):
                 component["consumes"]["input"] = {}
 
         # Stores length tree. Filled when set_input() is called
-        self.tree_for_idxcontext = {}
+        self.tree_for_idxcontext: Dict[LengthTree, str] = {}
 
         # Stores trees for query
-        self._tree_for_qpath = {}
+        self._tree_for_qpath: Dict[LengthTree, str] = {}
 
         # Stores normalized query paths
-        self._normqpath_for_qpath = {}
+        self._normqpath_for_qpath: Dict[str, str] = {}
 
         # Store the model path that matches the query
-        self._modelpath_for_querypath = {}
+        self._modelpath_for_querypath: Dict[str, str] = {}
 
         self.name = name
         self.base_path = base_path
         self.odir = os.path.normpath(os.path.join(self.base_path, output_path))
-        self.inputdata = None
-        self.flat_input = None
-        self.flat_results = None
+        self.inputdata: Dict[str, Any] = {}
+        self.flat_input: Dict[str, Any] = {}
+        self.flat_results: Dict[str, Any] = {}
         self._input_is_set = False
 
     @classmethod
@@ -256,7 +256,7 @@ class HubitModel(_HubitModel):
             if skipfun(_flat_input):
                 continue
             qrun = _QueryRunner(self, mpworkers=False)
-            flat_results = {}
+            flat_results: Dict[str, Any] = {}
             args.append((qrun, queries, _flat_input, flat_results))
             inps.append(_flat_input)
 

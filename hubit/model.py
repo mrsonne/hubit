@@ -162,6 +162,15 @@ class HubitModel(_HubitModel):
             os.remove(filepath)
 
     def get_results(self, flat: bool = False) -> Dict[str, Any]:
+        """
+        Get model results 
+ 
+        Args:
+            flat (bool, optional): If True the results will be returned as a flat dict. Otherwise the returned results object is a nested dict. Defaults to False.
+
+        Returns:
+            Dict: Results object
+        """
         if flat:
             return self.flat_results
         else:
@@ -180,12 +189,13 @@ class HubitModel(_HubitModel):
             queries ([List]): Query path items
             mpworkers (bool, optional): Flag indicating if the respose should be generated using (async) multiprocessing. Defaults to False.
             validate (bool, optional): Flag indicating if the query should be validated prior to execution. Defaults to False.
+            reuse_results (bool, optional). If True, results already set on the model will be used as-is i.e. not recalculated. Defaults to False.
 
         Raises:
             HubitModelNoInputError: If no input is set on the model
 
         Returns:
-            [Dict]: The response
+            Dict: The response
         """
         if not self._input_is_set:
             raise HubitModelNoInputError()
@@ -212,8 +222,8 @@ class HubitModel(_HubitModel):
     def get_many(
         self,
         queries: List[str],
-        input_values_for_path: Dict,
-        skipfun: Callable[[Dict], bool] = default_skipfun,
+        input_values_for_path: Dict[str, Any],
+        skipfun: Callable[[Dict[str, Any]], bool] = default_skipfun,
         nproc: Any = None,
     ) -> Tuple:
         """Will perform a full factorial sampling of the
@@ -226,7 +236,7 @@ class HubitModel(_HubitModel):
             queries (List): Query path items
             input_values_for_path (Dict): Dictionary with keys representing path items. The corresponding values should be an iterable with elements representing discrete values for the attribute at the path.
             skipfun (Callable): If returns True the factor combination is skipped
-            nproc (int, optional): Number of processes to use. Defaults to None. If not specified a suitable default is used.
+            nproc (Any, optional): Number of processes to use. Defaults to None in which case a suitable default is used.
 
         Raises:
             HubitModelNoInputError: [description]

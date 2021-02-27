@@ -41,11 +41,11 @@ def default_skipfun(_: Dict[str, Any]) -> bool:
 
 
 def _get(
-    queryrunner, queries, flat_input, flat_results=None, dryrun=False, expand_iloc=False
+    queryrunner, paths, flat_input, flat_results=None, dryrun=False, expand_iloc=False
 ):
     """
     With the 'queryrunner' object deploy the queries
-    in 'queries'.
+    in 'paths'.
 
     flat_results is a dict and will be modified
 
@@ -67,7 +67,7 @@ def _get(
 
     # Expand the query and get the max ilocs for each query
     queries_for_query = {
-        qstr1: queryrunner.model._expand_query(qstr1) for qstr1 in queries
+        qstr1: queryrunner.model._expand_query(qstr1) for qstr1 in paths
     }
     _queries = [qstr for qstrs in queries_for_query.values() for qstr in qstrs]
 

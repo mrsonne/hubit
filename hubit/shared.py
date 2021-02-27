@@ -566,15 +566,7 @@ class Container:
         return str(self.val)
 
 
-# def remove_idxidref(path:str) -> str:
-#     """Remove index ID references from path
-
-#     Args:
-#         path ([type]): [description]
-#     """
-
-
-def tree_for_idxcontext(components: List, data: Dict) -> Dict[str:LengthTree]:
+def tree_for_idxcontext(components: List, data: Dict) -> Dict[str, LengthTree]:
     """Compute LengthTree for relevant index contexts.
 
     Args:

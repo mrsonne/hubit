@@ -88,13 +88,15 @@ class HubitModel(_HubitModel):
         self._input_is_set = False
 
     @classmethod
-    def from_file(cls, model_file_path, output_path="./", name=None):
+    def from_file(
+        cls, model_file_path: str, output_path: str = "./", name: str = "NA"
+    ) -> HubitModel:
         """Creates a model from file
 
         Args:
             model_file_path (str): The location of the model file. The model base path will be set to the path of the model file and consequently the model component 'path' attribute should be relative to the model file.
             output_path (str, optional): Path where results should be saved. Defaults to './'.
-            name (str, optional): Model name. Defaults to None.
+            name (str, optional): Model name. Defaults to "NA".
 
         Returns:
             HubitModel: Hubit model object as defined in the specified model file
@@ -159,13 +161,19 @@ class HubitModel(_HubitModel):
         if os.path.exists(filepath):
             os.remove(filepath)
 
-    def get_results(self, flat=False):
+    def get_results(self, flat: bool = False) -> Dict[str, Any]:
         if flat:
             return self.flat_results
         else:
             return inflate(self.flat_results)
 
-    def get(self, queries, mpworkers=False, validate=False, reuse_results=False):
+    def get(
+        self,
+        queries,
+        mpworkers: bool = False,
+        validate: bool = False,
+        reuse_results: bool = False,
+    ) -> Dict[str, Any]:
         """Generate respose corresponding to the 'queries'
 
         Args:
@@ -269,7 +277,7 @@ class HubitModel(_HubitModel):
         # TODO convert inps to external paths
         return responses, inps, results
 
-    def validate(self, queries=[]):
+    def validate(self, queries: List[str] = []) -> bool:
         """
         Validate a model or query. Will validate as a query if
         queries are provided.
@@ -284,8 +292,12 @@ class HubitModel(_HubitModel):
         Args:
             queries (List, optional): Query path items. Defaults to [].
 
+        Raises:
+            HubitModelNoInputError: If not input is set.
+            HubitModelValidationError: If validation fails
+
         Returns:
-            True if validation was successful
+            True if validation was successful. If not successful a HubitModelValidationError is raised
 
         TODO: check for circular references,
               check that ] is followed by . in paths

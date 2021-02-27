@@ -12,13 +12,13 @@ def query_with_precomputed_results(hmodel: HubitModel, mpworkers: bool = False) 
     since it we reused results already stored on the model. Thus, in the
     second queriy nothin is actually calculated.
     """
-    queries = ["segments[:].layers[:].outer_temperature"]
+    query = ["segments[:].layers[:].outer_temperature"]
 
     # First query
-    response = hmodel.get(queries, mpworkers=mpworkers)
+    response = hmodel.get(query, mpworkers=mpworkers)
 
     # Same query and reuse stored results
-    response = hmodel.get(queries, mpworkers=mpworkers, reuse_results=True)
+    response = hmodel.get(query, mpworkers=mpworkers, reuse_results=True)
 
     print("response", response)
     # Get the full results object

@@ -142,20 +142,20 @@ class HubitModel(_HubitModel):
         self.flat_results = flatten(results_data)
         return self
 
-    def render(self, paths: List[str] = [], file_idstr: str = "") -> None:
+    def render(self, query: List[str] = [], file_idstr: str = "") -> None:
         """Renders graph representing the model or the query.
-        If 'paths' is not provided (or is empty) the model
-        is rendered while the query is rendered if 'paths'
+        If 'query' is not provided (or is empty) the model
+        is rendered while the query is rendered if 'query'
         are provided. Rendering the query requires the input data
         has been set.
 
         Args:
-            paths (List, optional): Query paths. Defaults to [].
+            query (List, optional): Query paths. Defaults to [].
             file_idstr (str, optional): Identifier appended to the
             image file name.
         """
 
-        dot, filename = self._get_dot(paths, file_idstr)
+        dot, filename = self._get_dot(query, file_idstr)
         filepath = os.path.join(self.odir, filename)
         dot.render(filepath, view=False)
         if os.path.exists(filepath):
@@ -178,15 +178,15 @@ class HubitModel(_HubitModel):
 
     def get(
         self,
-        paths,
+        query,
         mpworkers: bool = False,
         validate: bool = False,
         reuse_results: bool = False,
     ) -> Dict[str, Any]:
-        """Generate respose corresponding to the 'paths'
+        """Generate respose corresponding to the 'query'
 
         Args:
-            paths ([List]): Query paths
+            query ([List]): Query paths
             mpworkers (bool, optional): Flag indicating if the respose should be generated using (async) multiprocessing. Defaults to False.
             validate (bool, optional): Flag indicating if the query should be validated prior to execution. Defaults to False.
             reuse_results (bool, optional). If True, results already set on the model will be used as-is i.e. not recalculated. Defaults to False.
@@ -207,7 +207,7 @@ class HubitModel(_HubitModel):
         qrunner = _QueryRunner(self, mpworkers)
 
         if validate:
-            _get(qrunner, paths, self.flat_input, dryrun=True)
+            _get(qrunner, query, self.flat_input, dryrun=True)
 
         if reuse_results:
             _flat_results = self.flat_results
@@ -215,13 +215,13 @@ class HubitModel(_HubitModel):
             _flat_results = {}
 
         response, self.flat_results = _get(
-            qrunner, paths, self.flat_input, _flat_results
+            qrunner, query, self.flat_input, _flat_results
         )
         return response
 
     def get_many(
         self,
-        paths: List[str],
+        query: List[str],
         input_values_for_path: Dict[str, Any],
         skipfun: Callable[[Dict[str, Any]], bool] = default_skipfun,
         nproc: Any = None,
@@ -233,7 +233,7 @@ class HubitModel(_HubitModel):
         if __name__ == '__main__':
 
         Args:
-            paths (List): Query paths
+            query (List): Query paths
             input_values_for_path (Dict): Dictionary with keys representing path items. The corresponding values should be an iterable with elements representing discrete values for the attribute at the path.
             skipfun (Callable): If returns True the factor combination is skipped
             nproc (Any, optional): Number of processes to use. Defaults to None in which case a suitable default is used.
@@ -251,7 +251,7 @@ class HubitModel(_HubitModel):
         tstart = time.time()
 
         # Get paths to change in paths and the values each path should assume in pvalues
-        _paths, pvalues = zip(*input_values_for_path.items())
+        paths, pvalues = zip(*input_values_for_path.items())
 
         # List of tuples each containing values for each path in paths
         ppvalues = list(itertools.product(*pvalues))
@@ -260,14 +260,14 @@ class HubitModel(_HubitModel):
         inps = []
         for pvalues in ppvalues:
             _flat_input = copy.deepcopy(self.flat_input)
-            for path, val in zip(_paths, pvalues):
+            for path, val in zip(paths, pvalues):
                 _flat_input[convert_to_internal_path(path)] = val
 
             if skipfun(_flat_input):
                 continue
             qrun = _QueryRunner(self, mpworkers=False)
             flat_results: Dict[str, Any] = {}
-            args.append((qrun, paths, _flat_input, flat_results))
+            args.append((qrun, query, _flat_input, flat_results))
             inps.append(_flat_input)
 
         if len(args) == 0:
@@ -287,10 +287,10 @@ class HubitModel(_HubitModel):
         # TODO convert inps to external paths
         return responses, inps, results
 
-    def validate(self, paths: List[str] = []) -> bool:
+    def validate(self, query: List[str] = []) -> bool:
         """
         Validate a model or query. Will validate as a query if
-        paths are provided.
+        query are provided.
 
         The model validation checks that there are
             - not multiple components providing the same attribute
@@ -300,7 +300,7 @@ class HubitModel(_HubitModel):
             - all required results are provided
 
         Args:
-            paths (List, optional): Query paths. Defaults to [].
+            query (List, optional): Query paths. Defaults to [].
 
         Raises:
             HubitModelNoInputError: If not input is set.
@@ -314,10 +314,10 @@ class HubitModel(_HubitModel):
               check that if X in [X] contains : then it should be followed by @str
               Component that consumes a specified index ID should also provide a result at the same location in the results data model. Not necesary if all indices (:) are consumed. I.e. the provider path should contain all index info
         """
-        if len(paths) > 0:
+        if len(query) > 0:
             if not self._input_is_set:
                 raise HubitModelNoInputError()
-            self._validate_query(paths, mpworkers=False)
+            self._validate_query(query, mpworkers=False)
         else:
             self._validate_model()
 

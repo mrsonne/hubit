@@ -7,15 +7,15 @@ response = hmodel1.get(query)
 print(response)
 
 hmodel2 = get_model("model2.yml")
-queries = [
+query = [
     "cars[:].parts[:].price",  # price for all components for all cars
     "cars[:].price",  # price for all cars
 ]
-response = hmodel2.get(queries)
+response = hmodel2.get(query)
 pprint(response)
 
 
 hmodel3 = get_model("model3.yml")
-queries = ["cars[:].price"]  # price for all cars
-response = hmodel3.get(queries)
+query = ["cars[:].price"]  # price for all cars
+response = hmodel3.get(query)
 print(response)

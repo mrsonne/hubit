@@ -50,7 +50,7 @@ def make_sweep(hmodel: HubitModel, nproc: Any = None) -> None:
         nproc (Any, optional): Number of processes. Default is None and
         leaves it to Hubit to determine the number of processes to use.
     """
-    queries = ["heat_transfer_number", "energy_class", "total_cost"]
+    query = ["heat_transfer_number", "energy_class", "total_cost"]
 
     # Cartesian product of the input perturbations
     input_values_for_path = {
@@ -70,7 +70,7 @@ def make_sweep(hmodel: HubitModel, nproc: Any = None) -> None:
 
     # The skip function determines which factor combinations should be included
     responses, inps, _ = hmodel.get_many(
-        queries, input_values_for_path, skipfun=skipfun, nproc=nproc
+        query, input_values_for_path, skipfun=skipfun, nproc=nproc
     )
 
     # Print results in a primitive table with no fancy dependecies
@@ -85,7 +85,7 @@ def make_sweep(hmodel: HubitModel, nproc: Any = None) -> None:
     headers = [header_for_path[path] for path in input_paths] + list(
         responses[0].keys()
     )
-    q_float_formats = dict(zip(queries, [".2f", "", ".0f"]))
+    q_float_formats = dict(zip(query, [".2f", "", ".0f"]))
     float_formats = [
         q_float_formats[header] if header in q_float_formats else ""
         for header in headers
@@ -107,7 +107,7 @@ def make_sweep(hmodel: HubitModel, nproc: Any = None) -> None:
         values = [
             getitem(inp, convert_to_internal_path(ipath)) for ipath in input_paths
         ]
-        values.extend([response[qpath] for qpath in queries])
+        values.extend([response[qpath] for qpath in query])
         lines.append(fstr.format(*values))
     lines.append(sepstr)
 

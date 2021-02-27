@@ -31,7 +31,7 @@ def query(hmodel: HubitModel, mpworkers: bool = False) -> None:
     #     print(err)
 
     # Make the queries
-    queries = (
+    query = (
         ["segments[:].layers[:].weight"],
         ["heat_transfer_number", "energy_class", "total_cost"],
         ["heat_transfer_number"],
@@ -48,20 +48,20 @@ def query(hmodel: HubitModel, mpworkers: bool = False) -> None:
     time1 = time.time()
 
     # Run queries one by one (slow)
-    for query in queries:
-        print(f"Query: {query}")
-        response = hmodel.get(query, mpworkers=mpworkers)
+    for path in query:
+        print(f"Query: {path}")
+        response = hmodel.get(path, mpworkers=mpworkers)
         print(response)
         print("")
 
     time2 = time.time()
 
     # Run queries as one (fast). The speed increase comes from Hubit's
-    # results caching that acknowleges that the first query actually produces
+    # results caching that acknowledges that the first query actually produces
     # the results for all the remaining queries
-    queries = [item for query in queries for item in query]
+    query = [item for path in query for item in path]
     time3 = time.time()
-    response = hmodel.get(queries, mpworkers=mpworkers)
+    response = hmodel.get(query, mpworkers=mpworkers)
     print(response)
     time4 = time.time()
 

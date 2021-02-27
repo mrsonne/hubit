@@ -7,7 +7,7 @@ logging.basicConfig(level=logging.INFO)
 def query_with_custom_results(hmodel: HubitModel, mpworkers=False) -> None:
     """
     Demonstrates how to manually set results on the model.
-    Hubit then ommits re-calculating the results thus bypassing
+    Hubit then omits re-calculating the results thus bypassing
     the component that is normally responsible for
     calculating the results.
 

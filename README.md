@@ -1,5 +1,6 @@
 ﻿[![Build Status](https://travis-ci.com/mrsonne/hubit.svg?branch=master)](https://travis-ci.org/mrsonne/hubit)
 [![Coverage Status](https://coveralls.io/repos/github/mrsonne/hubit/badge.svg?branch=master)](https://coveralls.io/github/mrsonne/hubit?branch=master)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
 
 # hubit - a calculation hub  
 
@@ -12,7 +13,7 @@
 - easily run your existing tools in asynchronously in multiple processes,
 - visualize your `hubit` composite model i.e. visualize your existing tools and the attributes that flow between them.
 
-Compatible with __Python 3.7__.
+Compatible with __Python 3.7+__.
 
 ## Motivation
 Many work places have developed a rich ecosystem of stand-alone tools. These tools may be developed/maintained by different teams using different programming languages and using different input/output data models. Nevertheless, the tools often depend on results provided the other tools leading to complicated and error-prone (manual) workflows.
@@ -26,6 +27,12 @@ Executing a fixed call graph is faster than executing the same call graph dynami
 
 
 ## Installation & requirement
+
+Install from pypi
+```sh
+pip install hubit
+```
+
 
 Install from GitHub
 ```sh
@@ -115,7 +122,7 @@ The strings in square braces are called _index specifiers_. The index specifier 
 With the input data and bindings shown above, the content of `_input_consumed` in the `price` function for the car at index 1 will be 
 
 ```python
-    {'part_counts': [4, 1, 2, 1], 'part_names':  ['wheel2', 'chassis2', 'bumper', 'engine14']}
+{'part_counts': [4, 1, 2, 1], 'part_names':  ['wheel2', 'chassis2', 'bumper', 'engine14']}
 ```
 
 i.e. the components will have all counts and part names for a single car. The binding should be set up so that the data in `_input_consumed` (and possibly data in `_results_consumed`) suffice to calculate the car price. 
@@ -123,7 +130,7 @@ i.e. the components will have all counts and part names for a single car. The bi
 In the last line of the `price` function, the car price is added to the results
 
 ```python
-    results_provided['car_price'] = result
+results_provided['car_price'] = result
 ```
 
 In the model file the binding below will make sure that data stored in `results_provided['car_price']` is transferred to a results data object at the same car index as where the input data was taken from.
@@ -340,8 +347,8 @@ If Graphviz is installed `hubit` can render models and queries. In the example b
 The graph illustrates nodes in the input data structure, nodes in the the results data structure, the calculation components involved in creating the response as well as hints at which attributes flow in and out of these components. The triple bar icon ≡ indicates that the node is accessed by index and should therefore be a list. The graph was created using the command below. 
 
 ```python
-queries = ['cars[0].price']
-hmodel.render(queries=queries)
+query = ['cars[0].price']
+hmodel.render(query)
 ```
 
 The Examples section below lists more examples that illustrate more `hubit` functionality.

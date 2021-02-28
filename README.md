@@ -28,6 +28,12 @@ Executing a fixed call graph is faster than executing the same call graph dynami
 
 ## Installation & requirement
 
+Install from pypi
+```sh
+pip install hubit
+```
+
+
 Install from GitHub
 ```sh
 pip install git+git://github.com/mrsonne/hubit.git

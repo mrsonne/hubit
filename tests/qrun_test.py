@@ -66,8 +66,8 @@ class TestRunner(unittest.TestCase):
             base_path=THIS_DIR,
             output_path=REL_TMP_DIR,
         )
-        mpworkers = False
-        self.qr = _QueryRunner(self.hmodel, mpworkers)
+        use_multi_processing = False
+        self.qr = _QueryRunner(self.hmodel, use_multi_processing)
         self.input = yaml.load(yml_input, Loader=yaml.FullLoader)
         self.hmodel.set_input(self.input)
 

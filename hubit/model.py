@@ -35,7 +35,7 @@ class HubitModel(_HubitModel):
         """Initialize a Hubit model
 
         Args:
-            cfg (List): List of components
+            cfg (List): Model configuration
             base_path (str, optional): Base path for the model. Defaults to current working directory.
             output_path (str, optional): Output path relative to base_path. Defaults to './'.
             name (str, optional): Model name. Defaults to 'NA'.
@@ -134,7 +134,7 @@ class HubitModel(_HubitModel):
         Set the (hierarchical) results on the model
 
         Args:
-            results_data (Dict): Results data typically in a dict-like format
+            results_data (Dict): Results data typically in a nested dict-like format
 
         Returns:
             HubitModel: Hubit model with input set
@@ -179,7 +179,7 @@ class HubitModel(_HubitModel):
     def get(
         self,
         query,
-        mpworkers: bool = False,
+        use_multi_processing: bool = False,
         validate: bool = False,
         reuse_results: bool = False,
     ) -> Dict[str, Any]:
@@ -187,7 +187,7 @@ class HubitModel(_HubitModel):
 
         Args:
             query ([List]): Query paths
-            mpworkers (bool, optional): Flag indicating if the respose should be generated using (async) multiprocessing. Defaults to False.
+            use_multi_processing (bool, optional): Flag indicating if the respose should be generated using (async) multiprocessing. Defaults to False.
             validate (bool, optional): Flag indicating if the query should be validated prior to execution. Defaults to False.
             reuse_results (bool, optional). If True, results already set on the model will be used as-is i.e. not recalculated. Defaults to False.
 
@@ -204,7 +204,7 @@ class HubitModel(_HubitModel):
             raise HubitModelNoResultsError()
 
         # Make a query runner
-        qrunner = _QueryRunner(self, mpworkers)
+        qrunner = _QueryRunner(self, use_multi_processing)
 
         if validate:
             _get(qrunner, query, self.flat_input, dryrun=True)
@@ -265,7 +265,7 @@ class HubitModel(_HubitModel):
 
             if skipfun(_flat_input):
                 continue
-            qrun = _QueryRunner(self, mpworkers=False)
+            qrun = _QueryRunner(self, use_multi_processing=False)
             flat_results: Dict[str, Any] = {}
             args.append((qrun, query, _flat_input, flat_results))
             inps.append(_flat_input)
@@ -317,7 +317,7 @@ class HubitModel(_HubitModel):
         if len(query) > 0:
             if not self._input_is_set:
                 raise HubitModelNoInputError()
-            self._validate_query(query, mpworkers=False)
+            self._validate_query(query, use_multi_processing=False)
         else:
             self._validate_model()
 

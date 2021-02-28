@@ -6,11 +6,48 @@ import collections
 from functools import reduce
 from operator import getitem
 from typing import Any, List, Dict, Tuple
+from dataclasses import dataclass
 
-from .errors import HubitIndexError
+from .errors import HubitIndexError, HubitWorkerError
 
 IDX_WILDCARD = ":"
 REGEX_IDXID = r"\[(.*?)\]"
+
+
+@dataclass
+class HubitModelComponent:
+    def _validate(self):
+        return True
+
+
+@dataclass
+class HubitModelConfig:
+    components: List[HubitWorkerError]
+
+    def _validate(self):
+        return True
+
+
+class HubitModelPath(str):
+    def __init__(self, path: str):
+        self.path = path
+
+    def _validate(self):
+        return True
+
+
+class HubitPath(str):
+    path: str
+
+    def _validate(self):
+        return True
+
+
+class HubitQuery(HubitPath):
+    query: List[HubitPath]
+
+    def _validate(self):
+        return True
 
 
 class LengthNode:

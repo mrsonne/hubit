@@ -14,17 +14,17 @@ POLLTIME_LONG = 0.25
 
 
 class _QueryRunner:
-    def __init__(self, model, mpworkers):
+    def __init__(self, model, use_multi_processing):
         """Internal class managing workers. Is in a model, the query runner
         is responsible for deploying and book keeping workers according
         to a query specified to the model.
 
         Args:
             model (HubitModel): The model to manage
-            mpworkers (bool): Flag indicating if multi-processing should be used
+            use_multi_processing (bool): Flag indicating if multi-processing should be used
         """
         self.model = model
-        self.mpworkers = mpworkers
+        self.use_multi_processing = use_multi_processing
         self.workers = []
         self.workers_working = []
         self.workers_completed = []

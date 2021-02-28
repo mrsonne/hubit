@@ -15,14 +15,14 @@ def simple_query() -> None:
     print(response)
 
 
-def query(hmodel: HubitModel, mpworkers: bool = False) -> None:
+def query(hmodel: HubitModel, use_multi_processing: bool = False) -> None:
     """Demonstrates some query functionality into the thermal part of the
     wall composite model.
 
     Args:
         hmodel (HubitModel): Hubit model to be used
         render (bool, optional): Run query rendering. Defaults to True.
-        mpworkers (bool, optional): Use multiprocessing. Defaults to False.
+        use_multi_processing (bool, optional): Use multiprocessing. Defaults to False.
     """
     # Query validation fails for at
     # try:
@@ -50,7 +50,7 @@ def query(hmodel: HubitModel, mpworkers: bool = False) -> None:
     # Run queries one by one (slow)
     for path in query:
         print(f"Query: {path}")
-        response = hmodel.get(path, mpworkers=mpworkers)
+        response = hmodel.get(path, use_multi_processing=use_multi_processing)
         print(response)
         print("")
 
@@ -61,7 +61,7 @@ def query(hmodel: HubitModel, mpworkers: bool = False) -> None:
     # the results for all the remaining queries
     query = [item for path in query for item in path]
     time3 = time.time()
-    response = hmodel.get(query, mpworkers=mpworkers)
+    response = hmodel.get(query, use_multi_processing=use_multi_processing)
     print(response)
     time4 = time.time()
 
@@ -70,8 +70,10 @@ def query(hmodel: HubitModel, mpworkers: bool = False) -> None:
     print(f"Time for joint queries: {time4 - time3:.1f} s")
 
 
-if __name__ == "__main__":  # Main guard required on windows if mpworkers = True
+if (
+    __name__ == "__main__"
+):  # Main guard required on windows if use_multi_processing = True
     hmodel = get_model()
     use_multiprocessing = True
     # simple_query()
-    query(hmodel, mpworkers=use_multiprocessing)
+    query(hmodel, use_multi_processing=use_multiprocessing)

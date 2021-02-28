@@ -4,7 +4,7 @@ from .utils import get_model, HubitModel
 logging.basicConfig(level=logging.INFO)
 
 
-def query_with_custom_results(hmodel: HubitModel, mpworkers=False) -> None:
+def query_with_custom_results(hmodel: HubitModel, use_multi_processing=False) -> None:
     """
     Demonstrates how to manually set results on the model.
     Hubit then omits re-calculating the results thus bypassing
@@ -39,11 +39,15 @@ def query_with_custom_results(hmodel: HubitModel, mpworkers=False) -> None:
     }
     hmodel.set_results(results_data)
     query = ["segments[:].layers[:].outer_temperature"]
-    response = hmodel.get(query, mpworkers=mpworkers, reuse_results=True)
+    response = hmodel.get(
+        query, use_multi_processing=use_multi_processing, reuse_results=True
+    )
     print(response)
 
 
-if __name__ == "__main__":  # Main guard required on windows if mpworkers = True
+if (
+    __name__ == "__main__"
+):  # Main guard required on windows if use_multi_processing = True
     hmodel = get_model()
     use_multiprocessing = True
-    query_with_custom_results(hmodel, mpworkers=use_multiprocessing)
+    query_with_custom_results(hmodel, use_multi_processing=use_multiprocessing)

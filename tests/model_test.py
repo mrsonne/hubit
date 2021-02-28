@@ -48,7 +48,7 @@ class TestModel(unittest.TestCase):
             model_data, name=modelname, base_path=THIS_DIR, output_path=REL_TMP_DIR
         )
         self.input = yaml.load(yml_input, Loader=yaml.FullLoader)
-        self.mpworkers_values = False, True
+        self.use_multi_processing_values = False, True
 
         # Query which does not consume results
         self.idx = 1
@@ -151,10 +151,10 @@ class TestModel(unittest.TestCase):
 
         def test():
             with self.assertRaises(HubitModelNoInputError) as context:
-                self.hmodel.get(queries, mpworkers=mpworkers)
+                self.hmodel.get(queries, use_multi_processing=use_multi_processing)
 
-        for mpworkers in self.mpworkers_values:
-            with self.subTest(mpworkers=mpworkers):
+        for use_multi_processing in self.use_multi_processing_values:
+            with self.subTest(use_multi_processing=use_multi_processing):
                 test()
 
     def test_get_fail_query_error(self):
@@ -166,10 +166,10 @@ class TestModel(unittest.TestCase):
 
         def test():
             with self.assertRaises(HubitModelQueryError) as context:
-                self.hmodel.get(queries, mpworkers=mpworkers)
+                self.hmodel.get(queries, use_multi_processing=use_multi_processing)
 
-        for mpworkers in self.mpworkers_values:
-            with self.subTest(mpworkers=mpworkers):
+        for use_multi_processing in self.use_multi_processing_values:
+            with self.subTest(use_multi_processing=use_multi_processing):
                 test()
 
     def test_get_level0(self):
@@ -181,14 +181,16 @@ class TestModel(unittest.TestCase):
         queries = [self.querystr_level0]
 
         def test():
-            response = self.hmodel.get(queries, mpworkers=mpworkers, validate=False)
+            response = self.hmodel.get(
+                queries, use_multi_processing=use_multi_processing, validate=False
+            )
 
             self.assertSequenceEqual(
                 response[self.querystr_level0], self.expected_result_level0
             )
 
-        for mpworkers in self.mpworkers_values:
-            with self.subTest(mpworkers=mpworkers):
+        for use_multi_processing in self.use_multi_processing_values:
+            with self.subTest(use_multi_processing=use_multi_processing):
                 test()
 
     def test_get_level1(self):
@@ -199,51 +201,61 @@ class TestModel(unittest.TestCase):
         queries = [self.querystr_level1]
 
         def test():
-            response = self.hmodel.get(queries, mpworkers=mpworkers, validate=True)
+            response = self.hmodel.get(
+                queries, use_multi_processing=use_multi_processing, validate=True
+            )
             self.assertSequenceEqual(
                 response[self.querystr_level1], level1_results_at_idx(self.input, 1)
             )
 
-        for mpworkers in self.mpworkers_values:
-            with self.subTest(mpworkers=mpworkers):
+        for use_multi_processing in self.use_multi_processing_values:
+            with self.subTest(use_multi_processing=use_multi_processing):
                 test()
 
     def test_comsume_2_idxids(self):
         """Level 1 fixed, level 2 fixed"""
-        mpworkers = False
+        use_multi_processing = False
         self.hmodel.set_input(self.input)
         response = self.hmodel.get(
-            ["first_coor[0].second_coor[0].value"], mpworkers=mpworkers, validate=False
+            ["first_coor[0].second_coor[0].value"],
+            use_multi_processing=use_multi_processing,
+            validate=False,
         )
         expected_response = {"first_coor[0].second_coor[0].value": 1.0}
         self.assertDictEqual(response, expected_response)
 
     def test_comsume_2_idxids_idxwc(self):
         """Level 1 fixed, index wildcard on level 2"""
-        mpworkers = False
+        use_multi_processing = False
         self.hmodel.set_input(self.input)
         response = self.hmodel.get(
-            ["first_coor[0].second_coor[:].value"], mpworkers=mpworkers, validate=False
+            ["first_coor[0].second_coor[:].value"],
+            use_multi_processing=use_multi_processing,
+            validate=False,
         )
         expected_response = {"first_coor[0].second_coor[:].value": [1.0, 2.0]}
         self.assertDictEqual(response, expected_response)
 
     def test_comsume_2_idxids_idxwc_a(self):
         """Index wildcard on level 1. Level 2 fixed"""
-        mpworkers = False
+        use_multi_processing = False
         self.hmodel.set_input(self.input)
         response = self.hmodel.get(
-            ["first_coor[:].second_coor[0].value"], mpworkers=mpworkers, validate=False
+            ["first_coor[:].second_coor[0].value"],
+            use_multi_processing=use_multi_processing,
+            validate=False,
         )
         expected_response = {"first_coor[:].second_coor[0].value": [1.0, 3.0]}
         self.assertDictEqual(response, expected_response)
 
     def test_comsume_2_idxids_2_idxwc(self):
         """Level 1 fixed, index wildcard on level 2"""
-        mpworkers = False
+        use_multi_processing = False
         self.hmodel.set_input(self.input)
         response = self.hmodel.get(
-            ["first_coor[:].second_coor[:].value"], mpworkers=mpworkers, validate=False
+            ["first_coor[:].second_coor[:].value"],
+            use_multi_processing=use_multi_processing,
+            validate=False,
         )
         expected_response = {
             "first_coor[:].second_coor[:].value": [[1.0, 2.0], [3.0, 4.0]]
@@ -258,13 +270,15 @@ class TestModel(unittest.TestCase):
         queries = [self.querystr_level0_slice]
 
         def test():
-            response = self.hmodel.get(queries, mpworkers=mpworkers, validate=True)
+            response = self.hmodel.get(
+                queries, use_multi_processing=use_multi_processing, validate=True
+            )
             self.assertSequenceEqual(
                 response[self.querystr_level0_slice], self.expected_result_level0_slice
             )
 
-        for mpworkers in self.mpworkers_values:
-            with self.subTest(mpworkers=mpworkers):
+        for use_multi_processing in self.use_multi_processing_values:
+            with self.subTest(use_multi_processing=use_multi_processing):
                 test()
 
     def test_get_last(self):
@@ -274,9 +288,11 @@ class TestModel(unittest.TestCase):
         self.skipTest("Catch22 in normalize, prune, expand")
         self.hmodel.set_input(self.input)
         queries = [self.querystr_level0_last]
-        for mpworkers in self.mpworkers_values:
-            with self.subTest(mpworkers=mpworkers):
-                response = self.hmodel.get(queries, mpworkers=mpworkers)
+        for use_multi_processing in self.use_multi_processing_values:
+            with self.subTest(use_multi_processing=use_multi_processing):
+                response = self.hmodel.get(
+                    queries, use_multi_processing=use_multi_processing
+                )
                 self.assertSequenceEqual(
                     response[self.querystr_level0_last], self.expected_result_level0
                 )
@@ -287,9 +303,9 @@ class TestModel(unittest.TestCase):
         """
         self.skipTest("Not implemented")
         self.hmodel.set_input(self.input)
-        for mpworkers in self.mpworkers_values:
-            with self.subTest(mpworkers=mpworkers):
-                response = self.hmodel.get(mpworkers=mpworkers)
+        for use_multi_processing in self.use_multi_processing_values:
+            with self.subTest(use_multi_processing=use_multi_processing):
+                response = self.hmodel.get(use_multi_processing=use_multi_processing)
                 print(response)
 
     def test_sweep(self):

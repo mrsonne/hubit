@@ -85,7 +85,7 @@ def _get(
     the_err = None
     try:
         watcher.start()
-        if queryrunner.mpworkers:
+        if queryrunner.use_multi_processing:
             with Manager() as manager:
                 success = queryrunner._deploy(
                     manager,
@@ -204,7 +204,7 @@ class _HubitModel:
             direction = -1
 
             # Run validation since this returns (dummy) workers
-            workers = self._validate_query(queries, mpworkers=False)
+            workers = self._validate_query(queries, use_multi_processing=False)
 
             with dot.subgraph(
                 name="cluster_request", node_attr={"shape": "box"}
@@ -676,12 +676,12 @@ class _HubitModel:
             self.component_for_name.values(), self.inputdata
         )
 
-    def _validate_query(self, queries, mpworkers=False):
+    def _validate_query(self, queries, use_multi_processing=False):
         """
         Run the query using a dummy calculation to see that all required
         input and results are available
         """
-        qrunner = _QueryRunner(self, mpworkers)
+        qrunner = _QueryRunner(self, use_multi_processing)
         _get(qrunner, queries, self.flat_input, dryrun=True)
         return qrunner.workers
 

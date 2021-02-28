@@ -114,5 +114,7 @@ def make_sweep(hmodel: HubitModel, nproc: Any = None) -> None:
     print("\n".join(lines))
 
 
-if __name__ == "__main__":  # Main guard required on windows if mpworkers = True
+if (
+    __name__ == "__main__"
+):  # Main guard required on windows if use_multi_processing = True
     make_sweep(get_model(), nproc=None)

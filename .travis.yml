@@ -13,22 +13,22 @@ script:
 - coverage report -m
 - black --check .
 - mypy hubit/model.py
-after_success: coveralls
+# after_success: coveralls
 stages:
 - test
 - deploy
 jobs:
   include:
-    - stage: test
-      script: skip
-    - stage: deploy
-      script: skip
-      python: 3.8
-      deploy:
-        provider: pypi
-        user: mrsonne
-        password:
-          secure: k9ex62aJCMJXbb3z4dNA5xPE3AM5Js2G0h2Qdcq/E0FexnZgOjjwT93h1AJeXP3rYafzcEfWwYxfzwbIVEsTd8zInqhz/MH11zUUj+tHUWG7IM9ElKO/c6M/XFwKqfAc3PQSpJo1mOtDJBCEq0vY41U/YsKOdNPUBveBANIcUW/CSBBOI7SwF1KcbLqXjkPNz1IA9l7C1weiFJvnEv9PCv75tMaJ9fasJFle4SNsPUIaOjxuD2bqRDf9ZbYe3p+kP2NXSoAD9DpkvqJ3aWGZlIpWhRPdQ83vWAUMGqU6ltanUC+ki+XFCvAJCv7TalLMiZEg7uNiB5L3KUgIQs5rLC8juZRSqkQiZl8zdLrSBymsFzsRZzhMH7XnGSI3yQIGWbnpLiw9bPKVtInCTGwrUe77D9SHxcWdGbHxXFwmKnKoV6mi+d45O6L1mpdwDikLl62U0bk28M/8WX16qRlj2XXT2Jbgl0XUakk7qmG/edQBx9ZWCozveY1ffRdmTexhg4sStqkeEwFsRGMZH2leAmPVFX+t0qvfPg+cOSrVjv2tZYsLw7GWqoIi8sIDKzNFAef/sx1yNFM+h4J5XmUnxgQQi0j0OPwo36+x3/AZwyLnoorVXTkORFvhSM3VbxCrWFbjbNihwGlfN/3PlKn/BAeRL/eA89Q11mSP8nDEtS0=
-        on:
-          tags: true
-        distributions: "sdist bdist_wheel"
+  - stage: test
+    script: skip
+  - stage: deploy
+    script: skip
+    python: 3.8
+    deploy:
+      provider: pypi
+      user: __token__
+      password:
+        secure: L2ZMhXZ1aJSZoR9nCVDQhuQvG21BL1xJvAx4sn5S8l7qlHI9q70LZXUmRoAt5A/hmBfL13LBjtlxgL4PdN4AFb9ji6zrvMMy6Onts6ftjz9nyc/AxKevtbsJxSn6a/T9jsxskAB3iDldnAKtn56OIGo4JYgBRnqliGbbG1w2Kb+Oo8hBHOtFSSLi3Xp4WO8WLtz4E4G0fjY7vh+gwhY1dMhP0h0ZRauXDRRhAZIizhwt2zLIILXtO0OEMnjoHbGKW8cRApoepdOzeTiplXe9hLMazK5U8PR4b2hve1lsExml95BvkGBoMxEzWQH0JBNgiVqYZMnkplSAx8e6Eit9Yucjn7iFnJbf/w2fJkdM0Q6i9hKtZ1912fAIL7qIrZpeZvNsk5+etDgrBKMkYIGCxiuLOOujkt4g77nkyZimyB9nmUPteiMPGFAX+Izi+0g2yGp3SrBJcAf1HWvlroC/igzga5v9z8T3py4X3XWB7J6CWMUGupWAnAYFG5sHxe89aBc3lTkFSK9HQLKbjKhABeU07oiiEVBZJgep0VGzqh11vzOzPaGavDSjZ0Dvc1Q4UbkX2bSkDDbMcLHs5Dv4nQ/zvE/0TfRQ/TnC4qlci42Re2BOXELhMDnPhf3Z9Rq9STa/894JOEhDoP2Gk/8k8to1uvcrhKWRca9fx/vqPAc=
+      on:
+        tags: true
+      distributions: sdist bdist_wheel

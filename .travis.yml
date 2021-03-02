@@ -2,12 +2,12 @@ dist: xenial
 language: python
 python:
 - 3.7
-- 3.8
-- 3.9-dev
-before_install:
-- sudo apt-get install graphviz
-install:
-- pip install -e .[dev]
+# - 3.8
+# - 3.9-dev
+# before_install:
+# - sudo apt-get install graphviz
+# install:
+# - pip install -e .[dev]
 script:
 - coverage run --source=hubit -m unittest discover -s ./tests -p "*_test.py"
 - coverage report -m
@@ -19,6 +19,8 @@ stages:
 - deploy
 jobs:
   include:
+    - stage: test
+      script: skip
     - stage: deploy
       script: skip
       python: 3.8

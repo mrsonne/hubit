@@ -1,8 +1,8 @@
-﻿[![Build Status](https://travis-ci.com/mrsonne/hubit.svg?branch=master)](https://travis-ci.org/mrsonne/hubit)
+﻿[![Build Status](https://travis-ci.com/mrsonne/hubit.svg?branch=master)](https://travis-ci.com/mrsonne/hubit)
 [![Coverage Status](https://coveralls.io/repos/github/mrsonne/hubit/badge.svg?branch=master)](https://coveralls.io/github/mrsonne/hubit?branch=master)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
 [![Version](https://img.shields.io/pypi/v/hubit.svg)](https://pypi.python.org/pypi/hubit/)
-[![Python versions](https://img.shields.io/pypi/pyversions/hubit.svg)](https://pypi.python.org/pypi/dacite/)
+[![Python versions](https://img.shields.io/pypi/pyversions/hubit.svg)](https://pypi.python.org/pypi/hubit/)
 
 # hubit - a calculation hub  
 

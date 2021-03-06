@@ -2,7 +2,7 @@ from pprint import pprint
 from .shared import get_model
 
 # use_results = "snapshot"
-use_results = 'none'
+use_results = "none"
 
 hmodel1 = get_model("model1.yml")
 query = ["cars[0].price", "cars[1].price"]

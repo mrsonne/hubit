@@ -131,6 +131,10 @@ class HubitModel(_HubitModel):
         after any update. The saved snapshot will be used when submitting a query if the
         use_results switch set to 'snapshot' in get() method if a valid snapshot exists.
 
+        This feature is useful when you want to avoid calculating the same results multiple
+        times. Further, if a calculation is stopped or crashes a snapshot provides a restart
+        file if the calculation is resubmitted.
+
         Warning: The snapshots are tied only to the content of the model configuration
         file and the model input. If these two factors are unchanged ´hubit´ will
         use a snapshot if it exists and if the "use_results" switch set to "snapshot".

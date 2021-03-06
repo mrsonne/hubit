@@ -1,5 +1,7 @@
 from __future__ import annotations
 from typing import List, Dict, Any
+import pickle
+import hashlib
 from multiprocessing import Manager
 import logging
 import os
@@ -29,8 +31,6 @@ from .errors import (
     HubitModelValidationError,
     HubitModelQueryError,
 )
-
-THISPATH = os.path.dirname(os.path.realpath(__file__))
 
 
 def default_skipfun(_: Dict[str, Any]) -> bool:
@@ -137,6 +137,14 @@ class _HubitModel:
 
     def __init__(self):
         pass
+
+    def _get_id(self):
+        """
+        ID of the model based on configuration and input
+        """
+        return hashlib.md5(
+            pickle.dumps({"input": self.inputdata, "cfg": self.cfg})
+        ).hexdigest()
 
     def _get_dot(self, queries: List[str], file_idstr: str):
         """

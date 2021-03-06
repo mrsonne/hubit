@@ -1,4 +1,5 @@
 from __future__ import annotations
+import pathlib
 from typing import Any, Callable, List, Tuple, Dict
 import logging
 import os
@@ -22,6 +23,11 @@ from .errors import (
     HubitModelNoInputError,
     HubitModelNoResultsError,
 )
+
+THISPATH = os.path.dirname(os.path.realpath(__file__))
+REL_TMP_DIR = "./tmp"
+THIS_DIR = os.path.dirname(os.path.realpath(__file__))
+TMP_DIR = os.path.join(THIS_DIR, REL_TMP_DIR)
 
 
 class HubitModel(_HubitModel):
@@ -86,6 +92,12 @@ class HubitModel(_HubitModel):
         self.flat_input: Dict[str, Any] = {}
         self.flat_results: Dict[str, Any] = {}
         self._input_is_set = False
+        self._save_incremental_snapshots = False
+
+        self._snapshot_dir = TMP_DIR
+        self._snapshot_file_path = os.path.join(
+            self._snapshot_dir, f"{self._get_id()}.yml"
+        )
 
     @classmethod
     def from_file(
@@ -112,6 +124,25 @@ class HubitModel(_HubitModel):
                     os.path.join(base_path, component["path"])
                 )
         return cls(components, name=name, output_path=output_path, base_path=base_path)
+
+    def set_save_incremental_snapshots(self, save_incremental_snapshots: bool):
+        """
+        Set the incremental snapshot switch. If True the results object will be saved to disk
+        after any update. The saved snapshot will be used when submitting a query if the
+        use_results switch set to 'snapshot' in get() method if a valid snapshot exists.
+
+        Warning: The snapshots are tied only to the content of the model configuration
+        file and the model input. If these two factors are unchanged ´hubit´ will
+        use a snapshot if it exists and if the "use_results" switch set to "snapshot".
+        Hubit does not check if the calculation code has changed. Therefore, using
+        snapshots cannot be recommended in the development phase.
+
+        Arguments:
+            incremental_snapshot (bool): Value of the incremental snapshot switch.
+        """
+        self._save_incremental_snapshots = save_incremental_snapshots
+        if self._save_incremental_snapshots:
+            pathlib.Path(self._snapshot_dir).mkdir(parents=True, exist_ok=True)
 
     def set_input(self, input_data: Dict[str, Any]) -> HubitModel:
         """
@@ -181,7 +212,7 @@ class HubitModel(_HubitModel):
         query,
         use_multi_processing: bool = False,
         validate: bool = False,
-        reuse_results: bool = False,
+        use_results: str = "none",
     ) -> Dict[str, Any]:
         """Generate respose corresponding to the 'query'
 
@@ -189,7 +220,7 @@ class HubitModel(_HubitModel):
             query ([List]): Query paths
             use_multi_processing (bool, optional): Flag indicating if the respose should be generated using (async) multiprocessing. Defaults to False.
             validate (bool, optional): Flag indicating if the query should be validated prior to execution. Defaults to False.
-            reuse_results (bool, optional). If True, results already set on the model will be used as-is i.e. not recalculated. Defaults to False.
+            use_results (str, optional). Should previously saved results be used. If 'current' the results set on the model will be used as-is i.e. not recalculated. If 'snapshot' a saved snapshot will be used if it exists. Defaults to 'none' i.e no save saved results will be used.
 
         Raises:
             HubitModelNoInputError: If no input is set on the model
@@ -200,7 +231,7 @@ class HubitModel(_HubitModel):
         if not self._input_is_set:
             raise HubitModelNoInputError()
 
-        if reuse_results and self.flat_results is None:
+        if use_results == "current" and self.flat_results is None:
             raise HubitModelNoResultsError()
 
         # Make a query runner
@@ -209,10 +240,24 @@ class HubitModel(_HubitModel):
         if validate:
             _get(qrunner, query, self.flat_input, dryrun=True)
 
-        if reuse_results:
+        if use_results == "current":
+            logging.info("Using current model results.")
             _flat_results = self.flat_results
-        else:
+        elif use_results == "snapshot":
+            if os.path.exists(self._snapshot_file_path):
+                logging.info("Using results snapshot.")
+                with open(self._snapshot_file_path, "r") as stream:
+                    _flat_results = yaml.load(stream, Loader=yaml.FullLoader)
+            else:
+                logging.info("No results snapshot found.")
+                _flat_results = {}
+        elif use_results == "none":
+            logging.info("No results used.")
             _flat_results = {}
+        else:
+            raise HubitError(
+                f"Unknown value '{use_results}' for argument 'use_results'"
+            )
 
         response, self.flat_results = _get(
             qrunner, query, self.flat_input, _flat_results

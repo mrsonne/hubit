@@ -8,7 +8,7 @@ def query_with_precomputed_results(
     hmodel: HubitModel, use_multi_processing: bool = False
 ) -> None:
     """
-    Demonstrates the reuse_results flag.
+    Demonstrates the use_results flag.
 
     Here two identical queries are performed in sequence. The second is very fast
     since it we reused results already stored on the model. Thus, in the
@@ -21,7 +21,7 @@ def query_with_precomputed_results(
 
     # Same query and reuse stored results
     response = hmodel.get(
-        query, use_multi_processing=use_multi_processing, reuse_results=True
+        query, use_multi_processing=use_multi_processing, use_results="current"
     )
 
     print("response", response)

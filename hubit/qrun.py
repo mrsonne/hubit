@@ -5,7 +5,7 @@ import os
 import sys
 import time
 from typing import Any
-
+import yaml
 from .worker import _Worker
 from .errors import HubitModelComponentError
 
@@ -240,15 +240,19 @@ class _QueryRunner:
         """
         self.workers_working.append(worker)
 
-    def _set_worker_completed(self, worker, all_results):
+    def _set_worker_completed(self, worker, flat_results):
         """
         Called when results attribute has been populated
         """
         self.workers_completed.append(worker)
-        self._transfer_results(worker, all_results)
+        self._transfer_results(worker, flat_results)
+        # Save results to disk
+        if self.model._save_incremental_snapshots:
+            with open(self.model._snapshot_file_path, "w") as handle:
+                yaml.dump(flat_results, handle)
         self.workers_working.remove(worker)
 
-    def _transfer_results(self, worker, all_results):
+    def _transfer_results(self, worker, flat_results):
         """
         Transfer results and notify observers. Called from workflow.
         """
@@ -258,7 +262,7 @@ class _QueryRunner:
             if path in self.observers_for_query.keys():
                 for observer in self.observers_for_query[path]:
                     observer.set_consumed_result(path, value)
-            all_results[path] = value
+            flat_results[path] = value
 
     def _watcher(self, queries, flat_results, shutdown_event):
         """

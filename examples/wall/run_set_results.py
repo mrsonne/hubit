@@ -40,7 +40,7 @@ def query_with_custom_results(hmodel: HubitModel, use_multi_processing=False) ->
     hmodel.set_results(results_data)
     query = ["segments[:].layers[:].outer_temperature"]
     response = hmodel.get(
-        query, use_multi_processing=use_multi_processing, reuse_results=True
+        query, use_multi_processing=use_multi_processing, use_results="current"
     )
     print(response)
 

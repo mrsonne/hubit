@@ -134,7 +134,7 @@ class HubitModel(_HubitModel):
         Warning: The snapshots are tied only to the content of the model configuration
         file and the model input. If these two factors are unchanged ´hubit´ will
         use a snapshot if it exists and if the "use_results" switch set to "snapshot".
-        Hubit does not check if the underlying calculation code has changed. Therefore, 
+        Hubit does not check if the underlying calculation code has changed. Therefore,
         using snapshots cannot be recommended in the development phase.
 
         Arguments:

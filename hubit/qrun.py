@@ -247,8 +247,8 @@ class _QueryRunner:
         self.workers_completed.append(worker)
         self._transfer_results(worker, flat_results)
         # Save results to disk
-        if self.model._save_incremental_snapshots:
-            with open(self.model._snapshot_file_path, "w") as handle:
+        if self.model._caching_level in self.model._do_caching:
+            with open(self.model._cache_file_path, "w") as handle:
                 yaml.dump(flat_results, handle)
         self.workers_working.remove(worker)
 

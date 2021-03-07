@@ -12,6 +12,7 @@
 - query the model for specific results thus avoiding explicitly coding (fixed) call graphs and running superfluous calculations,
 - make parameter sweeps,
 - feed old results into new calculations thus augmenting old results objects,
+- incrementally cache results and restart a calculation at a later time,
 - easily run your existing tools in asynchronously in multiple processes,
 - visualize your `hubit` composite model i.e. visualize your existing tools and the attributes that flow between them.
 
@@ -341,7 +342,7 @@ and the corresponding response is
                             [312.0, 1120.0, 178.0, 3400.0]],
 ```
 
-## Rendering
+### Rendering
 If Graphviz is installed `hubit` can render models and queries. In the example below we have rendered the query `cars[0].price` i.e. the price of the car at index 0.
 
 <img src="https://github.com/mrsonne/hubit/blob/develop/examples/car/images/query_car_2.png" width="1000">
@@ -371,6 +372,32 @@ hmodel.validate(['cars[0].price'])
 ```
 will validate various aspects of the query.
 
+### Caching
+
+#### Model level caching. 
+By default hubit `never` saves results internally. A `hubit` model can, however, write results to disk automatically by using the `set_caching_level` method. Results can be saved either  `incrementally` or `after_execution`. Results caching is useful when you want to avoid spending time calculating the same results multiple times. Another use case is when a calculation need to be stopped before it is finished or when a calculation crashes. In such cases the calculation can be restarted from the last saved results object. The overhead introduced by caching makes it especially useful for CPU bound models.
+
+__Warning__. Cached results are tied only to the content of the model configuration
+file and the model input. `hubit` does not check if the underlying calculation code has changed. Therefore, using results caching while components are in development is not recommended.
+
+`hubit`'s behavior in four parameter combinations is summarized below
+
+|Write<sup>*</sup>  | Read<sup>**</sup>   |  Behavior |
+|-------|-------|-----------|
+|Yes    | Yes   |  Any saved results for the model are loaded. These results will be saved (incrementally or after execution) and may be augmented in the new run depending on the new query |
+|Yes    | No    |  Model results are saved incrementally or after execution. These new results overwrite any existing saved results for the model |
+|No     | Yes   |  Any saved results for the model are loaded. No results are saved and therefore the saved results will remain the same after execution.
+|No     | No    |  No results are saved and no results are loaded into the model |
+|       |       |           |
+
+<sup>*</sup> "Yes" corresponds to setting the caching level to either `incrementally` or `after_execution` using the `set_caching_level` method. "No" corresponds to caching level `never`. <sup>**</sup> "Yes" corresponds `use_results="cached"` in the `get` method while "No" corresponds to `use_results="none"`.
+
+The model cache can be cleared using the `clear_cache` method.
+
+HAS_CACHED_RESULTS
+
+#### Worker-level caching 
+TODO. Not implemented yet
 
 # Examples
 

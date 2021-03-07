@@ -92,12 +92,10 @@ class HubitModel(_HubitModel):
         self.flat_input: Dict[str, Any] = {}
         self.flat_results: Dict[str, Any] = {}
         self._input_is_set = False
-        self._save_incremental_snapshots = False
+        self._caching_level = "none"
 
-        self._snapshot_dir = TMP_DIR
-        self._snapshot_file_path = os.path.join(
-            self._snapshot_dir, f"{self._get_id()}.yml"
-        )
+        self._cache_dir = TMP_DIR
+        self._cache_file_path = os.path.join(self._cache_dir, f"{self._get_id()}.yml")
 
     @classmethod
     def from_file(
@@ -125,28 +123,28 @@ class HubitModel(_HubitModel):
                 )
         return cls(components, name=name, output_path=output_path, base_path=base_path)
 
-    def set_save_incremental_snapshots(self, save_incremental_snapshots: bool):
+    def clear_cache(self):
         """
-        Set the incremental snapshot switch. If True the results object will be saved to disk
-        after any update. The saved snapshot will be used when submitting a query if the
-        use_results switch set to 'snapshot' in get() method if a valid snapshot exists.
+        Clear the cache for the current model.
+        """
+        if os.path.exists(self._cache_file_path):
+            os.remove(self._cache_file_path)
 
-        This feature is useful when you want to avoid calculating the same results multiple
-        times. Further, if a calculation is stopped or crashes a snapshot provides a restart
-        file if the calculation is resubmitted.
-
-        Warning: The snapshots are tied only to the content of the model configuration
-        file and the model input. If these two factors are unchanged ´hubit´ will
-        use a snapshot if it exists and if the "use_results" switch set to "snapshot".
-        Hubit does not check if the underlying calculation code has changed. Therefore,
-        using snapshots cannot be recommended in the development phase.
+    def set_caching_level(self, caching_level: str):
+        """
+        Set the caching level.
 
         Arguments:
-            incremental_snapshot (bool): Value of the incremental snapshot switch.
+            caching_level (str): Valid levels are: "none", "incrementally", "after_execution".
         """
-        self._save_incremental_snapshots = save_incremental_snapshots
-        if self._save_incremental_snapshots:
-            pathlib.Path(self._snapshot_dir).mkdir(parents=True, exist_ok=True)
+        if not caching_level in self._valid_caching_levels:
+            raise HubitError(
+                f"Unknown caching level '{caching_level}'. Valid options are: {', '.join(self._valid_caching_levels)}"
+            )
+
+        self._caching_level = caching_level
+        if self._caching_level in self._do_caching:
+            pathlib.Path(self._cache_dir).mkdir(parents=True, exist_ok=True)
 
     def set_input(self, input_data: Dict[str, Any]) -> HubitModel:
         """
@@ -224,7 +222,7 @@ class HubitModel(_HubitModel):
             query ([List]): Query paths
             use_multi_processing (bool, optional): Flag indicating if the respose should be generated using (async) multiprocessing. Defaults to False.
             validate (bool, optional): Flag indicating if the query should be validated prior to execution. Defaults to False.
-            use_results (str, optional). Should previously saved results be used. If 'current' the results set on the model will be used as-is i.e. not recalculated. If 'snapshot' a saved snapshot will be used if it exists. Defaults to 'none' i.e no save saved results will be used.
+            use_results (str, optional). Should previously saved results be used. If 'current' the results set on the model will be used as-is i.e. not recalculated. If 'cached' internally saved results will be used if they exists. Defaults to "none" i.e no cached results will be used.
 
         Raises:
             HubitModelNoInputError: If no input is set on the model
@@ -247,13 +245,13 @@ class HubitModel(_HubitModel):
         if use_results == "current":
             logging.info("Using current model results.")
             _flat_results = self.flat_results
-        elif use_results == "snapshot":
-            if os.path.exists(self._snapshot_file_path):
-                logging.info("Using results snapshot.")
-                with open(self._snapshot_file_path, "r") as stream:
+        elif use_results == "cached":
+            if os.path.exists(self._cache_file_path):
+                logging.info("Using cached results.")
+                with open(self._cache_file_path, "r") as stream:
                     _flat_results = yaml.load(stream, Loader=yaml.FullLoader)
             else:
-                logging.info("No results snapshot found.")
+                logging.info("No cached results found.")
                 _flat_results = {}
         elif use_results == "none":
             logging.info("No results used.")

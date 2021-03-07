@@ -135,12 +135,18 @@ class _HubitModel:
     Contains all private methods and should not be used. Use the public version model.HubitModel
     """
 
+    _valid_caching_levels = "never", "incrementally", "after_execution"
+    _do_caching = "incrementally", "after_execution"
+
     def __init__(self):
         pass
 
     def _get_id(self):
         """
         ID of the model based on configuration and input
+
+        TODO: We could easily include the entry point function which includes the version
+        https://stackoverflow.com/questions/3431825/generating-an-md5-checksum-of-a-file
         """
         return hashlib.md5(
             pickle.dumps({"input": self.inputdata, "cfg": self.cfg})

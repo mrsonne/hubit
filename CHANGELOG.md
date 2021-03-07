@@ -6,8 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- Save results snapshot incrementally (for each new results entry) and allow reuse. Useful if original calculation was, for some reason, stopped or to bypass unintended re-calculations. The overhead introduced by the writing of snapshots makes this feature especially useful for CPU bound models.
-
+- Model-level results caching. 
+- Worker-level results caching. 
 
 ## [0.1.0] - 2021-02-28
 ### Added

@@ -135,8 +135,8 @@ class _HubitModel:
     Contains all private methods and should not be used. Use the public version model.HubitModel
     """
 
-    _valid_caching_levels = "never", "incrementally", "after_execution"
-    _do_caching = "incrementally", "after_execution"
+    _valid_caching_levels = "never", "incremental", "after_execution"
+    _do_caching = "incremental", "after_execution"
 
     def __init__(self):
         pass

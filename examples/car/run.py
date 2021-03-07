@@ -1,8 +1,8 @@
 from pprint import pprint
 from .shared import get_model
 
-# caching_level = "incrementally"
-caching_level = "never"
+caching_level = "incremental"
+# caching_level = "never"
 # use_results = "cached"
 use_results = "none"
 

@@ -135,7 +135,7 @@ class HubitModel(_HubitModel):
         Set the caching level.
 
         Arguments:
-            caching_level (str): Valid levels are: "none", "incrementally", "after_execution".
+            caching_level (str): Valid levels are: "none", "incremental", "after_execution".
         """
         if not caching_level in self._valid_caching_levels:
             raise HubitError(

@@ -367,7 +367,15 @@ class TestModel(unittest.TestCase):
                 with self.subTest():
                     self.assertTrue(self.hmodel.has_cached_results())
 
-                # Since there are cached results we expect no workers
+                # There are cached results but we do not use them i.e. 1 worker
+                self.hmodel.get(query, use_results="none", validate=False)
+                expected_worker_count = 1
+                with self.subTest():
+                    self.assertEqual(
+                        len(self.hmodel._qrunner.workers), expected_worker_count
+                    )
+
+                # There are cached results and we use them i.e. we expect no workers
                 self.hmodel.get(query, use_results="cached", validate=False)
                 expected_worker_count = 0
                 with self.subTest():

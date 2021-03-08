@@ -338,5 +338,34 @@ class TestModel(unittest.TestCase):
         with self.subTest():
             self.assertSequenceEqual(calc_responses, expected_results)
 
+    def test_caching(self):
+        """"""
+        self.hmodel.set_input(self.input)
+
+        # Clear the cache and check that it's cleared
+        self.hmodel.clear_cache()
+        with self.subTest():
+            self.assertFalse(self.hmodel.has_cached_results())
+
+        # Set caching after execution and do a query
+        self.hmodel.set_caching_level("after_execution")
+        query = [self.querystr_level0]
+        self.hmodel.get(query, use_results="cached", validate=False)
+
+        # Since there is no cache we expect one worker (level 0 query)
+        expected_worker_count = 1
+        with self.subTest():
+            self.assertEqual(len(self.hmodel._qrunner.workers), expected_worker_count)
+
+        # We expect cached results
+        with self.subTest():
+            self.assertTrue(self.hmodel.has_cached_results())
+
+        # Since there are cached results we expect no workers
+        self.hmodel.get(query, use_results="cached", validate=False)
+        expected_worker_count = 0
+        with self.subTest():
+            self.assertEqual(len(self.hmodel._qrunner.workers), expected_worker_count)
+
     if __name__ == "__main__":
         unittest.main()

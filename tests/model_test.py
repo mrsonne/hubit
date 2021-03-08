@@ -359,7 +359,9 @@ class TestModel(unittest.TestCase):
                 # Since there is no cache we expect one worker (level 0 query)
                 expected_worker_count = 1
                 with self.subTest():
-                    self.assertEqual(len(self.hmodel._qrunner.workers), expected_worker_count)
+                    self.assertEqual(
+                        len(self.hmodel._qrunner.workers), expected_worker_count
+                    )
 
                 # We expect cached results
                 with self.subTest():
@@ -369,7 +371,9 @@ class TestModel(unittest.TestCase):
                 self.hmodel.get(query, use_results="cached", validate=False)
                 expected_worker_count = 0
                 with self.subTest():
-                    self.assertEqual(len(self.hmodel._qrunner.workers), expected_worker_count)
+                    self.assertEqual(
+                        len(self.hmodel._qrunner.workers), expected_worker_count
+                    )
 
     if __name__ == "__main__":
         unittest.main()

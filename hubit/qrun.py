@@ -282,3 +282,8 @@ class _QueryRunner:
 
             should_stop = all([query in flat_results.keys() for query in queries])
             time.sleep(POLLTIME)
+
+        # Save results
+        if self.model._caching_level == 'after_execution':
+            with open(self.model._cache_file_path, "w") as handle:
+                yaml.dump(flat_results, handle)

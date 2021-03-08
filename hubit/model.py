@@ -249,16 +249,16 @@ class HubitModel(_HubitModel):
             raise HubitModelNoResultsError()
 
         # Make a query runner
-        qrunner = _QueryRunner(self, use_multi_processing)
+        self._qrunner = _QueryRunner(self, use_multi_processing)
 
         if validate:
-            _get(qrunner, query, self.flat_input, dryrun=True)
+            _get(self._qrunner, query, self.flat_input, dryrun=True)
 
         if use_results == "current":
             logging.info("Using current model results.")
             _flat_results = self.flat_results
         elif use_results == "cached":
-            if os.path.exists(self._cache_file_path):
+            if self.has_cached_results():
                 logging.info("Using cached results.")
                 with open(self._cache_file_path, "r") as stream:
                     _flat_results = yaml.load(stream, Loader=yaml.FullLoader)
@@ -274,7 +274,7 @@ class HubitModel(_HubitModel):
             )
 
         response, self.flat_results = _get(
-            qrunner, query, self.flat_input, _flat_results
+            self._qrunner, query, self.flat_input, _flat_results
         )
         return response
 

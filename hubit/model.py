@@ -94,6 +94,9 @@ class HubitModel(_HubitModel):
         self._input_is_set = False
         self._caching_level = "none"
 
+        # Set the query runner. Saving it on the instance is used for testing
+        self._qrunner: Any = None
+
         self._cache_dir = TMP_DIR
         self._cache_file_path = os.path.join(self._cache_dir, f"{self._get_id()}.yml")
 
@@ -123,11 +126,20 @@ class HubitModel(_HubitModel):
                 )
         return cls(components, name=name, output_path=output_path, base_path=base_path)
 
+    def has_cached_results(self) -> bool:
+        """
+        Check if the model has cached results
+
+        Returns:
+            bool: The result of the check
+        """
+        return os.path.exists(self._cache_file_path)
+
     def clear_cache(self):
         """
         Clear the cache for the current model.
         """
-        if os.path.exists(self._cache_file_path):
+        if self.has_cached_results():
             os.remove(self._cache_file_path)
 
     def set_caching_level(self, caching_level: str):

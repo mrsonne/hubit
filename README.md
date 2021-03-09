@@ -392,7 +392,7 @@ file and the model input. `hubit` does not check if the underlying calculation c
 
 <sup>*</sup> "Yes" corresponds to setting the caching level to either `incremental` or `after_execution` using the `set_caching_level` method. "No" corresponds to caching level `never`. <sup>**</sup> "Yes" corresponds `use_results="cached"` in the `get` method while "No" corresponds to `use_results="none"`.
 
-The model cache can be cleared using the `clear_cache` method on a `hubit` model. To check if a model has an associated cached result use `has_cached_results` on a `hubit` model. Model-level cache for all models can be cleared by using `hubit.clear_hubit_cache()`.
+The model cache can be cleared using the `clear_cache` method on a `hubit` model. To check if a model has an associated cached result use `has_cached_results` method on a `hubit` model. Cached results for all models can be cleared by using `hubit.clear_hubit_cache()`.
 
 #### Worker-level caching 
 TODO. Not implemented yet

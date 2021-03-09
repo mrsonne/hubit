@@ -2,9 +2,9 @@ VERSION = "0.1.0"
 
 import shutil
 import os
+
 # Make HubitModel available as from hubit import model
 from .model import HubitModel, _CACHE_DIR
-
 
 
 def clear_hubit_cache():

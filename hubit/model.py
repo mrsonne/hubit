@@ -24,10 +24,9 @@ from .errors import (
     HubitModelNoResultsError,
 )
 
-THISPATH = os.path.dirname(os.path.realpath(__file__))
-REL_TMP_DIR = "./tmp"
-THIS_DIR = os.path.dirname(os.path.realpath(__file__))
-TMP_DIR = os.path.join(THIS_DIR, REL_TMP_DIR)
+_CACHE_DIR = ".cache"
+_HUBIT_DIR = os.path.dirname(os.path.realpath(__file__))
+_CACHE_DIR = os.path.join(_HUBIT_DIR, _CACHE_DIR)
 
 
 class HubitModel(_HubitModel):
@@ -97,7 +96,7 @@ class HubitModel(_HubitModel):
         # Set the query runner. Saving it on the instance is used for testing
         self._qrunner: Any = None
 
-        self._cache_dir = TMP_DIR
+        self._cache_dir = _CACHE_DIR
         self._cache_file_path = os.path.join(self._cache_dir, f"{self._get_id()}.yml")
 
     @classmethod

@@ -24,7 +24,7 @@ from .errors import (
     HubitModelNoResultsError,
 )
 
-_CACHE_DIR = ".cache"
+_CACHE_DIR = ".hubit_cache"
 _HUBIT_DIR = os.path.dirname(os.path.realpath(__file__))
 _CACHE_DIR = os.path.join(_HUBIT_DIR, _CACHE_DIR)
 

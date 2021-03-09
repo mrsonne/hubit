@@ -1,7 +1,11 @@
 from pprint import pprint
 from .shared import get_model
+from hubit import clear_hubit_cache
+
+clear_hubit_cache()
 
 caching_level = "incremental"
+caching_level = "after_execution"
 # caching_level = "never"
 # use_results = "cached"
 use_results = "none"

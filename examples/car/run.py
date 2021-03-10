@@ -13,7 +13,7 @@ use_results = "none"
 hmodel1 = get_model("model1.yml")
 hmodel1.set_model_caching(caching_mode)
 hmodel1.clear_cache()
-query = ["cars[0].price", "cars[1].price"]
+query = ["cars[0].price", "cars[1].price", "cars[2].price"]
 response = hmodel1.get(query, use_results=use_results)
 print(response)
 

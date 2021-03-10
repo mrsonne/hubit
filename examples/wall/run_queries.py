@@ -48,6 +48,7 @@ def query(hmodel: HubitModel, use_multi_processing: bool = False) -> None:
     time1 = time.time()
 
     # Run queries one by one (slow)
+    hmodel.set_model_caching("after_execution")
     for path in query:
         print(f"Query: {path}")
         response = hmodel.get(path, use_multi_processing=use_multi_processing)
@@ -56,18 +57,34 @@ def query(hmodel: HubitModel, use_multi_processing: bool = False) -> None:
 
     time2 = time.time()
 
+    time3 = time.time()
+    for path in query:
+        response = hmodel.get(
+            path, use_results="cached", use_multi_processing=use_multi_processing
+        )
+    time4 = time.time()
+
     # Run queries as one (fast). The speed increase comes from Hubit's
     # results caching that acknowledges that the first query actually produces
     # the results for all the remaining queries
     query = [item for path in query for item in path]
-    time3 = time.time()
+    time5 = time.time()
     response = hmodel.get(query, use_multi_processing=use_multi_processing)
+    time6 = time.time()
     print(response)
-    time4 = time.time()
+
+    time7 = time.time()
+    response = hmodel.get(
+        query, use_results="cached", use_multi_processing=use_multi_processing
+    )
+    time8 = time.time()
+    print(response)
 
     print(f"\nSummary")
     print(f"Time for separate queries: {time2 - time1:.1f} s")
-    print(f"Time for joint queries: {time4 - time3:.1f} s")
+    print(f"Time for separate queries using cache: {time4 - time3:.1f} s")
+    print(f"Time for joint query: {time6 - time5:.1f} s")
+    print(f"Time for joint query using cache: {time8 - time7:.1f} s")
 
 
 if (

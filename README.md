@@ -375,7 +375,7 @@ will validate various aspects of the query.
 ### Caching
 
 #### Model level caching. 
-By default hubit `never` caches results internally. A `hubit` model can, however, write results to disk automatically by setting the caching level using the `set_caching_level` method. Results can be saved either in an `incremental` fashion or `after_execution`. Results caching is useful when you want to avoid spending time calculating the same results multiple times. A use case for  `incremental` caching is when a calculation is stopped (computer shutdown, keyboard interrupt, exception raised) before the response has been generated. In such cases the calculation can be restarted from the cached results object. The overhead introduced by caching makes it especially useful for CPU bound models.
+By default hubit `never` caches results internally. A `hubit` model can, however, write results to disk automatically by setting the caching level using the `set_model_caching` method. Results can be saved either in an `incremental` fashion or `after_execution`. Results caching is useful when you want to avoid spending time calculating the same results multiple times. A use case for  `incremental` caching is when a calculation is stopped (computer shutdown, keyboard interrupt, exception raised) before the response has been generated. In such cases the calculation can be restarted from the cached results object. The overhead introduced by caching makes it especially useful for CPU bound models.
 
 __Warning__. Cached results are tied only to the content of the model configuration
 file and the model input. `hubit` does not check if the underlying calculation code has changed. Therefore, using results caching while components are in development is not recommended.
@@ -390,7 +390,7 @@ file and the model input. `hubit` does not check if the underlying calculation c
 |No     | No    |  No results are cached and no results are loaded into the model |
 |       |       |           |
 
-<sup>*</sup> "Yes" corresponds to setting the caching level to either `incremental` or `after_execution` using the `set_caching_level` method. "No" corresponds to caching level `never`. <sup>**</sup> "Yes" corresponds `use_results="cached"` in the `get` method while "No" corresponds to `use_results="none"`.
+<sup>*</sup> "Yes" corresponds to setting the caching level to either `incremental` or `after_execution` using the `set_model_caching` method. "No" corresponds to caching level `never`. <sup>**</sup> "Yes" corresponds `use_results="cached"` in the `get` method while "No" corresponds to `use_results="none"`.
 
 The model cache can be cleared using the `clear_cache` method on a `hubit` model. To check if a model has an associated cached result use `has_cached_results` method on a `hubit` model. Cached results for all models can be cleared by using `hubit.clear_hubit_cache()`.
 

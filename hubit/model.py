@@ -91,11 +91,12 @@ class HubitModel(_HubitModel):
         self.flat_input: Dict[str, Any] = {}
         self.flat_results: Dict[str, Any] = {}
         self._input_is_set = False
-        self._caching_level = "none"
 
         # Set the query runner. Saving it on the instance is used for testing
         self._qrunner: Any = None
 
+        self._worker_caching = False
+        self._model_caching_mode = "none"
         self._cache_dir = _CACHE_DIR
         self._cache_file_path = os.path.join(self._cache_dir, f"{self._get_id()}.yml")
 
@@ -141,20 +142,20 @@ class HubitModel(_HubitModel):
         if self.has_cached_results():
             os.remove(self._cache_file_path)
 
-    def set_caching_level(self, caching_level: str):
+    def set_model_caching(self, caching_mode: str):
         """
-        Set the caching level.
+        Set the model caching mode.
 
         Arguments:
-            caching_level (str): Valid levels are: "none", "incremental", "after_execution".
+            caching_mode (str): Valid options are: "none", "incremental", "after_execution".
         """
-        if not caching_level in self._valid_caching_levels:
+        if not caching_mode in self._valid_model_caching_modes:
             raise HubitError(
-                f"Unknown caching level '{caching_level}'. Valid options are: {', '.join(self._valid_caching_levels)}"
+                f"Unknown caching level '{caching_mode}'. Valid options are: {', '.join(self._valid_model_caching_modes)}"
             )
 
-        self._caching_level = caching_level
-        if self._caching_level in self._do_caching:
+        self._model_caching_mode = caching_mode
+        if self._model_caching_mode in self._do_model_caching:
             pathlib.Path(self._cache_dir).mkdir(parents=True, exist_ok=True)
 
     def set_input(self, input_data: Dict[str, Any]) -> HubitModel:

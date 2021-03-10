@@ -348,11 +348,11 @@ class TestModel(unittest.TestCase):
             self.assertFalse(self.hmodel.has_cached_results())
 
         # Set caching after execution and do a query
-        caching_levels = "after_execution", "incremental"
-        for caching_level in caching_levels:
+        caching_modes = "after_execution", "incremental"
+        for caching_mode in caching_modes:
             self.hmodel.clear_cache()
-            with self.subTest(caching_level=caching_level):
-                self.hmodel.set_caching_level(caching_level)
+            with self.subTest(caching_mode=caching_mode):
+                self.hmodel.set_model_caching(caching_mode)
                 query = [self.querystr_level0]
                 self.hmodel.get(query, use_results="cached", validate=False)
 

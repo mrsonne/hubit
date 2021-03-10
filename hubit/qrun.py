@@ -247,7 +247,7 @@ class _QueryRunner:
         self.workers_completed.append(worker)
         self._transfer_results(worker, flat_results)
         # Save results to disk
-        if self.model._caching_level == "incremental":
+        if self.model._model_caching_mode == "incremental":
             with open(self.model._cache_file_path, "w") as handle:
                 yaml.dump(flat_results, handle)
         self.workers_working.remove(worker)
@@ -284,6 +284,6 @@ class _QueryRunner:
             time.sleep(POLLTIME)
 
         # Save results
-        if self.model._caching_level == "after_execution":
+        if self.model._model_caching_mode == "after_execution":
             with open(self.model._cache_file_path, "w") as handle:
                 yaml.dump(flat_results, handle)

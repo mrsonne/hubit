@@ -395,7 +395,11 @@ file and the model input. `hubit` does not check if the underlying calculation c
 The model cache can be cleared using the `clear_cache` method on a `hubit` model. To check if a model has an associated cached result use `has_cached_results` method on a `hubit` model. Cached results for all models can be cleared by using `hubit.clear_hubit_cache()`.
 
 #### Worker-level caching 
-TODO. Not implemented yet
+If worker level caching is activated using the `hubit` model method `set_worker_caching(True)` the consumed data for all workers and the corresponding results will be stored in memory during execution of a query. If then `hubit` finds that a worker consumes data that is identical to the data consumed by a worker that has already finished and the two workers execute the same function, the second worker will simply use the results cached from the first worker instead of repeating the calculation. 
+
+For sequential calculations the behavior of worker-level is somewhat unpredictable for functions that are fast since the second worker might already have started its calculation before `hubit` "sees" the results from the first worker. In this case the same calculation will be carried out in both workers. However, being a fast calculation the penalty will be limited.
+
+The asynchronous nature of multi-processor calculations renders the behavior even more unpredictable with the current implementation.
 
 # Examples
 

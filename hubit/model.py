@@ -142,6 +142,15 @@ class HubitModel(_HubitModel):
         if self.has_cached_results():
             os.remove(self._cache_file_path)
 
+    def set_worker_caching(self, worker_caching: bool):
+        """
+        Set the caching on/off for workers.
+
+        Arguments:
+            worker_caching (bool): True corresponds to worker caching in on.
+        """
+        self._worker_caching = worker_caching
+
     def set_model_caching(self, caching_mode: str):
         """
         Set the model caching mode.
@@ -249,7 +258,7 @@ class HubitModel(_HubitModel):
             raise HubitModelNoResultsError()
 
         # Make a query runner
-        self._qrunner = _QueryRunner(self, use_multi_processing)
+        self._qrunner = _QueryRunner(self, use_multi_processing, self._worker_caching)
 
         if validate:
             _get(self._qrunner, query, self.flat_input, dryrun=True)
@@ -324,7 +333,9 @@ class HubitModel(_HubitModel):
 
             if skipfun(_flat_input):
                 continue
-            qrun = _QueryRunner(self, use_multi_processing=False)
+            qrun = _QueryRunner(
+                self, use_multi_processing=False, worker_caching=self._worker_caching
+            )
             flat_results: Dict[str, Any] = {}
             args.append((qrun, query, _flat_input, flat_results))
             inps.append(_flat_input)

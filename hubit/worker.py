@@ -1,5 +1,7 @@
+import pickle
+import hashlib
 import logging
-import multiprocessing
+from multiprocessing import Process, Manager
 import copy
 from typing import Dict
 from .shared import (
@@ -100,8 +102,8 @@ class _Worker:
 
     def __init__(
         self,
-        manager,
-        hmodel,
+        manager: Manager,
+        qrun,  # _QueryRunner
         name,
         cfg,
         query,
@@ -121,11 +123,15 @@ class _Worker:
         self.func = func  # function to excecute
         self.name = name  # name of the component
         self.version = version  # Version of the component
-        self.hmodel = hmodel  # reference to the Hubit model instance
+        self.qrun = qrun  # reference to the query runner
         self.job = None  # For referencing the job if using multiprocessing
         self.query = query
         self.tree_for_idxcontext = tree_for_idxcontext
         self.cfg = cfg
+        self._consumed_data_set = False
+
+        # Store information on how results were created (calculation or cache)
+        self._results_from = "na"
 
         if dryrun:
             # If worker should perform a dry run set the worker function to "work_dryrun"
@@ -311,7 +317,7 @@ class _Worker:
         """
         Sets all results to None
         """
-        self.hmodel._set_worker_working(self)
+        self.qrun._set_worker_working(self)
         for name in self.rpath_provided_for_name.keys():
             tree = self.tree_for_idxcontext[
                 get_idx_context(self.provided_mpath_for_name[name])
@@ -324,18 +330,22 @@ class _Worker:
             self.job.terminate()
             self.job.join()
 
+    def use_cached_result(self, result):
+        logging.info(f'Worker "{self.name}" using CACHE for query "{self.query}"')
+        self.qrun._set_worker_working(self)
+        self.results = result
+        self._results_from = "cache"
+
     def work(self):
         """
         Executes actual work
         """
-        logging.info(f'Worker "{self.name}" started for query "{self.query}"')
-
-        logging.debug("\n**START WORKING**\n{}".format(self.__str__()))
+        logging.info(f'Worker "{self.name}" STARTED for query "{self.query}"')
 
         # Notify the hubit model that we are about to start the work
-        self.hmodel._set_worker_working(self)
+        self.qrun._set_worker_working(self)
         if self.use_multiprocessing:
-            self.job = multiprocessing.Process(
+            self.job = Process(
                 target=self.func,
                 args=(self.inputval_for_name, self.resultval_for_name, self.results),
             )
@@ -343,6 +353,7 @@ class _Worker:
             self.job.start()
         else:
             self.func(self.inputval_for_name, self.resultval_for_name, self.results)
+        self._results_from = "calculation"
 
         logging.debug("\n**STOP WORKING**\n{}".format(self.__str__()))
         logging.info(f'Worker "{self.name}" finished for query "{self.query}"')
@@ -375,8 +386,12 @@ class _Worker:
             self.resultval_for_name = _Worker.reshape(
                 self.rpaths_consumed_for_name, self.resultval_for_path
             )
-
-            self.workfun()
+            self._consumed_data_set = True
+            cached_results = self.qrun.check_cache(self._calc_id())
+            if cached_results is None:
+                self.workfun()
+            else:
+                self.use_cached_result(cached_results)
 
     def set_consumed_input(self, path, value):
         if path in self.pending_input_paths:
@@ -398,7 +413,7 @@ class _Worker:
         to the list of pending items
         """
         # set the worker here since in init we have not yet checked that a similar instance does not exist
-        self.hmodel._set_worker(self)
+        self.qrun._set_worker(self)
 
         # Check consumed input (should not have any pending items by definition)
         for path in self.iname_for_path.keys():
@@ -431,6 +446,23 @@ class _Worker:
             self.version,
             "&".join([f"{k}={v}" for k, v in self.idxval_for_idxid.items()]),
         )
+
+    def _calc_id(self):
+        """checksum for worker function and input. This ID is identical for
+        worker that carry out the same calculation
+        """
+        if not self._consumed_data_set:
+            raise HubitWorkerError("Cannot create calc ID")
+
+        return hashlib.md5(
+            pickle.dumps(
+                {
+                    "results": self.resultval_for_name,
+                    "input": self.inputval_for_name,
+                    "func": id(self.func),
+                }
+            )
+        ).hexdigest()
 
     def __str__(self):
         n = 100

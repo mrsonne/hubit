@@ -14,7 +14,7 @@ POLLTIME_LONG = 0.25
 
 
 class _QueryRunner:
-    def __init__(self, model, use_multi_processing):
+    def __init__(self, model, use_multi_processing, worker_caching=False):
         """Internal class managing workers. Is in a model, the query runner
         is responsible for deploying and book keeping workers according
         to a query specified to the model.
@@ -30,9 +30,13 @@ class _QueryRunner:
         self.workers_completed = []
         self.worker_for_id = {}
         self.observers_for_query = {}
+        self.worker_caching = worker_caching
 
         # For book-keeping what has already been imported
         self._components = {}
+
+        # For book-keeping which calculations have already been calculated
+        self.results_for_calc_id = {}
 
     def _join_workers(self):
         # TODO Not sure this is required
@@ -240,12 +244,26 @@ class _QueryRunner:
         """
         self.workers_working.append(worker)
 
+    def check_cache(self, worker_calc_id):
+        """
+        Called from worker when all consumed data is set
+        """
+        try:
+            return self.results_for_calc_id[worker_calc_id]
+        except KeyError:
+            return None
+
     def _set_worker_completed(self, worker, flat_results):
         """
         Called when results attribute has been populated
         """
         self.workers_completed.append(worker)
         self._transfer_results(worker, flat_results)
+
+        if self.worker_caching:
+            # Store results from worker on the calculation ID
+            self.results_for_calc_id[worker._calc_id()] = worker.results
+
         # Save results to disk
         if self.model._model_caching_mode == "incremental":
             with open(self.model._cache_file_path, "w") as handle:

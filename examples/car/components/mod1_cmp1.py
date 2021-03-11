@@ -10,9 +10,9 @@ def price(_input_consumed, _results_consumed, results_provided):
 
     result = sum([count * unit_price for count, unit_price in zip(counts, unit_prices)])
 
-    # Delay to see the effect of worker caching. 
+    # Delay to see the effect of worker caching.
     # If too fast the watcher loop will not update the results before all calcs are done
-    sleep(.5)
+    sleep(0.5)
     results_provided["car_price"] = result
 
 

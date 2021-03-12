@@ -138,9 +138,11 @@ class _QueryRunner:
         except RuntimeError:
             return None
 
-    def _transfer_input(self, input_paths, worker, inputdata, all_input):
+    @staticmethod
+    def _transfer_input(input_paths, worker, inputdata, all_input):
         """
         Transfer required input from all input to extracted input
+        and to worker
         """
         for path in input_paths:
             val = all_input[path]
@@ -183,7 +185,7 @@ class _QueryRunner:
             # Skip if the queried data will be provided
             _skip_paths.extend(worker.paths_provided())
 
-            # Check that another query did not already request this worker
+            # Check that another query path did not already request this worker
             if worker._id in self.worker_for_id.keys():
                 continue
 
@@ -195,6 +197,7 @@ class _QueryRunner:
                 extracted_input, flat_results
             )
 
+            # TODO: Not sure extracted_input is still useful
             self._transfer_input(
                 input_paths_missing, worker, extracted_input, all_input
             )
@@ -208,7 +211,7 @@ class _QueryRunner:
             ]
             logging.debug("qpaths_next: {}".format(qpaths_next))
 
-            # Add the worker to the oberservers list for that query in order
+            # Add the worker to the observers list for that query in order
             for path_next in qpaths_next:
                 if path_next in self.observers_for_query.keys():
                     self.observers_for_query[path_next].append(worker)

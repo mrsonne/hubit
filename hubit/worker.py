@@ -1,9 +1,10 @@
+from __future__ import annotations
 import pickle
 import hashlib
 import logging
 from multiprocessing import Process, Manager
 import copy
-from typing import Dict
+from typing import Dict, TYPE_CHECKING
 from .shared import (
     idxs_for_matches,
     get_idx_context,
@@ -16,6 +17,9 @@ from .shared import (
     convert_to_internal_path,
 )
 from .errors import HubitWorkerError
+
+if TYPE_CHECKING:
+    from .qrun import _QueryRunner
 
 
 class _Worker:
@@ -103,7 +107,7 @@ class _Worker:
     def __init__(
         self,
         manager: Manager,
-        qrun,  # _QueryRunner
+        qrun: _QueryRunner,
         name,
         cfg,
         query,
@@ -129,6 +133,9 @@ class _Worker:
         self.tree_for_idxcontext = tree_for_idxcontext
         self.cfg = cfg
         self._consumed_data_set = False
+        self._consumed_input_ready = False
+        self._consumed_results_ready = False
+        self._consumes_input_only = False
 
         # Store information on how results were created (calculation or cache)
         self._results_from = "na"
@@ -200,6 +207,7 @@ class _Worker:
 
         # Model path for results dependencies with ilocs from query
         if _Worker.consumes_type(cfg, "results"):
+            self._consumes_input_only = False
             self.rpath_consumed_for_name = _Worker.bindings_from_idxs(
                 cfg["consumes"]["results"], self.idxval_for_idxid
             )
@@ -208,6 +216,7 @@ class _Worker:
                 for binding in cfg["consumes"]["results"]
             }
         else:
+            self._consumes_input_only = True
             self.rpath_consumed_for_name = {}
             rconsumed_mpath_for_name = {}
 
@@ -369,9 +378,7 @@ class _Worker:
         }
 
     def is_ready_to_work(self):
-        return (
-            len(self.pending_input_paths) == 0 and len(self.pending_results_paths) == 0
-        )
+        return self._consumed_input_ready and self._consumed_results_ready
 
     def work_if_ready(self):
         """
@@ -397,7 +404,7 @@ class _Worker:
         if path in self.pending_input_paths:
             self.pending_input_paths.remove(path)
             self.inputval_for_path[path] = value
-
+        self._consumed_input_ready = len(self.pending_input_paths) == 0
         self.work_if_ready()
 
     def set_consumed_result(self, path, value):
@@ -405,6 +412,7 @@ class _Worker:
             self.pending_results_paths.remove(path)
             self.resultval_for_path[path] = value
 
+        self._consumed_results_ready = len(self.pending_results_paths) == 0
         self.work_if_ready()
 
     def set_values(self, inputdata, resultsdata):
@@ -428,6 +436,9 @@ class _Worker:
                 self.resultval_for_path[path] = resultsdata[path]
             else:
                 self.pending_results_paths.append(path)
+
+        self._consumed_input_ready = len(self.pending_input_paths) == 0
+        self._consumed_results_ready = len(self.pending_results_paths) == 0
 
         self.work_if_ready()
 

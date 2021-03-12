@@ -4,7 +4,7 @@ import logging
 import os
 import sys
 import time
-from typing import Any
+from typing import Any, Dict, List
 import yaml
 from .worker import _Worker
 from .errors import HubitModelComponentError
@@ -36,7 +36,9 @@ class _QueryRunner:
         self._components = {}
 
         # For book-keeping which calculations have already been calculated
-        self.results_for_calc_id = {}
+        self.results_for_results_id = {}
+        self.provider_for_results_id: Dict[str, _Worker] = {}
+        self.subscribers_for_results_id: Dict[str, List[_Worker]] = {}
 
     def _join_workers(self):
         # TODO Not sure this is required
@@ -134,6 +136,7 @@ class _QueryRunner:
                 version,
                 self.model.tree_for_idxcontext,
                 dryrun=dryrun,
+                caching=self.worker_caching,
             )
         except RuntimeError:
             return None
@@ -197,6 +200,8 @@ class _QueryRunner:
                 extracted_input, flat_results
             )
 
+            # THIS WILL START THE WORKER BUT WE DONT WANT THAT
+            # IF ANOTHER WORKER IS ALREADY CALCULATING THAT
             # TODO: Not sure extracted_input is still useful
             self._transfer_input(
                 input_paths_missing, worker, extracted_input, all_input
@@ -230,6 +235,27 @@ class _QueryRunner:
             )
             # if not success: return False
 
+            if self.worker_caching:
+                if worker.consumes_input_only:
+                    results_id = worker.results_id()
+                    if results_id in self.provider_for_results_id:
+                        if results_id in self.results_for_results_id:
+                            worker.work_if_ready()
+                        else:
+                            if results_id in self.subscribers_for_results_id:
+                                self.subscribers_for_results_id[results_id].append(worker)
+                            else:
+                                # First subscriber
+                                self.subscribers_for_results_id[results_id] = [worker]
+
+                    else:
+                        self.provider_for_results_id[results_id] = worker
+                        # First worker so start it
+                        worker.work_if_ready()
+                else:
+                    # set the worker's results id based on result ids of all spawned sub workers
+                    worker.set_results_id(None)
+
         return True
 
     def _set_worker(self, worker):
@@ -252,7 +278,7 @@ class _QueryRunner:
         Called from worker when all consumed data is set
         """
         try:
-            return self.results_for_calc_id[worker_calc_id]
+            return self.results_for_results_id[worker_calc_id]
         except KeyError:
             return None
 
@@ -260,12 +286,20 @@ class _QueryRunner:
         """
         Called when results attribute has been populated
         """
+        if worker.results_id() in self.subscribers_for_results_id.keys(): 
+            if worker in self.subscribers_for_results_id[worker.results_id()]:
+                self.subscribers_for_results_id[worker.results_id()].remove(worker)
+
         self.workers_completed.append(worker)
         self._transfer_results(worker, flat_results)
-
+        results_id = worker.results_id()
         if self.worker_caching:
+            if results_id in self.subscribers_for_results_id:
+                for _worker in self.subscribers_for_results_id[results_id]:
+                    _worker.work_if_ready()
+
             # Store results from worker on the calculation ID
-            self.results_for_calc_id[worker._calc_id()] = worker.results
+            self.results_for_results_id[worker.results_id()] = worker.results
 
         # Save results to disk
         if self.model._model_caching_mode == "incremental":

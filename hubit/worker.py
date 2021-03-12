@@ -115,6 +115,7 @@ class _Worker:
         version,
         tree_for_idxcontext,
         dryrun=False,
+        caching=False,
     ):
         """
         If inputdata is None the worker cannot work but can still
@@ -136,6 +137,8 @@ class _Worker:
         self._consumed_input_ready = False
         self._consumed_results_ready = False
         self._consumes_input_only = False
+        self._results_id = None
+        self.caching = caching
 
         # Store information on how results were created (calculation or cache)
         self._results_from = "na"
@@ -255,6 +258,9 @@ class _Worker:
             }
 
         logging.info(f'Worker "{self.name}" was deployed for query "{self.query}"')
+
+    def consumes_input_only(self):
+        return self._consumes_input_only
 
     def mpath_for_name(self, type):
         def make_map(bindings):
@@ -387,14 +393,15 @@ class _Worker:
         if self.is_ready_to_work():
             logging.debug("Let the work begin: {}".format(self.workfun))
 
-            self.inputval_for_name = _Worker.reshape(
-                self.ipaths_consumed_for_name, self.inputval_for_path
-            )
             self.resultval_for_name = _Worker.reshape(
                 self.rpaths_consumed_for_name, self.resultval_for_path
             )
             self._consumed_data_set = True
-            cached_results = self.qrun.check_cache(self._calc_id())
+            if self.consumes_input_only:
+                # TODO: remove this guard when results ID can be calculated from child workers
+                cached_results = self.qrun.check_cache(self.results_id())
+            else:
+                cached_results = None
             if cached_results is None:
                 self.workfun()
             else:
@@ -405,7 +412,14 @@ class _Worker:
             self.pending_input_paths.remove(path)
             self.inputval_for_path[path] = value
         self._consumed_input_ready = len(self.pending_input_paths) == 0
-        self.work_if_ready()
+
+        if self._consumed_input_ready:
+            self.inputval_for_name = _Worker.reshape(
+                self.ipaths_consumed_for_name, self.inputval_for_path
+            )
+
+        if not self.caching:
+            self.work_if_ready()
 
     def set_consumed_result(self, path, value):
         if path in self.pending_results_paths:
@@ -458,17 +472,28 @@ class _Worker:
             "&".join([f"{k}={v}" for k, v in self.idxval_for_idxid.items()]),
         )
 
-    def _calc_id(self):
+
+    def set_results_id(self, results_id):
+        self._results_id = results_id
+
+
+    def results_id(self):
         """checksum for worker function and input. This ID is identical for
         worker that carry out the same calculation
         """
-        if not self._consumed_data_set:
-            raise HubitWorkerError("Cannot create calc ID")
+        if self._results_id is not None:
+            return self._results_id
 
+
+        if not self._consumes_input_only:
+            raise HubitWorkerError("Not safe to create calc ID")
+
+        if not self._consumed_input_ready:
+            raise HubitWorkerError("Not enough data to create calc ID")
         return hashlib.md5(
             pickle.dumps(
                 {
-                    "results": self.resultval_for_name,
+                    # "results": self.resultval_for_name,
                     "input": self.inputval_for_name,
                     "func": id(self.func),
                 }

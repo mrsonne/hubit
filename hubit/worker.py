@@ -386,7 +386,7 @@ class _Worker:
     def is_ready_to_work(self):
         return self._consumed_input_ready and self._consumed_results_ready
 
-    def work_if_ready(self):
+    def work_if_ready(self, use_cache=False):
         """
         If all consumed attributes are present start working
         """
@@ -397,15 +397,10 @@ class _Worker:
                 self.rpaths_consumed_for_name, self.resultval_for_path
             )
             self._consumed_data_set = True
-            if self.consumes_input_only:
-                # TODO: remove this guard when results ID can be calculated from child workers
-                cached_results = self.qrun.check_cache(self.results_id())
+            if use_cache:
+                self.use_cached_result(self.qrun.get_cache(self.results_id))
             else:
-                cached_results = None
-            if cached_results is None:
                 self.workfun()
-            else:
-                self.use_cached_result(cached_results)
 
     def set_consumed_input(self, path, value):
         if path in self.pending_input_paths:
@@ -418,8 +413,8 @@ class _Worker:
                 self.ipaths_consumed_for_name, self.inputval_for_path
             )
 
-        if not self.caching:
-            self.work_if_ready()
+        # if not self.caching:
+        #     self.work_if_ready()
 
     def set_consumed_result(self, path, value):
         if path in self.pending_results_paths:
@@ -454,7 +449,7 @@ class _Worker:
         self._consumed_input_ready = len(self.pending_input_paths) == 0
         self._consumed_results_ready = len(self.pending_results_paths) == 0
 
-        self.work_if_ready()
+        # self.work_if_ready()
 
         return (
             copy.copy(self.pending_input_paths),
@@ -472,33 +467,39 @@ class _Worker:
             "&".join([f"{k}={v}" for k, v in self.idxval_for_idxid.items()]),
         )
 
+    def set_results_id(self, results_ids: List[str]) -> str:
+        """ results_ids are the IDs of workers spawned from the 
+        current worker
+        """
+        # self._results_id = hashlib.md5(''.join(results_ids).encode('utf-8')).hexdigest()
+        self._results_id = ''.join(results_ids)
+        return self._results_id
 
-    def set_results_id(self, results_id):
-        self._results_id = results_id
-
-
+    @property
     def results_id(self):
+        return self._results_id or self._set_results_id()
+
+
+    def _set_results_id(self):
         """checksum for worker function and input. This ID is identical for
         worker that carry out the same calculation
         """
         if self._results_id is not None:
             return self._results_id
 
-
         if not self._consumes_input_only:
-            raise HubitWorkerError("Not safe to create calc ID")
+            print(self)
+            raise HubitWorkerError("Not safe to create results ID")
 
         if not self._consumed_input_ready:
             raise HubitWorkerError("Not enough data to create calc ID")
-        return hashlib.md5(
-            pickle.dumps(
-                {
-                    # "results": self.resultval_for_name,
-                    "input": self.inputval_for_name,
-                    "func": id(self.func),
-                }
-            )
-        ).hexdigest()
+
+        self._results_id = f'{self.inputval_for_name}_{id(self.func)}'
+        # self._results_id = hashlib.md5(
+        #     # f'{self.inputval_for_name}_{id(self.func)}'.encode('utf-8')
+        #     pickle.dumps([self.inputval_for_name, id(self.func)])
+        # ).hexdigest()
+        return self._results_id
 
     def __str__(self):
         n = 100

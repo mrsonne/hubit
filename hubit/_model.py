@@ -87,7 +87,7 @@ def _get(
         watcher.start()
         if queryrunner.use_multi_processing:
             with Manager() as manager:
-                success = queryrunner._deploy(
+                queryrunner.spawn_workers(
                     manager,
                     _queries,
                     extracted_input,
@@ -98,7 +98,7 @@ def _get(
                 watcher.join()
         else:
             manager = None
-            success = queryrunner._deploy(
+            queryrunner.spawn_workers(
                 manager,
                 _queries,
                 extracted_input,

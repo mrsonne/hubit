@@ -37,7 +37,8 @@ class _QueryRunner:
 
         # For book-keeping which calculations have already been calculated
         self.results_for_results_id = {}
-        self.provider_for_results_id: Dict[str, _Worker] = {}
+        # self.provider_for_results_id: Dict[str, _Worker] = {}
+        self.provided_results_id = set()
         self.subscribers_for_results_id: Dict[str, List[_Worker]] = {}
 
     def _join_workers(self):
@@ -152,7 +153,7 @@ class _QueryRunner:
             inputdata[path] = val
             worker.set_consumed_input(path, val)
 
-    def _deploy(
+    def spawn_workers(
         self,
         manager,
         qpaths,
@@ -171,6 +172,7 @@ class _QueryRunner:
         paths in skip_paths are skipped
         """
         _skip_paths = copy.copy(skip_paths)
+        results_ids = set()
         for qpath in qpaths:
             # Skip if the queried data will be provided
             if qpath in _skip_paths:
@@ -209,22 +211,21 @@ class _QueryRunner:
 
             # Expand requirement paths returned when the worker was filled
             # with input that is currently available
-            qpaths_next = [
+            qpaths_next_exp = [
                 qstrexp
                 for qstr in queries_next
                 for qstrexp in self.model._expand_query(qstr)
             ]
-            logging.debug("qpaths_next: {}".format(qpaths_next))
+            logging.debug("qpaths_next: {}".format(qpaths_next_exp))
 
             # Add the worker to the observers list for that query in order
-            for path_next in qpaths_next:
-                if path_next in self.observers_for_query.keys():
-                    self.observers_for_query[path_next].append(worker)
-                else:
-                    self.observers_for_query[path_next] = [worker]
+            for path_next in qpaths_next_exp:
+                if not path_next in self.observers_for_query:
+                    self.observers_for_query[path_next] = []
+                self.observers_for_query[path_next].append(worker)
 
-            # Deploy workers for the dependencies
-            success = self._deploy(
+            # Spawn workers for the dependencies
+            results_ids_sub_workers = self.spawn_workers(
                 manager,
                 queries_next,
                 extracted_input,
@@ -233,32 +234,51 @@ class _QueryRunner:
                 skip_paths=_skip_paths,
                 dryrun=dryrun,
             )
-            # if not success: return False
+            # Update with IDs for sub-workers
+            results_id_current = self._submit_worker(worker, results_ids_sub_workers)
+            results_ids.add(results_id_current)
 
-            if self.worker_caching:
-                if worker.consumes_input_only:
-                    results_id = worker.results_id()
-                    if results_id in self.provider_for_results_id:
-                        if results_id in self.results_for_results_id:
-                            worker.work_if_ready()
-                        else:
-                            if results_id in self.subscribers_for_results_id:
-                                self.subscribers_for_results_id[results_id].append(worker)
-                            else:
-                                # First subscriber
-                                self.subscribers_for_results_id[results_id] = [worker]
+        return results_ids
 
+
+    def _submit_worker(self, worker: _Worker, results_ids_sub_workers: List[str]) -> str:
+        """
+        Start worker or add it to the list of workers waiting for a provider 
+        """
+        print('worker_caching', self.worker_caching)
+        # if not success: return False
+        if self.worker_caching:
+            if worker.consumes_input_only():
+                results_id = worker.results_id
+                # if results_id in self.provider_for_results_id:
+                if results_id in self.provided_results_id:
+                    # there is a provider for the results
+                    if results_id in self.results_for_results_id:
+                        # The results are already there. 
+                        # Start worker to handle transfer of results to correct paths
+                        worker.work_if_ready(use_cache=True)
                     else:
-                        self.provider_for_results_id[results_id] = worker
-                        # First worker so start it
-                        worker.work_if_ready()
+                        # Register as subscriber for the results
+                        if not results_id in self.subscribers_for_results_id:
+                            self.subscribers_for_results_id[results_id] = []
+                        self.subscribers_for_results_id[results_id].append(worker)
+
                 else:
-                    # set the worker's results id based on result ids of all spawned sub workers
-                    worker.set_results_id(None)
+                    # There is no provider yet so this worker should be registered as the provider
+                    # self.provider_for_results_id[results_id] = worker
+                    self.provided_results_id.add(results_id)
+                    worker.work_if_ready()
+            else:
+                # set the worker's results id based on result ids of 
+                # all spawned sub-workers
+                results_id = worker.set_results_id(results_ids_sub_workers)
+                print(results_id)
+        else:
+            worker.work_if_ready()
+            results_id = 'NA'    
+        return results_id
 
-        return True
-
-    def _set_worker(self, worker):
+    def _set_worker(self, worker: _Worker):
         """
         Called from _Worker object when the input is set.
         Not on init since we do not yet know if a similar
@@ -266,40 +286,38 @@ class _QueryRunner:
         """
         self.workers.append(worker)
 
-    def _set_worker_working(self, worker):
+    def _set_worker_working(self, worker: _Worker):
         """
         Called from _Worker object just before the worker
         process is started.
         """
         self.workers_working.append(worker)
 
-    def check_cache(self, worker_calc_id):
+    def get_cache(self, worker_calc_id):
         """
         Called from worker when all consumed data is set
         """
-        try:
-            return self.results_for_results_id[worker_calc_id]
-        except KeyError:
-            return None
+        return self.results_for_results_id[worker_calc_id]
 
-    def _set_worker_completed(self, worker, flat_results):
+    def _set_worker_completed(self, worker: _Worker, flat_results):
         """
         Called when results attribute has been populated
         """
-        if worker.results_id() in self.subscribers_for_results_id.keys(): 
-            if worker in self.subscribers_for_results_id[worker.results_id()]:
-                self.subscribers_for_results_id[worker.results_id()].remove(worker)
 
         self.workers_completed.append(worker)
         self._transfer_results(worker, flat_results)
-        results_id = worker.results_id()
         if self.worker_caching:
-            if results_id in self.subscribers_for_results_id:
-                for _worker in self.subscribers_for_results_id[results_id]:
-                    _worker.work_if_ready()
+            results_id = worker.results_id
 
             # Store results from worker on the calculation ID
-            self.results_for_results_id[worker.results_id()] = worker.results
+            self.results_for_results_id[results_id] = worker.results
+
+            if results_id in self.subscribers_for_results_id.keys(): 
+                # There are subscribers
+                for _worker in self.subscribers_for_results_id[results_id]:
+                    self.subscribers_for_results_id[results_id].remove(_worker)
+                    _worker.work_if_ready(use_cache=True)
+
 
         # Save results to disk
         if self.model._model_caching_mode == "incremental":

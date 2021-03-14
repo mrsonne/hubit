@@ -250,29 +250,29 @@ class _QueryRunner:
         if self.worker_caching:
             if worker.consumes_input_only():
                 results_id = worker.results_id
-                # if results_id in self.provider_for_results_id:
-                if results_id in self.provided_results_id:
-                    # there is a provider for the results
-                    if results_id in self.results_for_results_id:
-                        # The results are already there. 
-                        # Start worker to handle transfer of results to correct paths
-                        worker.work_if_ready(use_cache=True)
-                    else:
-                        # Register as subscriber for the results
-                        if not results_id in self.subscribers_for_results_id:
-                            self.subscribers_for_results_id[results_id] = []
-                        self.subscribers_for_results_id[results_id].append(worker)
-
-                else:
-                    # There is no provider yet so this worker should be registered as the provider
-                    # self.provider_for_results_id[results_id] = worker
-                    self.provided_results_id.add(results_id)
-                    worker.work_if_ready()
             else:
-                # set the worker's results id based on result ids of 
-                # all spawned sub-workers
+                # set the worker's results id based on result ids of sub-workers
                 results_id = worker.set_results_id(results_ids_sub_workers)
-                print(results_id)
+
+            # if results_id in self.provider_for_results_id:
+            if results_id in self.provided_results_id:
+                # there is a provider for the results
+                if results_id in self.results_for_results_id:
+                    # The results are already there. 
+                    # Start worker to handle transfer of results to correct paths
+                    worker.work_if_ready(self.results_for_results_id[results_id])
+                else:
+                    # Register as subscriber for the results
+                    if not results_id in self.subscribers_for_results_id:
+                        self.subscribers_for_results_id[results_id] = []
+                    self.subscribers_for_results_id[results_id].append(worker)
+
+            else:
+                # There is no provider yet so this worker should be registered as the provider
+                # self.provider_for_results_id[results_id] = worker
+                self.provided_results_id.add(results_id)
+                worker.work_if_ready()
+
         else:
             worker.work_if_ready()
             results_id = 'NA'    
@@ -293,11 +293,11 @@ class _QueryRunner:
         """
         self.workers_working.append(worker)
 
-    def get_cache(self, worker_calc_id):
-        """
-        Called from worker when all consumed data is set
-        """
-        return self.results_for_results_id[worker_calc_id]
+    # def get_cache(self, worker_calc_id):
+    #     """
+    #     Called from worker when all consumed data is set
+    #     """
+    #     return self.results_for_results_id[worker_calc_id]
 
     def _set_worker_completed(self, worker: _Worker, flat_results):
         """
@@ -316,7 +316,7 @@ class _QueryRunner:
                 # There are subscribers
                 for _worker in self.subscribers_for_results_id[results_id]:
                     self.subscribers_for_results_id[results_id].remove(_worker)
-                    _worker.work_if_ready(use_cache=True)
+                    _worker.work_if_ready(self.results_for_results_id[results_id])
 
 
         # Save results to disk

@@ -386,7 +386,7 @@ class _Worker:
     def is_ready_to_work(self):
         return self._consumed_input_ready and self._consumed_results_ready
 
-    def work_if_ready(self, use_cache=False):
+    def work_if_ready(self, results=None):
         """
         If all consumed attributes are present start working
         """
@@ -397,10 +397,10 @@ class _Worker:
                 self.rpaths_consumed_for_name, self.resultval_for_path
             )
             self._consumed_data_set = True
-            if use_cache:
-                self.use_cached_result(self.qrun.get_cache(self.results_id))
-            else:
+            if results is None:
                 self.workfun()
+            else:
+                self.use_cached_result(results)
 
     def set_consumed_input(self, path, value):
         if path in self.pending_input_paths:
@@ -471,8 +471,8 @@ class _Worker:
         """ results_ids are the IDs of workers spawned from the 
         current worker
         """
-        # self._results_id = hashlib.md5(''.join(results_ids).encode('utf-8')).hexdigest()
-        self._results_id = ''.join(results_ids)
+        self._results_id = hashlib.md5(''.join(results_ids).encode('utf-8')).hexdigest()
+        # self._results_id = ''.join(results_ids)
         return self._results_id
 
     @property
@@ -488,17 +488,16 @@ class _Worker:
             return self._results_id
 
         if not self._consumes_input_only:
-            print(self)
             raise HubitWorkerError("Not safe to create results ID")
 
         if not self._consumed_input_ready:
             raise HubitWorkerError("Not enough data to create calc ID")
 
-        self._results_id = f'{self.inputval_for_name}_{id(self.func)}'
-        # self._results_id = hashlib.md5(
-        #     # f'{self.inputval_for_name}_{id(self.func)}'.encode('utf-8')
-        #     pickle.dumps([self.inputval_for_name, id(self.func)])
-        # ).hexdigest()
+        # self._results_id = f'{self.inputval_for_name}_{id(self.func)}'
+        self._results_id = hashlib.md5(
+            # f'{self.inputval_for_name}_{id(self.func)}'.encode('utf-8')
+            pickle.dumps([self.inputval_for_name, id(self.func)])
+        ).hexdigest()
         return self._results_id
 
     def __str__(self):

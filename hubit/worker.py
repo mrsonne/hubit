@@ -396,6 +396,7 @@ class _Worker:
             self.resultval_for_name = _Worker.reshape(
                 self.rpaths_consumed_for_name, self.resultval_for_path
             )
+
             self._consumed_data_set = True
             if results is None:
                 self.workfun()
@@ -408,6 +409,7 @@ class _Worker:
             self.inputval_for_path[path] = value
         self._consumed_input_ready = len(self.pending_input_paths) == 0
 
+        # Create inputval_for_name as soon as we can to allow results_id to be formed
         if self._consumed_input_ready:
             self.inputval_for_name = _Worker.reshape(
                 self.ipaths_consumed_for_name, self.inputval_for_path
@@ -449,7 +451,11 @@ class _Worker:
         self._consumed_input_ready = len(self.pending_input_paths) == 0
         self._consumed_results_ready = len(self.pending_results_paths) == 0
 
-        # self.work_if_ready()
+        # Create inputval_for_name as soon as we can to allow results_id to be formed
+        if self._consumed_input_ready:
+            self.inputval_for_name = _Worker.reshape(
+                self.ipaths_consumed_for_name, self.inputval_for_path
+            )
 
         return (
             copy.copy(self.pending_input_paths),
@@ -468,17 +474,16 @@ class _Worker:
         )
 
     def set_results_id(self, results_ids: List[str]) -> str:
-        """ results_ids are the IDs of workers spawned from the 
+        """results_ids are the IDs of workers spawned from the
         current worker
         """
-        self._results_id = hashlib.md5(''.join(results_ids).encode('utf-8')).hexdigest()
+        self._results_id = hashlib.md5("".join(results_ids).encode("utf-8")).hexdigest()
         # self._results_id = ''.join(results_ids)
         return self._results_id
 
     @property
     def results_id(self):
         return self._results_id or self._set_results_id()
-
 
     def _set_results_id(self):
         """checksum for worker function and input. This ID is identical for

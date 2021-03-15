@@ -240,12 +240,12 @@ class _QueryRunner:
 
         return results_ids
 
-
-    def _submit_worker(self, worker: _Worker, results_ids_sub_workers: List[str]) -> str:
+    def _submit_worker(
+        self, worker: _Worker, results_ids_sub_workers: List[str]
+    ) -> str:
         """
-        Start worker or add it to the list of workers waiting for a provider 
+        Start worker or add it to the list of workers waiting for a provider
         """
-        print('worker_caching', self.worker_caching)
         # if not success: return False
         if self.worker_caching:
             if worker.consumes_input_only():
@@ -258,7 +258,7 @@ class _QueryRunner:
             if results_id in self.provided_results_id:
                 # there is a provider for the results
                 if results_id in self.results_for_results_id:
-                    # The results are already there. 
+                    # The results are already there.
                     # Start worker to handle transfer of results to correct paths
                     worker.work_if_ready(self.results_for_results_id[results_id])
                 else:
@@ -275,7 +275,7 @@ class _QueryRunner:
 
         else:
             worker.work_if_ready()
-            results_id = 'NA'    
+            results_id = "NA"
         return results_id
 
     def _set_worker(self, worker: _Worker):
@@ -312,12 +312,11 @@ class _QueryRunner:
             # Store results from worker on the calculation ID
             self.results_for_results_id[results_id] = worker.results
 
-            if results_id in self.subscribers_for_results_id.keys(): 
+            if results_id in self.subscribers_for_results_id.keys():
                 # There are subscribers
                 for _worker in self.subscribers_for_results_id[results_id]:
                     self.subscribers_for_results_id[results_id].remove(_worker)
                     _worker.work_if_ready(self.results_for_results_id[results_id])
-
 
         # Save results to disk
         if self.model._model_caching_mode == "incremental":

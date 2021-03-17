@@ -70,6 +70,7 @@ def model_3():
     response = hmodel3.get(query)
     print(f"{response}")
 
+
 def model_2_worker_cache():
     """Run model 2 and illustrate model-level caching"""
     print(f"\n***MODEL 2***")

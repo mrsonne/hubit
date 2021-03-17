@@ -83,9 +83,9 @@ def query(hmodel: HubitModel, use_multi_processing: bool = False) -> None:
 
     print(f"\nSummary")
     print(f"Time for separate queries: {time2 - time1:.1f} s")
-    print(f"Time for separate queries using cache: {time4 - time3:.1f} s")
+    print(f"Time for separate queries using model cache: {time4 - time3:.1f} s")
     print(f"Time for joint query: {time6 - time5:.1f} s")
-    print(f"Time for joint query using cache: {time8 - time7:.1f} s")
+    print(f"Time for joint query using model cache: {time8 - time7:.1f} s")
 
 
 if (

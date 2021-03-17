@@ -473,12 +473,21 @@ class _Worker:
             "&".join([f"{k}={v}" for k, v in self.idxval_for_idxid.items()]),
         )
 
-    def set_results_id(self, results_ids: List[str]) -> str:
+    def _make_results_id(self):
+        """results_ids based on input and function only"""
+        return hashlib.md5(
+            # f'{self.inputval_for_name}_{id(self.func)}'.encode('utf-8')
+            pickle.dumps([self.inputval_for_name, id(self.func)])
+        ).hexdigest()
+
+    def set_results_id(self, results_ids: Set[str]) -> str:
         """results_ids are the IDs of workers spawned from the
         current worker
+
+        augment that with worker's own results_id
         """
+        results_ids.add(self._make_results_id())
         self._results_id = hashlib.md5("".join(results_ids).encode("utf-8")).hexdigest()
-        # self._results_id = ''.join(results_ids)
         return self._results_id
 
     @property
@@ -498,11 +507,7 @@ class _Worker:
         if not self._consumed_input_ready:
             raise HubitWorkerError("Not enough data to create calc ID")
 
-        # self._results_id = f'{self.inputval_for_name}_{id(self.func)}'
-        self._results_id = hashlib.md5(
-            # f'{self.inputval_for_name}_{id(self.func)}'.encode('utf-8')
-            pickle.dumps([self.inputval_for_name, id(self.func)])
-        ).hexdigest()
+        self._results_id = self._make_results_id()
         return self._results_id
 
     def __str__(self):

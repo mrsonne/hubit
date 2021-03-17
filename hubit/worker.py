@@ -4,7 +4,7 @@ import hashlib
 import logging
 from multiprocessing import Process, Manager
 import copy
-from typing import Dict, TYPE_CHECKING
+from typing import Dict, Set, TYPE_CHECKING, List
 from .shared import (
     idxs_for_matches,
     get_idx_context,
@@ -348,7 +348,10 @@ class _Worker:
     def use_cached_result(self, result):
         logging.info(f'Worker "{self.name}" using CACHE for query "{self.query}"')
         self.qrun._set_worker_working(self)
-        self.results = result
+        # Set each key-val pair from the cached results to the worker results
+        # The worker results may be a managed dict
+        for key, val in result.items():
+            self.results[key] = val
         self._results_from = "cache"
 
     def work(self):

@@ -4,7 +4,7 @@ import logging
 import os
 import sys
 import time
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Set
 import yaml
 from .worker import _Worker
 from .errors import HubitModelComponentError
@@ -162,7 +162,7 @@ class _QueryRunner:
         all_input,
         skip_paths=[],
         dryrun=False,
-    ):
+    ) -> Set[str]:
         """Create workers
 
         queries should be expanded i.e. explicit in terms of iloc

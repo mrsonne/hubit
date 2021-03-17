@@ -22,12 +22,12 @@ def model_1():
 
     # With worker caching
     time1 = time.time()
-    hmodel1.set_worker_caching(True)
+    hmodel1.set_component_caching(True)
     response = hmodel1.get(query, use_multi_processing=False)
 
     # Without worker caching
     time2 = time.time()
-    hmodel1.set_worker_caching(False)
+    hmodel1.set_component_caching(False)
     response = hmodel1.get(query, use_multi_processing=False)
     time3 = time.time()
 
@@ -71,7 +71,7 @@ def model_3():
     print(f"{response}")
 
 
-def model_2_worker_cache():
+def model_2_component_cache():
     """Run model 2 and illustrate model-level caching"""
     print(f"\n***MODEL 2***")
     use_multi_processing = False
@@ -81,16 +81,16 @@ def model_2_worker_cache():
         "cars[:].price",  # price for all cars
     ]
 
-    worker_caching_levels = False, True
-    for worker_caching in worker_caching_levels:
+    component_caching_levels = False, True
+    for component_caching in component_caching_levels:
         time1 = time.time()
-        hmodel2.set_worker_caching(worker_caching)
+        hmodel2.set_component_caching(component_caching)
         hmodel2.get(query, use_multi_processing=use_multi_processing)
         time2 = time.time()
-        print(f"Worker caching is {worker_caching}: {time2 - time1:.1f} s.")
+        print(f"Component caching is {component_caching}: {time2 - time1:.1f} s.")
 
 
-# model_1()
-# model_2()
-# model_3()
-model_2_worker_cache()
+model_1()
+model_2()
+model_3()
+model_2_component_cache()

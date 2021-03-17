@@ -46,7 +46,7 @@ def query(hmodel: HubitModel, use_multi_processing: bool = False) -> None:
     )
 
     time1 = time.time()
-    hmodel.set_worker_caching(True)
+    hmodel.set_component_caching(True)
 
     # Run queries one by one (slow)
     hmodel.set_model_caching("after_execution")

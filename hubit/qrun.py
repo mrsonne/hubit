@@ -14,7 +14,7 @@ POLLTIME_LONG = 0.25
 
 
 class _QueryRunner:
-    def __init__(self, model, use_multi_processing, worker_caching=False):
+    def __init__(self, model, use_multi_processing, component_caching=False):
         """Internal class managing workers. Is in a model, the query runner
         is responsible for deploying and book keeping workers according
         to a query specified to the model.
@@ -30,7 +30,7 @@ class _QueryRunner:
         self.workers_completed = []
         self.worker_for_id = {}
         self.observers_for_query = {}
-        self.worker_caching = worker_caching
+        self.component_caching = component_caching
 
         # For book-keeping what has already been imported
         self._components = {}
@@ -137,7 +137,7 @@ class _QueryRunner:
                 version,
                 self.model.tree_for_idxcontext,
                 dryrun=dryrun,
-                caching=self.worker_caching,
+                caching=self.component_caching,
             )
         except RuntimeError:
             return None
@@ -247,7 +247,7 @@ class _QueryRunner:
         Start worker or add it to the list of workers waiting for a provider
         """
         # if not success: return False
-        if self.worker_caching:
+        if self.component_caching:
             if worker.consumes_input_only():
                 results_id = worker.results_id
             else:
@@ -306,7 +306,7 @@ class _QueryRunner:
 
         self.workers_completed.append(worker)
         self._transfer_results(worker, flat_results)
-        if self.worker_caching:
+        if self.component_caching:
             results_id = worker.results_id
 
             # Store results from worker on the calculation ID

@@ -70,7 +70,26 @@ def model_3():
     response = hmodel3.get(query)
     print(f"{response}")
 
+def model_2_worker_cache():
+    """Run model 2 and illustrate model-level caching"""
+    print(f"\n***MODEL 2***")
+    use_multi_processing = False
+    hmodel2 = get_model("model2.yml")
+    query = [
+        "cars[:].parts[:].price",  # price for all components for all cars
+        "cars[:].price",  # price for all cars
+    ]
 
-model_1()
+    worker_caching_levels = False, True
+    for worker_caching in worker_caching_levels:
+        time1 = time.time()
+        hmodel2.set_worker_caching(worker_caching)
+        hmodel2.get(query, use_multi_processing=use_multi_processing)
+        time2 = time.time()
+        print(f"Worker caching is {worker_caching}: {time2 - time1:.1f} s.")
+
+
+# model_1()
 # model_2()
 # model_3()
+model_2_worker_cache()

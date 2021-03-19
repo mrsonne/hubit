@@ -403,6 +403,7 @@ class HubitModel(_HubitModel):
     def log(self) -> HubitLog:
         return self._log
 
+
 @dataclass
 class LogItem:
     """
@@ -410,25 +411,28 @@ class LogItem:
     log lists.
 
     Args:
-        worker_counts (Dict[str, int]): Spawned worker count for 
+        worker_counts (Dict[str, int]): Spawned worker count for
         each component function name.
         wall_time (float]):
-        cache_counts (Dict[str, int]): The count of workers that used 
+        cache_counts (Dict[str, int]): The count of workers that used
         cached results. The keys are function names.
     """
+
     worker_counts: Dict[str, int]
     wall_time: float
     cache_counts: Dict[str, int]
 
+
 @dataclass
 class HubitLog:
     """
-    Hubit log. 
+    Hubit log.
 
     Args:
-        log_items (List[LogItem]): List of log items. Newest item is 
-        stored in the first element. 
+        log_items (List[LogItem]): List of log items. Newest item is
+        stored in the first element.
     """
+
     log_items: List[LogItem] = field(default_factory=list)
 
     def _add_items(
@@ -445,13 +449,14 @@ class HubitLog:
             LogItem(
                 worker_counts=worker_counts,
                 wall_time=wall_time,
-                cache_counts=cache_counts
-            )
+                cache_counts=cache_counts,
+            ),
         )
-
 
     def get_all(self, attr):
         try:
             return [getattr(item, attr) for item in self.log_items]
         except AttributeError:
-            raise AttributeError(f"Available attributes are: {', '.join([f.name for f in fields(LogItem)])}")
+            raise AttributeError(
+                f"Available attributes are: {', '.join([f.name for f in fields(LogItem)])}"
+            )

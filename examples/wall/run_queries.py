@@ -74,7 +74,10 @@ def query(hmodel: HubitModel, use_multi_processing: bool = False) -> None:
     )
     print(response)
     t_joint_cached = (
-        sum(hmodel.log().get_all("wall_time")) - t_joint - t_separate_cached - t_separate
+        sum(hmodel.log().get_all("wall_time"))
+        - t_joint
+        - t_separate_cached
+        - t_separate
     )
 
     print(f"\nSummary")

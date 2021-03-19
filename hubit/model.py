@@ -1,5 +1,6 @@
 from __future__ import annotations
 import pathlib
+from dataclasses import dataclass, field
 from typing import Any, Callable, List, Tuple, Dict
 import logging
 import os
@@ -99,6 +100,8 @@ class HubitModel(_HubitModel):
         self._model_caching_mode = "none"
         self._cache_dir = _CACHE_DIR
         self._cache_file_path = os.path.join(self._cache_dir, f"{self._get_id()}.yml")
+
+        self._log = HubitLog()
 
     @classmethod
     def from_file(
@@ -396,3 +399,38 @@ class HubitModel(_HubitModel):
             self._validate_model()
 
         return True
+
+    def log(self) -> HubitLog:
+        return self._log
+
+@dataclass
+class HubitLog:
+    """
+    Hubit log. Newest items are stored in the first element of the 
+    log lists. 
+
+    Args:
+        worker_counts (List[Dict[str, int]]): 
+        wall_times (List[float]):
+        fun_counts (List[Dict[str, int]]):
+        cache_counts (List[Dict[str, int]]):
+    """
+    worker_counts: List[Dict[str, int]] =  field(default_factory=list)
+    wall_times: List[float] = field(default_factory=list)
+    fun_counts: List[Dict[str, int]] = field(default_factory=list)
+    cache_counts: List[Dict[str, int]] = field(default_factory=list)
+
+    def _add_items(
+        self,
+        worker_counts: Dict[str, int],
+        wall_time: float,
+        cache_counts: Dict[str, int]):
+        """
+        Add log items to all lists
+        """
+
+        self.worker_counts.insert(0, worker_counts)
+        self.wall_times.insert(0, wall_time)
+        self.cache_counts.insert(0, cache_counts)
+
+

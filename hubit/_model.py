@@ -60,7 +60,6 @@ def _get(
     queryrunner.observers_for_query = {}
 
     extracted_input = {}
-    tstart = time.time()
 
     if flat_results is None:
         flat_results = {}
@@ -123,7 +122,6 @@ def _get(
             # TODO: compression call belongs on model (like expand)
             response = queryrunner.model._compress_response(response, queries_for_query)
 
-        logging.info("Response created in {} s".format(time.time() - tstart))
         return response, flat_results
     else:
         # Re-raise if failed
@@ -140,6 +138,9 @@ class _HubitModel:
 
     def __init__(self):
         pass
+
+    def _add_log_items(self, worker_counts, wall_time, cache_counts):
+        self._log._add_items(worker_counts, wall_time, cache_counts)
 
     def _get_id(self):
         """

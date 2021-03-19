@@ -7,7 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Model-level results caching. 
-- Worker-level results caching. 
+- Component-level results caching. 
+- Get the HubitLog object using `my_hubit_model.log()`. 
 
 ## [0.1.0] - 2021-02-28
 ### Added

@@ -25,6 +25,10 @@ if TYPE_CHECKING:
 class _Worker:
     """"""
 
+    RESULTS_FROM_CACHE_ID = "cache"
+    RESULTS_FROM_CALCULATION_ID = "calculation"
+    RESULTS_FROM_UNKNOWN = "unknown"
+
     @staticmethod
     def bindings_from_idxs(bindings, idxval_for_idxid) -> Dict:
         """
@@ -141,7 +145,7 @@ class _Worker:
         self.caching = caching
 
         # Store information on how results were created (calculation or cache)
-        self._results_from = "na"
+        self._results_from = self.RESULTS_FROM_UNKNOWN
 
         if dryrun:
             # If worker should perform a dry run set the worker function to "work_dryrun"
@@ -352,7 +356,7 @@ class _Worker:
         # The worker results may be a managed dict
         for key, val in result.items():
             self.results[key] = val
-        self._results_from = "cache"
+        self._results_from = self.RESULTS_FROM_CACHE_ID
 
     def work(self):
         """
@@ -371,7 +375,7 @@ class _Worker:
             self.job.start()
         else:
             self.func(self.inputval_for_name, self.resultval_for_name, self.results)
-        self._results_from = "calculation"
+        self._results_from = self.RESULTS_FROM_CALCULATION_ID
 
         logging.debug("\n**STOP WORKING**\n{}".format(self.__str__()))
         logging.info(f'Worker "{self.name}" finished for query "{self.query}"')
@@ -544,3 +548,7 @@ class _Worker:
         strtmp += "=" * n + "\n"
 
         return strtmp
+
+
+    def used_cache(self):
+        return self._results_from == self.RESULTS_FROM_CACHE_ID

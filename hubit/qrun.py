@@ -6,9 +6,10 @@ import sys
 import time
 from typing import Any, Dict, List, Set
 import yaml
+from collections import Counter
 from .worker import _Worker
 from .errors import HubitModelComponentError
-
+from .shared import count
 POLLTIME = 0.1
 POLLTIME_LONG = 0.25
 
@@ -343,6 +344,7 @@ class _QueryRunner:
         but is necessary when main tread should waiting for
         calculation processes when using multiprocessing
         """
+        t_start = time.perf_counter()
         should_stop = False
         while not should_stop and not shutdown_event.is_set():
             _workers_completed = [
@@ -355,6 +357,17 @@ class _QueryRunner:
             should_stop = all([query in flat_results.keys() for query in queries])
             time.sleep(POLLTIME)
 
+        # TODO: set zeros for all components
+        worker_counts = {component_data["func_name"]: 0 for component_data in self.model.cfg}
+        worker_counts.update(count(self.workers, key_from="name"))
+        cache_counts = count(self.workers, key_from="name", increment_fun=(lambda item: 1 if item.used_cache() else 0))
+        wall_time = time.perf_counter() - t_start
+        self.model._add_log_items(worker_counts, wall_time, cache_counts)
+
+        logging.info("Response created in {} s".format(time.time() - t_start))
+
+
+        # self.model.log._add_items()
         # Save results
         if self.model._model_caching_mode == "after_execution":
             with open(self.model._cache_file_path, "w") as handle:

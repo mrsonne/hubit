@@ -21,19 +21,17 @@ def model_1():
     query = ["cars[0].price", "cars[1].price", "cars[2].price"]
 
     # With worker caching
-    time1 = time.time()
     hmodel1.set_component_caching(True)
     response = hmodel1.get(query, use_multi_processing=False)
 
     # Without worker caching
-    time2 = time.time()
     hmodel1.set_component_caching(False)
     response = hmodel1.get(query, use_multi_processing=False)
-    time3 = time.time()
 
     print(response)
-    print(f"Time WITH worker caching: {time2 - time1:.1f} s. ")
-    print(f"Time WITHOUT worker caching: {time3 - time2:.1f} s. ")
+    log = hmodel1.log()
+    print(f"Time WITH worker caching: {log.wall_times[1]:.1f} s. ")
+    print(f"Time WITHOUT worker caching: {log.wall_times[0]:.1f} s. ")
 
 
 def model_2():
@@ -42,8 +40,6 @@ def model_2():
     model_caching_mode = "after_execution"
     # model_caching_mode = "incremental"
     # model_caching_mode = "never"
-    use_results = "cached"
-    # use_results = "none"
 
     clear_hubit_cache()
     hmodel2 = get_model("model2.yml")
@@ -52,14 +48,12 @@ def model_2():
         "cars[:].parts[:].price",  # price for all components for all cars
         "cars[:].price",  # price for all cars
     ]
-    time1 = time.time()
     response = hmodel2.get(query, use_results="cached")
-    time2 = time.time()
     response = hmodel2.get(query, use_results="cached")
-    time3 = time.time()
     pprint(response)
-    print(f"\nTime WITHOUT cached results on model: {time2 - time1:.1f} s.")
-    print(f"Time WITH cached results on model: {time3 - time2:.1f} s.")
+    log = hmodel2.log()
+    print(f"\nTime WITHOUT cached results on model: {log.wall_times[1]:.1f} s.")
+    print(f"Time WITH cached results on model: {log.wall_times[0]:.1f} s.")
 
 
 def model_3():
@@ -87,7 +81,8 @@ def model_2_component_cache():
         hmodel2.set_component_caching(component_caching)
         hmodel2.get(query, use_multi_processing=use_multi_processing)
         time2 = time.time()
-        print(f"Component caching is {component_caching}: {time2 - time1:.1f} s.")
+        log = hmodel2.log()
+        print(f"Component caching is {component_caching}: {log.wall_times[0]:.1f} s.")
 
 
 model_1()

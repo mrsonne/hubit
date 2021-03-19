@@ -1042,3 +1042,12 @@ def split_items(items: List, sizes: List[int]) -> List:
     """
     it = iter(items)
     return [list(itertools.islice(it, 0, size)) for size in sizes]
+
+
+def count(items: List, key_from: str, increment_fun=(lambda x: 1)):
+    counts = dict()
+    for item in items:
+        key = getattr(item, key_from)
+        increment = increment_fun(item)
+        counts[key] = counts.get(key, 0) + increment
+    return counts

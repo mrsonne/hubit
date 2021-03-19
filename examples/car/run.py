@@ -1,4 +1,3 @@
-import time
 from pprint import pprint
 import logging
 from .shared import get_model
@@ -77,10 +76,8 @@ def model_2_component_cache():
 
     component_caching_levels = False, True
     for component_caching in component_caching_levels:
-        time1 = time.time()
         hmodel2.set_component_caching(component_caching)
         hmodel2.get(query, use_multi_processing=use_multi_processing)
-        time2 = time.time()
         log = hmodel2.log()
         print(f"Component caching is {component_caching}: {log.wall_times[0]:.1f} s.")
 

@@ -53,13 +53,13 @@ def query(hmodel: HubitModel, use_multi_processing: bool = False) -> None:
         response = hmodel.get(path, use_multi_processing=use_multi_processing)
         print(response)
         print("")
-    t_separate = sum(hmodel.log().wall_times[:])
+    t_separate = sum(hmodel.log().get_all("wall_time"))
 
     for path in query:
         response = hmodel.get(
             path, use_results="cached", use_multi_processing=use_multi_processing
         )
-    t_separate_cached = sum(hmodel.log().wall_times[:]) - t_separate
+    t_separate_cached = sum(hmodel.log().get_all("wall_time")) - t_separate
 
     # Run queries as one (fast). The speed increase comes from Hubit's
     # results caching that acknowledges that the first query actually produces
@@ -67,14 +67,14 @@ def query(hmodel: HubitModel, use_multi_processing: bool = False) -> None:
     query = [item for path in query for item in path]
     response = hmodel.get(query, use_multi_processing=use_multi_processing)
     print(response)
-    t_joint = sum(hmodel.log().wall_times[:]) - t_separate_cached - t_separate
+    t_joint = sum(hmodel.log().get_all("wall_time")) - t_separate_cached - t_separate
 
     response = hmodel.get(
         query, use_results="cached", use_multi_processing=use_multi_processing
     )
     print(response)
     t_joint_cached = (
-        sum(hmodel.log().wall_times[:]) - t_joint - t_separate_cached - t_separate
+        sum(hmodel.log().get_all("wall_time")) - t_joint - t_separate_cached - t_separate
     )
 
     print(f"\nSummary")

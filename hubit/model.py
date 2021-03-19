@@ -1,6 +1,6 @@
 from __future__ import annotations
 import pathlib
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields
 from typing import Any, Callable, List, Tuple, Dict
 import logging
 import os
@@ -403,24 +403,33 @@ class HubitModel(_HubitModel):
     def log(self) -> HubitLog:
         return self._log
 
-
 @dataclass
-class HubitLog:
+class LogItem:
     """
     Hubit log. Newest items are stored in the first element of the
     log lists.
 
     Args:
-        worker_counts (List[Dict[str, int]]):
-        wall_times (List[float]):
-        fun_counts (List[Dict[str, int]]):
-        cache_counts (List[Dict[str, int]]):
+        worker_counts (Dict[str, int]): Spawned worker count for 
+        each component function name.
+        wall_time (float]):
+        cache_counts (Dict[str, int]): The count of workers that used 
+        cached results. The keys are function names.
     """
+    worker_counts: Dict[str, int]
+    wall_time: float
+    cache_counts: Dict[str, int]
 
-    worker_counts: List[Dict[str, int]] = field(default_factory=list)
-    wall_times: List[float] = field(default_factory=list)
-    fun_counts: List[Dict[str, int]] = field(default_factory=list)
-    cache_counts: List[Dict[str, int]] = field(default_factory=list)
+@dataclass
+class HubitLog:
+    """
+    Hubit log. 
+
+    Args:
+        log_items (List[LogItem]): List of log items. Newest item is 
+        stored in the first element. 
+    """
+    log_items: List[LogItem] = field(default_factory=list)
 
     def _add_items(
         self,
@@ -431,7 +440,18 @@ class HubitLog:
         """
         Add log items to all lists
         """
+        self.log_items.insert(
+            0,
+            LogItem(
+                worker_counts=worker_counts,
+                wall_time=wall_time,
+                cache_counts=cache_counts
+            )
+        )
 
-        self.worker_counts.insert(0, worker_counts)
-        self.wall_times.insert(0, wall_time)
-        self.cache_counts.insert(0, cache_counts)
+
+    def get_all(self, attr):
+        try:
+            return [getattr(item, attr) for item in self.log_items]
+        except AttributeError:
+            raise AttributeError(f"Available attributes are: {', '.join([f.name for f in fields(LogItem)])}")

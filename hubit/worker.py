@@ -549,6 +549,5 @@ class _Worker:
 
         return strtmp
 
-
     def used_cache(self):
         return self._results_from == self.RESULTS_FROM_CACHE_ID

@@ -10,6 +10,7 @@ from collections import Counter
 from .worker import _Worker
 from .errors import HubitModelComponentError
 from .shared import count
+
 POLLTIME = 0.1
 POLLTIME_LONG = 0.25
 
@@ -358,14 +359,19 @@ class _QueryRunner:
             time.sleep(POLLTIME)
 
         # TODO: set zeros for all components
-        worker_counts = {component_data["func_name"]: 0 for component_data in self.model.cfg}
+        worker_counts = {
+            component_data["func_name"]: 0 for component_data in self.model.cfg
+        }
         worker_counts.update(count(self.workers, key_from="name"))
-        cache_counts = count(self.workers, key_from="name", increment_fun=(lambda item: 1 if item.used_cache() else 0))
+        cache_counts = count(
+            self.workers,
+            key_from="name",
+            increment_fun=(lambda item: 1 if item.used_cache() else 0),
+        )
         wall_time = time.perf_counter() - t_start
         self.model._add_log_items(worker_counts, wall_time, cache_counts)
 
         logging.info("Response created in {} s".format(time.time() - t_start))
-
 
         # self.model.log._add_items()
         # Save results

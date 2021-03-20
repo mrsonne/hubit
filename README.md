@@ -301,7 +301,7 @@ module: hubit_components.price1
 where `hubit_components` is a package you have created that contains the module `price1`.
 
 ### Running
-To get results from a model requires you to submit a _query_, which tells `hubit` what attributes from the results data structure you want to have calculated. After `hubit` has processed the query, i.e. executed relevant components, the values of the queried attributes are returned in the _response_. A query may spawn many component instances that may represent the same or different model components. Below are two examples of queries and the corresponding responses.
+To get results from a model requires you to submit a _query_, which tells `hubit` what attributes from the results data structure you want to have calculated. After `hubit` has processed the query, i.e. executed relevant components, the values of the queried attributes are returned in the _response_. A query may spawn many component _workers_ that may represent the same or different model components. Below are two examples of queries and the corresponding responses.
 
 ```python
 # Load model from file
@@ -394,7 +394,7 @@ file and the model input. `hubit` does not check if the underlying calculation c
 The model cache can be cleared using the `clear_cache` method on a `hubit` model. To check if a model has an associated cached result use `has_cached_results` method on a `hubit` model. Cached results for all models can be cleared by using `hubit.clear_hubit_cache()`.
 
 #### Component-level caching 
-Component-level caching can be activated using the `hubit` model method `set_component_caching(True)`. By default component-level caching is off. If on, the consumed data for all spawned component instances and the corresponding results will be stored in memory during execution of a query. If `hubit` finds that a two component instances are both instances of the same model component and the input data are identical, the second component instance will simply use the results produced by the first component instance. A cache is created for each query and is not shared between sequential queries to a model. Also, the component-level cache is not shared between the individual sampling runs using `get_many`.
+Component-level caching can be activated using the `hubit` model method `set_component_caching(True)`. By default component-level caching is off. If component-level caching is on, the consumed data for all spawned component workers and the corresponding results will be stored in memory during execution of a query. If `hubit` finds that a two workers refer to the same model component and the input data are identical, the second worker will simply use the results produced by the first worker. A cache is created for each query and is not shared between sequential queries to a model. Also, the component-level cache is not shared between the individual sampling runs using `get_many`.
 
 For smaller jobs any speed-up obtained my using component-level caching cannot be seen on the wall clock when using multi-processing. The effect will, however, be apparent in the model `query_log()`.
 

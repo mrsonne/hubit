@@ -411,8 +411,7 @@ class LogItem:
     log lists.
 
     Args:
-        worker_counts (Dict[str, int]): Spawned worker count for
-        each component function name.
+        worker_counts (Dict[str, int]): Spawned worker count for each component function name.
         wall_time (float]):
         cache_counts (Dict[str, int]): The count of workers that used
         cached results. The keys are function names.

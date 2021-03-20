@@ -358,7 +358,16 @@ class _QueryRunner:
             should_stop = all([query in flat_results.keys() for query in queries])
             time.sleep(POLLTIME)
 
-        # TODO: set zeros for all components
+        wall_time = self._add_log_items(t_start)
+        logging.info("Response created in {} s".format(wall_time))
+
+        # Save results
+        if self.model._model_caching_mode == "after_execution":
+            with open(self.model._cache_file_path, "w") as handle:
+                yaml.dump(flat_results, handle)
+
+    def _add_log_items(self, t_start: float) -> float:
+        # Set zeros for all components
         worker_counts = {
             component_data["func_name"]: 0 for component_data in self.model.cfg
         }
@@ -370,11 +379,4 @@ class _QueryRunner:
         )
         wall_time = time.perf_counter() - t_start
         self.model._add_log_items(worker_counts, wall_time, cache_counts)
-
-        logging.info("Response created in {} s".format(time.time() - t_start))
-
-        # self.model.log._add_items()
-        # Save results
-        if self.model._model_caching_mode == "after_execution":
-            with open(self.model._cache_file_path, "w") as handle:
-                yaml.dump(flat_results, handle)
+        return wall_time

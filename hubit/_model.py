@@ -139,7 +139,12 @@ class _HubitModel:
     def __init__(self):
         pass
 
-    def _add_log_items(self, worker_counts, wall_time, cache_counts):
+    def _add_log_items(
+        self,
+        worker_counts: Dict[str, int],
+        wall_time: List[float],
+        cache_counts: Dict[str, int],
+    ):
         self._log._add_items(worker_counts, wall_time, cache_counts)
 
     def _get_id(self):

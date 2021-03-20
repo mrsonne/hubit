@@ -373,8 +373,8 @@ will validate various aspects of the query.
 
 ### Caching
 
-#### Model level caching. 
-By default hubit `never` caches results internally. A `hubit` model can, however, write results to disk automatically by setting the caching level using the `set_model_caching` method. Results can be saved either in an `incremental` fashion or `after_execution`. Results caching is useful when you want to avoid spending time calculating the same results multiple times. A use case for  `incremental` caching is when a calculation is stopped (computer shutdown, keyboard interrupt, exception raised) before the response has been generated. In such cases the calculation can be restarted from the cached results object. The overhead introduced by caching makes it especially useful for CPU bound models.
+#### Model-level caching. 
+By default hubit `never` caches results internally. A `hubit` model can, however, write results to disk automatically by setting the caching level using the `set_model_caching` method. Results can be saved either in an `incremental` fashion i.e. every time a component worker completes or `after_execution`. Results caching is useful when you want to avoid spending time calculating the same results multiple times. A use case for `incremental` caching is when a calculation is stopped (computer shutdown, keyboard interrupt, exception raised) before the response has been generated. In such cases the calculation can be restarted from the cached results. The overhead introduced by caching makes it especially useful for CPU bound models.
 
 __Warning__. Cached results are tied only to the content of the model configuration
 file and the model input. `hubit` does not check if the underlying calculation code has changed. Therefore, using results caching while components are in development is not recommended.
@@ -394,9 +394,9 @@ file and the model input. `hubit` does not check if the underlying calculation c
 The model cache can be cleared using the `clear_cache` method on a `hubit` model. To check if a model has an associated cached result use `has_cached_results` method on a `hubit` model. Cached results for all models can be cleared by using `hubit.clear_hubit_cache()`.
 
 #### Component-level caching 
-Component-level caching can be activated using the `hubit` model method `set_component_caching(True)`. By default component-level caching is off. If component-level caching is on, the consumed data for all spawned component workers and the corresponding results will be stored in memory during execution of a query. If `hubit` finds that a two workers refer to the same model component and the input data are identical, the second worker will simply use the results produced by the first worker. A cache is created for each query and is not shared between sequential queries to a model. Also, the component-level cache is not shared between the individual sampling runs using `get_many`.
+Component-level caching can be activated using the method `set_component_caching(True)` on a `hubit` model instance. By default component-level caching is off. If component-level caching is on, the consumed data for all spawned component workers and the corresponding results will be stored in memory during execution of a query. If `hubit` finds that, in the same query, two workers refer to the same model component and the input data are identical, the second worker will simply use the results produced by the first worker. The cache is not shared between sequential queries to a model. Also, the component-level cache is not shared between the individual sampling runs using `get_many`.
 
-For smaller jobs any speed-up obtained my using component-level caching cannot be seen on the wall clock when using multi-processing. The effect will, however, be apparent in the model `query_log()`.
+For smaller jobs any speed-up obtained my using component-level caching cannot be seen on the wall clock when using multi-processing. The effect will, however, be apparent in the model `log()`.
 
 # Examples
 
@@ -404,7 +404,7 @@ In the examples all calculation are, for simplicity, carried out directly in the
 hubit component, but the component could just as well wrap a C library, request 
 data from a web server or use an installed Python package. The examples are summarized below.
 
-* `examples/car`. This examples encompass the two car models shown above. The example also illustrates the use of model-level caching and worker-level caching.
+* `examples/car`. This examples encompass the two car models shown above. The example also illustrates the use of model-level caching and component-level caching.
 * `examples/wall`. This example illustrates heat flow calculations and cost calculations for a wall with two segments. Each wall segment has multiple wall layers that consist of different materials. The example demonstrates model rendering (`run_render.py`), simple queries (`run_queries.py`) with model level caching, reusing previously calculated results `run_precompute.py`, setting results manually (`run_set_results.py`) and input parameter sweeps (`run_sweep.py`). Most of the wall examples run with or without multi-processing.
 
 To run, for example, the car example execute  

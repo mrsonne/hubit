@@ -28,9 +28,9 @@ def model_1():
     response = hmodel1.get(query, use_multi_processing=False)
 
     print(response)
-    wall_times = hmodel1.log().get_all("wall_time")
-    print(f"Time WITH worker caching: {wall_times[1]:.1f} s. ")
-    print(f"Time WITHOUT worker caching: {wall_times[0]:.1f} s. ")
+    elapsed_times = hmodel1.log().get_all("elapsed_time")
+    print(f"Time WITH worker caching: {elapsed_times[1]:.1f} s. ")
+    print(f"Time WITHOUT worker caching: {elapsed_times[0]:.1f} s. ")
 
 
 def model_2():
@@ -50,9 +50,9 @@ def model_2():
     response = hmodel2.get(query, use_results="cached")
     response = hmodel2.get(query, use_results="cached")
     pprint(response)
-    wall_times = hmodel2.log().get_all("wall_time")
-    print(f"\nTime WITHOUT cached results on model: {wall_times[1]:.1f} s.")
-    print(f"Time WITH cached results on model: {wall_times[0]:.1f} s.")
+    elapsed_times = hmodel2.log().get_all("elapsed_time")
+    print(f"\nTime WITHOUT cached results on model: {elapsed_times[1]:.1f} s.")
+    print(f"Time WITH cached results on model: {elapsed_times[0]:.1f} s.")
 
 
 def model_3():
@@ -62,6 +62,7 @@ def model_3():
     query = ["cars[:].price"]  # price for all cars
     response = hmodel3.get(query)
     print(f"{response}")
+    print(hmodel3.log())
 
 
 def model_2_component_cache():
@@ -79,9 +80,9 @@ def model_2_component_cache():
         hmodel2.set_component_caching(component_caching)
         hmodel2.get(query, use_multi_processing=use_multi_processing)
 
-    wall_times = reversed(hmodel2.log().get_all("wall_time"))
-    for wall_time, component_caching in zip(wall_times, component_caching_levels):
-        print(f"Component caching is {component_caching}: {wall_time:.1f} s.")
+    elapsed_times = reversed(hmodel2.log().get_all("elapsed_time"))
+    for elapsed_time, component_caching in zip(elapsed_times, component_caching_levels):
+        print(f"Component caching is {component_caching}: {elapsed_time:.1f} s.")
 
 
 model_1()

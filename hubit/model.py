@@ -1,5 +1,6 @@
 from __future__ import annotations
 import pathlib
+import datetime
 from dataclasses import dataclass, field, fields
 from typing import Any, Callable, List, Tuple, Dict
 import logging
@@ -404,6 +405,10 @@ class HubitModel(_HubitModel):
         return self._log
 
 
+def now():
+    return datetime.datetime.now().strftime("%d-%b-%Y %H:%M:%S")
+
+
 @dataclass
 class LogItem:
     """
@@ -411,15 +416,38 @@ class LogItem:
     log lists.
 
     Args:
+
+        elapsed_time (float): Query execution time
         worker_counts (Dict[str, int]): Spawned worker count for each component function name.
-        wall_time (float]):
         cache_counts (Dict[str, int]): The count of workers that used
         cached results. The keys are function names.
     """
 
+    elapsed_time: float
     worker_counts: Dict[str, int]
-    wall_time: float
     cache_counts: Dict[str, int]
+    created_time: str = field(default_factory=now)
+
+    def __post_init__(self):
+        # The printing order of the fields
+        self.__class__._order = [
+            "created_time",
+            "elapsed_time",
+            "worker_counts",
+            "cache_counts",
+        ]
+        self.__class__._header_fstr = "".join(["{:25}", "{:25}", "{:25}", "{:25}"])
+        self.__class__._value_fstr = "".join(["{:25}", "{:25.2f}", "{:25}", "{:25}"])
+
+    @classmethod
+    def get_headers(cls):
+        headers = [field_name.replace("_", " ").title() for field_name in cls._order]
+        return cls._header_fstr.format(*headers)
+
+    def get_values(self):
+        return self._value_fstr.format(
+            *[str(getattr(self, field_name)) for field_name in self._order]
+        )
 
 
 @dataclass
@@ -437,7 +465,7 @@ class HubitLog:
     def _add_items(
         self,
         worker_counts: Dict[str, int],
-        wall_time: float,
+        elapsed_time: float,
         cache_counts: Dict[str, int],
     ):
         """
@@ -447,7 +475,7 @@ class HubitLog:
             0,
             LogItem(
                 worker_counts=worker_counts,
-                wall_time=wall_time,
+                elapsed_time=elapsed_time,
                 cache_counts=cache_counts,
             ),
         )
@@ -456,7 +484,7 @@ class HubitLog:
         """Get all log item values corresponding to attribute name "attr"
 
         Args:
-            attr (str): Available attributes are: worker_counts, wall_time, cache_counts
+            attr (str): Available attributes are: worker_counts, elapsed_time, cache_counts
 
         Returns:
             List: Log item values
@@ -467,3 +495,16 @@ class HubitLog:
             raise AttributeError(
                 f"Available attributes are: {', '.join([f.name for f in fields(LogItem)])}"
             )
+
+    def __str__(self):
+        sepstr = "-"
+        lines = [LogItem.get_headers()]
+        # headers.insert(1, 'Component Name')
+        for logitem in self.log_items:
+            lines.append(logitem.get_values())
+        width = max([len(line) for line in lines])
+        sep = width * sepstr
+        lines.insert(1, sep)
+        lines.insert(0, sep)
+        lines.append(sep)
+        return "\n".join(lines)

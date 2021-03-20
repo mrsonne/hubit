@@ -358,8 +358,8 @@ class _QueryRunner:
             should_stop = all([query in flat_results.keys() for query in queries])
             time.sleep(POLLTIME)
 
-        wall_time = self._add_log_items(t_start)
-        logging.info("Response created in {} s".format(wall_time))
+        elapsed_time = self._add_log_items(t_start)
+        logging.info("Response created in {} s".format(elapsed_time))
 
         # Save results
         if self.model._model_caching_mode == "after_execution":
@@ -377,6 +377,6 @@ class _QueryRunner:
             key_from="name",
             increment_fun=(lambda item: 1 if item.used_cache() else 0),
         )
-        wall_time = time.perf_counter() - t_start
-        self.model._add_log_items(worker_counts, wall_time, cache_counts)
-        return wall_time
+        elapsed_time = time.perf_counter() - t_start
+        self.model._add_log_items(worker_counts, elapsed_time, cache_counts)
+        return elapsed_time

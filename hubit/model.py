@@ -452,7 +452,15 @@ class HubitLog:
             ),
         )
 
-    def get_all(self, attr):
+    def get_all(self, attr: str) -> List:
+        """Get all log item values corresponding to attribute name "attr"
+
+        Args:
+            attr (str): Available attributes are: worker_counts, wall_time, cache_counts
+
+        Returns:
+            List: Log item values
+        """
         try:
             return [getattr(item, attr) for item in self.log_items]
         except AttributeError:

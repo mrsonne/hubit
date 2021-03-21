@@ -372,11 +372,16 @@ class _QueryRunner:
             component_data["func_name"]: 0 for component_data in self.model.cfg
         }
         worker_counts.update(count(self.workers, key_from="name"))
-        cache_counts = count(
+
+        # Set zeros for all components
+        cache_counts = {
+            component_data["func_name"]: 0 for component_data in self.model.cfg
+        }
+        cache_counts.update(count(
             self.workers,
             key_from="name",
             increment_fun=(lambda item: 1 if item.used_cache() else 0),
-        )
+        ))
         elapsed_time = time.perf_counter() - t_start
         self.model._add_log_items(worker_counts, elapsed_time, cache_counts)
         return elapsed_time

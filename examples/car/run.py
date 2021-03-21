@@ -16,21 +16,22 @@ def model_1():
     """
     print(f"\n***MODEL 1***")
 
-    hmodel1 = get_model("model1.yml")
+    hmodel = get_model("model1.yml")
     query = ["cars[0].price", "cars[1].price", "cars[2].price"]
 
     # With worker caching
-    hmodel1.set_component_caching(True)
-    response = hmodel1.get(query, use_multi_processing=False)
+    hmodel.set_component_caching(True)
+    response = hmodel.get(query, use_multi_processing=False)
 
     # Without worker caching
-    hmodel1.set_component_caching(False)
-    response = hmodel1.get(query, use_multi_processing=False)
+    hmodel.set_component_caching(False)
+    response = hmodel.get(query, use_multi_processing=False)
 
     print(response)
-    elapsed_times = hmodel1.log().get_all("elapsed_time")
+    elapsed_times = hmodel.log().get_all("elapsed_time")
     print(f"Time WITH worker caching: {elapsed_times[1]:.1f} s. ")
     print(f"Time WITHOUT worker caching: {elapsed_times[0]:.1f} s. ")
+    print(hmodel.log())
 
 
 def model_2():
@@ -54,22 +55,24 @@ def model_2():
     print(f"\nTime WITHOUT cached results on model: {elapsed_times[1]:.1f} s.")
     print(f"Time WITH cached results on model: {elapsed_times[0]:.1f} s.")
 
+    # print(hmodel2.log())
+
 
 def model_3():
     """Run model 3"""
     print(f"\n***MODEL 3***")
-    hmodel3 = get_model("model3.yml")
+    hmodel = get_model("model3.yml")
     query = ["cars[:].price"]  # price for all cars
-    response = hmodel3.get(query)
+    response = hmodel.get(query)
     print(f"{response}")
-    print(hmodel3.log())
+    print(hmodel.log())
 
 
 def model_2_component_cache():
     """Run model 2 and illustrate model-level caching"""
     print(f"\n***MODEL 2***")
     use_multi_processing = False
-    hmodel2 = get_model("model2.yml")
+    hmodel = get_model("model2.yml")
     query = [
         "cars[:].parts[:].price",  # price for all components for all cars
         "cars[:].price",  # price for all cars
@@ -77,13 +80,14 @@ def model_2_component_cache():
 
     component_caching_levels = False, True
     for component_caching in component_caching_levels:
-        hmodel2.set_component_caching(component_caching)
-        hmodel2.get(query, use_multi_processing=use_multi_processing)
+        hmodel.set_component_caching(component_caching)
+        hmodel.get(query, use_multi_processing=use_multi_processing)
 
-    elapsed_times = reversed(hmodel2.log().get_all("elapsed_time"))
+    elapsed_times = reversed(hmodel.log().get_all("elapsed_time"))
     for elapsed_time, component_caching in zip(elapsed_times, component_caching_levels):
         print(f"Component caching is {component_caching}: {elapsed_time:.1f} s.")
 
+    print(hmodel.log())
 
 model_1()
 model_2()

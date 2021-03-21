@@ -429,11 +429,11 @@ class LogItem:
     created_time: str = field(default_factory=now)
 
     _order = [
-            "created_time",
-            "elapsed_time",
-            "worker_counts",
-            "cache_counts",
-        ]
+        "created_time",
+        "elapsed_time",
+        "worker_counts",
+        "cache_counts",
+    ]
 
     # Extra column inserted before dataclass field
     _extra_col = {"worker_counts": "Worker name"}
@@ -457,7 +457,7 @@ class LogItem:
         return cls._header_fstr.format(*headers)
 
     def get_values(self):
-        vals_row0 = [""]*LogItem._n_columns
+        vals_row0 = [""] * LogItem._n_columns
         items_for_field_idx = {}
         for field_idx, field_name in enumerate(self._order):
 
@@ -469,12 +469,12 @@ class LogItem:
                 continue
 
             vals_row0[field_idx] = val
-        
-        vals_for_row_idx = [[""]*LogItem._n_columns for _ in range(nrows)]
+
+        vals_for_row_idx = [[""] * LogItem._n_columns for _ in range(nrows)]
         vals_for_row_idx[0] = vals_row0
         for field_idx, items in items_for_field_idx.items():
             for row_idx, row in enumerate(items):
-                vals_for_row_idx[row_idx][field_idx+1] = row[1]
+                vals_for_row_idx[row_idx][field_idx + 1] = row[1]
                 if LogItem._order[field_idx] in LogItem._extra_col:
                     # Insert extra column
                     vals_for_row_idx[row_idx][field_idx] = row[0]
@@ -484,7 +484,7 @@ class LogItem:
             lines.append(self._value_fstr.format(*vals))
 
         # print(lines)
-        return '\n'.join(lines)
+        return "\n".join(lines)
 
 
 @dataclass

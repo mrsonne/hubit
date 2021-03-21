@@ -428,26 +428,63 @@ class LogItem:
     cache_counts: Dict[str, int]
     created_time: str = field(default_factory=now)
 
-    def __post_init__(self):
-        # The printing order of the fields
-        self.__class__._order = [
+    _order = [
             "created_time",
             "elapsed_time",
             "worker_counts",
             "cache_counts",
         ]
-        self.__class__._header_fstr = "".join(["{:25}", "{:25}", "{:25}", "{:25}"])
-        self.__class__._value_fstr = "".join(["{:25}", "{:25.2f}", "{:25}", "{:25}"])
+
+    # Extra column inserted before dataclass field
+    _extra_col = {"worker_counts": "Worker name"}
+
+    # Both fields and extra columns
+    _header_fstr = " ".join(["{:<20}", "{:^12}", "{:^25}", "{:^15}", "{:^15}"])
+    _value_fstr = " ".join(["{:<20}", "{:^12.2}", "{:^25}", "{:^15}", "{:^15}"])
+    _n_columns = len(_order) + len(_extra_col)
 
     @classmethod
     def get_headers(cls):
         headers = [field_name.replace("_", " ").title() for field_name in cls._order]
+
+        # Insert extra columns
+        added = 0
+        for target_field, xtra_header in LogItem._extra_col.items():
+            idx = LogItem._order.index(target_field) + added
+            headers.insert(idx, xtra_header)
+            added += 1
+
         return cls._header_fstr.format(*headers)
 
     def get_values(self):
-        return self._value_fstr.format(
-            *[str(getattr(self, field_name)) for field_name in self._order]
-        )
+        vals_row0 = [""]*LogItem._n_columns
+        items_for_field_idx = {}
+        for field_idx, field_name in enumerate(self._order):
+
+            val = getattr(self, field_name)
+
+            if isinstance(val, Dict):
+                items_for_field_idx[field_idx] = list(sorted(val.items()))
+                nrows = len(items_for_field_idx[field_idx])
+                continue
+
+            vals_row0[field_idx] = val
+        
+        vals_for_row_idx = [[""]*LogItem._n_columns for _ in range(nrows)]
+        vals_for_row_idx[0] = vals_row0
+        for field_idx, items in items_for_field_idx.items():
+            for row_idx, row in enumerate(items):
+                vals_for_row_idx[row_idx][field_idx+1] = row[1]
+                if LogItem._order[field_idx] in LogItem._extra_col:
+                    # Insert extra column
+                    vals_for_row_idx[row_idx][field_idx] = row[0]
+
+        lines = []
+        for vals in vals_for_row_idx:
+            lines.append(self._value_fstr.format(*vals))
+
+        # print(lines)
+        return '\n'.join(lines)
 
 
 @dataclass
@@ -502,7 +539,7 @@ class HubitLog:
         # headers.insert(1, 'Component Name')
         for logitem in self.log_items:
             lines.append(logitem.get_values())
-        width = max([len(line) for line in lines])
+        width = max([len(line.split("\n")[0]) for line in lines])
         sep = width * sepstr
         lines.insert(1, sep)
         lines.insert(0, sep)

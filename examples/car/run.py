@@ -54,7 +54,7 @@ def model_2():
     elapsed_times = hmodel.log().get_all("elapsed_time")
     print(f"\nTime WITHOUT cached results on model: {elapsed_times[1]:.1f} s.")
     print(f"Time WITH cached results on model: {elapsed_times[0]:.1f} s.")
-    # print(hmodel.log())
+    print(hmodel.log())
 
 
 def model_3():
@@ -88,7 +88,7 @@ def model_2_component_cache():
 
     print(hmodel.log())
 
-model_1()
+# model_1()
 model_2()
-model_3()
-model_2_component_cache()
+# model_3()
+# model_2_component_cache()

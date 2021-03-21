@@ -42,20 +42,19 @@ def model_2():
     # model_caching_mode = "never"
 
     clear_hubit_cache()
-    hmodel2 = get_model("model2.yml")
-    hmodel2.set_model_caching(model_caching_mode)
+    hmodel = get_model("model2.yml")
+    hmodel.set_model_caching(model_caching_mode)
     query = [
         "cars[:].parts[:].price",  # price for all components for all cars
         "cars[:].price",  # price for all cars
     ]
-    response = hmodel2.get(query, use_results="cached")
-    response = hmodel2.get(query, use_results="cached")
+    response = hmodel.get(query, use_results="cached")
+    response = hmodel.get(query, use_results="cached")
     pprint(response)
-    elapsed_times = hmodel2.log().get_all("elapsed_time")
+    elapsed_times = hmodel.log().get_all("elapsed_time")
     print(f"\nTime WITHOUT cached results on model: {elapsed_times[1]:.1f} s.")
     print(f"Time WITH cached results on model: {elapsed_times[0]:.1f} s.")
-
-    # print(hmodel2.log())
+    # print(hmodel.log())
 
 
 def model_3():

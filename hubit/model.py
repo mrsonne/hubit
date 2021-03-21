@@ -536,7 +536,6 @@ class HubitLog:
     def __str__(self):
         sepstr = "-"
         lines = [LogItem.get_headers()]
-        # headers.insert(1, 'Component Name')
         for logitem in self.log_items:
             lines.append(logitem.get_values())
         width = max([len(line.split("\n")[0]) for line in lines])

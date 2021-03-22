@@ -44,7 +44,6 @@ def query(hmodel: HubitModel, use_multi_processing: bool = False) -> None:
         ["segments[:].layers[:].k_therm"],
     )
 
-
     # Run queries one by one (slow)
     hmodel.set_model_caching("after_execution")
     for path in query:

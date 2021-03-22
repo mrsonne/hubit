@@ -374,7 +374,20 @@ will validate various aspects of the query.
 ### Caching
 
 #### Model-level caching. 
-By default hubit `never` caches results internally. A `hubit` model can, however, write results to disk automatically by setting the caching level using the `set_model_caching` method. Results can be saved either in an `incremental` fashion i.e. every time a component worker completes or `after_execution`. Results caching is useful when you want to avoid spending time calculating the same results multiple times. A use case for `incremental` caching is when a calculation is stopped (computer shutdown, keyboard interrupt, exception raised) before the response has been generated. In such cases the calculation can be restarted from the cached results. The overhead introduced by caching makes it especially useful for CPU bound models.
+By default hubit `never` caches results internally. A `hubit` model can, however, write results to disk automatically by setting the caching level using the `set_model_caching` method. Results can be saved either in an `incremental` fashion i.e. every time a component worker completes or `after_execution`. Results caching is useful when you want to avoid spending time calculating the same results multiple times. A use case for `incremental` caching is when a calculation is stopped (computer shutdown, keyboard interrupt, exception raised) before the response has been generated. In such cases the calculation can be restarted from the cached results. The overhead introduced by caching makes it especially useful for CPU bound models. The table below comes from printing the log after running model 2 with and without model-level caching
+
+```python
+print(hmodel.log())
+
+--------------------------------------------------------------------------------------------------
+Query finish time    Query took (s)        Worker name        Workers spawned Component cache hits
+--------------------------------------------------------------------------------------------------
+21-Mar-2021 20:46:31     0.1              car_price                0                 0
+                                         part_price                0                 0
+21-Mar-2021 20:46:31     1.8              car_price                3                 0
+                                         part_price               14                 0
+--------------------------------------------------------------------------------------------------```
+The second run (top) using the cache is much faster than the first run (bottom) that spawns 17 workers to complete the query. 
 
 __Warning__. Cached results are tied only to the content of the model configuration
 file and the model input. `hubit` does not check if the underlying calculation code has changed. Therefore, using results caching while components are in development is not recommended.
@@ -395,6 +408,21 @@ The model cache can be cleared using the `clear_cache` method on a `hubit` model
 
 #### Component-level caching 
 Component-level caching can be activated using the method `set_component_caching(True)` on a `hubit` model instance. By default component-level caching is off. If component-level caching is on, the consumed data for all spawned component workers and the corresponding results will be stored in memory during execution of a query. If `hubit` finds that, in the same query, two workers refer to the same model component and the input data are identical, the second worker will simply use the results produced by the first worker. The cache is not shared between sequential queries to a model. Also, the component-level cache is not shared between the individual sampling runs using `get_many`.
+
+The table below comes from printing the log after running model 2 with and without component-level caching
+
+```python
+print(hmodel.log())
+--------------------------------------------------------------------------------------------------
+Query finish time    Query took (s)        Worker name        Workers spawned Component cache hits
+--------------------------------------------------------------------------------------------------
+21-Mar-2021 20:48:26     1.1              car_price                3                 2
+                                         part_price               14                 6
+21-Mar-2021 20:48:25     1.8              car_price                3                 0
+                                         part_price               14                 0
+--------------------------------------------------------------------------------------------------```
+
+The second run (top) using component-caching is faster than the first run (bottom). Both queries spawn 17 workers in order to complete the query, but in the case where component-caching is active (top) 8 workers reuse results provided by the remaining 9 workers. 
 
 For smaller jobs any speed-up obtained my using component-level caching cannot be seen on the wall clock when using multi-processing. The effect will, however, be apparent in the model `log()`.
 

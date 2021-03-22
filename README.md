@@ -386,7 +386,9 @@ Query finish time    Query took (s)        Worker name        Workers spawned Co
                                          part_price                0                 0
 21-Mar-2021 20:46:31     1.8              car_price                3                 0
                                          part_price               14                 0
---------------------------------------------------------------------------------------------------```
+--------------------------------------------------------------------------------------------------
+```
+
 The second run (top) using the cache is much faster than the first run (bottom) that spawns 17 workers to complete the query. 
 
 __Warning__. Cached results are tied only to the content of the model configuration
@@ -420,7 +422,8 @@ Query finish time    Query took (s)        Worker name        Workers spawned Co
                                          part_price               14                 6
 21-Mar-2021 20:48:25     1.8              car_price                3                 0
                                          part_price               14                 0
---------------------------------------------------------------------------------------------------```
+--------------------------------------------------------------------------------------------------
+```
 
 The second run (top) using component-caching is faster than the first run (bottom). Both queries spawn 17 workers in order to complete the query, but in the case where component-caching is active (top) 8 workers reuse results provided by the remaining 9 workers. 
 

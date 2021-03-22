@@ -434,18 +434,28 @@ class LogItem:
         "worker_counts",
         "cache_counts",
     ]
-
+    _headers = {
+        "created_time": "Query finish time",
+        "worker_counts": "Workers spawned",
+        "elapsed_time": "Query took (s)",
+        "cache_counts": "Component cache hits",
+    }
     # Extra column inserted before dataclass field
     _extra_col = {"worker_counts": "Worker name"}
 
     # Both fields and extra columns
-    _header_fstr = " ".join(["{:<20}", "{:^12}", "{:^25}", "{:^15}", "{:^15}"])
-    _value_fstr = " ".join(["{:<20}", "{:^12.2}", "{:^25}", "{:^15}", "{:^15}"])
+    _header_fstr = " ".join(["{:<20}", "{:^12}", "{:^25}", "{:^15}", "{:^20}"])
+    _value_fstr = " ".join(["{:<20}", "{:^12.2}", "{:^25}", "{:^15}", "{:^20}"])
     _n_columns = len(_order) + len(_extra_col)
 
     @classmethod
     def get_headers(cls):
-        headers = [field_name.replace("_", " ").title() for field_name in cls._order]
+        headers = [
+            LogItem._headers[field_name]
+            if field_name in LogItem._headers
+            else field_name.replace("_", " ").title()
+            for field_name in cls._order
+        ]
 
         # Insert extra columns
         added = 0

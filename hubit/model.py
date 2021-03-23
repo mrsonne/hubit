@@ -412,7 +412,7 @@ def now():
 @dataclass
 class LogItem:
     """
-    Hubit log item. Keys in all attribute dicts (e.g. 
+    Hubit log item. Keys in all attribute dicts (e.g.
     worker_counts and cache_counts) are the same.
 
     Args:
@@ -476,14 +476,13 @@ class LogItem:
             if isinstance(val, Dict):
                 # Store the dict by its field index and in a sorted version
                 items_for_field_idx[field_idx] = list(sorted(val.items()))
-                # Get the number of rows (same for all dicts in the log) 
+                # Get the number of rows (same for all dicts in the log)
                 nrows = len(items_for_field_idx[field_idx])
                 # Don't write any values since dicts are handle in a separate loop
                 continue
             vals_row0[field_idx] = val
 
-
-        # Each dict-item should be expanded into "nrows" rows 
+        # Each dict-item should be expanded into "nrows" rows
         vals_for_row_idx = [[""] * LogItem._n_columns for _ in range(nrows)]
         # Insert first row
         vals_for_row_idx[0] = vals_row0

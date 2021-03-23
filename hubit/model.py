@@ -412,14 +412,13 @@ def now():
 @dataclass
 class LogItem:
     """
-    Hubit log. Newest items are stored in the first element of the
-    log lists.
+    Hubit log item. Keys in all attribute dicts (e.g. 
+    worker_counts and cache_counts) are the same.
 
     Args:
-
         elapsed_time (float): Query execution time
-        worker_counts (Dict[str, int]): Spawned worker count for each component function name.
-        cache_counts (Dict[str, int]): The count of workers that used
+        worker_counts (Dict[str, int]): For each component function name the value is the count of spawned workers.
+        cache_counts (Dict[str, int]): For each component function name the value is the count of workers that used the component cache.
         cached results. The keys are function names.
     """
 
@@ -467,27 +466,44 @@ class LogItem:
         return cls._header_fstr.format(*headers)
 
     def get_values(self):
-        vals_row0 = [""] * LogItem._n_columns
         items_for_field_idx = {}
+        # Initialize an empty template row
+        vals_row0 = [""] * LogItem._n_columns
+        # Loop over columns in first row and insert values in template row
         for field_idx, field_name in enumerate(self._order):
-
             val = getattr(self, field_name)
-
+            # Dicts should be expanded into one line per key
             if isinstance(val, Dict):
+                # Store the dict by its field index and in a sorted version
                 items_for_field_idx[field_idx] = list(sorted(val.items()))
+                # Get the number of rows (same for all dicts in the log) 
                 nrows = len(items_for_field_idx[field_idx])
+                # Don't write any values since dicts are handle in a separate loop
                 continue
-
             vals_row0[field_idx] = val
 
+
+        # Each dict-item should be expanded into "nrows" rows 
         vals_for_row_idx = [[""] * LogItem._n_columns for _ in range(nrows)]
+        # Insert first row
         vals_for_row_idx[0] = vals_row0
+        field_idx_offset = 0
+        # Loop over dict items i.e. potentially multi-line items that were omitted previously
         for field_idx, items in items_for_field_idx.items():
+            extra_col = LogItem._order[field_idx] in LogItem._extra_col
+            # Loop over (sorted) rows
             for row_idx, row in enumerate(items):
-                vals_for_row_idx[row_idx][field_idx + 1] = row[1]
-                if LogItem._order[field_idx] in LogItem._extra_col:
-                    # Insert extra column
-                    vals_for_row_idx[row_idx][field_idx] = row[0]
+                if extra_col:
+                    # Insert extra column (dict key)
+                    vals_for_row_idx[row_idx][field_idx + field_idx_offset] = row[0]
+                    # Insert dict value
+                    vals_for_row_idx[row_idx][field_idx + 1 + field_idx_offset] = row[1]
+                else:
+                    vals_for_row_idx[row_idx][field_idx + field_idx_offset] = row[1]
+
+            if extra_col:
+                # Offset field index due to extra column
+                field_idx_offset += 1
 
         lines = []
         for vals in vals_for_row_idx:
@@ -504,7 +520,7 @@ class HubitLog:
 
     Args:
         log_items (List[LogItem]): List of log items. Newest item is
-        stored in the first element.
+        stored as the the first element.
     """
 
     log_items: List[LogItem] = field(default_factory=list)

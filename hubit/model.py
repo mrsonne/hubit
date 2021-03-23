@@ -439,7 +439,8 @@ class LogItem:
         "elapsed_time": "Query took (s)",
         "cache_counts": "Component cache hits",
     }
-    # Extra column inserted before dataclass field
+
+    # Extra column (dict key) inserted before dataclass field. Only for Dict attributes
     _extra_col = {"worker_counts": "Worker name"}
 
     # Both fields and extra columns
@@ -448,7 +449,7 @@ class LogItem:
     _n_columns = len(_order) + len(_extra_col)
 
     @classmethod
-    def get_headers(cls):
+    def get_table_header(cls) -> str:
         headers = [
             LogItem._headers[field_name]
             if field_name in LogItem._headers
@@ -465,7 +466,7 @@ class LogItem:
 
         return cls._header_fstr.format(*headers)
 
-    def get_values(self):
+    def __str__(self) -> str:
         items_for_field_idx = {}
         # Initialize an empty template row
         vals_row0 = [""] * LogItem._n_columns
@@ -560,9 +561,9 @@ class HubitLog:
 
     def __str__(self):
         sepstr = "-"
-        lines = [LogItem.get_headers()]
+        lines = [LogItem.get_table_header()]
         for logitem in self.log_items:
-            lines.append(logitem.get_values())
+            lines.append(str(logitem))
         width = max([len(line.split("\n")[0]) for line in lines])
         sep = width * sepstr
         lines.insert(1, sep)

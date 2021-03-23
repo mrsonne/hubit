@@ -376,7 +376,7 @@ will validate various aspects of the query.
 #### Model-level caching. 
 By default hubit `never` caches results internally. A `hubit` model can, however, write results to disk automatically by setting the caching level using the `set_model_caching` method. Results can be saved either in an `incremental` fashion i.e. every time a component worker completes or `after_execution`. Results caching is useful when you want to avoid spending time calculating the same results multiple times. A use case for `incremental` caching is when a calculation is stopped (computer shutdown, keyboard interrupt, exception raised) before the response has been generated. In such cases the calculation can be restarted from the cached results. The overhead introduced by caching makes it especially useful for CPU bound models. The table below comes from printing the log after running model 2 with and without model-level caching
 
-```python
+```
 print(hmodel.log())
 
 --------------------------------------------------------------------------------------------------
@@ -413,8 +413,9 @@ Component-level caching can be activated using the method `set_component_caching
 
 The table below comes from printing the log after running model 2 with and without component-level caching
 
-```python
+```
 print(hmodel.log())
+
 --------------------------------------------------------------------------------------------------
 Query finish time    Query took (s)        Worker name        Workers spawned Component cache hits
 --------------------------------------------------------------------------------------------------

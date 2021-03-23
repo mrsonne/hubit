@@ -338,7 +338,7 @@ class TestModel(unittest.TestCase):
         with self.subTest():
             self.assertSequenceEqual(calc_responses, expected_results)
 
-    def test_caching(self):
+    def test_model_caching(self):
         """"""
         self.hmodel.set_input(self.input)
 
@@ -382,6 +382,42 @@ class TestModel(unittest.TestCase):
                     self.assertEqual(
                         len(self.hmodel._qrunner.workers), expected_worker_count
                     )
+
+    def test_model_caching(self):
+        """"""
+        self.hmodel.set_input(self.input)
+        self.hmodel.get([self.querystr_level0], validate=False)
+        log = self.hmodel.log()
+        # Take out values for newest log item
+        result = log.get_all("worker_counts")[0]
+        expected_result = {
+            "move_number": 0,
+            "multiply_by_2": 1,
+            "multiply_by_factors": 0,
+            "slicing": 0,
+            "fun4": 0,
+            "fun5": 0,
+            "fun6": 0,
+        }
+        self.assertEqual(result, expected_result)
+
+        # Check string representation. TODO: figure out how to exclude time stamp in string comparison
+        strrep = str(log)
+
+        self.hmodel.get([self.querystr_level1], validate=False)
+        expected_result = {
+            "move_number": 0,
+            "multiply_by_2": 1,
+            "multiply_by_factors": 1,
+            "slicing": 0,
+            "fun4": 0,
+            "fun5": 0,
+            "fun6": 0,
+        }
+        log = self.hmodel.log()
+        # Take out values for newest log item
+        result = log.get_all("worker_counts")[0]
+        self.assertEqual(result, expected_result)
 
     if __name__ == "__main__":
         unittest.main()

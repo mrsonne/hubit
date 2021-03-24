@@ -344,8 +344,7 @@ class TestModel(unittest.TestCase):
 
         # Clear the cache and check that it's cleared
         self.hmodel.clear_cache()
-        with self.subTest():
-            self.assertFalse(self.hmodel.has_cached_results())
+        self.assertFalse(self.hmodel.has_cached_results())
 
         # Set caching after execution and do a query
         caching_modes = "after_execution", "incremental"
@@ -358,32 +357,28 @@ class TestModel(unittest.TestCase):
 
                 # Since there is no cache we expect one worker (level 0 query)
                 expected_worker_count = 1
-                with self.subTest():
-                    self.assertEqual(
-                        len(self.hmodel._qrunner.workers), expected_worker_count
-                    )
+                self.assertEqual(
+                    len(self.hmodel._qrunner.workers), expected_worker_count
+                )
 
                 # We expect cached results
-                with self.subTest():
-                    self.assertTrue(self.hmodel.has_cached_results())
+                self.assertTrue(self.hmodel.has_cached_results())
 
                 # There are cached results but we do not use them i.e. 1 worker
                 self.hmodel.get(query, use_results="none", validate=False)
                 expected_worker_count = 1
-                with self.subTest():
-                    self.assertEqual(
-                        len(self.hmodel._qrunner.workers), expected_worker_count
-                    )
+                self.assertEqual(
+                    len(self.hmodel._qrunner.workers), expected_worker_count
+                )
 
                 # There are cached results and we use them i.e. we expect no workers
                 self.hmodel.get(query, use_results="cached", validate=False)
                 expected_worker_count = 0
-                with self.subTest():
-                    self.assertEqual(
-                        len(self.hmodel._qrunner.workers), expected_worker_count
-                    )
+                self.assertEqual(
+                    len(self.hmodel._qrunner.workers), expected_worker_count
+                )
 
-    def test_model_caching(self):
+    def test_log(self):
         """"""
         self.hmodel.set_input(self.input)
         self.hmodel.get([self.querystr_level0], validate=False)

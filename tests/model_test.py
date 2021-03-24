@@ -394,6 +394,9 @@ class TestModel(unittest.TestCase):
     def test_component_caching(self):
         """Component caching not used since no elements in
         the input (list[:].some_attribute.numbers) are the same
+
+        TODO: Verify that results are the same for duplicated input elements
+        TODO: test level 1 queries to tes results_id logic for dependencies
         """
         query = ["list[:].some_attr.two_x_numbers"]
         expected_result = {

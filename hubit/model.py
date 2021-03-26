@@ -1,5 +1,7 @@
 from __future__ import annotations
 import pathlib
+import datetime
+from dataclasses import dataclass, field, fields
 from typing import Any, Callable, List, Tuple, Dict
 import logging
 import os
@@ -95,10 +97,12 @@ class HubitModel(_HubitModel):
         # Set the query runner. Saving it on the instance is used for testing
         self._qrunner: Any = None
 
-        self._worker_caching = False
+        self._component_caching = False
         self._model_caching_mode = "none"
         self._cache_dir = _CACHE_DIR
         self._cache_file_path = os.path.join(self._cache_dir, f"{self._get_id()}.yml")
+
+        self._log = HubitLog()
 
     @classmethod
     def from_file(
@@ -142,14 +146,14 @@ class HubitModel(_HubitModel):
         if self.has_cached_results():
             os.remove(self._cache_file_path)
 
-    def set_worker_caching(self, worker_caching: bool):
+    def set_component_caching(self, component_caching: bool):
         """
         Set the caching on/off for workers.
 
         Arguments:
-            worker_caching (bool): True corresponds to worker caching in on.
+            component_caching (bool): True corresponds to worker caching in on.
         """
-        self._worker_caching = worker_caching
+        self._component_caching = component_caching
 
     def set_model_caching(self, caching_mode: str):
         """
@@ -258,7 +262,9 @@ class HubitModel(_HubitModel):
             raise HubitModelNoResultsError()
 
         # Make a query runner
-        self._qrunner = _QueryRunner(self, use_multi_processing, self._worker_caching)
+        self._qrunner = _QueryRunner(
+            self, use_multi_processing, self._component_caching
+        )
 
         if validate:
             _get(self._qrunner, query, self.flat_input, dryrun=True)
@@ -334,7 +340,9 @@ class HubitModel(_HubitModel):
             if skipfun(_flat_input):
                 continue
             qrun = _QueryRunner(
-                self, use_multi_processing=False, worker_caching=self._worker_caching
+                self,
+                use_multi_processing=False,
+                component_caching=self._component_caching,
             )
             flat_results: Dict[str, Any] = {}
             args.append((qrun, query, _flat_input, flat_results))
@@ -392,3 +400,173 @@ class HubitModel(_HubitModel):
             self._validate_model()
 
         return True
+
+    def log(self) -> HubitLog:
+        return self._log
+
+
+def now():
+    return datetime.datetime.now().strftime("%d-%b-%Y %H:%M:%S")
+
+
+@dataclass
+class LogItem:
+    """
+    Hubit log item. Keys in all attribute dicts (e.g.
+    worker_counts and cache_counts) are the same.
+
+    Args:
+        elapsed_time (float): Query execution time
+        worker_counts (Dict[str, int]): For each component function name the value is the count of spawned workers.
+        cache_counts (Dict[str, int]): For each component function name the value is the count of workers that used the component cache.
+        cached results. The keys are function names.
+    """
+
+    elapsed_time: float
+    worker_counts: Dict[str, int]
+    cache_counts: Dict[str, int]
+    created_time: str = field(default_factory=now)
+
+    _order = [
+        "created_time",
+        "elapsed_time",
+        "worker_counts",
+        "cache_counts",
+    ]
+    _headers = {
+        "created_time": "Query finish time",
+        "worker_counts": "Workers spawned",
+        "elapsed_time": "Query took (s)",
+        "cache_counts": "Component cache hits",
+    }
+
+    # Extra column (dict key) inserted before dataclass field. Only for Dict attributes
+    _extra_col = {"worker_counts": "Worker name"}
+
+    # Both fields and extra columns
+    _header_fstr = " ".join(["{:<20}", "{:^12}", "{:^25}", "{:^15}", "{:^20}"])
+    _value_fstr = " ".join(["{:<20}", "{:^12.2}", "{:^25}", "{:^15}", "{:^20}"])
+    _n_columns = len(_order) + len(_extra_col)
+
+    @classmethod
+    def get_table_header(cls) -> str:
+        headers = [
+            LogItem._headers[field_name]
+            if field_name in LogItem._headers
+            else field_name.replace("_", " ").title()
+            for field_name in cls._order
+        ]
+
+        # Insert extra columns
+        added = 0
+        for target_field, xtra_header in LogItem._extra_col.items():
+            idx = LogItem._order.index(target_field) + added
+            headers.insert(idx, xtra_header)
+            added += 1
+
+        return cls._header_fstr.format(*headers)
+
+    def __str__(self) -> str:
+        items_for_field_idx = {}
+        # Initialize an empty template row
+        vals_row0 = [""] * LogItem._n_columns
+        # Loop over columns in first row and insert values in template row
+        for field_idx, field_name in enumerate(self._order):
+            val = getattr(self, field_name)
+            # Dicts should be expanded into one line per key
+            if isinstance(val, Dict):
+                # Store the dict by its field index and in a sorted version
+                items_for_field_idx[field_idx] = list(sorted(val.items()))
+                # Get the number of rows (same for all dicts in the log)
+                nrows = len(items_for_field_idx[field_idx])
+                # Don't write any values since dicts are handle in a separate loop
+                continue
+            vals_row0[field_idx] = val
+
+        # Each dict-item should be expanded into "nrows" rows
+        vals_for_row_idx = [[""] * LogItem._n_columns for _ in range(nrows)]
+        # Insert first row
+        vals_for_row_idx[0] = vals_row0
+        field_idx_offset = 0
+        # Loop over dict items i.e. potentially multi-line items that were omitted previously
+        for field_idx, items in items_for_field_idx.items():
+            extra_col = LogItem._order[field_idx] in LogItem._extra_col
+            # Loop over (sorted) rows
+            for row_idx, row in enumerate(items):
+                if extra_col:
+                    # Insert extra column (dict key)
+                    vals_for_row_idx[row_idx][field_idx + field_idx_offset] = row[0]
+                    # Insert dict value
+                    vals_for_row_idx[row_idx][field_idx + 1 + field_idx_offset] = row[1]
+                else:
+                    vals_for_row_idx[row_idx][field_idx + field_idx_offset] = row[1]
+
+            if extra_col:
+                # Offset field index due to extra column
+                field_idx_offset += 1
+
+        lines = []
+        for vals in vals_for_row_idx:
+            lines.append(self._value_fstr.format(*vals))
+
+        # print(lines)
+        return "\n".join(lines)
+
+
+@dataclass
+class HubitLog:
+    """
+    Hubit log.
+
+    Args:
+        log_items (List[LogItem]): List of log items. Newest item is
+        stored as the the first element.
+    """
+
+    log_items: List[LogItem] = field(default_factory=list)
+
+    def _add_items(
+        self,
+        worker_counts: Dict[str, int],
+        elapsed_time: float,
+        cache_counts: Dict[str, int],
+    ):
+        """
+        Add log items to all lists
+        """
+        self.log_items.insert(
+            0,
+            LogItem(
+                worker_counts=worker_counts,
+                elapsed_time=elapsed_time,
+                cache_counts=cache_counts,
+            ),
+        )
+
+    def get_all(self, attr: str) -> List:
+        """Get all log item values corresponding to attribute name "attr"
+
+        Args:
+            attr (str): Available attributes are: worker_counts, elapsed_time, cache_counts
+
+        Returns:
+            List: Log item values
+        """
+        try:
+            return [getattr(item, attr) for item in self.log_items]
+        except AttributeError:
+            raise AttributeError(
+                f"Available attributes are: {', '.join([f.name for f in fields(LogItem)])}"
+            )
+
+    def __str__(self):
+        sepstr = "-"
+        lines = [LogItem.get_table_header()]
+        for logitem in self.log_items:
+            lines.append(str(logitem))
+        width = max([len(line.split("\n")[0]) for line in lines])
+        sep = width * sepstr
+        lines.insert(1, sep)
+        lines.insert(0, sep)
+        lines.append(sep)
+        return "\n".join(lines)

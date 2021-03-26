@@ -1,5 +1,4 @@
 import logging
-import time
 from .utils import get_model, HubitModel
 
 logging.basicConfig(level=logging.INFO)
@@ -45,8 +44,6 @@ def query(hmodel: HubitModel, use_multi_processing: bool = False) -> None:
         ["segments[:].layers[:].k_therm"],
     )
 
-    time1 = time.time()
-
     # Run queries one by one (slow)
     hmodel.set_model_caching("after_execution")
     for path in query:
@@ -54,37 +51,38 @@ def query(hmodel: HubitModel, use_multi_processing: bool = False) -> None:
         response = hmodel.get(path, use_multi_processing=use_multi_processing)
         print(response)
         print("")
+    t_separate = sum(hmodel.log().get_all("elapsed_time"))
 
-    time2 = time.time()
-
-    time3 = time.time()
     for path in query:
         response = hmodel.get(
             path, use_results="cached", use_multi_processing=use_multi_processing
         )
-    time4 = time.time()
+    t_separate_cached = sum(hmodel.log().get_all("elapsed_time")) - t_separate
 
     # Run queries as one (fast). The speed increase comes from Hubit's
     # results caching that acknowledges that the first query actually produces
     # the results for all the remaining queries
     query = [item for path in query for item in path]
-    time5 = time.time()
     response = hmodel.get(query, use_multi_processing=use_multi_processing)
-    time6 = time.time()
     print(response)
+    t_joint = sum(hmodel.log().get_all("elapsed_time")) - t_separate_cached - t_separate
 
-    time7 = time.time()
     response = hmodel.get(
         query, use_results="cached", use_multi_processing=use_multi_processing
     )
-    time8 = time.time()
     print(response)
+    t_joint_cached = (
+        sum(hmodel.log().get_all("elapsed_time"))
+        - t_joint
+        - t_separate_cached
+        - t_separate
+    )
 
     print(f"\nSummary")
-    print(f"Time for separate queries: {time2 - time1:.1f} s")
-    print(f"Time for separate queries using cache: {time4 - time3:.1f} s")
-    print(f"Time for joint query: {time6 - time5:.1f} s")
-    print(f"Time for joint query using cache: {time8 - time7:.1f} s")
+    print(f"Time for separate queries: {t_separate:.1f} s")
+    print(f"Time for separate queries using model cache: {t_separate_cached:.1f} s")
+    print(f"Time for joint query: {t_joint:.1f} s")
+    print(f"Time for joint query using model cache: {t_joint_cached:.1f} s")
 
 
 if (

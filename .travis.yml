@@ -11,6 +11,7 @@ install:
 script:
 - coverage run --source=hubit -m unittest discover -s ./tests -p "*_test.py"
 - coverage report -m
+- black --version
 - black --check .
 - mypy hubit/model.py
 after_success: coveralls

@@ -12,7 +12,7 @@ def price(_input_consumed, _results_consumed, results_provided):
 
     # Delay to see the effect of worker caching.
     # If too fast the watcher loop will not update the results before all calcs are done
-    sleep(0.5)
+    sleep(0.1)
     results_provided["car_price"] = result
 
 

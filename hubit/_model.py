@@ -60,7 +60,6 @@ def _get(
     queryrunner.observers_for_query = {}
 
     extracted_input = {}
-    tstart = time.time()
 
     if flat_results is None:
         flat_results = {}
@@ -87,7 +86,7 @@ def _get(
         watcher.start()
         if queryrunner.use_multi_processing:
             with Manager() as manager:
-                success = queryrunner._deploy(
+                queryrunner.spawn_workers(
                     manager,
                     _queries,
                     extracted_input,
@@ -98,7 +97,7 @@ def _get(
                 watcher.join()
         else:
             manager = None
-            success = queryrunner._deploy(
+            queryrunner.spawn_workers(
                 manager,
                 _queries,
                 extracted_input,
@@ -123,7 +122,6 @@ def _get(
             # TODO: compression call belongs on model (like expand)
             response = queryrunner.model._compress_response(response, queries_for_query)
 
-        logging.info("Response created in {} s".format(time.time() - tstart))
         return response, flat_results
     else:
         # Re-raise if failed
@@ -140,6 +138,14 @@ class _HubitModel:
 
     def __init__(self):
         pass
+
+    def _add_log_items(
+        self,
+        worker_counts: Dict[str, int],
+        elapsed_time: List[float],
+        cache_counts: Dict[str, int],
+    ):
+        self._log._add_items(worker_counts, elapsed_time, cache_counts)
 
     def _get_id(self):
         """

@@ -1,8 +1,8 @@
+import copy
 import unittest
 import os
 import pathlib
 import yaml
-
 from hubit.errors import HubitModelNoInputError, HubitModelQueryError
 
 from hubit import HubitModel
@@ -337,6 +337,175 @@ class TestModel(unittest.TestCase):
 
         with self.subTest():
             self.assertSequenceEqual(calc_responses, expected_results)
+
+    def test_model_caching(self):
+        """"""
+        self.hmodel.set_input(self.input)
+
+        # Clear the cache and check that it's cleared
+        self.hmodel.clear_cache()
+        self.assertFalse(self.hmodel.has_cached_results())
+
+        # Set caching after execution and do a query
+        caching_modes = "after_execution", "incremental"
+        for caching_mode in caching_modes:
+            self.hmodel.clear_cache()
+            with self.subTest(caching_mode=caching_mode):
+                self.hmodel.set_model_caching(caching_mode)
+                query = [self.querystr_level0]
+                self.hmodel.get(query, use_results="cached", validate=False)
+
+                # Since there is no cache we expect one worker (level 0 query)
+                expected_worker_count = 1
+                self.assertEqual(
+                    len(self.hmodel._qrunner.workers), expected_worker_count
+                )
+
+                # We expect cached results
+                self.assertTrue(self.hmodel.has_cached_results())
+
+                # There are cached results but we do not use them i.e. 1 worker
+                self.hmodel.get(query, use_results="none", validate=False)
+                expected_worker_count = 1
+                self.assertEqual(
+                    len(self.hmodel._qrunner.workers), expected_worker_count
+                )
+
+                # There are cached results and we use them i.e. we expect no workers
+                self.hmodel.get(query, use_results="cached", validate=False)
+                expected_worker_count = 0
+                self.assertEqual(
+                    len(self.hmodel._qrunner.workers), expected_worker_count
+                )
+
+    def _component_caching(
+        self,
+        component_caching,
+        expected_result,
+        expected_n_unique_response_elements,
+        input,
+        query,
+    ):
+        for use_multi_processing in self.use_multi_processing_values:
+            with self.subTest(
+                use_multi_processing=use_multi_processing,
+                component_caching=component_caching,
+            ):
+                self.hmodel.set_input(input)
+                self.hmodel.set_component_caching(component_caching)
+                response = self.hmodel.get(
+                    query, use_multi_processing=use_multi_processing
+                )
+                # get the first (and only)  query item
+                result = list(response.values())[0]
+                # Unique elements in result (repeats expected when components cache is hit)
+                unique_results = {tuple(item) for item in result}
+                n_unique_response_elements = len(unique_results)
+                self.assertEqual(
+                    expected_n_unique_response_elements, n_unique_response_elements
+                )
+                result = self.hmodel.log().get_all("cache_counts")[0]
+                # print(result)
+                self.assertEqual(result, expected_result)
+
+    def test_component_caching(self):
+        """Component caching not used since no elements in
+        the input (list[:].some_attribute.numbers) are the same
+
+        TODO: test level 1 queries to tes results_id logic for dependencies
+        """
+        query = ["list[:].some_attr.two_x_numbers"]
+        expected_result = {
+            "move_number": 0,
+            "multiply_by_2": 0,
+            "multiply_by_factors": 0,
+            "slicing": 0,
+            "fun4": 0,
+            "fun5": 0,
+            "fun6": 0,
+        }
+        component_caching_levels = False, True
+        expected_n_unique_response_elements = 2
+        for component_caching in component_caching_levels:
+            self._component_caching(
+                component_caching,
+                expected_result,
+                expected_n_unique_response_elements,
+                self.input,
+                query,
+            )
+
+        # Duplicate one list element to see caching
+        input = copy.deepcopy(self.input)
+        input["list"].append(input["list"][0])
+        input["list"].append(input["list"][1])
+
+        # Component caching disabled so we still expect all cache counts to be zero
+        # expected_n_unique_response_elements is still 2 since two input were copied i.e.
+        # 2 results should be identical to the two original ones
+        component_caching = False
+        self._component_caching(
+            component_caching,
+            expected_result,
+            expected_n_unique_response_elements,
+            input,
+            query,
+        )
+
+        # Component caching enabled. Two chache hits since 2 list elements were duplicated
+        component_caching = True
+        expected_result = {
+            "move_number": 0,
+            "multiply_by_2": 2,
+            "multiply_by_factors": 0,
+            "slicing": 0,
+            "fun4": 0,
+            "fun5": 0,
+            "fun6": 0,
+        }
+        self._component_caching(
+            component_caching,
+            expected_result,
+            expected_n_unique_response_elements,
+            input,
+            query,
+        )
+
+    def test_log(self):
+        """"""
+        self.hmodel.set_input(self.input)
+        self.hmodel.get([self.querystr_level0], validate=False)
+        log = self.hmodel.log()
+        # Take out values for newest log item
+        result = log.get_all("worker_counts")[0]
+        expected_result = {
+            "move_number": 0,
+            "multiply_by_2": 1,
+            "multiply_by_factors": 0,
+            "slicing": 0,
+            "fun4": 0,
+            "fun5": 0,
+            "fun6": 0,
+        }
+        self.assertEqual(result, expected_result)
+
+        # Check string representation. TODO: figure out how to exclude time stamp in string comparison
+        strrep = str(log)
+
+        self.hmodel.get([self.querystr_level1], validate=False)
+        expected_result = {
+            "move_number": 0,
+            "multiply_by_2": 1,
+            "multiply_by_factors": 1,
+            "slicing": 0,
+            "fun4": 0,
+            "fun5": 0,
+            "fun6": 0,
+        }
+        log = self.hmodel.log()
+        # Take out values for newest log item
+        result = log.get_all("worker_counts")[0]
+        self.assertEqual(result, expected_result)
 
     if __name__ == "__main__":
         unittest.main()

@@ -1,5 +1,7 @@
 from __future__ import annotations
 from typing import List, Dict, Any
+import pickle
+import hashlib
 from multiprocessing import Manager
 import logging
 import os
@@ -30,8 +32,6 @@ from .errors import (
     HubitModelQueryError,
 )
 
-THISPATH = os.path.dirname(os.path.realpath(__file__))
-
 
 def default_skipfun(_: Dict[str, Any]) -> bool:
     """
@@ -60,7 +60,6 @@ def _get(
     queryrunner.observers_for_query = {}
 
     extracted_input = {}
-    tstart = time.time()
 
     if flat_results is None:
         flat_results = {}
@@ -87,7 +86,7 @@ def _get(
         watcher.start()
         if queryrunner.use_multi_processing:
             with Manager() as manager:
-                success = queryrunner._deploy(
+                queryrunner.spawn_workers(
                     manager,
                     _queries,
                     extracted_input,
@@ -98,7 +97,7 @@ def _get(
                 watcher.join()
         else:
             manager = None
-            success = queryrunner._deploy(
+            queryrunner.spawn_workers(
                 manager,
                 _queries,
                 extracted_input,
@@ -123,7 +122,6 @@ def _get(
             # TODO: compression call belongs on model (like expand)
             response = queryrunner.model._compress_response(response, queries_for_query)
 
-        logging.info("Response created in {} s".format(time.time() - tstart))
         return response, flat_results
     else:
         # Re-raise if failed
@@ -135,8 +133,30 @@ class _HubitModel:
     Contains all private methods and should not be used. Use the public version model.HubitModel
     """
 
+    _valid_model_caching_modes = "never", "incremental", "after_execution"
+    _do_model_caching = "incremental", "after_execution"
+
     def __init__(self):
         pass
+
+    def _add_log_items(
+        self,
+        worker_counts: Dict[str, int],
+        elapsed_time: List[float],
+        cache_counts: Dict[str, int],
+    ):
+        self._log._add_items(worker_counts, elapsed_time, cache_counts)
+
+    def _get_id(self):
+        """
+        ID of the model based on configuration and input
+
+        TODO: We could easily include the entry point function which includes the version
+        https://stackoverflow.com/questions/3431825/generating-an-md5-checksum-of-a-file
+        """
+        return hashlib.md5(
+            pickle.dumps({"input": self.inputdata, "cfg": self.cfg})
+        ).hexdigest()
 
     def _get_dot(self, queries: List[str], file_idstr: str):
         """

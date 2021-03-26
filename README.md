@@ -9,13 +9,13 @@
 `hubit` is an event-driven orchestration hub for your existing calculation tools. It allows you to 
 
 - execute calculation tools as one `hubit` composite model with a loose coupling between the model components,
+- easily run your existing calculation tools in asynchronously in multiple processes,
 - query the model for specific results thus avoiding explicitly coding (fixed) call graphs and running superfluous calculations,
 - make parameter sweeps,
-- feed old results into new calculations thus augmenting old results objects,
-- easily run your existing tools in asynchronously in multiple processes,
+- feed previously calculated results into new calculations thus augmenting old results objects,
+- incremental results caching and calculation restart from cache,
+- caching of model component results allowing `hubit` to bypass repeated calculations,
 - visualize your `hubit` composite model i.e. visualize your existing tools and the attributes that flow between them.
-
-Compatible with __Python 3.7+__.
 
 ## Motivation
 Many work places have developed a rich ecosystem of stand-alone tools. These tools may be developed/maintained by different teams using different programming languages and using different input/output data models. Nevertheless, the tools often depend on results provided the other tools leading to complicated and error-prone (manual) workflows.
@@ -60,7 +60,7 @@ To use `hubit` your existing tools each need to be wrapped as a `hubit` _compone
 
 From the bindings `hubit` checks that all required input data and results data is available before a component is executed. The bindings are defined in a _model file_. 
 
-### Component wrapper
+### Component entrypoint
 As an example imagine that we are calculating the price of a car. Below you can see some pseudo code for the calculation for the car price calculation. The example is available in `examples\car\` 
 
 ```python
@@ -79,9 +79,9 @@ def price(_input_consumed, _results_consumed, results_provided):
     results_provided['car_price'] = result
 ```
 
-The main function in a component (`price` in the example above) should expect the arguments `_input_consumed`, `_results_consumed` and `results_provided` in that order. Results data calculated in the components should only be added to the latter. The values stored in the keys `part_counts` and `part_names` in `_input_consumed` are controlled by the bindings in the model file. 
+The main function (entrypoint) in a component (`price` in the example above) should expect the arguments `_input_consumed`, `_results_consumed` and `results_provided` in that order. Results data calculated in the components should only be added to the latter. The values stored in the keys `part_counts` and `part_names` in `_input_consumed` are controlled by the bindings in the model file. 
 
-### Model file & bindings
+### Model file & component bindings
 Before we look at the bindings let us look at the input data. The input can, like in the example below, be defined in a yml file. In the car example the input data is a list containing two cars each with a number of parts
 
 ```yml
@@ -301,7 +301,7 @@ module: hubit_components.price1
 where `hubit_components` is a package you have created that contains the module `price1`.
 
 ### Running
-To get results from a a model requires you to submit a _query_, which tells `hubit` what attributes from the results data structure you want to have calculated. After `hubit` has processed the query, i.e. executed relevant components, the values of the queried attributes are returned in the _response_. Below are two examples of queries and the corresponding responses.
+To get results from a model requires you to submit a _query_, which tells `hubit` what attributes from the results data structure you want to have calculated. After `hubit` has processed the query, i.e. executed relevant components, the values of the queried attributes are returned in the _response_. A query may spawn many component _workers_ that may represent the same or different model components. Below are two examples of queries and the corresponding responses.
 
 ```python
 # Load model from file
@@ -341,7 +341,7 @@ and the corresponding response is
                             [312.0, 1120.0, 178.0, 3400.0]],
 ```
 
-## Rendering
+### Rendering
 If Graphviz is installed `hubit` can render models and queries. In the example below we have rendered the query `cars[0].price` i.e. the price of the car at index 0.
 
 <img src="https://github.com/mrsonne/hubit/blob/develop/examples/car/images/query_car_2.png" width="1000">
@@ -371,6 +371,64 @@ hmodel.validate(['cars[0].price'])
 ```
 will validate various aspects of the query.
 
+### Caching
+
+#### Model-level caching. 
+By default hubit `never` caches results internally. A `hubit` model can, however, write results to disk automatically by setting the caching level using the `set_model_caching` method. Results can be saved either in an `incremental` fashion i.e. every time a component worker completes or `after_execution`. Results caching is useful when you want to avoid spending time calculating the same results multiple times. A use case for `incremental` caching is when a calculation is stopped (computer shutdown, keyboard interrupt, exception raised) before the response has been generated. In such cases the calculation can be restarted from the cached results. The overhead introduced by caching makes it especially useful for CPU bound models. The table below comes from printing the log after running model 2 with and without model-level caching
+
+```
+print(hmodel.log())
+
+--------------------------------------------------------------------------------------------------
+Query finish time    Query took (s)        Worker name        Workers spawned Component cache hits
+--------------------------------------------------------------------------------------------------
+21-Mar-2021 20:46:31     0.1              car_price                0                 0
+                                         part_price                0                 0
+21-Mar-2021 20:46:31     1.8              car_price                3                 0
+                                         part_price               14                 0
+--------------------------------------------------------------------------------------------------
+```
+
+The second run (top) using the cache is much faster than the first run (bottom) that spawns 17 workers to complete the query. 
+
+__Warning__. Cached results are tied only to the content of the model configuration
+file and the model input. `hubit` does not check if the underlying calculation code has changed. Therefore, using results caching while components are in development is not recommended.
+
+`hubit`'s behavior in four parameter combinations is summarized below
+
+|Write<sup>*</sup>  | Read<sup>**</sup>   |  Behavior |
+|-------|-------|-----------|
+|Yes    | Yes   |  Any cached results for the model are loaded. These results will be saved (incrementally or after execution) and may be augmented in the new run depending on the new query |
+|Yes    | No    |  Model results are cached incrementally or after execution. These new results overwrite any existing results cached for the model |
+|No     | Yes   |  Any cached results for the model are loaded. No new results are cached and therefore the cached results will remain the same after execution.
+|No     | No    |  No results are cached and no results are loaded into the model |
+|       |       |           |
+
+<sup>*</sup> "Yes" corresponds to setting the caching level to either `incremental` or `after_execution` using the `set_model_caching` method. "No" corresponds to caching level `never`. <sup>**</sup> "Yes" corresponds `use_results="cached"` in the `get` method while "No" corresponds to `use_results="none"`.
+
+The model cache can be cleared using the `clear_cache` method on a `hubit` model. To check if a model has an associated cached result use `has_cached_results` method on a `hubit` model. Cached results for all models can be cleared by using `hubit.clear_hubit_cache()`.
+
+#### Component-level caching 
+Component-level caching can be activated using the method `set_component_caching(True)` on a `hubit` model instance. By default component-level caching is off. If component-level caching is on, the consumed data for all spawned component workers and the corresponding results will be stored in memory during execution of a query. If `hubit` finds that, in the same query, two workers refer to the same model component and the input data are identical, the second worker will simply use the results produced by the first worker. The cache is not shared between sequential queries to a model. Also, the component-level cache is not shared between the individual sampling runs using `get_many`.
+
+The table below comes from printing the log after running model 2 with and without component-level caching
+
+```
+print(hmodel.log())
+
+--------------------------------------------------------------------------------------------------
+Query finish time    Query took (s)        Worker name        Workers spawned Component cache hits
+--------------------------------------------------------------------------------------------------
+21-Mar-2021 20:48:26     1.1              car_price                3                 2
+                                         part_price               14                 6
+21-Mar-2021 20:48:25     1.8              car_price                3                 0
+                                         part_price               14                 0
+--------------------------------------------------------------------------------------------------
+```
+
+The second run (top) using component-caching is faster than the first run (bottom). Both queries spawn 17 workers in order to complete the query, but in the case where component-caching is active (top) 8 workers reuse results provided by the remaining 9 workers. 
+
+For smaller jobs any speed-up obtained my using component-level caching cannot be seen on the wall clock when using multi-processing. The effect will, however, be apparent in the model `log()`.
 
 # Examples
 
@@ -378,8 +436,8 @@ In the examples all calculation are, for simplicity, carried out directly in the
 hubit component, but the component could just as well wrap a C library, request 
 data from a web server or use an installed Python package. The examples are summarized below.
 
-* `examples/car`. This examples encompass the two car models shown above.
-* `examples/wall`. This example illustrates heat flow calculations and cost calculations for a wall with two segments. Each wall segment has multiple wall layers that consist of different materials. The example demonstrates model rendering (`run_render.py`) simple queries (`run_queries.py`), reusing previously  calculated results `run_precompute.py`, setting results manually (`run_set_results.py`) and input parameter sweeps (`run_sweep.py`). Most of the wall examples run with or without multi-processing.
+* `examples/car`. This examples encompass the two car models shown above. The example also illustrates the use of model-level caching and component-level caching.
+* `examples/wall`. This example illustrates heat flow calculations and cost calculations for a wall with two segments. Each wall segment has multiple wall layers that consist of different materials. The example demonstrates model rendering (`run_render.py`), simple queries (`run_queries.py`) with model level caching, reusing previously calculated results `run_precompute.py`, setting results manually (`run_set_results.py`) and input parameter sweeps (`run_sweep.py`). Most of the wall examples run with or without multi-processing.
 
 To run, for example, the car example execute  
 

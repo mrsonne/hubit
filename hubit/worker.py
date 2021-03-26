@@ -1,7 +1,10 @@
+from __future__ import annotations
+import pickle
+import hashlib
 import logging
-import multiprocessing
+from multiprocessing import Process, Manager
 import copy
-from typing import Dict
+from typing import Dict, Set, TYPE_CHECKING, List
 from .shared import (
     idxs_for_matches,
     get_idx_context,
@@ -15,9 +18,16 @@ from .shared import (
 )
 from .errors import HubitWorkerError
 
+if TYPE_CHECKING:
+    from .qrun import _QueryRunner
+
 
 class _Worker:
     """"""
+
+    RESULTS_FROM_CACHE_ID = "cache"
+    RESULTS_FROM_CALCULATION_ID = "calculation"
+    RESULTS_FROM_UNKNOWN = "unknown"
 
     @staticmethod
     def bindings_from_idxs(bindings, idxval_for_idxid) -> Dict:
@@ -100,8 +110,8 @@ class _Worker:
 
     def __init__(
         self,
-        manager,
-        hmodel,
+        manager: Manager,
+        qrun: _QueryRunner,
         name,
         cfg,
         query,
@@ -109,6 +119,7 @@ class _Worker:
         version,
         tree_for_idxcontext,
         dryrun=False,
+        caching=False,
     ):
         """
         If inputdata is None the worker cannot work but can still
@@ -121,11 +132,20 @@ class _Worker:
         self.func = func  # function to excecute
         self.name = name  # name of the component
         self.version = version  # Version of the component
-        self.hmodel = hmodel  # reference to the Hubit model instance
+        self.qrun = qrun  # reference to the query runner
         self.job = None  # For referencing the job if using multiprocessing
         self.query = query
         self.tree_for_idxcontext = tree_for_idxcontext
         self.cfg = cfg
+        self._consumed_data_set = False
+        self._consumed_input_ready = False
+        self._consumed_results_ready = False
+        self._consumes_input_only = False
+        self._results_id = None
+        self.caching = caching
+
+        # Store information on how results were created (calculation or cache)
+        self._results_from = self.RESULTS_FROM_UNKNOWN
 
         if dryrun:
             # If worker should perform a dry run set the worker function to "work_dryrun"
@@ -194,6 +214,7 @@ class _Worker:
 
         # Model path for results dependencies with ilocs from query
         if _Worker.consumes_type(cfg, "results"):
+            self._consumes_input_only = False
             self.rpath_consumed_for_name = _Worker.bindings_from_idxs(
                 cfg["consumes"]["results"], self.idxval_for_idxid
             )
@@ -202,6 +223,7 @@ class _Worker:
                 for binding in cfg["consumes"]["results"]
             }
         else:
+            self._consumes_input_only = True
             self.rpath_consumed_for_name = {}
             rconsumed_mpath_for_name = {}
 
@@ -240,6 +262,9 @@ class _Worker:
             }
 
         logging.info(f'Worker "{self.name}" was deployed for query "{self.query}"')
+
+    def consumes_input_only(self):
+        return self._consumes_input_only
 
     def mpath_for_name(self, type):
         def make_map(bindings):
@@ -311,7 +336,7 @@ class _Worker:
         """
         Sets all results to None
         """
-        self.hmodel._set_worker_working(self)
+        self.qrun._set_worker_working(self)
         for name in self.rpath_provided_for_name.keys():
             tree = self.tree_for_idxcontext[
                 get_idx_context(self.provided_mpath_for_name[name])
@@ -324,18 +349,25 @@ class _Worker:
             self.job.terminate()
             self.job.join()
 
+    def use_cached_result(self, result):
+        logging.info(f'Worker "{self.name}" using CACHE for query "{self.query}"')
+        self.qrun._set_worker_working(self)
+        # Set each key-val pair from the cached results to the worker results
+        # The worker results may be a managed dict
+        for key, val in result.items():
+            self.results[key] = val
+        self._results_from = self.RESULTS_FROM_CACHE_ID
+
     def work(self):
         """
         Executes actual work
         """
-        logging.info(f'Worker "{self.name}" started for query "{self.query}"')
-
-        logging.debug("\n**START WORKING**\n{}".format(self.__str__()))
+        logging.info(f'Worker "{self.name}" STARTED for query "{self.query}"')
 
         # Notify the hubit model that we are about to start the work
-        self.hmodel._set_worker_working(self)
+        self.qrun._set_worker_working(self)
         if self.use_multiprocessing:
-            self.job = multiprocessing.Process(
+            self.job = Process(
                 target=self.func,
                 args=(self.inputval_for_name, self.resultval_for_name, self.results),
             )
@@ -343,6 +375,7 @@ class _Worker:
             self.job.start()
         else:
             self.func(self.inputval_for_name, self.resultval_for_name, self.results)
+        self._results_from = self.RESULTS_FROM_CALCULATION_ID
 
         logging.debug("\n**STOP WORKING**\n{}".format(self.__str__()))
         logging.info(f'Worker "{self.name}" finished for query "{self.query}"')
@@ -358,38 +391,46 @@ class _Worker:
         }
 
     def is_ready_to_work(self):
-        return (
-            len(self.pending_input_paths) == 0 and len(self.pending_results_paths) == 0
-        )
+        return self._consumed_input_ready and self._consumed_results_ready
 
-    def work_if_ready(self):
+    def work_if_ready(self, results=None):
         """
         If all consumed attributes are present start working
         """
         if self.is_ready_to_work():
             logging.debug("Let the work begin: {}".format(self.workfun))
 
-            self.inputval_for_name = _Worker.reshape(
-                self.ipaths_consumed_for_name, self.inputval_for_path
-            )
             self.resultval_for_name = _Worker.reshape(
                 self.rpaths_consumed_for_name, self.resultval_for_path
             )
 
-            self.workfun()
+            self._consumed_data_set = True
+            if results is None:
+                self.workfun()
+            else:
+                self.use_cached_result(results)
 
     def set_consumed_input(self, path, value):
         if path in self.pending_input_paths:
             self.pending_input_paths.remove(path)
             self.inputval_for_path[path] = value
+        self._consumed_input_ready = len(self.pending_input_paths) == 0
 
-        self.work_if_ready()
+        # Create inputval_for_name as soon as we can to allow results_id to be formed
+        if self._consumed_input_ready:
+            self.inputval_for_name = _Worker.reshape(
+                self.ipaths_consumed_for_name, self.inputval_for_path
+            )
+
+        # if not self.caching:
+        #     self.work_if_ready()
 
     def set_consumed_result(self, path, value):
         if path in self.pending_results_paths:
             self.pending_results_paths.remove(path)
             self.resultval_for_path[path] = value
 
+        self._consumed_results_ready = len(self.pending_results_paths) == 0
         self.work_if_ready()
 
     def set_values(self, inputdata, resultsdata):
@@ -398,7 +439,7 @@ class _Worker:
         to the list of pending items
         """
         # set the worker here since in init we have not yet checked that a similar instance does not exist
-        self.hmodel._set_worker(self)
+        self.qrun._set_worker(self)
 
         # Check consumed input (should not have any pending items by definition)
         for path in self.iname_for_path.keys():
@@ -414,7 +455,14 @@ class _Worker:
             else:
                 self.pending_results_paths.append(path)
 
-        self.work_if_ready()
+        self._consumed_input_ready = len(self.pending_input_paths) == 0
+        self._consumed_results_ready = len(self.pending_results_paths) == 0
+
+        # Create inputval_for_name as soon as we can to allow results_id to be formed
+        if self._consumed_input_ready:
+            self.inputval_for_name = _Worker.reshape(
+                self.ipaths_consumed_for_name, self.inputval_for_path
+            )
 
         return (
             copy.copy(self.pending_input_paths),
@@ -431,6 +479,43 @@ class _Worker:
             self.version,
             "&".join([f"{k}={v}" for k, v in self.idxval_for_idxid.items()]),
         )
+
+    def _make_results_id(self):
+        """results_ids based on input and function only"""
+        return hashlib.md5(
+            # f'{self.inputval_for_name}_{id(self.func)}'.encode('utf-8')
+            pickle.dumps([self.inputval_for_name, id(self.func)])
+        ).hexdigest()
+
+    def set_results_id(self, results_ids: Set[str]) -> str:
+        """results_ids are the IDs of workers spawned from the
+        current worker
+
+        augment that with worker's own results_id
+        """
+        results_ids.add(self._make_results_id())
+        self._results_id = hashlib.md5("".join(results_ids).encode("utf-8")).hexdigest()
+        return self._results_id
+
+    @property
+    def results_id(self):
+        return self._results_id or self._set_results_id()
+
+    def _set_results_id(self):
+        """checksum for worker function and input. This ID is identical for
+        worker that carry out the same calculation
+        """
+        if self._results_id is not None:
+            return self._results_id
+
+        if not self._consumes_input_only:
+            raise HubitWorkerError("Not safe to create results ID")
+
+        if not self._consumed_input_ready:
+            raise HubitWorkerError("Not enough data to create calc ID")
+
+        self._results_id = self._make_results_id()
+        return self._results_id
 
     def __str__(self):
         n = 100
@@ -463,3 +548,6 @@ class _Worker:
         strtmp += "=" * n + "\n"
 
         return strtmp
+
+    def used_cache(self):
+        return self._results_from == self.RESULTS_FROM_CACHE_ID

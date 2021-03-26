@@ -7,7 +7,7 @@ THISPATH = os.path.dirname(os.path.realpath(__file__))
 
 def get_model(filename, model_id=""):
     hmodel = HubitModel.from_file(
-        os.path.join(THISPATH, filename), name=f"car_{model_id}", output_path="./tmp"
+        os.path.join(THISPATH, filename), name=f"car{model_id}", output_path="./tmp"
     )
 
     # Load the input

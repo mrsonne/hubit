@@ -1,6 +1,7 @@
 
 cars:
-  - name: fast
+  - &fast_car
+    name: fast  
     parts: 
       - count: 4
         name: wheel1
@@ -22,4 +23,4 @@ cars:
         name: bumper
       - count: 1
         name: engine14
-        
+  - <<: *fast_car 

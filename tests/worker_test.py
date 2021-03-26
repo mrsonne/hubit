@@ -125,10 +125,10 @@ class TestWorker(unittest.TestCase):
 
         TODO: split in multiple tests
         """
-        hmodel = Mock()
-        hmodel._set_worker
-        hmodel._set_worker_working
-
+        qrunner = Mock()
+        qrunner._set_worker
+        qrunner._set_worker_working
+        qrunner.check_cache.return_value = None
         cname = None
         func = None
         version = None
@@ -168,7 +168,7 @@ class TestWorker(unittest.TestCase):
 
         w = _Worker(
             self.manager,
-            hmodel,
+            qrunner,
             cname,
             cfg,
             querystring,
@@ -236,22 +236,15 @@ class TestWorker(unittest.TestCase):
             )
 
         # After adding last attribute the worker starts running (sequentially)
-        test_results_ready = w.results_ready() == True
+        self.assertTrue(w.results_ready())
 
-        with self.subTest():
-            self.assertTrue(test_results_ready)
+        self.assertTrue(all(itests_paths_pending))
 
-        with self.subTest():
-            self.assertTrue(all(itests_paths_pending))
+        self.assertTrue(all(itests_ready_to_work))
 
-        with self.subTest():
-            self.assertTrue(all(itests_ready_to_work))
+        self.assertTrue(all(rtests_paths_pending))
 
-        with self.subTest():
-            self.assertTrue(all(rtests_paths_pending))
-
-        with self.subTest():
-            self.assertTrue(all(rtests_ready_to_work))
+        self.assertTrue(all(rtests_ready_to_work))
 
     def test_5(self):
         """

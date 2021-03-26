@@ -135,13 +135,13 @@ class TestRunner(unittest.TestCase):
 
     def get_worker_counts(self, queries):
         # queries = dot-queries
-        all_results = {}
+        flat_results = {}
         flat_input = flatten(self.input)
         worker_counts = []
         manager = None
         for q in queries:
-            self.qr._deploy(
-                manager, q, flat_input, all_results, flat_input, dryrun=True
+            self.qr.spawn_workers(
+                manager, q, flat_input, flat_results, flat_input, dryrun=True
             )
             worker_counts.append(len(self.qr.workers))
 

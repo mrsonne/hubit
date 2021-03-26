@@ -378,7 +378,14 @@ class TestModel(unittest.TestCase):
                     len(self.hmodel._qrunner.workers), expected_worker_count
                 )
 
-    def _component_caching(self, component_caching, expected_result, input, query):
+    def _component_caching(
+        self,
+        component_caching,
+        expected_result,
+        expected_n_unique_response_elements,
+        input,
+        query,
+    ):
         for use_multi_processing in self.use_multi_processing_values:
             with self.subTest(
                 use_multi_processing=use_multi_processing,
@@ -386,7 +393,17 @@ class TestModel(unittest.TestCase):
             ):
                 self.hmodel.set_input(input)
                 self.hmodel.set_component_caching(component_caching)
-                self.hmodel.get(query, use_multi_processing=use_multi_processing)
+                response = self.hmodel.get(
+                    query, use_multi_processing=use_multi_processing
+                )
+                # get the first (and only)  query item
+                result = list(response.values())[0]
+                # Unique elements in result (repeats expected when components cache is hit)
+                unique_results = {tuple(item) for item in result}
+                n_unique_response_elements = len(unique_results)
+                self.assertEqual(
+                    expected_n_unique_response_elements, n_unique_response_elements
+                )
                 result = self.hmodel.log().get_all("cache_counts")[0]
                 # print(result)
                 self.assertEqual(result, expected_result)
@@ -395,7 +412,6 @@ class TestModel(unittest.TestCase):
         """Component caching not used since no elements in
         the input (list[:].some_attribute.numbers) are the same
 
-        TODO: Verify that results are the same for duplicated input elements
         TODO: test level 1 queries to tes results_id logic for dependencies
         """
         query = ["list[:].some_attr.two_x_numbers"]
@@ -409,9 +425,14 @@ class TestModel(unittest.TestCase):
             "fun6": 0,
         }
         component_caching_levels = False, True
+        expected_n_unique_response_elements = 2
         for component_caching in component_caching_levels:
             self._component_caching(
-                component_caching, expected_result, self.input, query
+                component_caching,
+                expected_result,
+                expected_n_unique_response_elements,
+                self.input,
+                query,
             )
 
         # Duplicate one list element to see caching
@@ -420,8 +441,16 @@ class TestModel(unittest.TestCase):
         input["list"].append(input["list"][1])
 
         # Component caching disabled so we still expect all cache counts to be zero
+        # expected_n_unique_response_elements is still 2 since two input were copied i.e.
+        # 2 results should be identical to the two original ones
         component_caching = False
-        self._component_caching(component_caching, expected_result, input, query)
+        self._component_caching(
+            component_caching,
+            expected_result,
+            expected_n_unique_response_elements,
+            input,
+            query,
+        )
 
         # Component caching enabled. Two chache hits since 2 list elements were duplicated
         component_caching = True
@@ -434,7 +463,13 @@ class TestModel(unittest.TestCase):
             "fun5": 0,
             "fun6": 0,
         }
-        self._component_caching(component_caching, expected_result, input, query)
+        self._component_caching(
+            component_caching,
+            expected_result,
+            expected_n_unique_response_elements,
+            input,
+            query,
+        )
 
     def test_log(self):
         """"""

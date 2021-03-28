@@ -18,6 +18,7 @@ from .shared import (
     convert_to_internal_path,
     flatten,
     inflate,
+    HubitModelConfig,
 )
 
 from .errors import (
@@ -34,7 +35,7 @@ _CACHE_DIR = os.path.join(_HUBIT_DIR, _CACHE_DIR)
 class HubitModel(_HubitModel):
     def __init__(
         self,
-        cfg: List[Dict[str, Any]],
+        model_cfg: HubitModelConfig,
         base_path: str = os.getcwd(),
         output_path: str = "./",
         name: str = "NA",
@@ -42,7 +43,7 @@ class HubitModel(_HubitModel):
         """Initialize a Hubit model
 
         Args:
-            cfg (List): Model configuration
+            cfg (HubitModelConfig): Model configuration
             base_path (str, optional): Base path for the model. Defaults to current working directory.
             output_path (str, optional): Output path relative to base_path. Defaults to './'.
             name (str, optional): Model name. Defaults to 'NA'.
@@ -55,24 +56,22 @@ class HubitModel(_HubitModel):
             raise HubitError("Output path should be relative")
 
         self.ilocstr = "_IDX"
-        self.cfg = cfg
+        self.cfg = model_cfg
 
-        fnames = [component["func_name"] for component in cfg]
 
-        if not len(fnames) == len(set(fnames)):
-            raise HubitError("Component function names must be unique")
-
-        self.component_for_name = {
-            component["func_name"]: component for component in cfg
-        }
+        # NOW Stored on cfg
+        # self.component_for_name = {
+        #     component["func_name"]: component for component in cfg
+        # }
 
         # Insert empty if section if missing
-        for component in self.component_for_name.values():
-            if not "consumes" in component:
-                component["consumes"] = {}
+        # THIS IS NOW HANDELED IN HubitModelConfig
+        # for component in self.component_for_name.values():
+        #     if not "consumes" in component:
+        #         component["consumes"] = {}
 
-            if not "input" in component["consumes"]:
-                component["consumes"]["input"] = {}
+        #     if not "input" in component["consumes"]:
+        #         component["consumes"]["input"] = {}
 
         # Stores length tree. Filled when set_input() is called
         self.tree_for_idxcontext: Dict[LengthTree, str] = {}
@@ -118,17 +117,10 @@ class HubitModel(_HubitModel):
         Returns:
             HubitModel: Hubit model object as defined in the specified model file
         """
-        with open(model_file_path, "r") as stream:
-            components = yaml.load(stream, Loader=yaml.FullLoader)
+        model_config = HubitModelConfig.from_file(model_file_path)
+        base_path = model_config.base_path
 
-        # Convert to absolute paths
-        base_path = os.path.dirname(model_file_path)
-        for component in components:
-            if "path" in component.keys():
-                component["path"] = os.path.abspath(
-                    os.path.join(base_path, component["path"])
-                )
-        return cls(components, name=name, output_path=output_path, base_path=base_path)
+        return cls(model_config, name=name, output_path=output_path, base_path=base_path)
 
     def has_cached_results(self) -> bool:
         """

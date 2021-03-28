@@ -1,4 +1,5 @@
 from __future__ import annotations
+import os
 import re
 import copy
 import itertools
@@ -6,48 +7,138 @@ import collections
 from functools import reduce
 from operator import getitem
 from typing import Any, List, Dict, Tuple
-from dataclasses import dataclass
-
-from .errors import HubitIndexError, HubitWorkerError
+from dataclasses import dataclass, field
+import yaml
+from .errors import HubitIndexError, HubitModelValidationError, HubitWorkerError
 
 IDX_WILDCARD = ":"
 REGEX_IDXID = r"\[(.*?)\]"
 
 
+def _validate_path(path: str):
+    pass
+
+
+@dataclass
+class HubitBinding:
+    """
+    Binds an internal component "name" to a "path" in the shared data model
+    """
+    name: str
+    path: str
+
+    def validate(self):
+        _validate_path(self.path)
+        return self
+
+    @classmethod
+    def from_cfg(cls, cfg):
+        return cls(
+            name=cfg["name"], 
+            path = cfg["path"]
+        ).validate()
+
 @dataclass
 class HubitModelComponent:
-    def _validate(self):
-        return True
+    """A model component represent one isolated calculation carried out by 
+    the function "func_name" located at "path". The function requires 
+    input from the paths defined in "consumes_input" and 
+    "consumes_results". The componet delivers results to the paths 
+    in "provides_results".
+    """
+    path: str
+    func_name: str 
+    provides_results: List[HubitBinding] 
+    consumes_input: List[HubitBinding] = field(default_factory=list)
+    consumes_results: List[HubitBinding] = field(default_factory=list)
+    is_module_path: bool = False
+
+    def validate(self):
+        return self
+
+    @classmethod
+    def from_cfg(cls, cfg: Dict) -> HubitModelComponent:
+        
+        target_attr = "provides_results" 
+        try:
+            cfg[target_attr] = [
+                HubitBinding.from_cfg(binding) 
+                for binding in cfg[target_attr]
+            ]
+        except KeyError:
+            raise HubitModelValidationError('Component should provide results')
+
+        target_attr = "consumes_input" 
+        try:
+            cfg[target_attr] = [
+                HubitBinding.from_cfg(binding) 
+                for binding in cfg[target_attr]
+            ]
+        except KeyError:
+            pass
+
+        target_attr = "consumes_results" 
+        try:
+            cfg[target_attr] = [
+                HubitBinding.from_cfg(binding) 
+                for binding in cfg[target_attr]
+            ]
+        except KeyError:
+            pass
+
+        return cls(**cfg).validate()
 
 
 @dataclass
 class HubitModelConfig:
-    components: List[HubitWorkerError]
+    """Defines the hubit model configuration
+    """
+    components: List[HubitModelComponent]
+    model_file_path: str
 
-    def _validate(self):
-        return True
+    def __post_init__(self):
+        # Convert to absolute paths
+        self._base_path = os.path.dirname(self.model_file_path)
+        for component in self.components:
+            if not component.is_module_path:
+                component.path = os.path.abspath(
+                    os.path.join(self._base_path, component.path)
+                )
+
+        self._component_for_name = {
+            component.func_name: component for component in self.components
+        }
+
+    @property
+    def base_path(self):
+        return self._base_path
+
+    @property
+    def component_for_name(self):
+        return self._component_for_name
 
 
-class HubitModelPath(str):
-    def __init__(self, path: str):
-        self.path = path
+    def validate(self):
+        func_names = [component.func_name for component in self.components]
 
-    def _validate(self):
-        return True
+        if not len(func_names) == len(set(func_names)):
+            raise HubitModelValidationError("Component function names must be unique")
 
+        return self
 
-class HubitPath(str):
-    path: str
+    @classmethod
+    def from_file(cls, model_file_path) -> HubitModelConfig:
+        with open(model_file_path, "r") as stream:
+            cfg = yaml.load(stream, Loader=yaml.FullLoader)
+        return cls.from_cfg(cfg, model_file_path)
 
-    def _validate(self):
-        return True
-
-
-class HubitQuery(HubitPath):
-    query: List[HubitPath]
-
-    def _validate(self):
-        return True
+    @classmethod
+    def from_cfg(cls, cfg: Dict, model_file_path: str) -> HubitModelConfig:
+        components = [HubitModelComponent.from_cfg(component_data) 
+            for component_data 
+            in cfg
+        ]
+        return cls(components=components, model_file_path=model_file_path).validate()
 
 
 class LengthNode:

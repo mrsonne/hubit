@@ -88,6 +88,19 @@ class HubitModelComponent:
 
         return cls(**cfg).validate()
 
+    def does_provide_results(self):
+        return len(self.provides_results) > 0
+
+    def does_consume_results(self):
+        return len(self.consumes_results) > 0
+
+    def does_consume_input(self):
+        return len(self.consumes_input) > 0
+
+    def binding_map(self, binding_type):
+        bindings = getattr(self, binding_type)
+        return {binding.name: binding.path for binding in bindings}
+
 
 @dataclass
 class HubitModelConfig:
@@ -694,7 +707,10 @@ class Container:
         return str(self.val)
 
 
-def tree_for_idxcontext(components: List, data: Dict) -> Dict[str, LengthTree]:
+def tree_for_idxcontext(
+    components: List[HubitModelComponent],
+    data: Dict
+) -> Dict[str, LengthTree]:
     """Compute LengthTree for relevant index contexts.
 
     Args:
@@ -706,9 +722,9 @@ def tree_for_idxcontext(components: List, data: Dict) -> Dict[str, LengthTree]:
     """
     out = {"": DummyLengthTree()}
     for component in components:
-        for binding in component["consumes"]["input"]:
-            tree = LengthTree.from_data(binding["path"], data)
-            idx_context = get_idx_context(binding["path"])
+        for binding in component.consumes_input:
+            tree = LengthTree.from_data(binding.path, data)
+            idx_context = get_idx_context(binding.path)
             if idx_context in out.keys():
                 continue
             out[idx_context] = tree

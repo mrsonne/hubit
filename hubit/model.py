@@ -43,7 +43,7 @@ class HubitModel(_HubitModel):
         """Initialize a Hubit model
 
         Args:
-            cfg (HubitModelConfig): Model configuration
+            model_cfg (HubitModelConfig): Model configuration
             base_path (str, optional): Base path for the model. Defaults to current working directory.
             output_path (str, optional): Output path relative to base_path. Defaults to './'.
             name (str, optional): Model name. Defaults to 'NA'.
@@ -56,7 +56,7 @@ class HubitModel(_HubitModel):
             raise HubitError("Output path should be relative")
 
         self.ilocstr = "_IDX"
-        self.cfg = model_cfg
+        self.model_cfg = model_cfg
 
 
         # NOW Stored on cfg

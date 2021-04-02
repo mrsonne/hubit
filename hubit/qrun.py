@@ -9,7 +9,7 @@ import yaml
 from collections import Counter
 from .worker import _Worker
 from .errors import HubitModelComponentError
-from .shared import count
+from .shared import HubitModelComponent, count
 
 POLLTIME = 0.1
 POLLTIME_LONG = 0.25
@@ -50,26 +50,21 @@ class _QueryRunner:
             worker.join()
 
     @staticmethod
-    def _get_func(base_path, func_name, cfgdata, components):
+    def _get_func(base_path, func_name, component_cfg: HubitModelComponent, components):
         """[summary]
 
         Args:
             base_path (str): Model base path
             func_name (str): Function name
-            cfgdata (dict): configuration data from the model definition file
+            component_cfg (HubitModelComponent): configuration data from the model definition file
+            components (Dict): 
 
         Returns:
             tuple: function handle, function version, and component dict
         """
-        if "path" in cfgdata and "module" in cfgdata:
-            raise HubitModelComponentError(
-                f'Please specify either "module" '
-                f'or "path" for component with '
-                f'func_name "{func_name}"'
-            )
 
-        if "path" in cfgdata:
-            path, file_name = os.path.split(cfgdata["path"])
+        if not component_cfg.is_module_path:
+            path, file_name = os.path.split(component_cfg.path)
             path = os.path.join(base_path, path)
             module_name = os.path.splitext(file_name)[0]
             path = os.path.abspath(path)
@@ -84,18 +79,13 @@ class _QueryRunner:
             module = importlib.util.module_from_spec(spec)
             sys.modules[spec.name] = module
             spec.loader.exec_module(module)
-        elif "module" in cfgdata:
-            module = importlib.import_module(cfgdata["module"])
-            component_id = f'{cfgdata["module"]}{func_name}'
+        else:
+            module = importlib.import_module(component_cfg.path)
+            component_id = f'{component_cfg.path}{func_name}'
             if component_id in components.keys():
                 func, version = components[component_id]
                 return func, version, components
-        else:
-            raise HubitModelComponentError(
-                f'Please specify either "module" '
-                f'or "path" for component with '
-                f'func_name "{func_name}"'
-            )
+
 
         func = getattr(module, func_name)
         try:
@@ -122,9 +112,9 @@ class _QueryRunner:
 
         func_name = self.model._cmpname_for_query(query_path)
 
-        component_data = self.model.component_for_name[func_name]
+        component = self.model.component_for_name(func_name)
         (func, version, self._components) = _QueryRunner._get_func(
-            self.model.base_path, func_name, component_data, self._components
+            self.model.base_path, func_name, component, self._components
         )
 
         # Create and return worker
@@ -133,7 +123,7 @@ class _QueryRunner:
                 manager,
                 self,
                 func_name,
-                component_data,
+                component,
                 query_path,
                 func,
                 version,
@@ -369,13 +359,13 @@ class _QueryRunner:
     def _add_log_items(self, t_start: float) -> float:
         # Set zeros for all components
         worker_counts = {
-            component_data["func_name"]: 0 for component_data in self.model.cfg
+            component.func_name: 0 for component in self.model.model_cfg.components
         }
         worker_counts.update(count(self.workers, key_from="name"))
 
         # Set zeros for all components
         cache_counts = {
-            component_data["func_name"]: 0 for component_data in self.model.cfg
+            component.func_name: 0 for component in self.model.model_cfg.components
         }
         cache_counts.update(
             count(

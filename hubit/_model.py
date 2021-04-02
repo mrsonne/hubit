@@ -702,7 +702,7 @@ class _HubitModel:
 
     def _validate_model(self):
         fname_for_path = {}
-        for component in self.model_cfg:
+        for component in self.model_cfg.components:
             fname = component.func_name
             for binding in component.provides_results:
                 if not binding.path in fname_for_path:

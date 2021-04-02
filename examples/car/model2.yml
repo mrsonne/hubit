@@ -1,21 +1,19 @@
 - path: ./components/mod2_cmp1.py 
   func_name: part_price
-  consumes:
-    input:
+  consumes_input:
       - name: part_name
         path: cars[IDX_CAR].parts[IDX_PART].name 
       - name: part_count
         path: cars[IDX_CAR].parts[IDX_PART].count
-  provides:
+  provides_results:
     - name: part_price
       path: cars[IDX_CAR].parts[IDX_PART].price
 
 - path: ./components/mod2_cmp2.py 
   func_name: car_price
-  consumes:
-    results:
+  consumes_results:
       - name: prices
         path: cars[IDX_CAR].parts[:@IDX_PART].price
-  provides : 
+  provides_result s: 
     - name: car_price 
       path: cars[IDX_CAR].price

@@ -9,7 +9,7 @@ from operator import getitem
 from typing import Any, List, Dict, Tuple
 from dataclasses import dataclass, field
 import yaml
-from .errors import HubitIndexError, HubitModelValidationError, HubitWorkerError
+from .errors import HubitIndexError, HubitModelValidationError, HubitModelComponentError
 
 IDX_WILDCARD = ":"
 REGEX_IDXID = r"\[(.*?)\]"
@@ -53,7 +53,7 @@ class HubitModelComponent:
     consumes_results: List[HubitBinding] = field(default_factory=list)
     is_module_path: bool = False
 
-    def validate(self):
+    def validate(self, cfg):
         return self
 
     @classmethod
@@ -66,7 +66,9 @@ class HubitModelComponent:
                 for binding in cfg[target_attr]
             ]
         except KeyError:
-            raise HubitModelValidationError('Component should provide results')
+            raise HubitModelComponentError(
+            f'Component with entrypoint {cfg["func_name"]} should provide results'
+        )
 
         target_attr = "consumes_input" 
         try:
@@ -86,7 +88,7 @@ class HubitModelComponent:
         except KeyError:
             pass
 
-        return cls(**cfg).validate()
+        return cls(**cfg).validate(cfg)
 
     def does_provide_results(self):
         return len(self.provides_results) > 0

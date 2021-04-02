@@ -6,7 +6,7 @@ import itertools
 import collections
 from functools import reduce
 from operator import getitem
-from typing import Any, List, Dict, Tuple
+from typing import Any, List, Dict, Tuple, Set
 from dataclasses import dataclass, field
 import yaml
 from .errors import HubitIndexError, HubitModelValidationError, HubitModelComponentError
@@ -48,9 +48,9 @@ class HubitModelComponent:
     """
     path: str
     func_name: str 
-    provides_results: List[HubitBinding] 
-    consumes_input: List[HubitBinding] = field(default_factory=list)
-    consumes_results: List[HubitBinding] = field(default_factory=list)
+    provides_results: Set[HubitBinding] 
+    consumes_input: Set[HubitBinding] = field(default_factory=set)
+    consumes_results: Set[HubitBinding] = field(default_factory=set)
     is_module_path: bool = False
 
     def validate(self, cfg):
@@ -108,7 +108,7 @@ class HubitModelComponent:
 class HubitModelConfig:
     """Defines the hubit model configuration
     """
-    components: List[HubitModelComponent]
+    components: Set[HubitModelComponent]
     model_file_path: str
 
     def __post_init__(self):

@@ -67,7 +67,7 @@ class HubitModelComponent:
             ]
         except KeyError:
             raise HubitModelComponentError(
-            f'Component with entrypoint {cfg["func_name"]} should provide results'
+            f'Component with entrypoint "{cfg["func_name"]}" should provide results'
         )
 
         target_attr = "consumes_input" 

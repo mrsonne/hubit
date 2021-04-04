@@ -6,6 +6,10 @@ from typing import Dict, Set
 from .errors import HubitModelValidationError, HubitModelComponentError
 
 class HubitPath:
+    """
+    For now just a collection of static methods relating to hubit path 
+    validation and manipulation
+    """
     @staticmethod
     def validate_path(path: str):
         pass

@@ -4,7 +4,7 @@ import yaml
 from hubit import shared
 from hubit.worker import _Worker
 from hubit.config import HubitModelComponent, HubitBinding
-from hubit.errors import HubitModelComponentError, HubitWorkerError
+from hubit.errors import HubitWorkerError
 
 class TestWorker(unittest.TestCase):
     def setUp(self):
@@ -82,18 +82,6 @@ class TestWorker(unittest.TestCase):
             dryrun=True,
         )
 
-    def test_3(self):
-        """
-        Componet provides nothing => error
-        TODO: Move as Model component test
-        """
-        cfg = {
-            "path": "dummy",
-            "func_name": "dummy",
-            "consumes_input": [{"name": "attr", "path": "shared.input.attr.path"}],
-        }
-        with self.assertRaises(HubitModelComponentError):
-            HubitModelComponent.from_cfg(cfg)
 
     def test_4(self):
         """

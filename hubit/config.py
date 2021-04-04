@@ -5,9 +5,10 @@ import os
 from typing import Dict, Set
 from .errors import HubitModelValidationError, HubitModelComponentError
 
-
-def _validate_path(path: str):
-    pass
+class HubitPath:
+    @staticmethod
+    def validate_path(path: str):
+        pass
 
 
 @dataclass
@@ -20,7 +21,7 @@ class HubitBinding:
     path: str
 
     def validate(self):
-        _validate_path(self.path)
+        HubitPath.validate_path(self.path)
         return self
 
     @classmethod

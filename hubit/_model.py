@@ -12,8 +12,9 @@ from threading import Thread, Event
 
 from .worker import _Worker
 from .qrun import _QueryRunner
+from .config import HubitBinding
 from .shared import (
-    HubitBinding, IDX_WILDCARD,
+    IDX_WILDCARD,
     clean_idxids_from_path,
     convert_to_internal_path,
     idxs_for_matches,

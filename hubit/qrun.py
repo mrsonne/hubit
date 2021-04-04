@@ -6,10 +6,9 @@ import sys
 import time
 from typing import Any, Dict, List, Set
 import yaml
-from collections import Counter
 from .worker import _Worker
-from .errors import HubitModelComponentError
-from .shared import HubitModelComponent, count
+from .shared import count
+from .config import HubitModelComponent
 
 POLLTIME = 0.1
 POLLTIME_LONG = 0.25

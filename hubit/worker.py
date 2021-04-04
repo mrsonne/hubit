@@ -5,8 +5,9 @@ import logging
 import multiprocessing
 import copy
 from typing import Callable, Dict, Set, TYPE_CHECKING, List
+from .config import HubitBinding
 from .shared import (
-    HubitBinding, LengthTree, idxs_for_matches,
+    LengthTree, idxs_for_matches,
     get_idx_context,
     check_path_match,
     clean_idxids_from_path,

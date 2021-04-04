@@ -3,7 +3,7 @@ from unittest.mock import Mock
 import yaml
 from hubit import shared
 from hubit.worker import _Worker
-from hubit.shared import HubitModelComponent, HubitBinding
+from hubit.config import HubitModelComponent, HubitBinding
 from hubit.errors import HubitModelComponentError, HubitWorkerError
 
 class TestWorker(unittest.TestCase):

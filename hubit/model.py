@@ -18,8 +18,8 @@ from .shared import (
     convert_to_internal_path,
     flatten,
     inflate,
-    HubitModelConfig,
 )
+from .config import HubitModelConfig
 
 from .errors import (
     HubitError,

@@ -5,7 +5,8 @@ import yaml
 from hubit.model import HubitModel
 from hubit.qrun import _QueryRunner
 from hubit.errors import HubitModelQueryError
-from hubit.shared import HubitModelConfig, flatten
+from hubit.shared import flatten
+from hubit.config import HubitModelConfig
 
 THIS_FILE = os.path.realpath(__file__)
 THIS_DIR = os.path.dirname(THIS_FILE)

@@ -2,11 +2,11 @@ from __future__ import annotations
 import pickle
 import hashlib
 import logging
-from multiprocessing import Process, Manager
+import multiprocessing
 import copy
-from typing import Dict, Set, TYPE_CHECKING, List
+from typing import Callable, Dict, Set, TYPE_CHECKING, List
 from .shared import (
-    HubitBinding, idxs_for_matches,
+    HubitBinding, LengthTree, idxs_for_matches,
     get_idx_context,
     check_path_match,
     clean_idxids_from_path,
@@ -111,14 +111,14 @@ class _Worker:
 
     def __init__(
         self,
-        manager: Manager,
+        manager: multiprocessing.Manager,
         qrun: _QueryRunner,
-        name,
+        name: str,
         component: HubitModelComponent,
-        query,
-        func,
-        version,
-        tree_for_idxcontext,
+        query: str,
+        func: Callable,
+        version: str,
+        tree_for_idxcontext: Dict[str, LengthTree],
         dryrun:bool = False,
         caching:bool = False,
     ):
@@ -360,7 +360,7 @@ class _Worker:
         # Notify the hubit model that we are about to start the work
         self.qrun._set_worker_working(self)
         if self.use_multiprocessing:
-            self.job = Process(
+            self.job = multiprocessing.Process(
                 target=self.func,
                 args=(self.inputval_for_name, self.resultval_for_name, self.results),
             )

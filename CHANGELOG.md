@@ -6,7 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Changed
-- Configuration as HubitModelConfig object. `provides_results` , `consumes_input`, `consumes_results`, `is_module_path`. Breaks existing model configs. Migrate.
+- The model configuration format is defined and documented in the `HubitModelConfig` class.
+- Introducing `HubitModelConfig` four configuration attributes have been renamed. Therefore, model configuration files used in Hubit 0.3- must be migrated to Hubit 0.3 format. Below is a description of the necessary migrations
+    - The top-level object `provides` is now named `provides_results`.
+    - The sub-objects `consumes.input` is now a top-level object named `consumes_input`.
+    - The sub-objects `consumes.results` is now a top-level object named `consumes_results`.
+    - The node value of `module_path` should now be specified on the `path` node and is interpreted as a module path if the `is_module_path` is set to `True` 
 
 ### Added
 - Improved model configuration validation

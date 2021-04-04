@@ -5,9 +5,10 @@ import yaml
 from hubit.model import HubitModel
 from hubit.qrun import _QueryRunner
 from hubit.errors import HubitModelQueryError
-from hubit.shared import flatten
+from hubit.shared import HubitModelConfig, flatten
 
-THIS_DIR = os.path.dirname(os.path.realpath(__file__))
+THIS_FILE = os.path.realpath(__file__)
+THIS_DIR = os.path.dirname(THIS_FILE)
 REL_TMP_DIR = "./tmp"
 
 
@@ -28,21 +29,24 @@ def subscriptions_for_query(query, query_runner):
     return consumes, provides
 
 
-def subscriptions_for_component_idx(model_data, comp_idx, iloc, idxid):
+def subscriptions_for_component_idx(model_cfg, comp_idx, iloc, idxid):
     """Get subscriptions from model"""
     ilocstr = str(iloc)
 
     consumes = []
     try:
         consumes.extend(
-            [binding["path"] for binding in model_data[comp_idx]["consumes"]["input"]]
+            [binding.path for binding in model_cfg.components[comp_idx].consumes_input]
         )
     except KeyError:
         pass
 
     try:
         consumes.extend(
-            [binding["path"] for binding in model_data[comp_idx]["consumes"]["results"]]
+            [
+                binding.path
+                for binding in model_cfg.components[comp_idx].consumes_results
+            ]
         )
     except KeyError:
         pass
@@ -50,7 +54,9 @@ def subscriptions_for_component_idx(model_data, comp_idx, iloc, idxid):
     # Replace ilocstr with actual iloc
     consumes = [path.replace(idxid, ilocstr) for path in consumes]
 
-    provides = [binding["path"] for binding in model_data[comp_idx]["provides"]]
+    provides = [
+        binding.path for binding in model_cfg.components[comp_idx].provides_results
+    ]
     provides = [path.replace(idxid, ilocstr) for path in provides]
 
     return consumes, provides
@@ -59,9 +65,10 @@ def subscriptions_for_component_idx(model_data, comp_idx, iloc, idxid):
 class TestRunner(unittest.TestCase):
     def setUp(self):
 
-        self.model_data = yaml.load(model, Loader=yaml.FullLoader)
+        cfg = yaml.load(model, Loader=yaml.FullLoader)
+        self.model_cfg = HubitModelConfig.from_cfg(cfg, model_file_path=THIS_FILE)
         self.hmodel = HubitModel(
-            self.model_data,
+            self.model_cfg,
             name="My model",
             base_path=THIS_DIR,
             output_path=REL_TMP_DIR,
@@ -89,17 +96,14 @@ class TestRunner(unittest.TestCase):
             worker_consumes_expected,
             worker_provides_expected,
         ) = subscriptions_for_component_idx(
-            self.model_data, comp_idx, self.idx, idxid="IDX1"
+            self.model_cfg, comp_idx, self.idx, idxid="IDX1"
         )
 
         test_consumes = set(worker_consumes) == set(worker_consumes_expected)
+        self.assertTrue(test_consumes)
+
         test_provides = set(worker_provides) == set(worker_provides_expected)
-
-        with self.subTest(test_consumes):
-            self.assertTrue(test_consumes)
-
-        with self.subTest(test_provides):
-            self.assertTrue(test_provides)
+        self.assertTrue(test_provides)
 
     def test_worker_comp2(self):
         """"""
@@ -113,24 +117,21 @@ class TestRunner(unittest.TestCase):
             worker_consumes_expected,
             worker_provides_expected,
         ) = subscriptions_for_component_idx(
-            self.model_data, comp_idx, self.idx, idxid="IDX1"
+            self.model_cfg, comp_idx, self.idx, idxid="IDX1"
         )
 
         test_consumes = set(worker_consumes) == set(worker_consumes_expected)
+        self.assertTrue(test_consumes)
+
         test_provides = set(worker_provides) == set(worker_provides_expected)
-
-        with self.subTest(test_consumes):
-            self.assertTrue(test_consumes)
-
-        with self.subTest(test_provides):
-            self.assertTrue(test_provides)
+        self.assertTrue(test_provides)
 
     def test_no_provider(self):
         """
         No provider for query since the query has not provider.
         """
         manager = None
-        with self.assertRaises(HubitModelQueryError) as context:
+        with self.assertRaises(HubitModelQueryError):
             self.qr._worker_for_query(manager, "i.dont.exist")
 
     def get_worker_counts(self, queries):

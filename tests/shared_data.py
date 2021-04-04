@@ -5,56 +5,50 @@ model = """
         # move a number
         func_name: move_number
         path: ./components/comp0.py 
-        provides: 
+        provides_results:
             - name: number
               path: first_coor[IDX1].second_coor[IDX2].value 
-        consumes:
-            input: 
+        consumes_input: 
                 - name: number
                   path: list[IDX1].some_attr.inner_list[IDX2].xval
-
     -
         func_name: multiply_by_2
         # Path relative to base_path
         path: ./components/comp1.py 
-        provides: 
+        provides_results: 
             - name: comp1_results
               path: list[IDX1].some_attr.two_x_numbers
-        consumes:
-            input: 
+        consumes_input: 
                 - name: numbers_consumed_by_comp1
                   path: list[IDX1].some_attr.numbers
     -
         func_name: multiply_by_factors
         path: ./components/comp2.py
-        provides:
+        provides_results:
             - name: temperatures
               path: list[IDX1].some_attr.two_x_numbers_x_factor
-        consumes:
-            input: 
+        consumes_input: 
                 - name: factors
                   path: list[IDX1].some_attr.factors
-            results: 
+        consumes_results: 
                 - name: numbers_provided_by_comp1
                   path: list[IDX1].some_attr.two_x_numbers
     -
         func_name: slicing
         path: ./components/comp3.py # consumes factors for all list items and stores them in nested list
-        provides:
+        provides_results:
             - name: mylist
               path: factors
-        consumes:
-            input: 
+        consumes_input: 
                 - name: factors
                   path: list[:@IDX1].some_attr.factors
     -
         func_name: fun4
         path: ./components/comp4.py
-        provides:
+        provides_results:
             - name: yvals
               path: list[IDX1].some_attr.inner_list[:@IDX2].yval
-        consumes:
-            input:
+        consumes_input:
                 - name: fact
                   path: list[IDX1].some_attr.x_to_y_fact
                 - name: xvals
@@ -63,18 +57,17 @@ model = """
     -   # Does nothing exceppt test that it's OK not to have the cosumes section
         func_name: fun5
         path: ./components/comp5.py
-        provides:
+        provides_results:
             - name: yval
               path: number5
 
     -   # Does nothing except test that it's OK not to have the input section
         func_name: fun6
         path: ./components/comp6.py
-        provides:
+        provides_results:
             - name: yval
               path: number6
-        consumes:
-            results:
+        consumes_results:
                 - name: yval2
                   path: list[IDX1].some_attr.two_x_numbers
 

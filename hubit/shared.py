@@ -5,8 +5,11 @@ import itertools
 import collections
 from functools import reduce
 from operator import getitem
-from typing import Any, List, Dict, Tuple, Set
+from typing import Any, List, Dict, Tuple, TYPE_CHECKING
 from .errors import HubitIndexError
+
+if TYPE_CHECKING:
+    from .config import HubitModelComponent
 
 IDX_WILDCARD = ":"
 REGEX_IDXID = r"\[(.*?)\]"
@@ -555,14 +558,6 @@ class LengthTree:
             lines.append(f"level={idx} ({name}), {size}")
 
         return "\n".join(lines)
-
-
-class Container:
-    def __init__(self, val):
-        self.val = val
-
-    def __str__(self):
-        return str(self.val)
 
 
 def tree_for_idxcontext(

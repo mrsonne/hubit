@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 import yaml
 import os
 import re
-from typing import Dict, Set
+from typing import Dict, Set, List
 from .errors import HubitModelValidationError, HubitModelComponentError
 
 # or inherit from collections import UserString
@@ -12,6 +12,10 @@ class HubitPath(str):
     For now just a collection of static methods relating to hubit path 
     validation and manipulation
     """
+    idx_wildcard = ":"
+    regex_idxid = r"\[(.*?)\]"
+
+
     def validate(self):
         pass
 
@@ -28,6 +32,47 @@ class HubitPath(str):
         return re.sub("\[([^\.]+)]", "", self)
 
 
+    # def convert_to_internal_path(path: str) -> str:
+    # def as_internal_path(self) -> str:
+    #     """Convert user path using [IDX] to internal path using .IDX.
+
+    #     Returns:
+    #         str: internal path-like string
+    #     """
+    #     return self.replace("[", ".").replace("]", "")
+
+    def get_idxids(self) -> List[str]:
+        """Get the content of the square braces.
+
+        Returns:
+            List: Sequence of index identification strings
+        """
+        # return re.findall(r"\[(\w+)\]", path) # Only word charaters i.e. [a-zA-Z0-9_]+
+        return re.findall(HubitPath.regex_idxid, self)  # Any character in square brackets
+
+
+    def set_ilocs(self, ilocs: List) -> HubitPath:
+        """Replace the index IDs on the path with location indices
+        in ilocs
+
+        Args:
+            ilocs (List): Sequence of index locations to be inserted into the path.
+            The sequence should match the index IDs in the path
+
+        Returns:
+            HubitPath: Path with index IDs replaced by integers
+        """
+        _path = self
+        for iloc, idxid in zip(ilocs, self.get_idxids()):
+
+            # Don't replace if there is an index wildcard
+            if HubitPath.idx_wildcard in idxid:
+                continue
+
+            _path = _path.replace(idxid, iloc, 1)
+        return HubitPath(_path)
+
+        
 @dataclass
 class HubitBinding:
     """

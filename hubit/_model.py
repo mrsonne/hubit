@@ -12,15 +12,13 @@ from threading import Thread, Event
 
 from .worker import _Worker
 from .qrun import _QueryRunner
-from .config import HubitBinding
+from .config import HubitBinding, HubitPath
 from .shared import (
     IDX_WILDCARD,
     clean_idxids_from_path,
     convert_to_internal_path,
     idxs_for_matches,
     get_idx_context,
-    set_ilocs_on_path,
-    idxids_from_path,
     get_iloc_indices,
     set_element,
     tree_for_idxcontext,
@@ -64,6 +62,7 @@ def _get(
     if flat_results is None:
         flat_results = {}
 
+    query = [HubitPath(qstr) for qstr in query]
     # Expand the query and get the max ilocs for each query
     queries_for_query = {
         qstr1: queryrunner.model._expand_query(qstr1) for qstr1 in query
@@ -258,7 +257,7 @@ class _HubitModel:
                 func_name = component.func_name
                 path = component.provides_results[0].path
                 dummy_query = convert_to_internal_path(
-                    set_ilocs_on_path(path, ["0" for _ in idxids_from_path(path)])
+                    path.set_ilocs(["0" for _ in path.get_idxids()])
                 )
 
                 # Get function and version to init the worker
@@ -768,7 +767,7 @@ class _HubitModel:
         ]
         return cmp.provides_results[idx].path
 
-    def _expand_query(self, qpath: str) -> List[str]:
+    def _expand_query(self, qpath: HubitPath) -> List[str]:
         """
         Expand query so that any index wildcards are converted to
         real indies
@@ -819,7 +818,7 @@ class _HubitModel:
                 _response[qpath_org] = response[qpaths_expanded[0]]
             else:
                 # Get the index IDs from the original query
-                idxids = idxids_from_path(qpath_org)
+                idxids = qpath_org.get_idxids()
 
                 # Get pruned tree
                 tree = self._tree_for_qpath[qpath_org]

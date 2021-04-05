@@ -5,14 +5,14 @@ import logging
 import multiprocessing
 import copy
 from typing import Callable, Dict, Set, TYPE_CHECKING, List
-from .config import HubitBinding
+from .config import HubitBinding, HubitPath
 from .shared import (
-    LengthTree, idxs_for_matches,
+    LengthTree, 
+    idxs_for_matches,
     get_idx_context,
     check_path_match,
     clean_idxids_from_path,
     get_iloc_indices,
-    set_ilocs_on_path,
     traverse,
     reshape,
     convert_to_internal_path,
@@ -45,8 +45,7 @@ class _Worker:
             return {binding.name: binding.path for binding in bindings}
         else:
             return {
-                binding.name: set_ilocs_on_path(
-                    binding.path,
+                binding.name: binding.path.set_ilocs(
                     [
                         idxval_for_idxid[idxid] if idxid in idxval_for_idxid else None
                         for idxid in clean_idxids_from_path(binding.path)
@@ -116,7 +115,7 @@ class _Worker:
         qrun: _QueryRunner,
         name: str,
         component: HubitModelComponent,
-        query: str,
+        query: HubitPath,
         func: Callable,
         version: str,
         tree_for_idxcontext: Dict[str, LengthTree],

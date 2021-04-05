@@ -7,12 +7,13 @@ from functools import reduce
 from operator import getitem
 from typing import Any, List, Dict, Tuple, TYPE_CHECKING
 from .errors import HubitIndexError
+from .config import HubitPath
 
 if TYPE_CHECKING:
     from .config import HubitModelComponent
 
 IDX_WILDCARD = ":"
-REGEX_IDXID = r"\[(.*?)\]"
+# REGEX_IDXID = r"\[(.*?)\]"
 
 
 class LengthNode:
@@ -323,7 +324,7 @@ class LengthTree:
             LengthTree: Element 0 is DummyLengthTree if no index IDs found in 'path'
             otherwise a LengthTree.
         """
-        level_names = idxids_from_path(path)
+        level_names = path.get_idxids()
         clean_level_names = [
             idxid.split("@")[1] if "@" in idxid else idxid for idxid in level_names
         ]
@@ -344,14 +345,14 @@ class LengthTree:
 
         # Some path indices may have specific locations some prune the tree
         new_idxitems = []
-        for idxitem in idxids_from_path(path):
+        for idxitem in path.get_idxids():
             iloc = idxitem.split("@")[0]
             if is_digit(iloc):
                 new_idxitems.append(iloc)
             else:
                 new_idxitems.append(idxitem)
 
-        new_model_path = set_ilocs_on_path(path, new_idxitems)
+        new_model_path = path.set_ilocs(new_idxitems)
         new_internal_path = convert_to_internal_path(new_model_path)
         tree.prune_from_path(new_internal_path, convert_to_internal_path(path))
         return tree
@@ -438,24 +439,24 @@ class LengthTree:
         on the context
         """
 
-        idxids = idxids_from_path(qpath)
+        idxids = qpath.get_idxids()
         _path = copy.copy(qpath)
 
         for idx_level, idxid in enumerate(idxids):
             if is_digit(idxid) and int(idxid) < 0:
                 # Get index context i.e. indices prior to current level
-                _idx_context = [int(idx) for idx in idxids_from_path(_path)[:idx_level]]
+                _idx_context = [int(idx) for idx in _path.get_idxids()[:idx_level]]
                 node = self._node_for_idxs(_idx_context)
                 _path = _path.replace(idxid, str(node.nchildren() + int(idxid)), 1)
         return _path
 
     def expand_path(
         self,
-        path: str,
+        path: HubitPath,
         flat: bool = False,
         path_type: str = "model",
         as_internal_path: bool = False,
-    ) -> List[str]:
+    ) -> List[HubitPath]:
         """Expand external path with wildcard based on tree
 
         Example for a query path:
@@ -464,13 +465,13 @@ class LengthTree:
 
 
         Args:
-            path (str): Hubit internal model path with wildcards and index IDs
+            path (HubitPath): Internal model path with wildcards and index IDs
             flat (bool): Return expansion result as a flat list.
             path_type (str): The path type. Valid path types are 'model' and 'query'. Not checked.
             as_internal_path (bool): Return expansion result as internal paths
 
         Returns:
-            [List]: Paths from expansion. Arranged in the shape
+            List[HubitPath]: Paths from expansion. Arranged in the shape
             defined by the tree if flat = False. Otherwise a
             flat list.
         """
@@ -478,7 +479,7 @@ class LengthTree:
         path_preprocessor = LengthTree.precessor_for_pathtype[path_type]
 
         # Get the content of the braces
-        idxids = idxids_from_path(path)
+        idxids = path.get_idxids()
 
         # Expand the path (and do some pruning)
         paths = [path]
@@ -513,6 +514,7 @@ class LengthTree:
         if as_internal_path:
             paths = [convert_to_internal_path(path) for path in paths]
 
+        paths = [HubitPath(path) for path in paths]
         if flat:
             return paths
         else:
@@ -684,20 +686,6 @@ def _length_for_iterpaths(
     return out, paths_next
 
 
-def idxids_from_path(path: str) -> List[str]:
-    """Get the index identifiers (in square braces) from a Hubit
-    model path string
-
-    Args:
-        path (str): Hubit user path string
-
-    Returns:
-        List: Sequence of index identification strings
-    """
-    # return re.findall(r"\[(\w+)\]", path) # Only word charaters i.e. [a-zA-Z0-9_]+
-    return re.findall(REGEX_IDXID, path)  # Any character in square brackets
-
-
 def clean_idxids_from_path(path):
     """TODO add documentation
 
@@ -709,7 +697,7 @@ def clean_idxids_from_path(path):
     """
     return [
         idxid.split("@")[1] if "@" in idxid else idxid
-        for idxid in idxids_from_path(path)
+        for idxid in path.get_idxids()
     ]
 
 
@@ -857,29 +845,6 @@ def flatten(d, parent_key="", sep="."):
     return dict(items)
 
 
-def set_ilocs_on_path(path: str, ilocs: List) -> str:
-    """Replace the index IDs on the path with location indices
-    in ilocs
-
-    Args:
-        path (str): Hubit model path
-        ilocs (List): Sequence of index locations to be inserted into the path.
-        The sequence should match the index IDs in the path
-
-    Returns:
-        str: Path with index IDs replaced by integers
-    """
-    _path = copy.copy(path)
-    for iloc, idxid in zip(ilocs, idxids_from_path(path)):
-
-        # Don't replace if there is an index wildcard
-        if IDX_WILDCARD in idxid:
-            continue
-
-        _path = _path.replace(idxid, iloc, 1)
-    return _path
-
-
 def check_path_match(
     query_path: str, model_path: str, accept_idx_wildcard: bool = True
 ) -> bool:
@@ -894,7 +859,7 @@ def check_path_match(
     Returns:
         bool: True if the query matches the model path
     """
-    idxids = idxids_from_path(model_path)
+    idxids = model_path.get_idxids()
     query_path_cmps = convert_to_internal_path(query_path).split(".")
     model_path_cmps = convert_to_internal_path(model_path).split(".")
     # Should have same number of path components

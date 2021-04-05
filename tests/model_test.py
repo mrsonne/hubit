@@ -4,14 +4,15 @@ import os
 import pathlib
 import yaml
 from hubit.errors import HubitModelNoInputError, HubitModelQueryError
-
+from hubit.config import HubitModelConfig
 from hubit import HubitModel
 from hubit.shared import convert_to_internal_path, inflate
 
 yml_input = None
 model = None
 
-THIS_DIR = os.path.dirname(os.path.realpath(__file__))
+THIS_FILE = os.path.realpath(__file__)
+THIS_DIR = os.path.dirname(THIS_FILE)
 REL_TMP_DIR = "./tmp"
 TMP_DIR = os.path.join(THIS_DIR, REL_TMP_DIR)
 pathlib.Path(TMP_DIR).mkdir(parents=True, exist_ok=True)
@@ -43,9 +44,12 @@ def level1_results_at_idx(input, idx):
 class TestModel(unittest.TestCase):
     def setUp(self):
         modelname = "Test model"
-        model_data = yaml.load(model, Loader=yaml.FullLoader)
+        model_cfg = HubitModelConfig.from_cfg(
+            yaml.load(model, Loader=yaml.FullLoader),
+            model_file_path=THIS_FILE
+        )
         self.hmodel = HubitModel(
-            model_data, name=modelname, base_path=THIS_DIR, output_path=REL_TMP_DIR
+            model_cfg, name=modelname, base_path=THIS_DIR, output_path=REL_TMP_DIR
         )
         self.input = yaml.load(yml_input, Loader=yaml.FullLoader)
         self.use_multi_processing_values = False, True

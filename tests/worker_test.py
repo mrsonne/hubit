@@ -6,6 +6,7 @@ from hubit.worker import _Worker
 from hubit.config import HubitModelComponent, HubitBinding
 from hubit.errors import HubitWorkerError
 
+
 class TestWorker(unittest.TestCase):
     def setUp(self):
         self.manager = None
@@ -81,7 +82,6 @@ class TestWorker(unittest.TestCase):
             tree_for_idxcontext,
             dryrun=True,
         )
-
 
     def test_4(self):
         """

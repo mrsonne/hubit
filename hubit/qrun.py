@@ -56,7 +56,7 @@ class _QueryRunner:
             base_path (str): Model base path
             func_name (str): Function name
             component_cfg (HubitModelComponent): configuration data from the model definition file
-            components (Dict): 
+            components (Dict):
 
         Returns:
             tuple: function handle, function version, and component dict
@@ -80,11 +80,10 @@ class _QueryRunner:
             spec.loader.exec_module(module)
         else:
             module = importlib.import_module(component_cfg.path)
-            component_id = f'{component_cfg.path}{func_name}'
+            component_id = f"{component_cfg.path}{func_name}"
             if component_id in components.keys():
                 func, version = components[component_id]
                 return func, version, components
-
 
         func = getattr(module, func_name)
         try:

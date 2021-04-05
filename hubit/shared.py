@@ -563,8 +563,7 @@ class LengthTree:
 
 
 def tree_for_idxcontext(
-    components: List[HubitModelComponent],
-    data: Dict
+    components: List[HubitModelComponent], data: Dict
 ) -> Dict[str, LengthTree]:
     """Compute LengthTree for relevant index contexts.
 
@@ -696,8 +695,7 @@ def clean_idxids_from_path(path):
         [type]: [description]
     """
     return [
-        idxid.split("@")[1] if "@" in idxid else idxid
-        for idxid in path.get_idxids()
+        idxid.split("@")[1] if "@" in idxid else idxid for idxid in path.get_idxids()
     ]
 
 

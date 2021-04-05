@@ -45,8 +45,7 @@ class TestModel(unittest.TestCase):
     def setUp(self):
         modelname = "Test model"
         model_cfg = HubitModelConfig.from_cfg(
-            yaml.load(model, Loader=yaml.FullLoader),
-            model_file_path=THIS_FILE
+            yaml.load(model, Loader=yaml.FullLoader), model_file_path=THIS_FILE
         )
         self.hmodel = HubitModel(
             model_cfg, name=modelname, base_path=THIS_DIR, output_path=REL_TMP_DIR

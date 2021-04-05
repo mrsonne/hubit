@@ -9,16 +9,15 @@ from .errors import HubitModelValidationError, HubitModelComponentError
 # or inherit from collections import UserString
 class HubitPath(str):
     """
-    For now just a collection of static methods relating to hubit path 
+    For now just a collection of static methods relating to hubit path
     validation and manipulation
     """
+
     idx_wildcard = ":"
     regex_idxid = r"\[(.*?)\]"
 
-
     def validate(self):
         pass
-
 
     def remove_braces(self) -> str:
         """Remove braces and the enclosed content from the path
@@ -30,7 +29,6 @@ class HubitPath(str):
             str: path-like string with braces and content removed
         """
         return re.sub("\[([^\.]+)]", "", self)
-
 
     # def convert_to_internal_path(path: str) -> str:
     # def as_internal_path(self) -> str:
@@ -48,8 +46,9 @@ class HubitPath(str):
             List: Sequence of index identification strings
         """
         # return re.findall(r"\[(\w+)\]", path) # Only word charaters i.e. [a-zA-Z0-9_]+
-        return re.findall(HubitPath.regex_idxid, self)  # Any character in square brackets
-
+        return re.findall(
+            HubitPath.regex_idxid, self
+        )  # Any character in square brackets
 
     def set_ilocs(self, ilocs: List) -> HubitPath:
         """Replace the index IDs on the path with location indices
@@ -72,7 +71,7 @@ class HubitPath(str):
             _path = _path.replace(idxid, iloc, 1)
         return HubitPath(_path)
 
-        
+
 @dataclass
 class HubitBinding:
     """
@@ -88,10 +87,7 @@ class HubitBinding:
 
     @classmethod
     def from_cfg(cls, cfg):
-        return cls(
-            name=cfg["name"],
-            path=HubitPath(cfg["path"])
-        ).validate()
+        return cls(name=cfg["name"], path=HubitPath(cfg["path"])).validate()
 
 
 @dataclass

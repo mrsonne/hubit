@@ -707,9 +707,7 @@ class _HubitModel:
                 if not binding.path in fname_for_path:
                     fname_for_path[binding.path] = fname
                 else:
-                    raise HubitModelValidationError(
-                        binding.path, fname, fname_for_path
-                    )
+                    raise HubitModelValidationError(binding.path, fname, fname_for_path)
 
     def _cmpnames_for_query(self, qpath: str):
         """
@@ -726,7 +724,6 @@ class _HubitModel:
 
     def component_for_name(self, name):
         return self.model_cfg.component_for_name[name]
-
 
     def _cmpname_for_query(self, path: str):
         """Find name of component that can respond to the "query".
@@ -762,9 +759,9 @@ class _HubitModel:
 
         # Find and prune tree
         cmp = self.model_cfg.component_for_name[cmp_name]
-        idx = idxs_for_matches(qpath, [binding.path for binding in cmp.provides_results])[
-            0
-        ]
+        idx = idxs_for_matches(
+            qpath, [binding.path for binding in cmp.provides_results]
+        )[0]
         return cmp.provides_results[idx].path
 
     def _expand_query(self, qpath: HubitPath) -> List[str]:

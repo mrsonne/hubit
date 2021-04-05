@@ -58,7 +58,6 @@ class HubitModel(_HubitModel):
         self.ilocstr = "_IDX"
         self.model_cfg = model_cfg
 
-
         # NOW Stored on cfg
         # self.component_for_name = {
         #     component["func_name"]: component for component in cfg
@@ -120,7 +119,9 @@ class HubitModel(_HubitModel):
         model_config = HubitModelConfig.from_file(model_file_path)
         base_path = model_config.base_path
 
-        return cls(model_config, name=name, output_path=output_path, base_path=base_path)
+        return cls(
+            model_config, name=name, output_path=output_path, base_path=base_path
+        )
 
     def has_cached_results(self) -> bool:
         """

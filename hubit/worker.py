@@ -7,7 +7,7 @@ import copy
 from typing import Callable, Dict, Set, TYPE_CHECKING, List
 from .config import HubitBinding, HubitPath
 from .shared import (
-    LengthTree, 
+    LengthTree,
     idxs_for_matches,
     get_idx_context,
     check_path_match,
@@ -119,8 +119,8 @@ class _Worker:
         func: Callable,
         version: str,
         tree_for_idxcontext: Dict[str, LengthTree],
-        dryrun:bool = False,
-        caching:bool = False,
+        dryrun: bool = False,
+        caching: bool = False,
     ):
         """
         If inputdata is None the worker cannot work but can still
@@ -186,7 +186,9 @@ class _Worker:
             self.rpath_provided_for_name, self.idxval_for_idxid = _Worker.get_bindings(
                 self.component.provides_results, query
             )
-            self.provided_mpath_for_name = self.component.binding_map("provides_results")
+            self.provided_mpath_for_name = self.component.binding_map(
+                "provides_results"
+            )
         else:
             self.provided_mpath_for_name = None
             raise HubitWorkerError(
@@ -260,6 +262,7 @@ class _Worker:
 
     def binding_map(self, binding_type):
         return self.component.binding_map(binding_type)
+
     #     def make_map(bindings):
     #         return {binding.name: binding.path for binding in bindings}
 
@@ -288,7 +291,7 @@ class _Worker:
     #         "consumes" in cfg
     #         and consumption_type in cfg["consumes"]
     #         and len(cfg["consumes"][consumption_type]) > 0
-        # )
+    # )
 
     def paths_provided(self):
         """Generates a list of the (expanded) paths that will be provided.

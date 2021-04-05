@@ -69,7 +69,6 @@ class TestShared(unittest.TestCase):
         idxs_match = shared.idxs_for_matches(self.querystring, providerstrings)
         self.assertSequenceEqual(idxs_match, idxs_match_expected)
 
-
     @staticmethod
     def get_tree():
         seg_node = shared.LengthNode(2)
@@ -154,7 +153,6 @@ class TestShared(unittest.TestCase):
 
 
 class TestPath(unittest.TestCase):
-
     def test_2(self):
         """Convert from Hubit user path to internal Hubit path"""
         path = "segs[IDX_SEG].walls[IDX_WALL].heat_flow"
@@ -257,7 +255,9 @@ class TestTree(unittest.TestCase):
                     """
         input_data = yaml.load(yml_input, Loader=yaml.FullLoader)
         # path = "segments[:@IDX_SEG].layers[:@IDX_LAY].test.positions[:@IDX_POS]"
-        path = HubitPath("segments[IDX_SEG].layers[:@IDX_LAY].test.positions[:@IDX_POS]")
+        path = HubitPath(
+            "segments[IDX_SEG].layers[:@IDX_LAY].test.positions[:@IDX_POS]"
+        )
 
         tree = shared.LengthTree.from_data(path, input_data)
         tree_as_list = tree.to_list()
@@ -466,7 +466,9 @@ class TestTree(unittest.TestCase):
 
     def test_expand_mpath1(self):
         """Expand to full template path"""
-        path = HubitPath("segments[:@IDX_SEG].layers[:@IDX_LAY].test.positions[:@IDX_POS]")
+        path = HubitPath(
+            "segments[:@IDX_SEG].layers[:@IDX_LAY].test.positions[:@IDX_POS]"
+        )
 
         # 1 + 3 + 2 values for segment 0 and 5 + 1 + 2 + 4 values for segment 1
         # All all 18 elements

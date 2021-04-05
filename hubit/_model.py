@@ -23,7 +23,6 @@ from .shared import (
     idxids_from_path,
     get_iloc_indices,
     set_element,
-    remove_braces_from_path,
     tree_for_idxcontext,
 )
 
@@ -496,7 +495,7 @@ class _HubitModel:
             pathcmps_old = convert_to_internal_path(path).split(".")
 
             # Path components with node names only
-            pathcmps = remove_braces_from_path(path).split(".")
+            pathcmps = path.remove_braces().split(".")
 
             # Collect data for connecting to nearest objects
             # and labeling the edge with the attributes consumed/provided
@@ -640,7 +639,7 @@ class _HubitModel:
         """
         cmps = set()
         for binding in bindings:
-            pathcmps = remove_braces_from_path(binding.path).split(".")
+            pathcmps = binding.path.remove_braces().split(".")
             if len(pathcmps) - 1 > 0:
                 cmps.update(pathcmps[:-1])
         return cmps

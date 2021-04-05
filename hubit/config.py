@@ -2,6 +2,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 import yaml
 import os
+import re
 from typing import Dict, Set
 from .errors import HubitModelValidationError, HubitModelComponentError
 
@@ -13,6 +14,18 @@ class HubitPath(str):
     """
     def validate(self):
         pass
+
+
+    def remove_braces(self) -> str:
+        """Remove braces and the enclosed content from the path
+
+        Args:
+            path (str): Hubit external path (with square braces)
+
+        Returns:
+            str: path-like string with braces and content removed
+        """
+        return re.sub("\[([^\.]+)]", "", self)
 
 
 @dataclass

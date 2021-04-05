@@ -713,18 +713,6 @@ def clean_idxids_from_path(path):
     ]
 
 
-def remove_braces_from_path(path: str) -> str:
-    """Removes braces and their content from the path
-
-    Args:
-        path (str): Hubit external path (with square braces)
-
-    Returns:
-        str: Hubit path with braces and content removed
-    """
-    return re.sub("\[([^\.]+)]", "", path)
-
-
 def _paths_between_idxids(path: str, idxids: List[str]) -> List[str]:
     """Find list of path components inbetween index IDs
 

@@ -5,13 +5,13 @@ import os
 from typing import Dict, Set
 from .errors import HubitModelValidationError, HubitModelComponentError
 
-class HubitPath:
+# or inherit from collections import UserString
+class HubitPath(str):
     """
     For now just a collection of static methods relating to hubit path 
     validation and manipulation
     """
-    @staticmethod
-    def validate_path(path: str):
+    def validate(self):
         pass
 
 
@@ -22,15 +22,18 @@ class HubitBinding:
     """
 
     name: str
-    path: str
+    path: HubitPath
 
     def validate(self):
-        HubitPath.validate_path(self.path)
+        self.path.validate()
         return self
 
     @classmethod
     def from_cfg(cls, cfg):
-        return cls(name=cfg["name"], path=cfg["path"]).validate()
+        return cls(
+            name=cfg["name"],
+            path=HubitPath(cfg["path"])
+        ).validate()
 
 
 @dataclass

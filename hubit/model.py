@@ -19,7 +19,7 @@ from .shared import (
     flatten,
     inflate,
 )
-from .config import HubitModelConfig
+from .config import HubitModelConfig, HubitPath
 
 from .errors import (
     HubitError,
@@ -191,6 +191,7 @@ class HubitModel(_HubitModel):
             HubitModel: Hubit model with input set
         """
         self.flat_results = flatten(results_data)
+        self.flat_results = {HubitPath(k):v for k, v in self.flat_results.items()}
         return self
 
     def render(self, query: List[str] = [], file_idstr: str = "") -> None:
@@ -270,6 +271,7 @@ class HubitModel(_HubitModel):
                 logging.info("Using cached results.")
                 with open(self._cache_file_path, "r") as stream:
                     _flat_results = yaml.load(stream, Loader=yaml.FullLoader)
+                    _flat_results = {HubitPath(k):v for k, v in _flat_results.items()}
             else:
                 logging.info("No cached results found.")
                 _flat_results = {}

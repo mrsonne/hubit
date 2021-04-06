@@ -311,7 +311,7 @@ class _QueryRunner:
         # Save results to disk
         if self.model._model_caching_mode == "incremental":
             with open(self.model._cache_file_path, "w") as handle:
-                yaml.safe_dump({str(k):v for k, v in flat_results.items()}, handle)
+                yaml.safe_dump({str(k): v for k, v in flat_results.items()}, handle)
         self.workers_working.remove(worker)
 
     def _transfer_results(self, worker, flat_results):
@@ -352,7 +352,7 @@ class _QueryRunner:
         # Save results
         if self.model._model_caching_mode == "after_execution":
             with open(self.model._cache_file_path, "w") as handle:
-                yaml.safe_dump({str(k):v for k, v in flat_results.items()}, handle)
+                yaml.safe_dump({str(k): v for k, v in flat_results.items()}, handle)
 
     def _add_log_items(self, t_start: float) -> float:
         # Set zeros for all components

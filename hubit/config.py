@@ -9,8 +9,7 @@ from .errors import HubitModelValidationError, HubitModelComponentError
 # or inherit from collections import UserString
 class HubitPath(str):
     """
-    For now just a collection of static methods relating to hubit path
-    validation and manipulation
+    Hubit path
     """
 
     idx_wildcard = ":"
@@ -22,68 +21,69 @@ class HubitPath(str):
     def remove_braces(self) -> str:
         """Remove braces and the enclosed content from the path
 
-        Args:
-            path (str): Hubit external path (with square braces)
-
         Returns:
             str: path-like string with braces and content removed
         """
         return re.sub("\[([^\.]+)]", "", self)
 
-    def get_idxids(self) -> List[str]:
-        """Get the content of the square braces.
+    def get_index_identifiers(self) -> List[str]:
+        """Get the index identifier part of all square braces in the path.
 
         Returns:
-            List: Sequence of index identification strings
+            [type]: [description]
+        """
+        return [
+            index_specifier.split("@")[1] if "@" in index_specifier else index_specifier
+            for index_specifier in self.get_index_specifiers()
+        ]
+
+    def get_index_specifiers(self) -> List[str]:
+        """Get the content of the square braces in the path.
+
+        Returns:
+            List: Sequence of index specification strings
         """
         # return re.findall(r"\[(\w+)\]", path) # Only word charaters i.e. [a-zA-Z0-9_]+
         return re.findall(
             HubitPath.regex_idxid, self
         )  # Any character in square brackets
 
-    def set_ilocs(self, ilocs: List) -> HubitPath:
-        """Replace the index IDs on the path with location indices
-        in ilocs
+    def set_indices(self, indices: List[str]) -> HubitPath:
+        """Replace the index identifiers on the path with
+        location indices
 
         Args:
-            ilocs (List): Sequence of index locations to be inserted into the path.
+            indices (List[str]): Sequence of index locations to be inserted into the path.
             The sequence should match the index IDs in the path
 
         Returns:
-            HubitPath: Path with index IDs replaced by integers
+            HubitPath: Path with index IDs replaced by (string) integers
         """
         _path = str(self)
-        for iloc, idxid in zip(ilocs, self.get_idxids()):
+        idx_ids = self.get_index_specifiers()
+        assert len(indices) == len(
+            idx_ids
+        ), "The number of indices provided and number of index IDs found are not the same"
+        for index, idx_id in zip(indices, idx_ids):
 
             # Don't replace if there is an index wildcard
-            if HubitPath.idx_wildcard in idxid:
+            if HubitPath.idx_wildcard in idx_id:
                 continue
 
-            _path = _path.replace(idxid, iloc, 1)
+            _path = _path.replace(idx_id, index, 1)
         return HubitPath(_path)
 
     @staticmethod
     def as_internal(path: Any) -> str:
-        """Convert path using [IDX] to internal path using .IDX.
+        """Convert path using braces [IDX] to internal path using dots .IDX.
 
         Returns:
             str: internal path-like string
         """
         return path.replace("[", ".").replace("]", "")
 
-    def get_clean_idxids(self):
-        """TODO add documentation
-
-        Returns:
-            [type]: [description]
-        """
-        return [
-            idxid.split("@")[1] if "@" in idxid else idxid
-            for idxid in self.get_idxids()
-        ]
-
     def get_idx_context(self):
-        return "-".join(self.get_clean_idxids())
+        return "-".join(self.get_index_identifiers())
 
     def paths_between_idxids(self, idxids: List[str]) -> List[str]:
         """Find list of path components inbetween index IDs
@@ -132,6 +132,7 @@ class HubitModelComponent:
     "consumes_results". The componet delivers results to the paths
     in "provides_results".
     """
+
     path: str
     func_name: str
     provides_results: List[HubitBinding]

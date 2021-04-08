@@ -324,7 +324,7 @@ class LengthTree:
             LengthTree: Element 0 is DummyLengthTree if no index IDs found in 'path'
             otherwise a LengthTree.
         """
-        level_names = path.get_idxids()
+        level_names = path.get_index_specifiers()
         clean_level_names = [
             idxid.split("@")[1] if "@" in idxid else idxid for idxid in level_names
         ]
@@ -345,14 +345,14 @@ class LengthTree:
 
         # Some path indices may have specific locations some prune the tree
         new_idxitems = []
-        for idxitem in path.get_idxids():
+        for idxitem in path.get_index_specifiers():
             iloc = idxitem.split("@")[0]
             if is_digit(iloc):
                 new_idxitems.append(iloc)
             else:
                 new_idxitems.append(idxitem)
 
-        new_model_path = path.set_ilocs(new_idxitems)
+        new_model_path = path.set_indices(new_idxitems)
         new_internal_path = HubitPath.as_internal(new_model_path)
         tree.prune_from_path(new_internal_path, HubitPath.as_internal(path))
         return tree
@@ -439,13 +439,15 @@ class LengthTree:
         on the context
         """
 
-        idxids = qpath.get_idxids()
+        idxids = qpath.get_index_specifiers()
         _path = copy.copy(qpath)
 
         for idx_level, idxid in enumerate(idxids):
             if is_digit(idxid) and int(idxid) < 0:
                 # Get index context i.e. indices prior to current level
-                _idx_context = [int(idx) for idx in _path.get_idxids()[:idx_level]]
+                _idx_context = [
+                    int(idx) for idx in _path.get_index_specifiers()[:idx_level]
+                ]
                 node = self._node_for_idxs(_idx_context)
                 _path = _path.replace(idxid, str(node.nchildren() + int(idxid)), 1)
         return _path
@@ -479,7 +481,7 @@ class LengthTree:
         path_preprocessor = LengthTree.precessor_for_pathtype[path_type]
 
         # Get the content of the braces
-        idxids = path.get_idxids()
+        idxids = path.get_index_specifiers()
 
         # Expand the path (and do some pruning)
         paths = [path]
@@ -809,7 +811,7 @@ def check_path_match(
     Returns:
         bool: True if the query matches the model path
     """
-    idxids = model_path.get_idxids()
+    idxids = model_path.get_index_specifiers()
     query_path_cmps = HubitPath.as_internal(query_path).split(".")
     model_path_cmps = HubitPath.as_internal(model_path).split(".")
     # Should have same number of path components

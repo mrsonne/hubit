@@ -20,22 +20,28 @@ class Test(unittest.TestCase):
         """Extract idxids from path"""
         path = HubitPath("segs[IDX_SEG].walls[IDX_WALL].heat_flow")
         expected_idxids = ["IDX_SEG", "IDX_WALL"]
-        idxids = path.get_idxids()
+        idxids = path.get_index_specifiers()
         self.assertSequenceEqual(expected_idxids, idxids)
 
-    def test_set_ilocs(self):
+    def test_set_indices(self):
         """Insert real numbers where the ILOC placeholder is found"""
         expected_pathstr = "segs[34].walls[3].temps"
         path = HubitPath("segs[IDXSEG].walls[IDXWALL].temps")
-        new_path = path.set_ilocs(("34", "3"))
+        new_path = path.set_indices(("34", "3"))
         self.assertEqual(new_path, expected_pathstr)
 
     def test_set_ilocs_with_wildcard(self):
         """Insert real numbers where the ILOC placeholder is found"""
         expected_pathstr = "segs[34].walls[:@IDXWALL].temps"
         path = HubitPath("segs[IDXSEG].walls[:@IDXWALL].temps")
-        new_path = path.set_ilocs(("34", "3"))
+        new_path = path.set_indices(("34", "3"))
         self.assertEqual(new_path, expected_pathstr)
+
+    def test_set_ilocs_assertion_error(self):
+        """Too many indices specified"""
+        path = HubitPath("segs[IDXSEG].walls[:@IDXWALL].temps")
+        with self.assertRaises(AssertionError):
+            path.set_indices(("34", "3", "19"))
 
     def test_as_internal(self):
         """Convert Hubit path to internal path"""
@@ -53,7 +59,7 @@ class Test(unittest.TestCase):
 
     def test_paths_between_idxids(self):
         path = HubitPath("segments[IDX_SEG].layers[IDX_LAY].test.positions[IDX_POS]")
-        idxids = path.get_idxids()
+        idxids = path.get_index_specifiers()
         internal_paths = path.paths_between_idxids(idxids)
         # Last element is empty since there are no attribute after IDX_POS
         expected_internal_paths = ["segments", "layers", "test.positions", ""]

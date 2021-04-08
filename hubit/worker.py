@@ -42,10 +42,10 @@ class _Worker:
             return {binding.name: binding.path for binding in bindings}
         else:
             return {
-                binding.name: binding.path.set_ilocs(
+                binding.name: binding.path.set_indices(
                     [
                         idxval_for_idxid[idxid] if idxid in idxval_for_idxid else None
-                        for idxid in binding.path.get_clean_idxids()
+                        for idxid in binding.path.get_index_identifiers()
                     ],
                 )
                 for binding in bindings
@@ -79,7 +79,7 @@ class _Worker:
         idxval_for_idxid = {}
         for binding in bindings:
             if check_path_match(query_path, binding.path, accept_idx_wildcard=False):
-                idxids = binding.path.get_clean_idxids()
+                idxids = binding.path.get_index_identifiers()
                 idxs = get_iloc_indices(
                     HubitPath.as_internal(query_path),
                     HubitPath.as_internal(binding.path),

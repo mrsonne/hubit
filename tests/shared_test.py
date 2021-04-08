@@ -42,7 +42,7 @@ class TestShared(unittest.TestCase):
 
         self.providerstring = HubitPath("segs[IDXSEG].walls[IDXWALL].temps")
         self.querystring = HubitPath("segs[42].walls[3].temps")
-        self.idxids = self.providerstring.get_idxids()
+        self.idxids = self.providerstring.get_index_specifiers()
 
     def test_get_indices(self):
         """Test that indices from query string are extracted correctly"""

@@ -254,7 +254,7 @@ class _HubitModel:
                 func_name = component.func_name
                 path = component.provides_results[0].path
                 dummy_query = HubitPath.as_internal(
-                    path.set_ilocs(["0" for _ in path.get_idxids()])
+                    path.set_indices(["0" for _ in path.get_index_specifiers()])
                 )
 
                 # Get function and version to init the worker
@@ -485,7 +485,7 @@ class _HubitModel:
         skipped = []
         label_for_edgeid = {}
         for name, path in cdata.items():
-            idxids = path.get_clean_idxids()
+            idxids = path.get_index_identifiers()
 
             # Path components with braces and index specifiers
             pathcmps_old = HubitPath.as_internal(path).split(".")
@@ -812,7 +812,7 @@ class _HubitModel:
                 _response[qpath_org] = response[qpaths_expanded[0]]
             else:
                 # Get the index IDs from the original query
-                idxids = qpath_org.get_idxids()
+                idxids = qpath_org.get_index_specifiers()
 
                 # Get pruned tree
                 tree = self._tree_for_qpath[qpath_org]

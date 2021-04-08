@@ -72,6 +72,20 @@ class HubitPath(str):
         return path.replace("[", ".").replace("]", "")
 
 
+    def get_clean_idxids(self):
+        """TODO add documentation
+
+        Returns:
+            [type]: [description]
+        """
+        return [
+            idxid.split("@")[1] if "@" in idxid else idxid for idxid in self.get_idxids()
+        ]
+
+    def get_idx_context(self):
+        return "-".join(self.get_clean_idxids())
+
+
 @dataclass
 class HubitBinding:
     """

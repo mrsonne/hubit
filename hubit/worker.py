@@ -9,9 +9,7 @@ from .config import HubitBinding, HubitPath
 from .shared import (
     LengthTree,
     idxs_for_matches,
-    get_idx_context,
     check_path_match,
-    clean_idxids_from_path,
     get_iloc_indices,
     traverse,
     reshape,
@@ -47,7 +45,7 @@ class _Worker:
                 binding.name: binding.path.set_ilocs(
                     [
                         idxval_for_idxid[idxid] if idxid in idxval_for_idxid else None
-                        for idxid in clean_idxids_from_path(binding.path)
+                        for idxid in binding.path.get_clean_idxids()
                     ],
                 )
                 for binding in bindings
@@ -81,7 +79,7 @@ class _Worker:
         idxval_for_idxid = {}
         for binding in bindings:
             if check_path_match(query_path, binding.path, accept_idx_wildcard=False):
-                idxids = clean_idxids_from_path(binding.path)
+                idxids = binding.path.get_clean_idxids()
                 idxs = get_iloc_indices(
                     HubitPath.as_internal(query_path),
                     HubitPath.as_internal(binding.path),
@@ -98,7 +96,7 @@ class _Worker:
     def expand(path_for_name, tree_for_idxcontext, model_path_for_name):
         paths_for_name = {}
         for name, path in path_for_name.items():
-            tree = tree_for_idxcontext[get_idx_context(model_path_for_name[name])]
+            tree = tree_for_idxcontext[model_path_for_name[name].get_idx_context()]
             pruned_tree = tree.prune_from_path(
                 HubitPath.as_internal(path),
                 HubitPath.as_internal(model_path_for_name[name]),
@@ -334,7 +332,7 @@ class _Worker:
         self.qrun._set_worker_working(self)
         for name in self.rpath_provided_for_name.keys():
             tree = self.tree_for_idxcontext[
-                get_idx_context(self.provided_mpath_for_name[name])
+                self.provided_mpath_for_name[name].get_idx_context()
             ]
             self.results[name] = tree.none_like()
 

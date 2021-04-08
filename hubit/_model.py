@@ -15,9 +15,7 @@ from .qrun import _QueryRunner
 from .config import HubitBinding, HubitPath
 from .shared import (
     IDX_WILDCARD,
-    clean_idxids_from_path,
     idxs_for_matches,
-    get_idx_context,
     get_iloc_indices,
     set_element,
     tree_for_idxcontext,
@@ -487,7 +485,7 @@ class _HubitModel:
         skipped = []
         label_for_edgeid = {}
         for name, path in cdata.items():
-            idxids = clean_idxids_from_path(path)
+            idxids = path.get_clean_idxids()
 
             # Path components with braces and index specifiers
             pathcmps_old = HubitPath.as_internal(path).split(".")
@@ -776,7 +774,7 @@ class _HubitModel:
         """
         mpath = self.mpath_for_qpath(qpath)
         self._modelpath_for_querypath[qpath] = mpath
-        idxcontext = get_idx_context(mpath)
+        idxcontext = mpath.get_idx_context()
         tree = self.tree_for_idxcontext[idxcontext]
         # qpath_normalized = tree.normalize_path(qpath)
         pruned_tree = tree.prune_from_path(

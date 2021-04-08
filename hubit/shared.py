@@ -578,7 +578,7 @@ def tree_for_idxcontext(
     for component in components:
         for binding in component.consumes_input:
             tree = LengthTree.from_data(binding.path, data)
-            idx_context = get_idx_context(binding.path)
+            idx_context = binding.path.get_idx_context()
             if idx_context in out.keys():
                 continue
             out[idx_context] = tree
@@ -683,20 +683,6 @@ def _length_for_iterpaths(
         ]
 
     return out, paths_next
-
-
-def clean_idxids_from_path(path):
-    """TODO add documentation
-
-    Args:
-        path ([type]): [description]
-
-    Returns:
-        [type]: [description]
-    """
-    return [
-        idxid.split("@")[1] if "@" in idxid else idxid for idxid in path.get_idxids()
-    ]
 
 
 def _paths_between_idxids(path: str, idxids: List[str]) -> List[str]:
@@ -931,10 +917,6 @@ def set_nested_item(data, keys, val):
 
 def get_nested_item(data, keys):
     return reduce(getitem, keys, data)
-
-
-def get_idx_context(path):
-    return "-".join(clean_idxids_from_path(path))
 
 
 def split_items(items: List, sizes: List[int]) -> List:

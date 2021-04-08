@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 import yaml
 import os
 import re
-from typing import Dict, Set, List, Any
+from typing import Dict, List, Any
 from .errors import HubitModelValidationError, HubitModelComponentError
 
 # or inherit from collections import UserString
@@ -132,12 +132,11 @@ class HubitModelComponent:
     "consumes_results". The componet delivers results to the paths
     in "provides_results".
     """
-
     path: str
     func_name: str
-    provides_results: Set[HubitBinding]
-    consumes_input: Set[HubitBinding] = field(default_factory=set)
-    consumes_results: Set[HubitBinding] = field(default_factory=set)
+    provides_results: List[HubitBinding]
+    consumes_input: List[HubitBinding] = field(default_factory=list)
+    consumes_results: List[HubitBinding] = field(default_factory=list)
     is_module_path: bool = False
 
     def validate(self, cfg):
@@ -192,7 +191,7 @@ class HubitModelComponent:
 class HubitModelConfig:
     """Defines the hubit model configuration"""
 
-    components: Set[HubitModelComponent]
+    components: List[HubitModelComponent]
     model_file_path: str
 
     def __post_init__(self):
@@ -232,7 +231,7 @@ class HubitModelConfig:
 
     @classmethod
     def from_cfg(cls, cfg: Dict, model_file_path: str) -> HubitModelConfig:
-        components = {
+        components = [
             HubitModelComponent.from_cfg(component_data) for component_data in cfg
-        }
+        ]
         return cls(components=components, model_file_path=model_file_path).validate()

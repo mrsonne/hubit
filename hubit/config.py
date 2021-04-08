@@ -71,7 +71,6 @@ class HubitPath(str):
         """
         return path.replace("[", ".").replace("]", "")
 
-
     def get_clean_idxids(self):
         """TODO add documentation
 
@@ -79,12 +78,12 @@ class HubitPath(str):
             [type]: [description]
         """
         return [
-            idxid.split("@")[1] if "@" in idxid else idxid for idxid in self.get_idxids()
+            idxid.split("@")[1] if "@" in idxid else idxid
+            for idxid in self.get_idxids()
         ]
 
     def get_idx_context(self):
         return "-".join(self.get_clean_idxids())
-
 
     def paths_between_idxids(self, idxids: List[str]) -> List[str]:
         """Find list of path components inbetween index IDs
@@ -105,8 +104,6 @@ class HubitPath(str):
             paths.append(p1.rstrip(".").lstrip("."))
         paths.append(p2.rstrip(".").lstrip("."))
         return paths
-
-
 
 
 @dataclass

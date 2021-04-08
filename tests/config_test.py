@@ -37,7 +37,6 @@ class Test(unittest.TestCase):
         new_path = path.set_ilocs(("34", "3"))
         self.assertEqual(new_path, expected_pathstr)
 
-
     def test_as_internal(self):
         """Convert Hubit path to internal path"""
         path = "segs[IDX_SEG].walls[IDX_WALL].heat_flow"

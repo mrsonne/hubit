@@ -620,6 +620,7 @@ def get_from_datadict(datadict, keys):
     _keys = [int(key) if is_digit(key) else key for key in keys]
     return reduce(getitem, _keys, datadict)
 
+
 def _length_for_iterpaths(
     connecting_paths: List[str], input_data: Dict, out=None, paths_previous=None
 ) -> Tuple:

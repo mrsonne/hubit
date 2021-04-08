@@ -4,7 +4,8 @@ from math import isclose
 from operator import getitem
 from typing import Any, Dict
 from .utils import get_model, HubitModel
-from hubit.shared import convert_to_internal_path, inflate
+from hubit.shared import inflate
+from hubit.config import HubitPath
 
 logging.basicConfig(level=logging.INFO)
 
@@ -104,9 +105,7 @@ def make_sweep(hmodel: HubitModel, nproc: Any = None) -> None:
         ]
     )
     for inp, response in zip(inps, responses):
-        values = [
-            getitem(inp, convert_to_internal_path(ipath)) for ipath in input_paths
-        ]
+        values = [getitem(inp, HubitPath.as_internal(ipath)) for ipath in input_paths]
         values.extend([response[qpath] for qpath in query])
         lines.append(fstr.format(*values))
     lines.append(sepstr)

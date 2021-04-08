@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 import yaml
 import os
 import re
-from typing import Dict, Set, List
+from typing import Dict, Set, List, Any
 from .errors import HubitModelValidationError, HubitModelComponentError
 
 # or inherit from collections import UserString
@@ -29,15 +29,6 @@ class HubitPath(str):
             str: path-like string with braces and content removed
         """
         return re.sub("\[([^\.]+)]", "", self)
-
-    # def convert_to_internal_path(path: str) -> str:
-    # def as_internal_path(self) -> str:
-    #     """Convert user path using [IDX] to internal path using .IDX.
-
-    #     Returns:
-    #         str: internal path-like string
-    #     """
-    #     return self.replace("[", ".").replace("]", "")
 
     def get_idxids(self) -> List[str]:
         """Get the content of the square braces.
@@ -70,6 +61,15 @@ class HubitPath(str):
 
             _path = _path.replace(idxid, iloc, 1)
         return HubitPath(_path)
+
+    @staticmethod
+    def as_internal(path: Any) -> str:
+        """Convert path using [IDX] to internal path using .IDX.
+
+        Returns:
+            str: internal path-like string
+        """
+        return path.replace("[", ".").replace("]", "")
 
 
 @dataclass

@@ -15,7 +15,6 @@ from .qrun import _QueryRunner
 from ._model import _HubitModel, _get, default_skipfun
 from .shared import (
     LengthTree,
-    convert_to_internal_path,
     flatten,
     inflate,
 )
@@ -330,7 +329,7 @@ class HubitModel(_HubitModel):
         for pvalues in ppvalues:
             _flat_input = copy.deepcopy(self.flat_input)
             for path, val in zip(paths, pvalues):
-                _flat_input[convert_to_internal_path(path)] = val
+                _flat_input[HubitPath.as_internal(path)] = val
 
             if skipfun(_flat_input):
                 continue

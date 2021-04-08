@@ -15,7 +15,6 @@ from .shared import (
     get_iloc_indices,
     traverse,
     reshape,
-    convert_to_internal_path,
 )
 from .errors import HubitWorkerError
 
@@ -84,8 +83,8 @@ class _Worker:
             if check_path_match(query_path, binding.path, accept_idx_wildcard=False):
                 idxids = clean_idxids_from_path(binding.path)
                 idxs = get_iloc_indices(
-                    convert_to_internal_path(query_path),
-                    convert_to_internal_path(binding.path),
+                    HubitPath.as_internal(query_path),
+                    HubitPath.as_internal(binding.path),
                     idxids,
                 )
                 idxval_for_idxid.update(dict(zip(idxids, idxs)))
@@ -101,8 +100,8 @@ class _Worker:
         for name, path in path_for_name.items():
             tree = tree_for_idxcontext[get_idx_context(model_path_for_name[name])]
             pruned_tree = tree.prune_from_path(
-                convert_to_internal_path(path),
-                convert_to_internal_path(model_path_for_name[name]),
+                HubitPath.as_internal(path),
+                HubitPath.as_internal(model_path_for_name[name]),
                 inplace=False,
             )
 

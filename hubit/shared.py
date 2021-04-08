@@ -353,8 +353,8 @@ class LengthTree:
                 new_idxitems.append(idxitem)
 
         new_model_path = path.set_ilocs(new_idxitems)
-        new_internal_path = convert_to_internal_path(new_model_path)
-        tree.prune_from_path(new_internal_path, convert_to_internal_path(path))
+        new_internal_path = HubitPath.as_internal(new_model_path)
+        tree.prune_from_path(new_internal_path, HubitPath.as_internal(path))
         return tree
 
     def reshape(self, items: List, inplace: bool = True) -> List:
@@ -512,7 +512,7 @@ class LengthTree:
             paths = paths_current_level
 
         if as_internal_path:
-            paths = [convert_to_internal_path(path) for path in paths]
+            paths = [HubitPath.as_internal(path) for path in paths]
 
         paths = [HubitPath(path) for path in paths]
         if flat:
@@ -621,16 +621,16 @@ def get_from_datadict(datadict, keys):
     return reduce(getitem, _keys, datadict)
 
 
-def convert_to_internal_path(path: str) -> str:
-    """Convert user path using [IDX] to internal path using .IDX.
+# def convert_to_internal_path(path: str) -> str:
+#     """Convert user path using [IDX] to internal path using .IDX.
 
-    Args:
-        path (str): Hubit user path string
+#     Args:
+#         path (str): Hubit user path string
 
-    Returns:
-        str: Hubit internal path string
-    """
-    return path.replace("[", ".").replace("]", "")
+#     Returns:
+#         str: Hubit internal path string
+#     """
+#     return path.replace("[", ".").replace("]", "")
 
 
 def _length_for_iterpaths(
@@ -710,7 +710,7 @@ def _paths_between_idxids(path: str, idxids: List[str]) -> List[str]:
         List[str]: Sequence of index identification strings between index IDs. Includes path after last index ID
     """
     # Remove [] and replace with ..
-    p2 = convert_to_internal_path(path)
+    p2 = HubitPath.as_internal(path)
     paths = []
     for idxid in idxids:
         # Split at current index ID
@@ -858,8 +858,8 @@ def check_path_match(
         bool: True if the query matches the model path
     """
     idxids = model_path.get_idxids()
-    query_path_cmps = convert_to_internal_path(query_path).split(".")
-    model_path_cmps = convert_to_internal_path(model_path).split(".")
+    query_path_cmps = HubitPath.as_internal(query_path).split(".")
+    model_path_cmps = HubitPath.as_internal(model_path).split(".")
     # Should have same number of path components
     if not len(query_path_cmps) == len(model_path_cmps):
         return False

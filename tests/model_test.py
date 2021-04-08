@@ -4,9 +4,9 @@ import os
 import pathlib
 import yaml
 from hubit.errors import HubitModelNoInputError, HubitModelQueryError
-from hubit.config import HubitModelConfig
+from hubit.config import HubitModelConfig, HubitPath
 from hubit import HubitModel
-from hubit.shared import convert_to_internal_path, inflate
+from hubit.shared import inflate
 
 yml_input = None
 model = None
@@ -319,7 +319,7 @@ class TestModel(unittest.TestCase):
         idx = 1
         # TODO change this
         path = "list[{}].some_attr.numbers".format(idx)
-        ipath = convert_to_internal_path(path)
+        ipath = HubitPath.as_internal(path)
         input_values_for_path = {
             path: ([1.0, 2.0, 3.0], [4.0, 5.0, 6.0]),
         }

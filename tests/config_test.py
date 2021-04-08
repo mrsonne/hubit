@@ -36,3 +36,18 @@ class Test(unittest.TestCase):
         path = HubitPath("segs[IDXSEG].walls[:@IDXWALL].temps")
         new_path = path.set_ilocs(("34", "3"))
         self.assertEqual(new_path, expected_pathstr)
+
+
+    def test_as_internal(self):
+        """Convert Hubit path to internal path"""
+        path = "segs[IDX_SEG].walls[IDX_WALL].heat_flow"
+        expected_internal_path = "segs.IDX_SEG.walls.IDX_WALL.heat_flow"
+        internal_path = HubitPath.as_internal(path)
+        self.assertSequenceEqual(expected_internal_path, internal_path)
+
+    def test_as_internal_idx_wildcard(self):
+        """Convert Hubit path to internal path"""
+        path = "segs[:@IDX_SEG].walls[:@IDX_WALL].heat_flow"
+        expected_internal_path = "segs.:@IDX_SEG.walls.:@IDX_WALL.heat_flow"
+        internal_path = HubitPath.as_internal(path)
+        self.assertSequenceEqual(expected_internal_path, internal_path)

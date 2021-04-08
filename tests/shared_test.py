@@ -46,9 +46,9 @@ class TestShared(unittest.TestCase):
 
     def test_get_indices(self):
         """Test that indices from query string are extracted correctly"""
-        mpath = shared.convert_to_internal_path(self.providerstring)
-        qpath = shared.convert_to_internal_path(self.querystring)
-        idxs = shared.get_iloc_indices(qpath, mpath, self.idxids)
+        mpath = HubitPath.as_internal(self.providerstring)
+        qpath = HubitPath.as_internal(self.querystring)
+        idxs = HubitPath.get_iloc_indices(qpath, mpath, self.idxids)
         idxs_expected = ("42", "3")
         self.assertSequenceEqual(idxs, idxs_expected)
 
@@ -153,20 +153,6 @@ class TestShared(unittest.TestCase):
 
 
 class TestPath(unittest.TestCase):
-    def test_2(self):
-        """Convert from Hubit user path to internal Hubit path"""
-        path = "segs[IDX_SEG].walls[IDX_WALL].heat_flow"
-        expected_internal_path = "segs.IDX_SEG.walls.IDX_WALL.heat_flow"
-        internal_path = shared.convert_to_internal_path(path)
-        self.assertSequenceEqual(expected_internal_path, internal_path)
-
-    def test_2a(self):
-        """Convert from Hubit user path to internal Hubit path"""
-        path = "segs[:@IDX_SEG].walls[:@IDX_WALL].heat_flow"
-        expected_internal_path = "segs.:@IDX_SEG.walls.:@IDX_WALL.heat_flow"
-        internal_path = shared.convert_to_internal_path(path)
-        self.assertSequenceEqual(expected_internal_path, internal_path)
-
     def test_3(self):
         path = HubitPath("segments[IDX_SEG].layers[IDX_LAY].test.positions[IDX_POS]")
         idxids = path.get_idxids()
@@ -557,8 +543,8 @@ class TestTree(unittest.TestCase):
             "segments[:@IDX_SEG].layers[:@IDX_LAY].test.positions[:@IDX_POS]"
         )
         self.tree.prune_from_path(
-            shared.convert_to_internal_path(path),
-            shared.convert_to_internal_path(template_path),
+            HubitPath.as_internal(path),
+            HubitPath.as_internal(template_path),
         )
         # 1 + 3 + 2 values for segment 0
         expected_paths = [
@@ -587,8 +573,8 @@ class TestTree(unittest.TestCase):
             "segments[:@IDX_SEG].layers[:@IDX_LAY].test.positions[:@IDX_POS]"
         )
         self.tree.prune_from_path(
-            shared.convert_to_internal_path(path),
-            shared.convert_to_internal_path(template_path),
+            HubitPath.as_internal(path),
+            HubitPath.as_internal(template_path),
         )
         # 1 + 3 + 2 values for segment 0
         expected_paths = [

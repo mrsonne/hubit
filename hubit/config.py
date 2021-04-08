@@ -86,6 +86,29 @@ class HubitPath(str):
         return "-".join(self.get_clean_idxids())
 
 
+    def paths_between_idxids(self, idxids: List[str]) -> List[str]:
+        """Find list of path components inbetween index IDs
+
+        Args:
+            idxids (List[str]): Sequence of index identification strings in 'path'
+
+        Returns:
+            List[str]: Sequence of index identification strings between index IDs. Includes path after last index ID
+        """
+        # Remove [] and replace with ..
+        p2 = HubitPath.as_internal(self)
+        paths = []
+        for idxid in idxids:
+            # Split at current index ID
+            p1, p2 = p2.split(idxid, 1)
+            # Remove leading and trailing
+            paths.append(p1.rstrip(".").lstrip("."))
+        paths.append(p2.rstrip(".").lstrip("."))
+        return paths
+
+
+
+
 @dataclass
 class HubitBinding:
     """

@@ -51,3 +51,11 @@ class Test(unittest.TestCase):
         expected_internal_path = "segs.:@IDX_SEG.walls.:@IDX_WALL.heat_flow"
         internal_path = HubitPath.as_internal(path)
         self.assertSequenceEqual(expected_internal_path, internal_path)
+
+    def test_paths_between_idxids(self):
+        path = HubitPath("segments[IDX_SEG].layers[IDX_LAY].test.positions[IDX_POS]")
+        idxids = path.get_idxids()
+        internal_paths = path.paths_between_idxids(idxids)
+        # Last element is empty since there are no attribute after IDX_POS
+        expected_internal_paths = ["segments", "layers", "test.positions", ""]
+        self.assertSequenceEqual(expected_internal_paths, internal_paths)

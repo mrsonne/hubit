@@ -336,7 +336,7 @@ class LengthTree:
         if all([is_digit(level_name) for level_name in level_names]):
             return DummyLengthTree()
 
-        connecting_paths = _paths_between_idxids(path, level_names)
+        connecting_paths = path.paths_between_idxids(level_names)
         nodes, paths = LengthTree._nodes_for_iterpaths(connecting_paths[:-1], data)
         if not connecting_paths[-1] == "":
             paths = ["{}.{}".format(path, connecting_paths[-1]) for path in paths]
@@ -672,28 +672,6 @@ def _length_for_iterpaths(
     return out, paths_next
 
 
-def _paths_between_idxids(path: str, idxids: List[str]) -> List[str]:
-    """Find list of path components inbetween index IDs
-
-    Args:
-        path (str): Hubit user path string
-        idxids (List[str]): Sequence of index identification strings in 'path'
-
-    Returns:
-        List[str]: Sequence of index identification strings between index IDs. Includes path after last index ID
-    """
-    # Remove [] and replace with ..
-    p2 = HubitPath.as_internal(path)
-    paths = []
-    for idxid in idxids:
-        # Split at current index ID
-        p1, p2 = p2.split(idxid, 1)
-        # Remove leading and trailing
-        paths.append(p1.rstrip(".").lstrip("."))
-    paths.append(p2.rstrip(".").lstrip("."))
-    return paths
-
-
 def reshape(paths, valmap):
     """
     paths contains path strings in the correct shape i.e. a nested list.
@@ -819,7 +797,7 @@ def flatten(d, parent_key="", sep="."):
 def check_path_match(
     query_path: str, model_path: str, accept_idx_wildcard: bool = True
 ) -> bool:
-    """Check if the query mathches the model path from the
+    """Check if the query matches the model path from the
     model bindings
 
     Args:

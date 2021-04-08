@@ -152,16 +152,6 @@ class TestShared(unittest.TestCase):
         print("XXX", shared.setelemtents(paths, valuemap))
 
 
-class TestPath(unittest.TestCase):
-    def test_3(self):
-        path = HubitPath("segments[IDX_SEG].layers[IDX_LAY].test.positions[IDX_POS]")
-        idxids = path.get_idxids()
-        internal_paths = shared._paths_between_idxids(path, idxids)
-        # Last element is empty since there are no attribute after IDX_POS
-        expected_internal_paths = ["segments", "layers", "test.positions", ""]
-        self.assertSequenceEqual(expected_internal_paths, internal_paths)
-
-
 class TestTree(unittest.TestCase):
     def setUp(self):
         # lengths = [['IDX_SEG', 2],

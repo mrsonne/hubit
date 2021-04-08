@@ -52,7 +52,7 @@ class HubitPath(str):
         Returns:
             HubitPath: Path with index IDs replaced by integers
         """
-        _path = self
+        _path = str(self)
         for iloc, idxid in zip(ilocs, self.get_idxids()):
 
             # Don't replace if there is an index wildcard
@@ -232,7 +232,7 @@ class HubitModelConfig:
 
     @classmethod
     def from_cfg(cls, cfg: Dict, model_file_path: str) -> HubitModelConfig:
-        components = [
+        components = {
             HubitModelComponent.from_cfg(component_data) for component_data in cfg
-        ]
+        }
         return cls(components=components, model_file_path=model_file_path).validate()

@@ -48,7 +48,7 @@ class TestShared(unittest.TestCase):
         """Test that indices from query string are extracted correctly"""
         mpath = HubitPath.as_internal(self.providerstring)
         qpath = HubitPath.as_internal(self.querystring)
-        idxs = HubitPath.get_iloc_indices(qpath, mpath, self.idxids)
+        idxs = shared.get_iloc_indices(qpath, mpath, self.idxids)
         idxs_expected = ("42", "3")
         self.assertSequenceEqual(idxs, idxs_expected)
 

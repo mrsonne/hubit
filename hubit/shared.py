@@ -620,19 +620,6 @@ def get_from_datadict(datadict, keys):
     _keys = [int(key) if is_digit(key) else key for key in keys]
     return reduce(getitem, _keys, datadict)
 
-
-# def convert_to_internal_path(path: str) -> str:
-#     """Convert user path using [IDX] to internal path using .IDX.
-
-#     Args:
-#         path (str): Hubit user path string
-
-#     Returns:
-#         str: Hubit internal path string
-#     """
-#     return path.replace("[", ".").replace("]", "")
-
-
 def _length_for_iterpaths(
     connecting_paths: List[str], input_data: Dict, out=None, paths_previous=None
 ) -> Tuple:

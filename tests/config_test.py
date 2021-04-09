@@ -4,7 +4,7 @@ from hubit.errors import HubitModelComponentError
 
 
 class Test(unittest.TestCase):
-    def test_1(self):
+    def test_provides_nothing(self):
         """
         Componet provides nothing => error
         """
@@ -16,11 +16,30 @@ class Test(unittest.TestCase):
         with self.assertRaises(HubitModelComponentError):
             HubitModelComponent.from_cfg(cfg)
 
-    def test_get_idxids(self):
-        """Extract idxids from path"""
-        path = HubitPath("segs[IDX_SEG].walls[IDX_WALL].heat_flow")
-        expected_idxids = ["IDX_SEG", "IDX_WALL"]
+    def test_remove_braces(self):
+        path = HubitPath("segs[:@IDX_SEG].walls[IDX_WALL].heat_flow")
+        result = path.remove_braces()
+        expected_result = "segs.walls.heat_flow"
+        self.assertSequenceEqual(result, expected_result)
+
+    def test_get_idx_context(self):
+        path = HubitPath("segs[:@IDX_SEG].walls[IDX_WALL].heat_flow")
+        result = path.get_idx_context()
+        expected_result = "IDX_SEG-IDX_WALL"
+        self.assertSequenceEqual(result, expected_result)
+
+    def test_get_specifiers(self):
+        """Extract idxspecs from path"""
+        path = HubitPath("segs[:@IDX_SEG].walls[IDX_WALL].heat_flow")
+        expected_idxids = [":@IDX_SEG", "IDX_WALL"]
         idxids = path.get_index_specifiers()
+        self.assertSequenceEqual(expected_idxids, idxids)
+
+    def test_get_identifiers(self):
+        """Extract idxids from path"""
+        path = HubitPath("segs[:@IDX_SEG].walls[IDX_WALL].heat_flow")
+        expected_idxids = ["IDX_SEG", "IDX_WALL"]
+        idxids = path.get_index_identifiers()
         self.assertSequenceEqual(expected_idxids, idxids)
 
     def test_set_indices(self):

@@ -88,5 +88,41 @@ class TestHubitPath(unittest.TestCase):
 
     def test_validate_braces_1(self):
         path = HubitPath("segments[IDX_SEG].layers[IDX_LAY]test.positions[IDX_POS]")
-        with self.assertRaises(AssertionError) as context:
+        with self.assertRaises(AssertionError):
             path.validate()
+
+    def test_validate_idxids(self):
+        # Valid
+        path = HubitPath("segments[IDX_SEG].layers[IDX-LAY]")
+        path.validate()
+
+        # Valid
+        path = HubitPath("segments[IDX_SEG].layers[:@IDX-LAY]")
+        path.validate()
+
+        # Only one @ allowed in index specifier
+        path = HubitPath("segments[IDX_SEG].layers[:@@IDX-LAY]")
+        with self.assertRaises(AssertionError):
+            path.validate()
+
+        # Invalid character \ in index identifier
+        path = HubitPath("segments[IDX_SEG].layers[:@IDX/LAY]")
+        with self.assertRaises(AssertionError):
+            path.validate()
+
+        # Numbers allowed
+        path = HubitPath("segments[IDX_SEG].layers[:@IDX1LAY113]")
+        path.validate()
+
+        path = HubitPath("segments[IDX_SEG].layers[@]")
+        with self.assertRaises(AssertionError):
+            path.validate()
+
+    def test_balanced(self):
+        path = "segments[IDX_SEG].layers[@]"
+        result = HubitPath.balanced(path)
+        self.assertTrue(result)
+
+        path = "segments[IDX_SEG].layers[IDX_LAY"
+        result = HubitPath.balanced(path)
+        self.assertFalse(result)

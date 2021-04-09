@@ -6,6 +6,7 @@ import re
 from typing import Dict, List, Any
 from .errors import HubitModelValidationError, HubitModelComponentError
 
+
 # or inherit from collections import UserString
 class HubitPath(str):
     """
@@ -14,13 +15,31 @@ class HubitPath(str):
 
     idx_wildcard = ":"
     regex_idxid = r"\[(.*?)\]"
+    regex_allowed_idx_ids = "^[a-zA-Z_\-0-9]+$"
+
+    @staticmethod
+    def balanced(path):
+        """
+        Check for balanced bracket in string
+        """
+        opens = "["
+        closes = "]"
+        pairs = dict(zip(opens, closes))
+        _braces = [c for c in path if c in opens or c in closes]
+        stack = []
+        for c in _braces:
+            if c in opens:
+                stack.append(c)
+            elif len(stack) > 0 and c == pairs[stack[-1]]:
+                stack.pop()
+            else:
+                return False
+        return len(stack) == 0
 
     def validate(self):
         """
         Validate the object
 
-        check that ] is followed by . in paths
-        check that if X in [X] contains : then it should be followed by @str
         """
         # ] should always be followed by a . unless the ] is the last character
         assert all(
@@ -30,6 +49,30 @@ class HubitPath(str):
                 if chr_cur == "]"
             ]
         ), f"Close brace not folloed by a . in path {self}"
+
+        idx_specs = self.get_index_specifiers()
+        assert all(
+            [idx_spec.count("@") < 2 for idx_spec in idx_specs]
+        ), "Maximum one @ allowed in path"
+
+        # TODO: Check only allowed character
+
+        idx_ids = self.get_index_identifiers()
+
+        # idx_ids can only contain certain characters
+        assert all(
+            [re.search(HubitPath.regex_allowed_idx_ids, idx_id) for idx_id in idx_ids]
+        ), f"Index identifier must be letters or '_' or '-' for path {self}"
+
+        # check that if X in [X] contains : then it should be followed by @
+        for idx_id, idx_spec in zip(idx_ids, idx_specs):
+            if not HubitPath.idx_wildcard in idx_spec:
+                continue
+            idx_wc = idx_spec.index(HubitPath.idx_wildcard)
+            assert idx_spec[idx_wc + 1] == "@", "':' should be followed by an '@'"
+
+        # Check that braces are balanced
+        assert HubitPath.balanced(self), f"Brackets not balanced for path {self}"
 
     def remove_braces(self) -> str:
         """Remove braces and the enclosed content from the path

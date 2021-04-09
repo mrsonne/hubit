@@ -3,7 +3,7 @@ from hubit.config import HubitModelComponent, HubitPath
 from hubit.errors import HubitModelComponentError
 
 
-class Test(unittest.TestCase):
+class TestHubitComponent(unittest.TestCase):
     def test_provides_nothing(self):
         """
         Componet provides nothing => error
@@ -16,6 +16,8 @@ class Test(unittest.TestCase):
         with self.assertRaises(HubitModelComponentError):
             HubitModelComponent.from_cfg(cfg)
 
+
+class TestHubitPath(unittest.TestCase):
     def test_remove_braces(self):
         path = HubitPath("segs[:@IDX_SEG].walls[IDX_WALL].heat_flow")
         result = path.remove_braces()
@@ -83,3 +85,8 @@ class Test(unittest.TestCase):
         # Last element is empty since there are no attribute after IDX_POS
         expected_internal_paths = ["segments", "layers", "test.positions", ""]
         self.assertSequenceEqual(expected_internal_paths, internal_paths)
+
+    def test_validate_braces_1(self):
+        path = HubitPath("segments[IDX_SEG].layers[IDX_LAY]test.positions[IDX_POS]")
+        with self.assertRaises(AssertionError) as context:
+            path.validate()

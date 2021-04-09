@@ -18,8 +18,18 @@ class HubitPath(str):
     def validate(self):
         """
         Validate the object
+
+        check that ] is followed by . in paths
+        check that if X in [X] contains : then it should be followed by @str
         """
-        pass
+        # ] should always be followed by a . unless the ] is the last character
+        assert all(
+            [
+                chr_next == "."
+                for chr_cur, chr_next in zip(self[:-1], self[1:])
+                if chr_cur == "]"
+            ]
+        ), f"Close brace not folloed by a . in path {self}"
 
     def remove_braces(self) -> str:
         """Remove braces and the enclosed content from the path

@@ -16,6 +16,9 @@ class HubitPath(str):
     regex_idxid = r"\[(.*?)\]"
 
     def validate(self):
+        """
+        Validate the object
+        """
         pass
 
     def remove_braces(self) -> str:
@@ -27,10 +30,11 @@ class HubitPath(str):
         return re.sub("\[([^\.]+)]", "", self)
 
     def get_index_identifiers(self) -> List[str]:
-        """Get the index identifier part of all square braces in the path.
+        """Get the index identifiers from the path i.e. a
+        part of all square braces.
 
         Returns:
-            [type]: [description]
+            List[str]: Index identifiers from path
         """
         return [
             index_specifier.split("@")[1] if "@" in index_specifier else index_specifier
@@ -38,10 +42,11 @@ class HubitPath(str):
         ]
 
     def get_index_specifiers(self) -> List[str]:
-        """Get the content of the square braces in the path.
+        """Get the indexspecifiers from the path i.e. the
+        full content of the square braces.
 
         Returns:
-            List: Sequence of index specification strings
+            List: Index specification strings from path
         """
         # return re.findall(r"\[(\w+)\]", path) # Only word charaters i.e. [a-zA-Z0-9_]+
         return re.findall(
@@ -49,28 +54,31 @@ class HubitPath(str):
         )  # Any character in square brackets
 
     def set_indices(self, indices: List[str]) -> HubitPath:
-        """Replace the index identifiers on the path with
-        location indices
+        """Replace the index identifiers on the path with location indices
 
         Args:
-            indices (List[str]): Sequence of index locations to be inserted into the path.
-            The sequence should match the index IDs in the path
+            indices (List[str]): Index locations to be inserted into the path.
+
+        Raises:
+            AssertionError: If the lengths of indices does not match the length
+            the number of index specifiers found in the path.
 
         Returns:
-            HubitPath: Path with index IDs replaced by (string) integers
+            HubitPath: Path with index identifiers replaced by (string) integers
         """
         _path = str(self)
-        idx_ids = self.get_index_specifiers()
+        # Get all specifiers. Later the specifiers containing a wildcard are skipped
+        index_specifiers = self.get_index_specifiers()
         assert len(indices) == len(
-            idx_ids
-        ), "The number of indices provided and number of index IDs found are not the same"
-        for index, idx_id in zip(indices, idx_ids):
+            index_specifiers
+        ), "The number of indices provided and number of index specifiers found are not the same"
+        for index, idx_spec in zip(indices, index_specifiers):
 
             # Don't replace if there is an index wildcard
-            if HubitPath.idx_wildcard in idx_id:
+            if HubitPath.idx_wildcard in idx_spec:
                 continue
 
-            _path = _path.replace(idx_id, index, 1)
+            _path = _path.replace(idx_spec, index, 1)
         return HubitPath(_path)
 
     @staticmethod
@@ -83,6 +91,9 @@ class HubitPath(str):
         return path.replace("[", ".").replace("]", "")
 
     def get_idx_context(self):
+        """
+        Get the index context of a path
+        """
         return "-".join(self.get_index_identifiers())
 
     def paths_between_idxids(self, idxids: List[str]) -> List[str]:
@@ -109,18 +120,31 @@ class HubitPath(str):
 @dataclass
 class HubitBinding:
     """
-    Binds an internal component "name" to a "path" in the shared data model
+    Binds an internal component attribute with "name" to a field
+    at "path" in the shared data model
     """
 
     name: str
     path: HubitPath
 
     def validate(self):
+        """
+        Validate the object
+        """
         self.path.validate()
         return self
 
     @classmethod
-    def from_cfg(cls, cfg):
+    def from_cfg(cls, cfg: Dict) -> HubitBinding:
+        """
+        Create instance from configuration data
+
+        Args:
+            cfg (Dict): Configuration
+
+        Returns:
+            HubitBinding: Object corresponsing to the configuration data
+        """
         return cls(name=cfg["name"], path=HubitPath(cfg["path"])).validate()
 
 
@@ -141,10 +165,22 @@ class HubitModelComponent:
     is_module_path: bool = False
 
     def validate(self, cfg):
+        """
+        Validate the object
+        """
         return self
 
     @classmethod
     def from_cfg(cls, cfg: Dict) -> HubitModelComponent:
+        """
+        Create instance from configuration data
+
+        Args:
+            cfg (Dict): Configuration
+
+        Returns:
+            HubitModelComponent: Object corresponsing to the configuration data
+        """
 
         target_attr = "provides_results"
         try:
@@ -217,6 +253,9 @@ class HubitModelConfig:
         return self._component_for_name
 
     def validate(self):
+        """
+        Validate the object
+        """
         func_names = [component.func_name for component in self.components]
 
         if not len(func_names) == len(set(func_names)):
@@ -225,13 +264,31 @@ class HubitModelConfig:
         return self
 
     @classmethod
-    def from_file(cls, model_file_path) -> HubitModelConfig:
+    def from_file(cls, model_file_path: str) -> HubitModelConfig:
+        """
+        Create instance from configuration data from a configuration file
+
+        Args:
+            model_file_path (str): Path to the configuration file
+
+        Returns:
+            HubitModelConfig: Object corresponsing to the configuration data
+        """
         with open(model_file_path, "r") as stream:
             cfg = yaml.load(stream, Loader=yaml.FullLoader)
         return cls.from_cfg(cfg, model_file_path)
 
     @classmethod
     def from_cfg(cls, cfg: Dict, model_file_path: str) -> HubitModelConfig:
+        """
+        Create instance from configuration data
+
+        Args:
+            cfg (Dict): Configuration
+
+        Returns:
+            HubitModelConfig: Object corresponsing to the configuration data
+        """
         components = [
             HubitModelComponent.from_cfg(component_data) for component_data in cfg
         ]

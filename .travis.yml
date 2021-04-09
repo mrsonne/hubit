@@ -18,6 +18,9 @@ after_success: coveralls
 stages:
 - test
 - deploy
+branches:
+  only:
+    - master
 jobs:
   include:
   - stage: test

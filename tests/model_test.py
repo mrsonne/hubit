@@ -95,8 +95,8 @@ class TestModel(unittest.TestCase):
         Validate query for first list element
         """
         self.hmodel.set_input(self.input)
-        queries = [self.querystr_level0]
-        is_ok = self.hmodel.validate(queries)
+        query = [self.querystr_level0]
+        is_ok = self.hmodel.validate(query)
         self.assertTrue(is_ok)
 
     def test_validate_query_all_elements(self):
@@ -104,8 +104,8 @@ class TestModel(unittest.TestCase):
         Validate query for all list element
         """
         self.hmodel.set_input(self.input)
-        queries = [self.querystr_level0_slice]
-        is_ok = self.hmodel.validate(queries)
+        query = [self.querystr_level0_slice]
+        is_ok = self.hmodel.validate(query)
         self.assertTrue(is_ok)
 
     def test_validate_query_last_element(self):
@@ -114,8 +114,8 @@ class TestModel(unittest.TestCase):
         """
         self.skipTest("Catch22 in normalize, prune, expand")
         self.hmodel.set_input(self.input)
-        queries = [self.querystr_level0_last]
-        is_ok = self.hmodel.validate(queries)
+        query = [self.querystr_level0_last]
+        is_ok = self.hmodel.validate(query)
 
     def test_render_model(self):
         """
@@ -128,11 +128,11 @@ class TestModel(unittest.TestCase):
         """
         Render the query, but not input.
         """
-        queries = ["list.1.some_attr.two_x_numbers"]
+        query = ["list.1.some_attr.two_x_numbers"]
 
         # ModuleNotFoundError raised if graphviz is not installed
         with self.assertRaises(HubitModelNoInputError) as context:
-            self.hmodel.render(queries)
+            self.hmodel.render(query)
 
     def test_render_query(self):
         """
@@ -143,8 +143,8 @@ class TestModel(unittest.TestCase):
         Warning: cluster_resultslist -> _Response: tail not inside tail cluster cluster_results
         """
         self.hmodel.set_input(self.input)
-        queries = [self.querystr_level0]
-        self.hmodel.render(queries)
+        query = [self.querystr_level0]
+        self.hmodel.render(query)
 
     def test_get_fail_no_input(self):
         """

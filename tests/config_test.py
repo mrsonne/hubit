@@ -16,6 +16,7 @@ class TestHubitComponent(unittest.TestCase):
         with self.assertRaises(HubitModelComponentError):
             HubitModelComponent.from_cfg(cfg)
 
+
 class TestHubitQueryPath(unittest.TestCase):
     def test_validate_braces_1(self):
         path = HubitQueryPath("segments[0].layers[17]test.positions[44]")

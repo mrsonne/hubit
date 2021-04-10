@@ -6,11 +6,24 @@ import re
 from typing import Dict, List, Any
 from .errors import HubitModelValidationError, HubitModelComponentError
 
+
 class HubitQueryPath(str):
+    """
+    Hubit query path. Path used to query a field in the results data.
+
+    The syntax follows general Python syntax for nested objects. So to query
+    the attribute "attr" in element 7 of the list "the_list" which is stored
+    on the object "obj" use the following path "obj.the_list[6].attr". The
+    query path "obj.the_list[:].attr" would yield a list where the list
+    with elements would have come from "attr" for all elements of the list
+    "the_list" which is stored on the object "obj".
+
+    Only square brackets are allowed. The content of the brackets should
+    be either a positive integer or the character ":".
+    """
 
     char_wildcard = ":"
-    regex_idxid = r"\[(.*?)\]"
-
+    regex_idx_spec = r"\[(.*?)\]"
 
     @staticmethod
     def balanced(path):
@@ -31,7 +44,6 @@ class HubitQueryPath(str):
                 return False
         return len(stack) == 0
 
-
     def _validate_index_specifiers(self):
         idx_specs = self.get_index_specifiers()
         # TODO: allow only only int or :
@@ -50,7 +62,6 @@ class HubitQueryPath(str):
         # Check that braces are balanced
         assert HubitQueryPath.balanced(self), f"Brackets not balanced for path {self}"
 
-
     def validate(self):
         self._validate_brackets()
         self._validate_index_specifiers()
@@ -64,15 +75,14 @@ class HubitQueryPath(str):
         """
         # return re.findall(r"\[(\w+)\]", path) # Only word charaters i.e. [a-zA-Z0-9_]+
         return re.findall(
-            HubitQueryPath.regex_idxid, self
+            HubitQueryPath.regex_idx_spec, self
         )  # Any character in square brackets
-
 
 
 # or inherit from collections import UserString
 class HubitPath(HubitQueryPath):
     """
-    Hubit path
+    Hubit model path
     """
 
     regex_allowed_idx_ids = "^[a-zA-Z_\-0-9]+$"
@@ -96,7 +106,6 @@ class HubitPath(HubitQueryPath):
         assert all(
             [re.search(HubitPath.regex_allowed_idx_ids, idx_id) for idx_id in idx_ids]
         ), f"Index identifier must be letters or '_' or '-' for path {self}"
-
 
     def validate(self):
         """
@@ -125,7 +134,6 @@ class HubitPath(HubitQueryPath):
             index_specifier.split("@")[1] if "@" in index_specifier else index_specifier
             for index_specifier in self.get_index_specifiers()
         ]
-
 
     def set_indices(self, indices: List[str]) -> HubitPath:
         """Replace the index identifiers on the path with location indices

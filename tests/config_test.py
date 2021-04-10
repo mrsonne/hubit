@@ -1,5 +1,5 @@
 import unittest
-from hubit.config import HubitModelComponent, HubitPath
+from hubit.config import HubitModelComponent, HubitPath, HubitQueryPath
 from hubit.errors import HubitModelComponentError
 
 
@@ -15,6 +15,21 @@ class TestHubitComponent(unittest.TestCase):
         }
         with self.assertRaises(HubitModelComponentError):
             HubitModelComponent.from_cfg(cfg)
+
+class TestHubitQueryPath(unittest.TestCase):
+    def test_validate_braces_1(self):
+        path = HubitQueryPath("segments[0].layers[17]test.positions[44]")
+        with self.assertRaises(AssertionError):
+            path._validate_brackets()
+
+    def test_balanced(self):
+        path = "segments[0].layers[17]"
+        result = HubitPath.balanced(path)
+        self.assertTrue(result)
+
+        path = "segments[44].layers[76"
+        result = HubitPath.balanced(path)
+        self.assertFalse(result)
 
 
 class TestHubitPath(unittest.TestCase):
@@ -86,11 +101,6 @@ class TestHubitPath(unittest.TestCase):
         expected_internal_paths = ["segments", "layers", "test.positions", ""]
         self.assertSequenceEqual(expected_internal_paths, internal_paths)
 
-    def test_validate_braces_1(self):
-        path = HubitPath("segments[IDX_SEG].layers[IDX_LAY]test.positions[IDX_POS]")
-        with self.assertRaises(AssertionError):
-            path.validate()
-
     def test_validate_idxids(self):
         # Valid
         path = HubitPath("segments[IDX_SEG].layers[IDX-LAY]")
@@ -103,12 +113,12 @@ class TestHubitPath(unittest.TestCase):
         # Only one @ allowed in index specifier
         path = HubitPath("segments[IDX_SEG].layers[:@@IDX-LAY]")
         with self.assertRaises(AssertionError):
-            path.validate()
+            path._validate_index_specifiers()
 
         # Invalid character \ in index identifier
         path = HubitPath("segments[IDX_SEG].layers[:@IDX/LAY]")
         with self.assertRaises(AssertionError):
-            path.validate()
+            path._validate_index_identifiers()
 
         # Numbers allowed
         path = HubitPath("segments[IDX_SEG].layers[:@IDX1LAY113]")
@@ -116,13 +126,4 @@ class TestHubitPath(unittest.TestCase):
 
         path = HubitPath("segments[IDX_SEG].layers[@]")
         with self.assertRaises(AssertionError):
-            path.validate()
-
-    def test_balanced(self):
-        path = "segments[IDX_SEG].layers[@]"
-        result = HubitPath.balanced(path)
-        self.assertTrue(result)
-
-        path = "segments[IDX_SEG].layers[IDX_LAY"
-        result = HubitPath.balanced(path)
-        self.assertFalse(result)
+            path._validate_index_identifiers()

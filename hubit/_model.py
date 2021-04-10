@@ -12,7 +12,7 @@ from threading import Thread, Event
 
 from .worker import _Worker
 from .qrun import _QueryRunner
-from .config import HubitBinding, HubitPath
+from .config import HubitBinding, HubitPath, HubitQueryPath
 from .shared import (
     IDX_WILDCARD,
     idxs_for_matches,
@@ -687,13 +687,14 @@ class _HubitModel:
             self.model_cfg.component_for_name.values(), self.inputdata
         )
 
-    def _validate_query(self, queries, use_multi_processing=False):
+    def _validate_query(self, query, use_multi_processing=False):
         """
         Run the query using a dummy calculation to see that all required
         input and results are available
         """
+        _ = [HubitQueryPath(path).validate() for path in query]
         qrunner = _QueryRunner(self, use_multi_processing)
-        _get(qrunner, queries, self.flat_input, dryrun=True)
+        _get(qrunner, query, self.flat_input, dryrun=True)
         return qrunner.workers
 
     def _validate_model(self):

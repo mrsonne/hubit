@@ -18,7 +18,7 @@ from .shared import (
     flatten,
     inflate,
 )
-from .config import HubitModelConfig, HubitPath
+from .config import HubitModelConfig, HubitPath, HubitQueryPath
 
 from .errors import (
     HubitError,
@@ -254,6 +254,8 @@ class HubitModel(_HubitModel):
         if use_results == "current" and self.flat_results is None:
             raise HubitModelNoResultsError()
 
+        _ = [HubitQueryPath(path).validate() for path in query]
+
         # Make a query runner
         self._qrunner = _QueryRunner(
             self, use_multi_processing, self._component_caching
@@ -301,7 +303,7 @@ class HubitModel(_HubitModel):
         if __name__ == '__main__':
 
         Args:
-            query (List): Query paths
+            query (List[str]): Query paths
             input_values_for_path (Dict): Dictionary with keys representing path items. The corresponding values should be an iterable with elements representing discrete values for the attribute at the path.
             skipfun (Callable): If returns True the factor combination is skipped
             nproc (Any, optional): Number of processes to use. Defaults to None in which case a suitable default is used.
@@ -315,6 +317,8 @@ class HubitModel(_HubitModel):
         """
         if not self._input_is_set:
             raise HubitModelNoInputError()
+
+        _ = [HubitQueryPath(path).validate() for path in query]
 
         tstart = time.time()
 

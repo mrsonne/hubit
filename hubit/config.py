@@ -6,16 +6,11 @@ import re
 from typing import Dict, List, Any
 from .errors import HubitModelValidationError, HubitModelComponentError
 
+class HubitQueryPath(str):
 
-# or inherit from collections import UserString
-class HubitPath(str):
-    """
-    Hubit path
-    """
-
-    idx_wildcard = ":"
+    char_wildcard = ":"
     regex_idxid = r"\[(.*?)\]"
-    regex_allowed_idx_ids = "^[a-zA-Z_\-0-9]+$"
+
 
     @staticmethod
     def balanced(path):
@@ -36,11 +31,13 @@ class HubitPath(str):
                 return False
         return len(stack) == 0
 
-    def validate(self):
-        """
-        Validate the object
 
-        """
+    def _validate_index_specifiers(self):
+        idx_specs = self.get_index_specifiers()
+        # TODO: allow only only int or :
+        return idx_specs
+
+    def _validate_brackets(self):
         # ] should always be followed by a . unless the ] is the last character
         assert all(
             [
@@ -50,29 +47,64 @@ class HubitPath(str):
             ]
         ), f"Close brace not folloed by a . in path {self}"
 
+        # Check that braces are balanced
+        assert HubitQueryPath.balanced(self), f"Brackets not balanced for path {self}"
+
+
+    def validate(self):
+        self._validate_brackets()
+        self._validate_index_specifiers()
+
+    def get_index_specifiers(self) -> List[str]:
+        """Get the indexspecifiers from the path i.e. the
+        full content of the square braces.
+
+        Returns:
+            List: Index specification strings from path
+        """
+        # return re.findall(r"\[(\w+)\]", path) # Only word charaters i.e. [a-zA-Z0-9_]+
+        return re.findall(
+            HubitQueryPath.regex_idxid, self
+        )  # Any character in square brackets
+
+
+
+# or inherit from collections import UserString
+class HubitPath(HubitQueryPath):
+    """
+    Hubit path
+    """
+
+    regex_allowed_idx_ids = "^[a-zA-Z_\-0-9]+$"
+
+    def _validate_index_specifiers(self):
         idx_specs = self.get_index_specifiers()
         assert all(
             [idx_spec.count("@") < 2 for idx_spec in idx_specs]
         ), "Maximum one @ allowed in path"
 
-        # TODO: Check only allowed character
+        # check that if X in [X] contains : then it should be followed by @
+        for idx_spec in idx_specs:
+            if not HubitPath.char_wildcard in idx_spec:
+                continue
+            idx_wc = idx_spec.index(HubitPath.char_wildcard)
+            assert idx_spec[idx_wc + 1] == "@", "':' should be followed by an '@'"
 
+    def _validate_index_identifiers(self):
         idx_ids = self.get_index_identifiers()
-
         # idx_ids can only contain certain characters
         assert all(
             [re.search(HubitPath.regex_allowed_idx_ids, idx_id) for idx_id in idx_ids]
         ), f"Index identifier must be letters or '_' or '-' for path {self}"
 
-        # check that if X in [X] contains : then it should be followed by @
-        for idx_id, idx_spec in zip(idx_ids, idx_specs):
-            if not HubitPath.idx_wildcard in idx_spec:
-                continue
-            idx_wc = idx_spec.index(HubitPath.idx_wildcard)
-            assert idx_spec[idx_wc + 1] == "@", "':' should be followed by an '@'"
 
-        # Check that braces are balanced
-        assert HubitPath.balanced(self), f"Brackets not balanced for path {self}"
+    def validate(self):
+        """
+        Validate the object
+        """
+        self._validate_brackets()
+        self._validate_index_specifiers()
+        self._validate_index_identifiers()
 
     def remove_braces(self) -> str:
         """Remove braces and the enclosed content from the path
@@ -94,17 +126,6 @@ class HubitPath(str):
             for index_specifier in self.get_index_specifiers()
         ]
 
-    def get_index_specifiers(self) -> List[str]:
-        """Get the indexspecifiers from the path i.e. the
-        full content of the square braces.
-
-        Returns:
-            List: Index specification strings from path
-        """
-        # return re.findall(r"\[(\w+)\]", path) # Only word charaters i.e. [a-zA-Z0-9_]+
-        return re.findall(
-            HubitPath.regex_idxid, self
-        )  # Any character in square brackets
 
     def set_indices(self, indices: List[str]) -> HubitPath:
         """Replace the index identifiers on the path with location indices
@@ -128,7 +149,7 @@ class HubitPath(str):
         for index, idx_spec in zip(indices, index_specifiers):
 
             # Don't replace if there is an index wildcard
-            if HubitPath.idx_wildcard in idx_spec:
+            if HubitPath.char_wildcard in idx_spec:
                 continue
 
             _path = _path.replace(idx_spec, index, 1)

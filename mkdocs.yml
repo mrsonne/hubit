@@ -5,10 +5,15 @@ theme:
 
 plugins:
   - search
-  - mkdocstrings
-
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          rendering:
+            show_source: false
 nav:
     - Home: index.md
     - Installation: installation.md
     - Code Reference:
         - Config: config-reference.md
+

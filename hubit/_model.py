@@ -12,7 +12,7 @@ from threading import Thread, Event
 
 from .worker import _Worker
 from .qrun import _QueryRunner
-from .config import HubitBinding, HubitPath, HubitQueryPath
+from .config import HubitBinding, HubitModelPath, HubitQueryPath
 from .shared import (
     IDX_WILDCARD,
     idxs_for_matches,
@@ -59,7 +59,7 @@ def _get(
     if flat_results is None:
         flat_results = {}
 
-    query = [HubitPath(qstr) for qstr in query]
+    query = [HubitModelPath(qstr) for qstr in query]
     # Expand the query and get the max ilocs for each query
     queries_for_query = {
         qstr1: queryrunner.model._expand_query(qstr1) for qstr1 in query
@@ -253,7 +253,7 @@ class _HubitModel:
             for component in self.model_cfg.components:
                 func_name = component.func_name
                 path = component.provides_results[0].path
-                dummy_query = HubitPath.as_internal(
+                dummy_query = HubitModelPath.as_internal(
                     path.set_indices(["0" for _ in path.get_index_specifiers()])
                 )
 
@@ -488,7 +488,7 @@ class _HubitModel:
             idxids = path.get_index_identifiers()
 
             # Path components with braces and index specifiers
-            pathcmps_old = HubitPath.as_internal(path).split(".")
+            pathcmps_old = HubitModelPath.as_internal(path).split(".")
 
             # Path components with node names only
             pathcmps = path.remove_braces().split(".")
@@ -762,7 +762,7 @@ class _HubitModel:
         )[0]
         return cmp.provides_results[idx].path
 
-    def _expand_query(self, qpath: HubitPath) -> List[str]:
+    def _expand_query(self, qpath: HubitModelPath) -> List[str]:
         """
         Expand query so that any index wildcards are converted to
         real indies
@@ -779,8 +779,8 @@ class _HubitModel:
         tree = self.tree_for_idxcontext[idxcontext]
         # qpath_normalized = tree.normalize_path(qpath)
         pruned_tree = tree.prune_from_path(
-            HubitPath.as_internal(qpath),
-            HubitPath.as_internal(mpath),
+            HubitModelPath.as_internal(qpath),
+            HubitModelPath.as_internal(mpath),
             inplace=False,
         )
         # Store tree
@@ -806,7 +806,7 @@ class _HubitModel:
         for qpath_org, qpaths_expanded in queries_for_query.items():
             if (
                 qpaths_expanded[0]
-                == HubitPath.as_internal(qpath_org)
+                == HubitModelPath.as_internal(qpath_org)
                 # or
                 # qpaths_expanded[0] == as_internal( self._normqpath_for_qpath[qpath_org] )
             ):
@@ -822,7 +822,7 @@ class _HubitModel:
 
                 # Extract iloc indices for each query in the expanded query
                 for qpath in qpaths_expanded:
-                    mpath = HubitPath.as_internal(
+                    mpath = HubitModelPath.as_internal(
                         self._modelpath_for_querypath[qpath_org]
                     )
                     ilocs = get_iloc_indices(qpath, mpath, tree.level_names)

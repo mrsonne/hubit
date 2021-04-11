@@ -14,7 +14,6 @@ class HubitQueryPath(str):
     brackets are allowed. The content of the brackets should
     be either a positive integer or the character ":".
 
-
     Examples
     To query, for example, the attribute "weight" in the 4th element of the list
     "wheels" which is stored on the object "car" use the following
@@ -93,9 +92,9 @@ class HubitQueryPath(str):
 
 
 # or inherit from collections import UserString
-class HubitPath(HubitQueryPath):
+class HubitModelPath(HubitQueryPath):
     """
-    Hubit model path
+    A Hubit model path is used to query a field in the results data. 
     """
 
     regex_allowed_idx_ids = "^[a-zA-Z_\-0-9]+$"
@@ -108,16 +107,16 @@ class HubitPath(HubitQueryPath):
 
         # check that if X in [X] contains : then it should be followed by @
         for idx_spec in idx_specs:
-            if not HubitPath.char_wildcard in idx_spec:
+            if not HubitModelPath.char_wildcard in idx_spec:
                 continue
-            idx_wc = idx_spec.index(HubitPath.char_wildcard)
+            idx_wc = idx_spec.index(HubitModelPath.char_wildcard)
             assert idx_spec[idx_wc + 1] == "@", "':' should be followed by an '@'"
 
     def _validate_index_identifiers(self):
         idx_ids = self.get_index_identifiers()
         # idx_ids can only contain certain characters
         assert all(
-            [re.search(HubitPath.regex_allowed_idx_ids, idx_id) for idx_id in idx_ids]
+            [re.search(HubitModelPath.regex_allowed_idx_ids, idx_id) for idx_id in idx_ids]
         ), f"Index identifier must be letters or '_' or '-' for path {self}"
 
     def validate(self):
@@ -148,7 +147,7 @@ class HubitPath(HubitQueryPath):
             for index_specifier in self.get_index_specifiers()
         ]
 
-    def set_indices(self, indices: List[str]) -> HubitPath:
+    def set_indices(self, indices: List[str]) -> HubitModelPath:
         """Replace the index identifiers on the path with location indices
 
         Args:
@@ -159,7 +158,7 @@ class HubitPath(HubitQueryPath):
             the number of index specifiers found in the path.
 
         Returns:
-            HubitPath: Path with index identifiers replaced by (string) integers
+            HubitModelPath: Path with index identifiers replaced by (string) integers
         """
         _path = str(self)
         # Get all specifiers. Later the specifiers containing a wildcard are skipped
@@ -170,11 +169,11 @@ class HubitPath(HubitQueryPath):
         for index, idx_spec in zip(indices, index_specifiers):
 
             # Don't replace if there is an index wildcard
-            if HubitPath.char_wildcard in idx_spec:
+            if HubitModelPath.char_wildcard in idx_spec:
                 continue
 
             _path = _path.replace(idx_spec, index, 1)
-        return HubitPath(_path)
+        return HubitModelPath(_path)
 
     @staticmethod
     def as_internal(path: Any) -> str:
@@ -201,7 +200,7 @@ class HubitPath(HubitQueryPath):
             List[str]: Sequence of index identification strings between index IDs. Includes path after last index ID
         """
         # Remove [] and replace with ..
-        p2 = HubitPath.as_internal(self)
+        p2 = HubitModelPath.as_internal(self)
         paths = []
         for idxid in idxids:
             # Split at current index ID
@@ -220,7 +219,7 @@ class HubitBinding:
     """
 
     name: str
-    path: HubitPath
+    path: HubitModelPath
 
     def validate(self):
         """
@@ -240,7 +239,7 @@ class HubitBinding:
         Returns:
             HubitBinding: Object corresponsing to the configuration data
         """
-        return cls(name=cfg["name"], path=HubitPath(cfg["path"])).validate()
+        return cls(name=cfg["name"], path=HubitModelPath(cfg["path"])).validate()
 
 
 @dataclass

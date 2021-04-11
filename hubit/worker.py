@@ -5,7 +5,7 @@ import logging
 import multiprocessing
 import copy
 from typing import Callable, Dict, Set, TYPE_CHECKING, List
-from .config import HubitBinding, HubitPath
+from .config import HubitBinding, HubitModelPath
 from .shared import (
     LengthTree,
     idxs_for_matches,
@@ -81,8 +81,8 @@ class _Worker:
             if check_path_match(query_path, binding.path, accept_idx_wildcard=False):
                 idxids = binding.path.get_index_identifiers()
                 idxs = get_iloc_indices(
-                    HubitPath.as_internal(query_path),
-                    HubitPath.as_internal(binding.path),
+                    HubitModelPath.as_internal(query_path),
+                    HubitModelPath.as_internal(binding.path),
                     idxids,
                 )
                 idxval_for_idxid.update(dict(zip(idxids, idxs)))
@@ -98,8 +98,8 @@ class _Worker:
         for name, path in path_for_name.items():
             tree = tree_for_idxcontext[model_path_for_name[name].get_idx_context()]
             pruned_tree = tree.prune_from_path(
-                HubitPath.as_internal(path),
-                HubitPath.as_internal(model_path_for_name[name]),
+                HubitModelPath.as_internal(path),
+                HubitModelPath.as_internal(model_path_for_name[name]),
                 inplace=False,
             )
 
@@ -112,7 +112,7 @@ class _Worker:
         qrun: _QueryRunner,
         name: str,
         component: HubitModelComponent,
-        query: HubitPath,
+        query: HubitModelPath,
         func: Callable,
         version: str,
         tree_for_idxcontext: Dict[str, LengthTree],

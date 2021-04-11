@@ -7,7 +7,7 @@ from functools import reduce
 from operator import getitem
 from typing import Any, List, Dict, Tuple, TYPE_CHECKING
 from .errors import HubitIndexError
-from .config import HubitPath
+from .config import HubitModelPath
 
 if TYPE_CHECKING:
     from .config import HubitModelComponent
@@ -353,8 +353,8 @@ class LengthTree:
                 new_idxitems.append(idxitem)
 
         new_model_path = path.set_indices(new_idxitems)
-        new_internal_path = HubitPath.as_internal(new_model_path)
-        tree.prune_from_path(new_internal_path, HubitPath.as_internal(path))
+        new_internal_path = HubitModelPath.as_internal(new_model_path)
+        tree.prune_from_path(new_internal_path, HubitModelPath.as_internal(path))
         return tree
 
     def reshape(self, items: List, inplace: bool = True) -> List:
@@ -454,11 +454,11 @@ class LengthTree:
 
     def expand_path(
         self,
-        path: HubitPath,
+        path: HubitModelPath,
         flat: bool = False,
         path_type: str = "model",
         as_internal_path: bool = False,
-    ) -> List[HubitPath]:
+    ) -> List[HubitModelPath]:
         """Expand external path with wildcard based on tree
 
         Example for a query path:
@@ -467,13 +467,13 @@ class LengthTree:
 
 
         Args:
-            path (HubitPath): Internal model path with wildcards and index IDs
+            path (HubitModelPath): Internal model path with wildcards and index IDs
             flat (bool): Return expansion result as a flat list.
             path_type (str): The path type. Valid path types are 'model' and 'query'. Not checked.
             as_internal_path (bool): Return expansion result as internal paths
 
         Returns:
-            List[HubitPath]: Paths from expansion. Arranged in the shape
+            List[HubitModelPath]: Paths from expansion. Arranged in the shape
             defined by the tree if flat = False. Otherwise a
             flat list.
         """
@@ -514,9 +514,9 @@ class LengthTree:
             paths = paths_current_level
 
         if as_internal_path:
-            paths = [HubitPath.as_internal(path) for path in paths]
+            paths = [HubitModelPath.as_internal(path) for path in paths]
 
-        paths = [HubitPath(path) for path in paths]
+        paths = [HubitModelPath(path) for path in paths]
         if flat:
             return paths
         else:
@@ -812,8 +812,8 @@ def check_path_match(
         bool: True if the query matches the model path
     """
     idxids = model_path.get_index_specifiers()
-    query_path_cmps = HubitPath.as_internal(query_path).split(".")
-    model_path_cmps = HubitPath.as_internal(model_path).split(".")
+    query_path_cmps = HubitModelPath.as_internal(query_path).split(".")
+    model_path_cmps = HubitModelPath.as_internal(model_path).split(".")
     # Should have same number of path components
     if not len(query_path_cmps) == len(model_path_cmps):
         return False

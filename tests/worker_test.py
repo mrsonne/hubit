@@ -3,7 +3,7 @@ from unittest.mock import Mock
 import yaml
 from hubit import shared
 from hubit.worker import _Worker
-from hubit.config import HubitModelComponent, HubitBinding, HubitPath
+from hubit.config import HubitModelComponent, HubitBinding, HubitModelPath
 from hubit.errors import HubitWorkerError
 
 
@@ -245,7 +245,7 @@ class TestWorker(unittest.TestCase):
         tree = shared.LengthTree(nodes, level_names)
         tree_for_idxcontext = {tree.get_idx_context(): tree}
 
-        querystr = HubitPath.as_internal(querystr)
+        querystr = HubitModelPath.as_internal(querystr)
         w = _Worker(
             self.manager,
             hmodel,
@@ -330,7 +330,7 @@ class TestWorker(unittest.TestCase):
 
         tree_for_idxcontext = {"": dummy_tree, tree.get_idx_context(): tree}
 
-        querystr = HubitPath.as_internal(querystr)
+        querystr = HubitModelPath.as_internal(querystr)
         w = _Worker(
             self.manager,
             hmodel,

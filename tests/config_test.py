@@ -1,5 +1,5 @@
 import unittest
-from hubit.config import HubitModelComponent, HubitPath, HubitQueryPath
+from hubit.config import HubitModelComponent, HubitModelPath, HubitQueryPath
 from hubit.errors import HubitModelComponentError
 
 
@@ -44,29 +44,29 @@ class TestHubitQueryPath(unittest.TestCase):
             path._validate_index_specifiers()
 
 
-class TestHubitPath(unittest.TestCase):
+class TestHubitModelPath(unittest.TestCase):
     def test_remove_braces(self):
-        path = HubitPath("segs[:@IDX_SEG].walls[IDX_WALL].heat_flow")
+        path = HubitModelPath("segs[:@IDX_SEG].walls[IDX_WALL].heat_flow")
         result = path.remove_braces()
         expected_result = "segs.walls.heat_flow"
         self.assertSequenceEqual(result, expected_result)
 
     def test_get_idx_context(self):
-        path = HubitPath("segs[:@IDX_SEG].walls[IDX_WALL].heat_flow")
+        path = HubitModelPath("segs[:@IDX_SEG].walls[IDX_WALL].heat_flow")
         result = path.get_idx_context()
         expected_result = "IDX_SEG-IDX_WALL"
         self.assertSequenceEqual(result, expected_result)
 
     def test_get_specifiers(self):
         """Extract idxspecs from path"""
-        path = HubitPath("segs[:@IDX_SEG].walls[IDX_WALL].heat_flow")
+        path = HubitModelPath("segs[:@IDX_SEG].walls[IDX_WALL].heat_flow")
         expected_idxids = [":@IDX_SEG", "IDX_WALL"]
         idxids = path.get_index_specifiers()
         self.assertSequenceEqual(expected_idxids, idxids)
 
     def test_get_identifiers(self):
         """Extract idxids from path"""
-        path = HubitPath("segs[:@IDX_SEG].walls[IDX_WALL].heat_flow")
+        path = HubitModelPath("segs[:@IDX_SEG].walls[IDX_WALL].heat_flow")
         expected_idxids = ["IDX_SEG", "IDX_WALL"]
         idxids = path.get_index_identifiers()
         self.assertSequenceEqual(expected_idxids, idxids)
@@ -74,20 +74,20 @@ class TestHubitPath(unittest.TestCase):
     def test_set_indices(self):
         """Insert real numbers where the ILOC placeholder is found"""
         expected_pathstr = "segs[34].walls[3].temps"
-        path = HubitPath("segs[IDXSEG].walls[IDXWALL].temps")
+        path = HubitModelPath("segs[IDXSEG].walls[IDXWALL].temps")
         new_path = path.set_indices(("34", "3"))
         self.assertEqual(new_path, expected_pathstr)
 
     def test_set_ilocs_with_wildcard(self):
         """Insert real numbers where the ILOC placeholder is found"""
         expected_pathstr = "segs[34].walls[:@IDXWALL].temps"
-        path = HubitPath("segs[IDXSEG].walls[:@IDXWALL].temps")
+        path = HubitModelPath("segs[IDXSEG].walls[:@IDXWALL].temps")
         new_path = path.set_indices(("34", "3"))
         self.assertEqual(new_path, expected_pathstr)
 
     def test_set_ilocs_assertion_error(self):
         """Too many indices specified"""
-        path = HubitPath("segs[IDXSEG].walls[:@IDXWALL].temps")
+        path = HubitModelPath("segs[IDXSEG].walls[:@IDXWALL].temps")
         with self.assertRaises(AssertionError):
             path.set_indices(("34", "3", "19"))
 
@@ -95,18 +95,18 @@ class TestHubitPath(unittest.TestCase):
         """Convert Hubit path to internal path"""
         path = "segs[IDX_SEG].walls[IDX_WALL].heat_flow"
         expected_internal_path = "segs.IDX_SEG.walls.IDX_WALL.heat_flow"
-        internal_path = HubitPath.as_internal(path)
+        internal_path = HubitModelPath.as_internal(path)
         self.assertSequenceEqual(expected_internal_path, internal_path)
 
     def test_as_internal_idx_wildcard(self):
         """Convert Hubit path to internal path"""
         path = "segs[:@IDX_SEG].walls[:@IDX_WALL].heat_flow"
         expected_internal_path = "segs.:@IDX_SEG.walls.:@IDX_WALL.heat_flow"
-        internal_path = HubitPath.as_internal(path)
+        internal_path = HubitModelPath.as_internal(path)
         self.assertSequenceEqual(expected_internal_path, internal_path)
 
     def test_paths_between_idxids(self):
-        path = HubitPath("segments[IDX_SEG].layers[IDX_LAY].test.positions[IDX_POS]")
+        path = HubitModelPath("segments[IDX_SEG].layers[IDX_LAY].test.positions[IDX_POS]")
         idxids = path.get_index_specifiers()
         internal_paths = path.paths_between_idxids(idxids)
         # Last element is empty since there are no attribute after IDX_POS
@@ -115,27 +115,27 @@ class TestHubitPath(unittest.TestCase):
 
     def test_validate_idxids(self):
         # Valid
-        path = HubitPath("segments[IDX_SEG].layers[IDX-LAY]")
+        path = HubitModelPath("segments[IDX_SEG].layers[IDX-LAY]")
         path.validate()
 
         # Valid
-        path = HubitPath("segments[IDX_SEG].layers[:@IDX-LAY]")
+        path = HubitModelPath("segments[IDX_SEG].layers[:@IDX-LAY]")
         path.validate()
 
         # Only one @ allowed in index specifier
-        path = HubitPath("segments[IDX_SEG].layers[:@@IDX-LAY]")
+        path = HubitModelPath("segments[IDX_SEG].layers[:@@IDX-LAY]")
         with self.assertRaises(AssertionError):
             path._validate_index_specifiers()
 
         # Invalid character \ in index identifier
-        path = HubitPath("segments[IDX_SEG].layers[:@IDX/LAY]")
+        path = HubitModelPath("segments[IDX_SEG].layers[:@IDX/LAY]")
         with self.assertRaises(AssertionError):
             path._validate_index_identifiers()
 
         # Numbers allowed
-        path = HubitPath("segments[IDX_SEG].layers[:@IDX1LAY113]")
+        path = HubitModelPath("segments[IDX_SEG].layers[:@IDX1LAY113]")
         path.validate()
 
-        path = HubitPath("segments[IDX_SEG].layers[@]")
+        path = HubitModelPath("segments[IDX_SEG].layers[@]")
         with self.assertRaises(AssertionError):
             path._validate_index_identifiers()

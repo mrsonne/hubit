@@ -43,6 +43,7 @@ class TestHubitQueryPath(unittest.TestCase):
         with self.assertRaises(AssertionError):
             path._validate_index_specifiers()
 
+
 class TestHubitPath(unittest.TestCase):
     def test_remove_braces(self):
         path = HubitPath("segs[:@IDX_SEG].walls[IDX_WALL].heat_flow")

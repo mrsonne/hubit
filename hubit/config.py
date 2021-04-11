@@ -9,17 +9,25 @@ from .errors import HubitModelValidationError, HubitModelComponentError
 
 class HubitQueryPath(str):
     """
-    Hubit query path. Path used to query a field in the results data.
-
-    The syntax follows general Python syntax for nested objects. So to query
-    the attribute "attr" in element 7 of the list "the_list" which is stored
-    on the object "obj" use the following path "obj.the_list[6].attr". The
-    query path "obj.the_list[:].attr" would yield a list where the list
-    with elements would have come from "attr" for all elements of the list
-    "the_list" which is stored on the object "obj".
-
-    Only square brackets are allowed. The content of the brackets should
+    A Hubit query path is used to query a field in the results data. The
+    syntax follows general Python syntax for nested objects. Only square
+    brackets are allowed. The content of the brackets should
     be either a positive integer or the character ":".
+
+
+    Examples
+    To query, for example, the attribute "weight" in the 4th element of the list
+    "wheels" which is stored on the object "car" use the following
+    path "car.wheels[3].weight". The query path "car.wheels[:].weight"
+    represents a list where the elements would be the weights for all
+    wheels of the car.
+
+    If there are multiple cars stored in a list of cars, the
+    query "cars[:].wheels[3].weight" represents a list where the elements
+    would be the weights for wheel 4 for all cars. The
+    query "cars[:].wheels[:].weight" represents a nested list where the
+    each outer list item represents a car and the inner list elements for each
+    outer (car) item represent the weights for all wheels for that car.
     """
 
     char_wildcard = ":"
@@ -47,7 +55,12 @@ class HubitQueryPath(str):
 
     def _validate_index_specifiers(self):
         idx_specs = self.get_index_specifiers()
-        assert all([idx_spec.isdigit() or idx_spec == HubitQueryPath.char_wildcard for idx_spec in idx_specs]), ""
+        assert all(
+            [
+                idx_spec.isdigit() or idx_spec == HubitQueryPath.char_wildcard
+                for idx_spec in idx_specs
+            ]
+        ), ""
 
     def _validate_brackets(self):
         # ] should always be followed by a . unless the ] is the last character

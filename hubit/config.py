@@ -24,6 +24,7 @@ class HubitQueryPath(str):
 
     char_wildcard = ":"
     regex_idx_spec = r"\[(.*?)\]"
+    regex_allowed_idx_spec = "^[:0-9]+$"
 
     @staticmethod
     def balanced(path):
@@ -46,8 +47,7 @@ class HubitQueryPath(str):
 
     def _validate_index_specifiers(self):
         idx_specs = self.get_index_specifiers()
-        # TODO: allow only only int or :
-        return idx_specs
+        assert all([idx_spec.isdigit() or idx_spec == HubitQueryPath.char_wildcard for idx_spec in idx_specs]), ""
 
     def _validate_brackets(self):
         # ] should always be followed by a . unless the ] is the last character

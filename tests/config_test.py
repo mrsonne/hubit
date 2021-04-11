@@ -18,20 +18,30 @@ class TestHubitComponent(unittest.TestCase):
 
 
 class TestHubitQueryPath(unittest.TestCase):
-    def test_validate_braces_1(self):
+    def test_validate_braces(self):
         path = HubitQueryPath("segments[0].layers[17]test.positions[44]")
         with self.assertRaises(AssertionError):
             path._validate_brackets()
 
     def test_balanced(self):
         path = "segments[0].layers[17]"
-        result = HubitPath.balanced(path)
+        result = HubitQueryPath.balanced(path)
         self.assertTrue(result)
 
         path = "segments[44].layers[76"
-        result = HubitPath.balanced(path)
+        result = HubitQueryPath.balanced(path)
         self.assertFalse(result)
 
+    def test_validate_index_specifiers(self):
+        path = HubitQueryPath("segments[44].layers[76]")
+        path._validate_index_specifiers()
+
+        path = HubitQueryPath("segments[:].layers[76]")
+        path._validate_index_specifiers()
+
+        path = HubitQueryPath("segments[hej].layers[76]")
+        with self.assertRaises(AssertionError):
+            path._validate_index_specifiers()
 
 class TestHubitPath(unittest.TestCase):
     def test_remove_braces(self):

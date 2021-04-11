@@ -1,4 +1,4 @@
-site_name: My Docs
+site_name: Hubit Docs
 
 theme:
   name: "material"
@@ -16,4 +16,5 @@ nav:
     - Installation: installation.md
     - Code Reference:
         - Config: config-reference.md
+        - Model: model-reference.md
 

@@ -1,0 +1,2 @@
+# model module
+::: hubit.model

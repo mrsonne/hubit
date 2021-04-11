@@ -1,0 +1,2 @@
+# config module
+::: hubit.config

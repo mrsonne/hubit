@@ -1,0 +1,14 @@
+site_name: My Docs
+
+theme:
+  name: "material"
+
+plugins:
+  - search
+  - mkdocstrings
+
+nav:
+    - Home: index.md
+    - Installation: installation.md
+    - Code Reference:
+        - Config: config-reference.md

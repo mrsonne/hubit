@@ -130,7 +130,7 @@ class HubitModelPath(HubitQueryPath):
     from. Note that the component itself is unaware of which car (car index) 
     the input represents. 
     """
-s
+
     regex_allowed_idx_ids = "^[a-zA-Z_\-0-9]+$"
 
     def _validate_index_specifiers(self):

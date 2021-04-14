@@ -1,2 +1,2 @@
-# model module
+# Model
 ::: hubit.model

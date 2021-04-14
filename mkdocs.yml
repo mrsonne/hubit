@@ -5,7 +5,10 @@ theme:
 
 plugins:
   - search
+  - autorefs
   - mkdocstrings:
+      watch: 
+        - hubit
       default_handler: python
       handlers:
         python:

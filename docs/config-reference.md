@@ -1,2 +1,2 @@
-# config module
+# Model configuration
 ::: hubit.config

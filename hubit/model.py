@@ -1,3 +1,7 @@
+"""
+This module contain the `hubit` HubitModel class which is used 
+for executing your calculations.
+"""
 from __future__ import annotations
 import pathlib
 import datetime
@@ -514,7 +518,8 @@ class LogItem:
 @dataclass
 class HubitLog:
     """
-    Hubit log.
+    Hubit log. The log collects various run data such as the number of 
+    workers spawned and the executions time. 
 
     Args:
         log_items (List[LogItem]): List of log items. Newest item is

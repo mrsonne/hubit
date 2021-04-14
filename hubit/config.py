@@ -283,7 +283,15 @@ class HubitModelComponent:
     input from the paths defined in "consumes_input" and
     "consumes_results". The componet delivers results to the paths
     in "provides_results".
-    """
+
+    Args:
+        path (str): Path to the module responsible for the calculation.
+        func_name (str): The function name responsible for the calculation. 
+        provides_results (List[HubitBinding]): Results provided by the component.
+        consumes_input (List[HubitBinding], optional): Input consumed by the components. Defaults to [].
+        consumes_results (List[HubitBinding]): XXXXXXXXXXXXXXX. Defaults to [].
+        is_module_path (bool, optional): . Defaults to False.
+    """    
 
     path: str
     func_name: str

@@ -4,6 +4,14 @@
         members:
             - dummy
 
+::: hubit.config.HubitQueryPath
+    selection:
+        members:
+            - dummy
+    rendering:
+        show_root_heading: true
+
+
 ::: hubit.config.HubitModelConfig
     selection:
         members:
@@ -17,3 +25,18 @@
             - dummy
     rendering:
         show_root_heading: true
+
+::: hubit.config.HubitBinding
+    selection:
+        members:
+            - dummy
+    rendering:
+        show_root_heading: true
+
+::: hubit.config.HubitModelPath
+    selection:
+        members:
+            - dummy
+    rendering:
+        show_root_heading: true
+

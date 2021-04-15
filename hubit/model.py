@@ -1,5 +1,5 @@
 """
-This module contain the `hubit` HubitModel class which is used 
+This module contains the `hubit` HubitModel class which is used 
 for executing your calculations.
 """
 from __future__ import annotations

@@ -1,3 +1,8 @@
+"""
+Objects defined in this module will automatically be created by `Hubit`. 
+Therefore, class definitions below simply document e.g. the attributes required 
+in a model config file or the required structure of a query path. 
+"""
 from __future__ import annotations
 from dataclasses import dataclass, field
 import yaml
@@ -362,7 +367,12 @@ class HubitModelComponent:
 
 @dataclass
 class HubitModelConfig:
-    """Defines the hubit model configuration"""
+    """Defines the hubit model configuration. 
+   
+    Args:
+        components (List[HubitModelComponent]): List of [`HubitModelComponent`][hubit.config.HubitModelComponent]s.
+        model_file_path (str): Path to the model configuration file. 
+    """
 
     components: List[HubitModelComponent]
     model_file_path: str

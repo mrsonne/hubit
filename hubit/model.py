@@ -230,7 +230,7 @@ class HubitModel(_HubitModel):
         validate: bool = False,
         use_results: str = "none",
     ) -> Dict[str, Any]:
-        """Generate respose corresponding to the 'query'
+        """Get the respose corresponding to the `query`
 
         Args:
             query: Sequence of strings that each complies with a [`HubitQueryPath`][hubit.config.HubitQueryPath].

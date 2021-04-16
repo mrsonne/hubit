@@ -47,10 +47,10 @@ class HubitModel(_HubitModel):
         [`from_file`][hubit.model.HubitModel.from_file] method instead.
 
         Args:
-            model_cfg (HubitModelConfig): Model configuration
-            base_path (str, optional): Base path for the model.
-            output_path (str, optional): Output path relative to base_path.
-            name (str, optional): Model name.
+            model_cfg: Model configuration
+            base_path: Base path for the model
+            output_path: Output path relative to base_path
+            name: Model name
 
         Raises:
             HubitError: If `output_path` is an absolute path or if components function names are not unique.
@@ -97,15 +97,18 @@ class HubitModel(_HubitModel):
     def from_file(
         cls, model_file_path: str, output_path: str = "./", name: str = "NA"
     ) -> HubitModel:
-        """Creates a model from file
+        """Creates a `HubitModel` from a configuration file.
 
         Args:
-            model_file_path (str): The location of the model file. The model base path will be set to the path of the model file and consequently the model component 'path' attribute should be relative to the model file.
-            output_path (str, optional): Path where results should be saved. Defaults to './'.
-            name (str, optional): Model name. Defaults to "NA".
+            model_file_path: The location of the model file. The model `base_path` will 
+                be set to the path of the model file and consequently the 
+                [`HubitModelComponent`][hubit.config.HubitModelComponent] 
+                `path` attribute should be relative to the model file
+            output_path: Path where results should be saved
+            name: Model name
 
         Returns:
-            HubitModel: Hubit model object as defined in the specified model file
+            Hubit model object as defined in the specified model file
         """
         model_config = HubitModelConfig.from_file(model_file_path)
         base_path = model_config.base_path
@@ -125,7 +128,8 @@ class HubitModel(_HubitModel):
 
     def clear_cache(self):
         """
-        Clear the cache for the current model.
+        Clear the model cache. Will delete the serialized model cache 
+        from the disk if it exists.
         """
         if self.has_cached_results():
             os.remove(self._cache_file_path)

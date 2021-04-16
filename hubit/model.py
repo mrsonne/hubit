@@ -39,41 +39,29 @@ class HubitModel(_HubitModel):
     def __init__(
         self,
         model_cfg: HubitModelConfig,
-        base_path: str = os.getcwd(),
+        base_path: str = "cwd",
         output_path: str = "./",
         name: str = "NA",
     ):
-        """Initialize a Hubit model
+        """Initialize a Hubit model. Consider initializing a model using 
+        [`from_file`][hubit.model.HubitModel.from_file] method instead.
 
         Args:
             model_cfg (HubitModelConfig): Model configuration
-            base_path (str, optional): Base path for the model. Defaults to current working directory.
-            output_path (str, optional): Output path relative to base_path. Defaults to './'.
-            name (str, optional): Model name. Defaults to 'NA'.
+            base_path (str, optional): Base path for the model.
+            output_path (str, optional): Output path relative to base_path.
+            name (str, optional): Model name.
 
         Raises:
-            HubitError: If output_path is an absolute path or if components function names are not unique.
+            HubitError: If `output_path` is an absolute path or if components function names are not unique.
         """
 
         if os.path.isabs(output_path):
             raise HubitError("Output path should be relative")
 
+        # TODO: NOT USED
         self.ilocstr = "_IDX"
         self.model_cfg = model_cfg
-
-        # NOW Stored on cfg
-        # self.component_for_name = {
-        #     component["func_name"]: component for component in cfg
-        # }
-
-        # Insert empty if section if missing
-        # THIS IS NOW HANDELED IN HubitModelConfig
-        # for component in self.component_for_name.values():
-        #     if not "consumes" in component:
-        #         component["consumes"] = {}
-
-        #     if not "input" in component["consumes"]:
-        #         component["consumes"]["input"] = {}
 
         # Stores length tree. Filled when set_input() is called
         self.tree_for_idxcontext: Dict[LengthTree, str] = {}
@@ -88,7 +76,7 @@ class HubitModel(_HubitModel):
         self._modelpath_for_querypath: Dict[str, str] = {}
 
         self.name = name
-        self.base_path = base_path
+        self.base_path = os.getcwd() if base_path == "cwd" else base_path
         self.odir = os.path.normpath(os.path.join(self.base_path, output_path))
         self.inputdata: Dict[str, Any] = {}
         self.flat_input: Dict[str, Any] = {}

@@ -225,7 +225,7 @@ class HubitModel(_HubitModel):
 
     def get(
         self,
-        query,
+        query: List[str],
         use_multi_processing: bool = False,
         validate: bool = False,
         use_results: str = "none",
@@ -233,16 +233,20 @@ class HubitModel(_HubitModel):
         """Generate respose corresponding to the 'query'
 
         Args:
-            query ([List]): Query paths
-            use_multi_processing (bool, optional): Flag indicating if the respose should be generated using (async) multiprocessing. Defaults to False.
-            validate (bool, optional): Flag indicating if the query should be validated prior to execution. Defaults to False.
-            use_results (str, optional). Should previously saved results be used. If 'current' the results set on the model will be used as-is i.e. not recalculated. If 'cached' internally saved results will be used if they exists. Defaults to "none" i.e no cached results will be used.
+            query: Sequence of strings that each complies with a [`HubitQueryPath`][hubit.config.HubitQueryPath].
+            use_multi_processing: Flag indicating if the respose should be generated using (async) multiprocessing.
+            validate: Flag indicating if the query should be validated prior to execution. If `True` a dry-run of the model will be executed. 
+            use_results. Should previously saved results be used. 
+                If 'current' the results set on the model will be used 
+                as-is i.e. not recalculated. If 'cached' internally saved results 
+                will be used if they exists. Defaults to "none" i.e no cached results 
+                will be used.
 
         Raises:
             HubitModelNoInputError: If no input is set on the model
 
         Returns:
-            Dict: The response
+            The response
         """
         if not self._input_is_set:
             raise HubitModelNoInputError()

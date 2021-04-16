@@ -1,4 +1,4 @@
-Install from pypi
+## Install from pypi
 ```sh
 pip install hubit
 ```

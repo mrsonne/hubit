@@ -299,7 +299,7 @@ class HubitModelComponent:
         provides_results (List[HubitBinding]): [`HubitBinding`][hubit.config.HubitBinding] sequence specifying the results provided by the component.
         consumes_input (List[HubitBinding], optional): [`HubitBinding`][hubit.config.HubitBinding] sequence specifying the input consumed by the input consumed.
         consumes_results (List[HubitBinding]): [`HubitBinding`][hubit.config.HubitBinding] sequence specifying the input consumed by the results consumed.
-        is_module_path (bool, optional): Set to True if the specified `path` is a dotted path (typically for a package module in site-packages).
+        is_dotted_path (bool, optional): Set to True if the specified `path` is a dotted path (typically for a package module in site-packages).
     """    
 
     path: str
@@ -307,7 +307,7 @@ class HubitModelComponent:
     provides_results: List[HubitBinding]
     consumes_input: List[HubitBinding] = field(default_factory=list)
     consumes_results: List[HubitBinding] = field(default_factory=list)
-    is_module_path: bool = False
+    is_dotted_path: bool = False
 
     def validate(self, cfg):
         """
@@ -385,7 +385,7 @@ class HubitModelConfig:
         # Convert to absolute paths
         self._base_path = os.path.dirname(self.model_file_path)
         for component in self.components:
-            if not component.is_module_path:
+            if not component.is_dotted_path:
                 component.path = os.path.abspath(
                     os.path.join(self._base_path, component.path)
                 )

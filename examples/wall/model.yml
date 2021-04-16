@@ -10,7 +10,7 @@
 
   # specify module in site packages
   # path: hubit_components.thermal_conductivity
-  # is_module_path: True
+  # is_dotted_path: True
   
   # Function name in the module
   func_name: thermal_conductivity 

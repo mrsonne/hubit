@@ -62,7 +62,7 @@ class _QueryRunner:
             tuple: function handle, function version, and component dict
         """
 
-        if not component_cfg.is_module_path:
+        if not component_cfg.is_dotted_path:
             path, file_name = os.path.split(component_cfg.path)
             path = os.path.join(base_path, path)
             module_name = os.path.splitext(file_name)[0]

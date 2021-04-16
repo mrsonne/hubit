@@ -3,7 +3,7 @@ This module contains the `hubit` HubitModel class which is used
 for executing your calculations.
 """
 
-# TODO: Dataclass for response and flat results 
+# TODO: Dataclass for response and flat results
 # TODO: skipfun
 # return value from get_many
 
@@ -48,7 +48,7 @@ class HubitModel(_HubitModel):
         output_path: str = "./",
         name: str = "NA",
     ):
-        """Initialize a Hubit model. Consider initializing a model using 
+        """Initialize a Hubit model. Consider initializing a model using
         [`from_file`][hubit.model.HubitModel.from_file] method instead.
 
         Args:
@@ -105,9 +105,9 @@ class HubitModel(_HubitModel):
         """Creates a `HubitModel` from a configuration file.
 
         Args:
-            model_file_path: The location of the model file. The model `base_path` will 
-                be set to the path of the model file and consequently the 
-                [`HubitModelComponent`][hubit.config.HubitModelComponent] 
+            model_file_path: The location of the model file. The model `base_path` will
+                be set to the path of the model file and consequently the
+                [`HubitModelComponent`][hubit.config.HubitModelComponent]
                 `path` attribute should be relative to the model file
             output_path: Path where results should be saved
             name: Model name
@@ -133,7 +133,7 @@ class HubitModel(_HubitModel):
 
     def clear_cache(self):
         """
-        Clear the model cache. Will delete the serialized model cache 
+        Clear the model cache. Will delete the serialized model cache
         from the disk if it exists.
         """
         if self.has_cached_results():
@@ -153,11 +153,11 @@ class HubitModel(_HubitModel):
         Set the model caching mode.
 
         Arguments:
-            caching_mode: Valid options are: "none", "incremental", "after_execution". 
-                If "none" model results are not cached. If "incremental" the results are 
-                saved to disk whenever a component worker finishes its workload. If 
-                "after_execution" the results are saved to disk when all component 
-                workers have finished their workload 
+            caching_mode: Valid options are: "none", "incremental", "after_execution".
+                If "none" model results are not cached. If "incremental" the results are
+                saved to disk whenever a component worker finishes its workload. If
+                "after_execution" the results are saved to disk when all component
+                workers have finished their workload
         """
         if not caching_mode in self._valid_model_caching_modes:
             raise HubitError(
@@ -202,10 +202,10 @@ class HubitModel(_HubitModel):
         """Renders graph representing the model or the query.
 
         Args:
-            query: Sequence of strings that each complies with 
-                a [`HubitQueryPath`][hubit.config.HubitQueryPath]. If not provided 
-                (or is empty) the model is rendered. If a non-empty `query` is 
-                provided that query is rendered, which requires the input data 
+            query: Sequence of strings that each complies with
+                a [`HubitQueryPath`][hubit.config.HubitQueryPath]. If not provided
+                (or is empty) the model is rendered. If a non-empty `query` is
+                provided that query is rendered, which requires the input data
                 be set.
             file_idstr: Identifier appended to the image file name.
         """
@@ -221,8 +221,8 @@ class HubitModel(_HubitModel):
         Get model results
 
         Args:
-            flat: If `True` the results will be returned as a 
-                flat dict. Otherwise the returned results is a nested 
+            flat: If `True` the results will be returned as a
+                flat dict. Otherwise the returned results is a nested
                 dict.
 
         Returns:
@@ -249,11 +249,11 @@ class HubitModel(_HubitModel):
         Args:
             query: Sequence of strings that each complies with a [`HubitQueryPath`][hubit.config.HubitQueryPath].
             use_multi_processing: Flag indicating if the respose should be generated using (async) multiprocessing.
-            validate: Flag indicating if the query should be validated prior to execution. If `True` a dry-run of the model will be executed. 
-            use_results. Should previously saved results be used. 
-                If 'current' the results set on the model will be used 
-                as-is i.e. not recalculated. If 'cached' internally saved results 
-                will be used if they exists. Defaults to "none" i.e no cached results 
+            validate: Flag indicating if the query should be validated prior to execution. If `True` a dry-run of the model will be executed.
+            use_results. Should previously saved results be used.
+                If 'current' the results set on the model will be used
+                as-is i.e. not recalculated. If 'cached' internally saved results
+                will be used if they exists. Defaults to "none" i.e no cached results
                 will be used.
 
         Raises:
@@ -286,7 +286,9 @@ class HubitModel(_HubitModel):
                 logging.info("Using cached results.")
                 with open(self._cache_file_path, "r") as stream:
                     _flat_results = yaml.load(stream, Loader=yaml.FullLoader)
-                    _flat_results = {HubitModelPath(k): v for k, v in _flat_results.items()}
+                    _flat_results = {
+                        HubitModelPath(k): v for k, v in _flat_results.items()
+                    }
             else:
                 logging.info("No cached results found.")
                 _flat_results = {}
@@ -383,7 +385,7 @@ class HubitModel(_HubitModel):
         query are provided.
 
         Args:
-            query: Query paths. 
+            query: Query paths.
 
         Raises:
             HubitModelNoInputError: If not input is set.
@@ -524,8 +526,8 @@ class LogItem:
 @dataclass
 class HubitLog:
     """
-    Hubit log. The log collects various run data such as the number of 
-    workers spawned and the executions time. 
+    Hubit log. The log collects various run data such as the number of
+    workers spawned and the executions time.
 
     Args:
         log_items (List[LogItem]): List of log items. Newest item is
@@ -556,7 +558,7 @@ class HubitLog:
         """Get all log item values corresponding to attribute name "attr"
 
         Args:
-            attr (str): Available attributes are attributes names of the 
+            attr (str): Available attributes are attributes names of the
                 [LogItem][hubit.model.LogItem] class.
 
         Returns:

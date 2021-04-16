@@ -17,14 +17,14 @@ from .errors import HubitModelValidationError, HubitModelComponentError
 # or inherit from collections import UserString
 class HubitQueryPath(str):
     """
-    Reference a field in the results data. The syntax follows general 
+    Reference a field in the results data. The syntax follows general
     Python syntax for nested objects. Only square
-    brackets are allowed. The content of the brackets is called an index specifier. 
-    Currently, index specifiers should be either a positive integer or 
+    brackets are allowed. The content of the brackets is called an index specifier.
+    Currently, index specifiers should be either a positive integer or
     the character `:`. General slicing and negative indices is not supported.
 
     To query, for example, the attribute `weight` in the 4*th* element of the list
-    `wheels`, which is stored on the object `car` use the path 
+    `wheels`, which is stored on the object `car` use the path
     `car.wheels[3].weight`. The query path `car.wheels[:].weight`
     represents a list with elements being the `weight` for all
     wheels of the car.
@@ -32,8 +32,8 @@ class HubitQueryPath(str):
     If there are multiple cars stored in a list of cars, the
     query path `cars[:].wheels[3].weight` represents a list where the elements
     would be the weights for the 4*th* wheel for all cars. The
-    query path `cars[:].wheels[:].weight` represents a nested list where 
-    each outer list item represents a car and the corresponding inner list elements 
+    query path `cars[:].wheels[:].weight` represents a nested list where
+    each outer list item represents a car and the corresponding inner list elements
     represent the weights for all wheels for that car.
     """
 
@@ -101,39 +101,39 @@ class HubitQueryPath(str):
 
 class HubitModelPath(HubitQueryPath):
     """
-    References a field in the input or results data. Compared to a 
+    References a field in the input or results data. Compared to a
     [`HubitQueryPath`][hubit.config.HubitQueryPath],
-    a `HubitModelPath` instance has different rules for index specifiers. Most 
-    importantly an index specifier must contain an index identifier. 
-    Index identifiers are used to create index mapping and to infer 
-    list lengths. Index mapping is the mapping indices from lists in   
+    a `HubitModelPath` instance has different rules for index specifiers. Most
+    importantly an index specifier must contain an index identifier.
+    Index identifiers are used to create index mapping and to infer
+    list lengths. Index mapping is the mapping indices from lists in
     the input data to equivalent indices in the results data.
 
-    Consider the HubitModelPath instance `cars[IDX_CAR].parts[:@IDX_PART].name`. As for 
-    query paths, the strings in square brackets are called index specifiers. 
-    The index specifier `:@IDX_PART` points to all elements (`:`) of the parts list 
+    Consider the HubitModelPath instance `cars[IDX_CAR].parts[:@IDX_PART].name`. As for
+    query paths, the strings in square brackets are called index specifiers.
+    The index specifier `:@IDX_PART` points to all elements (`:`) of the parts list
     and defines an identifier (`IDX_PART`) for elements of the parts list.
-    So in this case, the index specifier contains both a slice and an index 
-    identifier. The left-most index specifier `IDX_CAR` is actually only an index 
-    identifier and refers to a specific car (no `:@`). 
-    `cars[IDX_CAR].parts[:@IDX_PART].name` therefore references the names of 
+    So in this case, the index specifier contains both a slice and an index
+    identifier. The left-most index specifier `IDX_CAR` is actually only an index
+    identifier and refers to a specific car (no `:@`).
+    `cars[IDX_CAR].parts[:@IDX_PART].name` therefore references the names of
     all parts of a specific car. A component that consumes this path
-    would have access to these names in a list. 
+    would have access to these names in a list.
 
-    To illustrate the use of the index identifiers for index mapping 
-    consider a `Hubit` model component that consumes the path discussed 
-    above. The component could use the parts names for a database 
-    lookup to get the prices for each component. If we want `Hubit` to store 
-    these prices in the results, one option would be to store them in a 
-    data structure similar to the input. To achieve this behavior the 
+    To illustrate the use of the index identifiers for index mapping
+    consider a `Hubit` model component that consumes the path discussed
+    above. The component could use the parts names for a database
+    lookup to get the prices for each component. If we want `Hubit` to store
+    these prices in the results, one option would be to store them in a
+    data structure similar to the input. To achieve this behavior the
     component should provide a path that looks something like
-    `cars[IDX_CAR].parts[:@IDX_PART].price`. Alternatively, the provided 
-    path could be `cars[IDX_CAR].parts_price[:@IDX_PART]`. In both cases, 
-    the index identifiers defined in the input path (`cars[IDX_CAR].parts[:@IDX_PART].name`) 
-    allows `Hubit` to store the parts prices for a car 
-    at the same car index and part index as where the input was taken 
-    from. Note that the component itself is unaware of which car (car index) 
-    the input represents. 
+    `cars[IDX_CAR].parts[:@IDX_PART].price`. Alternatively, the provided
+    path could be `cars[IDX_CAR].parts_price[:@IDX_PART]`. In both cases,
+    the index identifiers defined in the input path (`cars[IDX_CAR].parts[:@IDX_PART].name`)
+    allows `Hubit` to store the parts prices for a car
+    at the same car index and part index as where the input was taken
+    from. Note that the component itself is unaware of which car (car index)
+    the input represents.
     """
 
     regex_allowed_idx_ids = "^[a-zA-Z_\-0-9]+$"
@@ -155,7 +155,10 @@ class HubitModelPath(HubitQueryPath):
         idx_ids = self.get_index_identifiers()
         # idx_ids can only contain certain characters
         assert all(
-            [re.search(HubitModelPath.regex_allowed_idx_ids, idx_id) for idx_id in idx_ids]
+            [
+                re.search(HubitModelPath.regex_allowed_idx_ids, idx_id)
+                for idx_id in idx_ids
+            ]
         ), f"Index identifier must be letters or '_' or '-' for path {self}"
 
     def validate(self):
@@ -295,12 +298,12 @@ class HubitModelComponent:
 
     Args:
         path (str): Path to the module responsible for the calculation.
-        func_name (str): The function name responsible for the calculation. 
+        func_name (str): The function name responsible for the calculation.
         provides_results (List[HubitBinding]): [`HubitBinding`][hubit.config.HubitBinding] sequence specifying the results provided by the component.
         consumes_input (List[HubitBinding], optional): [`HubitBinding`][hubit.config.HubitBinding] sequence specifying the input consumed by the input consumed.
         consumes_results (List[HubitBinding]): [`HubitBinding`][hubit.config.HubitBinding] sequence specifying the input consumed by the results consumed.
         is_dotted_path (bool, optional): Set to True if the specified `path` is a dotted path (typically for a package module in site-packages).
-    """    
+    """
 
     path: str
     func_name: str
@@ -371,11 +374,11 @@ class HubitModelComponent:
 
 @dataclass
 class HubitModelConfig:
-    """Defines the hubit model configuration. 
-   
+    """Defines the hubit model configuration.
+
     Args:
         components (List[HubitModelComponent]): [`HubitModelComponent`][hubit.config.HubitModelComponent] sequence.
-        model_file_path (str): Path to the model configuration file. 
+        model_file_path (str): Path to the model configuration file.
     """
 
     components: List[HubitModelComponent]

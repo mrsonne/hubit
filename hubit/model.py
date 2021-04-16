@@ -529,7 +529,7 @@ class HubitLog:
 
     Args:
         log_items (List[LogItem]): List of log items. Newest item is
-        stored as the the first element.
+            stored as the the first element.
     """
 
     log_items: List[LogItem] = field(default_factory=list)
@@ -556,7 +556,8 @@ class HubitLog:
         """Get all log item values corresponding to attribute name "attr"
 
         Args:
-            attr (str): Available attributes are: worker_counts, elapsed_time, cache_counts
+            attr (str): Available attributes are attributes names of the 
+                [LogItem][hubit.model.LogItem] class.
 
         Returns:
             List: Log item values

@@ -526,11 +526,17 @@ class LogItem:
 @dataclass
 class HubitLog:
     """
-    Hubit log. The log collects various run data such as the number of
-    workers spawned and the executions time.
+    Hubit log. For each query, various run data such as the number of
+    workers spawned and the executions time is written to the log as a 
+    [LogItem][hubit.model.LogItem].
+
+    Example:
+        Often your simply want to print the log for a `HubitModel` instance e.g.
+        `hmodel` using `print(hmodel.log())`.
+
 
     Args:
-        log_items (List[LogItem]): List of log items. Newest item is
+        log_items (List[LogItem]): [LogItem][hubit.model.LogItem] sequence. Newest item is
             stored as the the first element.
     """
 
@@ -555,14 +561,20 @@ class HubitLog:
         )
 
     def get_all(self, attr: str) -> List:
-        """Get all log item values corresponding to attribute name "attr"
+        """Get all log item values corresponding to attribute name `attr`.
+
+        Example:
+            To get the elapsed time for all queries on the `HubitModel` instance
+            `hmodel` execute hmodel.log().get_all("elapsed_time"). The return value 
+            is a list of times e.g. `[0.5028373999812175, 0.6225477000162937]` for 
+            two queries.
 
         Args:
-            attr (str): Available attributes are attributes names of the
+            attr: Valid values are attributes names of the
                 [LogItem][hubit.model.LogItem] class.
 
         Returns:
-            List: Log item values
+            Log item values for `attr`
         """
         try:
             return [getattr(item, attr) for item in self.log_items]

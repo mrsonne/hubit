@@ -528,7 +528,7 @@ class LogItem:
 class HubitLog:
     """
     Hubit log. For each query, various run data such as the number of
-    workers spawned and the executions time is written to the log as a 
+    workers spawned and the executions time is written to the log as a
     [LogItem][hubit.model.LogItem].
 
     Example:
@@ -566,8 +566,8 @@ class HubitLog:
 
         Example:
             To get the elapsed time for all queries on the `HubitModel` instance
-            `hmodel` execute hmodel.log().get_all("elapsed_time"). The return value 
-            is a list of times e.g. `[0.5028373999812175, 0.6225477000162937]` for 
+            `hmodel` execute hmodel.log().get_all("elapsed_time"). The return value
+            is a list of times e.g. `[0.5028373999812175, 0.6225477000162937]` for
             two queries.
 
         Args:

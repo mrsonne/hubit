@@ -404,6 +404,12 @@ class HubitModel(_HubitModel):
         return True
 
     def log(self) -> HubitLog:
+        """
+        Get the model log
+
+        Returns:
+            Model log object
+        """
         return self._log
 
 

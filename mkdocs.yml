@@ -20,4 +20,5 @@ nav:
     - Code Reference:
         - Config: config-reference.md
         - Model: model-reference.md
+        - Model log: log-reference.md
 

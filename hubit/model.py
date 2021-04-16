@@ -209,6 +209,7 @@ class HubitModel(_HubitModel):
                 be set.
             file_idstr: Identifier appended to the image file name.
         """
+        _ = [HubitQueryPath(path).validate() for path in query]
 
         dot, filename = self._get_dot(query, file_idstr)
         filepath = os.path.join(self.odir, filename)

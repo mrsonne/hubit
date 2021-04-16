@@ -3,6 +3,8 @@
     selection:
         members:
             - dummy
+    rendering:
+        show_root_heading: true
 
 ::: hubit.config.HubitQueryPath
     selection:

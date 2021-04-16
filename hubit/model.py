@@ -2,6 +2,11 @@
 This module contains the `hubit` HubitModel class which is used 
 for executing your calculations.
 """
+
+# TODO: Dataclass for response and flat results 
+# TODO: skipfun
+# return value from get_many
+
 from __future__ import annotations
 import pathlib
 import datetime
@@ -122,7 +127,7 @@ class HubitModel(_HubitModel):
         Check if the model has cached results
 
         Returns:
-            bool: The result of the check
+            The result of the check
         """
         return os.path.exists(self._cache_file_path)
 
@@ -148,7 +153,11 @@ class HubitModel(_HubitModel):
         Set the model caching mode.
 
         Arguments:
-            caching_mode (str): Valid options are: "none", "incremental", "after_execution".
+            caching_mode: Valid options are: "none", "incremental", "after_execution". 
+                If "none" model results are not cached. If "incremental" the results are 
+                saved to disk whenever a component worker finishes its workload. If 
+                "after_execution" the results are saved to disk when all component 
+                workers have finished their workload 
         """
         if not caching_mode in self._valid_model_caching_modes:
             raise HubitError(
@@ -161,13 +170,13 @@ class HubitModel(_HubitModel):
 
     def set_input(self, input_data: Dict[str, Any]) -> HubitModel:
         """
-        Set the (hierarchical) input on the model
+        Set the (hierarchical) input on the model.
 
         Args:
-            input_data (Dict): Input data typically in a dict-like format
+            input_data: Input data.
 
         Returns:
-            HubitModel: Hubit model with input set
+            Hubit model with input set.
         """
         self.inputdata = input_data
         self.flat_input = flatten(input_data)
@@ -177,13 +186,13 @@ class HubitModel(_HubitModel):
 
     def set_results(self, results_data: Dict[str, Any]) -> HubitModel:
         """
-        Set the (hierarchical) results on the model
+        Set the (hierarchical) results on the model.
 
         Args:
-            results_data (Dict): Results data typically in a nested dict-like format
+            results_data: Results data.
 
         Returns:
-            HubitModel: Hubit model with input set
+            Hubit model with input set
         """
         self.flat_results = flatten(results_data)
         self.flat_results = {HubitModelPath(k): v for k, v in self.flat_results.items()}
@@ -191,15 +200,14 @@ class HubitModel(_HubitModel):
 
     def render(self, query: List[str] = [], file_idstr: str = "") -> None:
         """Renders graph representing the model or the query.
-        If 'query' is not provided (or is empty) the model
-        is rendered while the query is rendered if 'query'
-        are provided. Rendering the query requires the input data
-        has been set.
 
         Args:
-            query (List, optional): Query paths. Defaults to [].
-            file_idstr (str, optional): Identifier appended to the
-            image file name.
+            query: Sequence of strings that each complies with 
+                a [`HubitQueryPath`][hubit.config.HubitQueryPath]. If not provided 
+                (or is empty) the model is rendered. If a non-empty `query` is 
+                provided that query is rendered, which requires the input data 
+                be set.
+            file_idstr: Identifier appended to the image file name.
         """
 
         dot, filename = self._get_dot(query, file_idstr)
@@ -213,10 +221,12 @@ class HubitModel(_HubitModel):
         Get model results
 
         Args:
-            flat (bool, optional): If True the results will be returned as a flat dict. Otherwise the returned results object is a nested dict. Defaults to False.
+            flat: If `True` the results will be returned as a 
+                flat dict. Otherwise the returned results is a nested 
+                dict.
 
         Returns:
-            Dict: Results object
+            Results
         """
         if flat:
             return self.flat_results
@@ -231,6 +241,10 @@ class HubitModel(_HubitModel):
         use_results: str = "none",
     ) -> Dict[str, Any]:
         """Get the respose corresponding to the `query`
+
+        On Windows calling `get` should be guarded by
+        if `__name__ == '__main__':` if `use_multi_processing = True`
+
 
         Args:
             query: Sequence of strings that each complies with a [`HubitQueryPath`][hubit.config.HubitQueryPath].
@@ -296,23 +310,23 @@ class HubitModel(_HubitModel):
         skipfun: Callable[[Dict[str, Any]], bool] = default_skipfun,
         nproc: Any = None,
     ) -> Tuple:
-        """Will perform a full factorial sampling of the
-        input points specified in 'input_values_for_path'.
+        """Perform a full factorial sampling of the
+        input points specified in `input_values_for_path`.
 
-        Note that on windows calling get_many should be guarded by
-        if __name__ == '__main__':
+        On Windows calling `get_many` should be guarded by
+        if `__name__ == '__main__':`
 
         Args:
-            query (List[str]): Query paths
-            input_values_for_path (Dict): Dictionary with keys representing path items. The corresponding values should be an iterable with elements representing discrete values for the attribute at the path.
-            skipfun (Callable): If returns True the factor combination is skipped
-            nproc (Any, optional): Number of processes to use. Defaults to None in which case a suitable default is used.
+            query: Sequence of strings that each complies with a [`HubitQueryPath`][hubit.config.HubitQueryPath].
+            input_values_for_path: Dictionary with keys representing path items. The corresponding values should be an iterable with elements representing discrete values for the attribute at the path.
+            skipfun: If returns True the factor combination is skipped
+            nproc: Number of processes to use. If `None` a suitable default is used.
 
         Raises:
             HubitModelNoInputError: [description]
 
         Returns:
-            Tuple: 3-tuple with a list of responses in the element 0, a list of the
+            3-tuple with a list of responses in the element 0, a list of the
             corresponding inputs in element 1 and a list of the results in element 2.
         """
         if not self._input_is_set:
@@ -368,28 +382,18 @@ class HubitModel(_HubitModel):
         Validate a model or query. Will validate as a query if
         query are provided.
 
-        The model validation checks that there are
-            - not multiple components providing the same attribute
-
-        The query validation checks that
-            - all required input are available
-            - all required results are provided
-
         Args:
-            query (List, optional): Query paths. Defaults to [].
+            query: Query paths. 
 
         Raises:
             HubitModelNoInputError: If not input is set.
-            HubitModelValidationError: If validation fails
+            HubitModelValidationError: If validation fails.
 
         Returns:
-            True if validation was successful. If not successful a HubitModelValidationError is raised
-
-        TODO: check for circular references,
-              check that ] is followed by . in paths
-              check that if X in [X] contains : then it should be followed by @str
-              Component that consumes a specified index ID should also provide a result at the same location in the results data model. Not necesary if all indices (:) are consumed. I.e. the provider path should contain all index info
+            True if validation was successful.
         """
+        # TODO: check for circular references,
+        #       Component that consumes a specified index ID should also provide a result at the same location in the results data model. Not necesary if all indices (:) are consumed. I.e. the provider path should contain all index info
         if len(query) > 0:
             if not self._input_is_set:
                 raise HubitModelNoInputError()

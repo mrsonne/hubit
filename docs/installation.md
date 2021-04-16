@@ -14,3 +14,7 @@ To render `hubit` models and queries you need to install Graphviz (https://graph
 ```sh
 sudo apt install graphviz
 ```
+
+## Other resources
+
+Source code is available at [GitHub](https://github.com/mrsonne/hubit)

@@ -19,7 +19,8 @@ nav:
     - Home: index.md
     - Installation: installation.md
     - Code Reference:
-        - Model: model-reference.md
+        - Hubit: hubit-reference.md
+        - Hubit model: model-reference.md
         - Model config: config-reference.md
         - Model log: log-reference.md
 

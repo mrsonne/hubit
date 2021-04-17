@@ -1,4 +1,15 @@
+<span style="color:RGBA(0,0,0,.4); font-size: 11px;">
+Version {{ version }}. Built on 
+    <script type="text/javascript"> 
+    var md = new Date(document.lastModified) 
+    document.write( md.toDateString() )
+    </script>.
+</span>
+
+
 # Hubit - a calculation hub  
+
+## Summary
 
 `hubit` is an event-driven orchestration hub for your existing calculation tools. It allows you to 
 
@@ -16,3 +27,5 @@ Many work places have developed a rich ecosystem of stand-alone tools. These too
 
 By defining input and results data structures that are shared between your tools `hubit` allows all your Python-wrappable tools to be seamlessly executed asynchronously as a single model. Asynchronous multi-processor execution often assures a better utilization of the available CPU resources compared to sequential single-processor execution. This is especially true when some time is spent in each component. In practice this performance improvement often compensates the management overhead introduced by `hubit`.
 Executing a fixed call graph is faster than executing the same call graph dynamically created by `hubit`. Nevertheless, a fixed call graph will typically encompass all relevant calculations and provide all results, which in many cases will represent wasteful compute since only a subset of the results are actually needed. `hubit` dynamically creates the smallest possible call graph that can provide the results that satisfy the user's query. 
+
+

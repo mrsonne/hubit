@@ -6,6 +6,8 @@ theme:
 plugins:
   - search
   - autorefs
+  - markdownextradata
+  # - include-markdown
   - mkdocstrings:
       watch: 
         - hubit
@@ -22,3 +24,5 @@ nav:
         - Model config: config-reference.md
         - Model log: log-reference.md
 
+extra:
+  version: 0.3.0

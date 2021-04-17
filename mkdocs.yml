@@ -23,5 +23,5 @@ nav:
         - Model config: config-reference.md
         - Model log: log-reference.md
 
-extra:
-  version: 0.3.0
+# extra:
+#   version: 0.3.0

@@ -6,8 +6,7 @@ theme:
 plugins:
   - search
   - autorefs
-  - markdownextradata
-  # - include-markdown
+  - macros
   - mkdocstrings:
       watch: 
         - hubit

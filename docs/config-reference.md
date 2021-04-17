@@ -1,11 +1,5 @@
-<span style="color:RGBA(0,0,0,.4); font-size: 11px;">
-Version {{ version }}. Built on 
-    <script type="text/javascript"> 
-    var md = new Date(document.lastModified) 
-    document.write( md.toDateString() )
-    </script> 
-</span>
 
+{% include 'shared/header.html' %}
 # Hubit configuration and queries
 ::: hubit.config
     selection:

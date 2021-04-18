@@ -47,7 +47,7 @@ sudo apt install graphviz
 
 ## Teaser
 
-The full documentation, use cases and an in-depth tutorial can be found [here](https://mrsonne.github.io/hubit/examples/). Below is a brief example of how to use `Hubit` once the model is configured.
+The full documentation, use cases and an in-depth tutorial can be found in the [`Hubit` examples ](https://mrsonne.github.io/hubit/examples/), which is a part of the documentation. Below is a brief example of how to use `Hubit` once the model is configured.
 
 To get results from a `Hubit` model requires you to submit a _query_, which tells `Hubit` what attributes from the results data structure you want to have calculated. After `Hubit` has processed the query, i.e. executed relevant components, the values of the queried attributes are returned in the _response_.
 

@@ -16,9 +16,9 @@ To run, for example, the car example clone the repository and execute from the p
 python -m examples.car.run
 ```
 
-## Tutorial
+## Car calculation
 
-This tutorial follows, to a large extent, the example in `examples/car`. The example will be explained and some key `Hubit` terminology will be introduced. 
+This tutorial follows, to a large extent, the example in [`examples/car`](https://github.com/mrsonne/hubit/tree/master/examples/car). The example will be explained and some key `Hubit` terminology will be introduced. 
 
 ### Components
 To use `Hubit` your existing tools each need to be wrapped as a `hubit` _component_. A `hubit` component has bindings to the input data and to the results data. The bindings define which attributes the component

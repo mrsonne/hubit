@@ -28,6 +28,7 @@ nav:
         - Hubit model: model-reference.md
         - Model config: config-reference.md
         - Model log: log-reference.md
+    - Change log: changelog.md
 
 # extra:
 #   version: 0.3.0

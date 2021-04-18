@@ -6,7 +6,8 @@ theme:
 plugins:
   - search
   - autorefs
-  - macros
+  - macros:
+      include_dir: ./
   - mkdocstrings:
       watch: 
         - hubit
@@ -16,8 +17,8 @@ plugins:
           rendering:
             show_source: false
 nav:
-    - Home: index.md
-    - Installation: installation.md
+    - First steps: index.md
+    - Examples: examples.md
     - Code Reference:
         - Hubit: hubit-reference.md
         - Hubit model: model-reference.md

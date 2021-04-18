@@ -1,5 +1,5 @@
 
-{% include 'shared/header.html' %}
+{% include 'docs/shared/header.html' %}
 # Hubit configuration and queries
 ::: hubit.config
     selection:

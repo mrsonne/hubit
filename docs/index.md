@@ -1,6 +1,9 @@
-{% include 'shared/header.html' %}
+{% include 'docs/shared/header.html' %}
 
-# Hubit - a calculation hub  
+{% include 'README.md' %}
+
+<!-- # Hubit - a calculation hub  
+
 
 ## Summary
 
@@ -22,3 +25,25 @@ By defining input and results data structures that are shared between your tools
 Executing a fixed call graph is faster than executing the same call graph dynamically created by `hubit`. Nevertheless, a fixed call graph will typically encompass all relevant calculations and provide all results, which in many cases will represent wasteful compute since only a subset of the results are actually needed. `hubit` dynamically creates the smallest possible call graph that can provide the results that satisfy the user's query. 
 
 
+## Installation
+
+### From pypi
+```sh
+pip install hubit
+```
+
+
+### From GitHub
+```sh
+pip install git+git://github.com/mrsonne/hubit.git
+```
+
+To render `hubit` models and queries you need to install Graphviz (https://graphviz.org/download/). On e.g. Ubuntu, Graphviz can be installed using the command
+
+```sh
+sudo apt install graphviz
+```
+
+### Source
+
+Source code is available at [GitHub](https://github.com/mrsonne/hubit) -->

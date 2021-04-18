@@ -91,6 +91,8 @@ and the corresponding response is
 
 `Hubit` can render models and queries. In the example below we have rendered the query `cars[0].price` i.e. the price of the car at index 0.
 
-<img src="https://github.com/mrsonne/hubit/blob/master/examples/car/images/query_car_2.png" width="1000">
+<a target="_blank" rel="noopener noreferrer" href="https://github.com/mrsonne/hubit/blob/master/examples/car/images/query_car_2.png">
+  <img src="https://github.com/mrsonne/hubit/raw/master/examples/car/images/query_car_2.png" width="1000" style="max-width:100%;">
+</a>
 
 The graph illustrates nodes in the input data structure, nodes in the the results data structure, the calculation components involved in creating the response as well as hints at which attributes flow in and out of these components.

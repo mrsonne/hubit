@@ -55,33 +55,33 @@ The main function (entrypoint) in a component (`price` in the example above) sho
 ### Model file & component bindings
 Before we look at the bindings let us look at the input data. The input can, like in the example below, be defined in a yml file. In the car example the input data is a list containing two cars each with a number of parts
 
-```yml
+```yaml
 cars:
-    - parts: 
-        - count: 4
-          name: wheel1
-        - count: 1
-          name: chassis1
-        - count: 2
-          name: bumper
-        - count: 1
-          name: engine1
-        - count: 1
-          name: radio
-    - parts: 
-        - count: 4
-          name: wheel2
-        - count: 1
-          name: chassis2
-        - count: 2
-          name: bumper
-        - count: 1
-          name: engine14
+  - parts: 
+    - count: 4
+      name: wheel1
+    - count: 1
+      name: chassis1
+    - count: 2
+      name: bumper
+    - count: 1
+      name: engine1
+    - count: 1
+      name: radio
+  - parts: 
+    - count: 4
+      name: wheel2
+    - count: 1
+      name: chassis2
+    - count: 2
+      name: bumper
+    - count: 1
+      name: engine14
 ```
 
 The `price` entrypoint above expects a list of part names be stored in the key `part_names` and a list of the corresponding part counts be stored in the key `part_counts`. Make such lists available in the expected fields, the model file should contain the lines below.
 
-```yml
+```yaml
 consumes_input:
   - name: part_names # key in component input dict
     path: cars[IDX_CAR].parts[:@IDX_PART].name # path in input data
@@ -107,7 +107,7 @@ results_provided['car_price'] = result
 
 To enable the transfer of the calculated car price to the shared results data object we must add a binding from the internal component name `car_price` to an appropriate field in the shared results object. If, for example, we want to store the car price in a field called `price` at the same car index as where the input data was taken from, the binding below should be added to the model file.
 
-```yml
+```yaml
 provides_results: 
   - name: car_price # internal name in the component
     path: cars[IDX_CAR].price # path in the shared results data
@@ -117,7 +117,7 @@ It is the index specifier `IDX_CAR` in the binding path that tells `Hubit` to st
 
 Collecting the bindings we get
 
-```yml
+```yaml
 provides_results: 
   - name: car_price # internal name in the component
     path: cars[IDX_CAR].price # path in the shared data 
@@ -128,48 +128,12 @@ consumes_input:
     path: cars[IDX_CAR].parts[:@IDX_PART].count
 ```
 
-### Index specifiers & index contexts
-`Hubit` infers indices and list lengths based on the input data and the index specifiers *defined* for binding paths in the `consumes_input` section. Therefore, index identifiers *used* in binding paths in the `consumes_results` and `provides_results` sections should always be exist in binding paths in `consumes_input`. 
-
-Further, to provide a meaningful index mapping, the index specifier used in a binding path in the `provides_results` section should be identical to the corresponding index specifier in the `consumes_input`. The first binding in the example below has a more specific index specifier (for the identifier `IDX_PART`) and is therefore invalid. The second binding is valid.
-
-```yml
-provides_results: 
-  # INVALID
-  - name: part_name 
-    path: cars[IDX_CAR].parts[IDX_PART].name # more specific for the part index
-
-  # VALID: Assign a 'price' attribute each part object in the car object.
-  - name: parts_price
-    path: cars[IDX_CAR].parts[:@IDX_PART].price # index specifier for parts is equal to consumes.input.path
-consumes_input:
-  - name: part_name
-    path: cars[IDX_CAR].parts[:@IDX_PART].name
-```
-
-In the invalid binding above, the component consumes all indices of the parts list and therefore storing the price data at a specific part index is not possible. The bindings below are valid since `IDX_PART` is omitted for the bindings in the `provides_results` section
-
-```yml
-provides_results: 
-  # Assign a 'part_names' attribute to the car object. 
-  # Could be a a list of all part names for that car
-  - name: part_names 
-    path: cars[IDX_CAR].part_names # index specifier for parts omitted
-
-  # Assign a 'concatenates_part_names' attribute to the car object.
-  # Could be a string with all part names concatenated
-  - name: concatenates_part_names 
-    path: cars[IDX_CAR].concatenates_part_names # index specifier for parts omitted
-consumes_input:
-  - name: part_name
-    path: cars[IDX_CAR].parts[:@IDX_PART].name
-```
-
-In addition to defining the index identifiers the input sections also defines index contexts. The index context is the order and hierarchy of the index identifiers. For example an input binding `cars[IDX_CAR].parts[IDX_PART].price` would define both the index identifiers `IDX_CAR` and `IDX_PART` as well as define the index context `IDX_CAR -> IDX_PART`. This index context shows that a part index exists only in the context of a car index. Index identifiers should be used in a unique context i.e. if one input binding defines `cars[IDX_CAR].parts[IDX_PART].price` then defining or using `parts[IDX_PART].cars[IDX_CAR].price` is not allowed.
+Read more about paths, index specifiers and index identifiers 
+in the documentation for [`HubitModelPath`][hubit.config.HubitModelPath].
 
 ### Model refactoring
 
-The flexibility in the `hubit` bindings allows you to match the interfaces of your existing tools. Further, this flexibility allows you to refactor your components to get a model with good modularity and allows you to optimize for speed when multi-processing is used. Below we will show three different versions of the car model and outline some key differences in when multi-processing is used.
+The flexibility in the `Hubit` bindings allows you to match the interfaces of your existing tools. Further, this flexibility allows you to refactor your components to get a model with good modularity and allows you to optimize for speed when multi-processing is used. Below we will show three different versions of the car model and outline some key differences in when multi-processing is used.
 
 #### Model 1
 Model 1 is the one described above where the car price is calculated in a single component i.e. in a single process. Such an approach works well if the lookup of parts prices is fast and the car price calculation is also fast. If, however, the lookup is fast while the car price calculation is slow, and we imagine that another component is consuming the parts prices, then the car price calculation would be a bottleneck. In such cases, separating the lookup from the price calculation would probably boost performance. Models 2 and 3 present two different ways of implementing such a separation.
@@ -177,7 +141,7 @@ Model 1 is the one described above where the car price is calculated in a single
 #### Model 2
 In this version of the model the parts price lookup and the car price calculation functionalities are implemented in two separate components. Further, the component responsible for the price lookup retrieves the price for one part only. In other words, each lookup will happen in a separate asynchronous process. When all the lookup processes are done, the price component sums the parts prices to get the total car price. The relevant sections of the model file could look like this
 
-```yml
+```yaml
 - consumes_input:
     - name: part_name
       path: cars[IDX_CAR].parts[IDX_PART].name 
@@ -216,7 +180,7 @@ In this refactored model `hubit` will, when submitting a query for the car price
 #### Model 3
 In this version of the model all lookups take place in one single process and the car price calculation  takes place in another process. For the lookup component, the relevant sections of the model file could look like this
 
-```yml
+```yaml
 consumes_input:
   - name: parts_name
     path: cars[IDX_CAR].parts[:@IDX_PART].name 
@@ -242,7 +206,7 @@ In this model, the car price component is identical to the one used in model 2 a
 ### Paths
 To tie together the bindings with the the Python code that does the actual work you need to add the path of the Python source code file to the model file. For the first car model it could look like this.
 
-```yml
+```yaml
 - path: ./components/price1.py 
   func_name: price
   provides_results: 
@@ -257,7 +221,7 @@ To tie together the bindings with the the Python code that does the actual work 
 
 The specified path should be relative to model's `base_path`, which defaults to the location of the model file when the model is initialized using the `from_file` method. To specify a module in site packages replace the `path` attribute in the model file with a `module` attribute. This could look like this 
 
-```yml
+```yaml
 module: hubit_components.price1
 ```
 

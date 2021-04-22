@@ -4,13 +4,13 @@
 
 ## Full examples in the repository
 In the examples all calculation are, for simplicity, carried out directly in the 
-hubit component, but the component could just as well wrap a C library, request 
+`Hubit` component, but the component could just as well wrap a C library, request 
 data from a web server or use an installed Python package. The examples are summarized below.
 
-* `examples/car`. This examples encompass the two car models shown above. The example also illustrates the use of model-level caching and component-level caching.
-* `examples/wall`. This example illustrates heat flow calculations and cost calculations for a wall with two segments. Each wall segment has multiple wall layers that consist of different materials. The example demonstrates model rendering (`run_render.py`), simple queries (`run_queries.py`) with model level caching, reusing previously calculated results `run_precompute.py`, setting results manually (`run_set_results.py`) and input parameter sweeps (`run_sweep.py`). Most of the wall examples run with or without multi-processing.
+* [`examples/car`](https://github.com/mrsonne/hubit/tree/master/examples/car). This example encompass the two car models shown above. The example also illustrates the use of model-level caching and component-level caching.
+* [`examples/wall`](https://github.com/mrsonne/hubit/tree/master/examples/wall). This example illustrates heat flow calculations and cost calculations for a wall with two segments. Each wall segment has multiple wall layers that consist of different materials. The example demonstrates model rendering (`run_render.py`), simple queries (`run_queries.py`) with model level caching, reusing previously calculated results `run_precompute.py`, setting results manually (`run_set_results.py`) and input parameter sweeps (`run_sweep.py`). Most of the wall examples run with or without multi-processing.
 
-To run, for example, the car example clone the repository and execute from the project root 
+To run, for example, the car example clone the repository and execute the command below from the project root 
 
 ```sh
 python -m examples.car.run
@@ -20,17 +20,19 @@ python -m examples.car.run
 
 This tutorial follows, to a large extent, the example in [`examples/car`](https://github.com/mrsonne/hubit/tree/master/examples/car). The example will be explained and some key `Hubit` terminology will be introduced. 
 
+In the example let us imagine that we are calculating the price of a car using based on the names of the parts. So the calculation involves a lookup of the price for each part and a summation of the parts prices.
+
 ### Components
-To use `Hubit` your existing tools each need to be wrapped as a `hubit` _component_. A `hubit` component has bindings to the input data and to the results data. The bindings define which attributes the component
+First, your existing tools each need to be wrapped as a `Hubit` _component_. A `hubit` component is a computational task that has bindings to the input data and to the results data. The bindings define which attributes the component
 
 - _consumes_ from the shared input data structure, 
 - _consumes_ from the shared results data structure, and 
 - _provides_ to the shared results data structure. 
 
-From the bindings `hubit` checks that all required input data and results data is available before a component is executed. The bindings are defined in a _model file_. 
+From the bindings `Hubit` can check that all required input data and results data is available before the computational task is executed. The bindings are defined in a _model file_. 
 
 ### Component entrypoint
-As an example imagine that we are calculating the price of a car. Below you can see some pseudo code for the calculation for the car price calculation. The example is available in `examples\car\` 
+Below you can see some pseudo code for the calculation for the car price calculation. The example is available in [`mod1_cmp1.py`](https://github.com/mrsonne/hubit/tree/master/examples/car/components/mod1_cmp1.py)
 
 ```python
 def price(_input_consumed, _results_consumed, results_provided):
@@ -77,18 +79,17 @@ cars:
           name: engine14
 ```
 
-The `price` function above expects a list of part names be stored in the key `part_names` and a list of the corresponding part counts be stored in the key `part_counts`. To achieve this behavior the model file should contain the lines below.
+The `price` entrypoint above expects a list of part names be stored in the key `part_names` and a list of the corresponding part counts be stored in the key `part_counts`. Make such lists available in the expected fields, the model file should contain the lines below.
 
 ```yml
-consumes:
-    input:
-        - name: part_names # key in component input dict
-          path: cars[IDX_CAR].parts[:@IDX_PART].name # path in input data
-        - name: part_counts
-          path: cars[IDX_CAR].parts[:@IDX_PART].count
+consumes_input:
+  - name: part_names # key in component input dict
+    path: cars[IDX_CAR].parts[:@IDX_PART].name # path in input data
+  - name: part_counts
+    path: cars[IDX_CAR].parts[:@IDX_PART].count
 ```
 
-The strings in square braces are called _index specifiers_. The index specifier `:@IDX_PART` refers to all items for the _index identifier_ `IDX_PARTS`. In this case the specifier contains a slice and an index identifier. The index identifier can be any string that does not include the characters `:` or `@`. The index specifier `IDX_CAR` is actually an index identifier (no `:@` prefix) and refers to a specific car. 
+The strings in square braces are called _index specifiers_. The index specifier `:@IDX_PART` refers to all items for the _index identifier_ `IDX_PART`. In this case the specifier contains a slice and a reference to an index identifier. The index specifier `IDX_CAR` is simply an index identifier and refers to a specific car. 
 
 With the input data and bindings shown above, the content of `_input_consumed` in the `price` function for the car at index 1 will be 
 
@@ -96,7 +97,7 @@ With the input data and bindings shown above, the content of `_input_consumed` i
 {'part_counts': [4, 1, 2, 1], 'part_names':  ['wheel2', 'chassis2', 'bumper', 'engine14']}
 ```
 
-i.e. the components will have all counts and part names for a single car. The binding should be set up so that the data in `_input_consumed` (and possibly data in `_results_consumed`) suffice to calculate the car price. 
+i.e. the components will have all counts and part names for a single car in this case the car at index 1 in the input. 
 
 In the last line of the `price` function, the car price is added to the results
 
@@ -104,67 +105,64 @@ In the last line of the `price` function, the car price is added to the results
 results_provided['car_price'] = result
 ```
 
-In the model file the binding below will make sure that data stored in `results_provided['car_price']` is transferred to a results data object at the same car index as where the input data was taken from.
+To enable the transfer of the calculated car price to the shared results data object we must add a binding from the internal component name `car_price` to an appropriate field in the shared results object. If, for example, we want to store the car price in a field called `price` at the same car index as where the input data was taken from, the binding below should be added to the model file.
 
 ```yml
-provides: 
-    - name: car_price # internal name in the component
-      path: cars[IDX_CAR].price # path in the shared data model
+provides_results: 
+  - name: car_price # internal name in the component
+    path: cars[IDX_CAR].price # path in the shared results data
 ```
 
-The value in the binding name should match the key used in the component when setting the value on `results_provided`. It is the index specifier `IDX_CAR` in the binding path that tells `hubit` to store the car price at the same car index as where the input was taken from. Note that the component itself is unaware of which car (car index) the input represents. 
+It is the index specifier `IDX_CAR` in the binding path that tells `Hubit` to store the car price at the same car index as where the input was taken from. Note that the component itself is unaware of which car (car index) the input represents. 
 
 Collecting the bindings we get
 
 ```yml
-provides : 
-    - name: car_price # internal name in the component
-      path: cars[IDX_CAR].price # path in the shared data model
-consumes:
-    input:
-        - name: part_name
-          path: cars[IDX_CAR].parts[:@IDX_PART].name
-        - name: part_counts
-          path: cars[IDX_CAR].parts[:@IDX_PART].count
+provides_results: 
+  - name: car_price # internal name in the component
+    path: cars[IDX_CAR].price # path in the shared data 
+consumes_input:
+  - name: part_name
+    path: cars[IDX_CAR].parts[:@IDX_PART].name
+  - name: part_counts
+    path: cars[IDX_CAR].parts[:@IDX_PART].count
 ```
 
 ### Index specifiers & index contexts
-`hubit` infers indices and list lengths based on the input data and the index specifiers *defined* for binding paths in the `consumes.input` section. Therefore, index identifiers *used* in binding paths in the `consumes.results` and `provides` sections should always be exist in binding paths in `consumes.input`. 
+`Hubit` infers indices and list lengths based on the input data and the index specifiers *defined* for binding paths in the `consumes_input` section. Therefore, index identifiers *used* in binding paths in the `consumes_results` and `provides_results` sections should always be exist in binding paths in `consumes_input`. 
 
-Further, to provide a meaningful index mapping, the index specifier used in a binding path in the `provides` section should be identical to the corresponding index specifier in the `consumes.input`. The first binding in the example below has a more specific index specifier (for the identifier `IDX_PART`) and is therefore invalid. The second binding is valid.
+Further, to provide a meaningful index mapping, the index specifier used in a binding path in the `provides_results` section should be identical to the corresponding index specifier in the `consumes_input`. The first binding in the example below has a more specific index specifier (for the identifier `IDX_PART`) and is therefore invalid. The second binding is valid.
 
 ```yml
-provides : 
-    # INVALID
-    - name: part_name 
-      path: cars[IDX_CAR].parts[IDX_PART].name # more specific for the part index
+provides_results: 
+  # INVALID
+  - name: part_name 
+    path: cars[IDX_CAR].parts[IDX_PART].name # more specific for the part index
 
-    # VALID: Assign a 'price' attribute each part object in the car object.
-    - name: parts_price
-      path: cars[IDX_CAR].parts[:@IDX_PART].price # index specifier for parts is equal to consumes.input.path
-consumes:
-    input:
-        - name: part_name
-          path: cars[IDX_CAR].parts[:@IDX_PART].name
+  # VALID: Assign a 'price' attribute each part object in the car object.
+  - name: parts_price
+    path: cars[IDX_CAR].parts[:@IDX_PART].price # index specifier for parts is equal to consumes.input.path
+consumes_input:
+  - name: part_name
+    path: cars[IDX_CAR].parts[:@IDX_PART].name
 ```
 
-In the invalid binding above, the component consumes all indices of the parts list and therefore storing the price data at a specific part index is not possible. The bindings below are valid since `IDX_PART` is omitted for the bindings in the `provides` section
+In the invalid binding above, the component consumes all indices of the parts list and therefore storing the price data at a specific part index is not possible. The bindings below are valid since `IDX_PART` is omitted for the bindings in the `provides_results` section
 
 ```yml
-provides : 
-    # Assign a 'part_names' attribute to the car object. 
-    # Could be a a list of all part names for that car
-    - name: part_names 
-      path: cars[IDX_CAR].part_names # index specifier for parts omitted
+provides_results: 
+  # Assign a 'part_names' attribute to the car object. 
+  # Could be a a list of all part names for that car
+  - name: part_names 
+    path: cars[IDX_CAR].part_names # index specifier for parts omitted
 
-    # Assign a 'concatenates_part_names' attribute to the car object.
-    # Could be a string with all part names concatenated
-    - name: concatenates_part_names 
-      path: cars[IDX_CAR].concatenates_part_names # index specifier for parts omitted
-consumes:
-    input:
-        - name: part_name
-          path: cars[IDX_CAR].parts[:@IDX_PART].name
+  # Assign a 'concatenates_part_names' attribute to the car object.
+  # Could be a string with all part names concatenated
+  - name: concatenates_part_names 
+    path: cars[IDX_CAR].concatenates_part_names # index specifier for parts omitted
+consumes_input:
+  - name: part_name
+    path: cars[IDX_CAR].parts[:@IDX_PART].name
 ```
 
 In addition to defining the index identifiers the input sections also defines index contexts. The index context is the order and hierarchy of the index identifiers. For example an input binding `cars[IDX_CAR].parts[IDX_PART].price` would define both the index identifiers `IDX_CAR` and `IDX_PART` as well as define the index context `IDX_CAR -> IDX_PART`. This index context shows that a part index exists only in the context of a car index. Index identifiers should be used in a unique context i.e. if one input binding defines `cars[IDX_CAR].parts[IDX_PART].price` then defining or using `parts[IDX_PART].cars[IDX_CAR].price` is not allowed.
@@ -180,21 +178,19 @@ Model 1 is the one described above where the car price is calculated in a single
 In this version of the model the parts price lookup and the car price calculation functionalities are implemented in two separate components. Further, the component responsible for the price lookup retrieves the price for one part only. In other words, each lookup will happen in a separate asynchronous process. When all the lookup processes are done, the price component sums the parts prices to get the total car price. The relevant sections of the model file could look like this
 
 ```yml
-- consumes:
-    input:
-        - name: part_name
-          path: cars[IDX_CAR].parts[IDX_PART].name 
-        - name: part_count
-          path: cars[IDX_CAR].parts[IDX_PART].count
-  provides:
-        - name: part_price
-          path: cars[IDX_CAR].parts[IDX_PART].price
+- consumes_input:
+    - name: part_name
+      path: cars[IDX_CAR].parts[IDX_PART].name 
+    - name: part_count
+      path: cars[IDX_CAR].parts[IDX_PART].count
+  provides_results:
+    - name: part_price
+      path: cars[IDX_CAR].parts[IDX_PART].price
 
-- consumes:
-    results:
-        - name: prices
-          path: cars[IDX_CAR].parts[:@IDX_PART].price
-  provides : 
+- consumes_results:
+    - name: prices
+      path: cars[IDX_CAR].parts[:@IDX_PART].price
+  provides_results: 
     - name: car_price 
       path: cars[IDX_CAR].price
 ```
@@ -221,13 +217,12 @@ In this refactored model `hubit` will, when submitting a query for the car price
 In this version of the model all lookups take place in one single process and the car price calculation  takes place in another process. For the lookup component, the relevant sections of the model file could look like this
 
 ```yml
-consumes:
-  input:
-    - name: parts_name
-      path: cars[IDX_CAR].parts[:@IDX_PART].name 
-    - name: parts_count
-      path: cars[IDX_CAR].parts[:@IDX_PART].count
-provides:
+consumes_input:
+  - name: parts_name
+    path: cars[IDX_CAR].parts[:@IDX_PART].name 
+  - name: parts_count
+    path: cars[IDX_CAR].parts[:@IDX_PART].count
+provides_results:
   - name: parts_price
     path: cars[IDX_CAR].parts[:@IDX_PART].price
 ```
@@ -250,11 +245,10 @@ To tie together the bindings with the the Python code that does the actual work 
 ```yml
 - path: ./components/price1.py 
   func_name: price
-  provides : 
+  provides_results: 
     - name: car_price
       path: cars[IDX_CAR].price
-  consumes:
-    input:
+  consumes_input:
       - name: part_names
         path: cars[IDX_CAR].parts[:@IDX_PART].name
       - name: part_counts

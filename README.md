@@ -89,7 +89,7 @@ and the corresponding response is
 ```
 
 
-`Hubit` can render models and queries. In the example below we have [rendered][hubit.model.HubitModel.render] the query `cars[0].price` i.e. the price of the car at index 0 using 
+`Hubit` can render models and queries. In the example below we have rendered the query `cars[0].price` i.e. the price of the car at index 0 using 
 
 ```python
 query = ['cars[0].price']

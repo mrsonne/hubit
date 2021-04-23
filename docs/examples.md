@@ -50,7 +50,7 @@ def price(_input_consumed, _results_consumed, results_provided):
     results_provided['car_price'] = result
 ```
 
-The main function (entrypoint) in a component (`price` in the example above) should expect the arguments `_input_consumed`, `_results_consumed` and `results_provided` in that order. Results data calculated in the components should only be added to the latter. The values stored in the keys `part_counts` and `part_names` in `_input_consumed` are controlled by the bindings in the model file. 
+The entrypoint function in a component (`price` in the example above) should expect the arguments `_input_consumed`, `_results_consumed` and `results_provided` in that order. Results data calculated in the components should only be added to the latter. The values stored in the keys `part_counts` and `part_names` in `_input_consumed` are controlled by the bindings in the model file. 
 
 ### Model file & component bindings
 Before we look at the bindings let us look at the input data. The input can, like in the example below, be defined in a yml file. In the car example the input data is a list containing two cars each with a number of parts
@@ -131,17 +131,18 @@ consumes_input:
 Read more about paths, index specifiers and index identifiers 
 in the documentation for [`HubitModelPath`][hubit.config.HubitModelPath].
 
-### Model refactoring
+### Refactoring
 
-The flexibility in the `Hubit` bindings allows you to match the interfaces of your existing tools. Further, this flexibility allows you to refactor your components to get a model with good modularity and allows you to optimize for speed when multi-processing is used. Below we will show three different versions of the car model and outline some key differences in when multi-processing is used.
+The flexibility in the `Hubit` binding paths allows you to match the interfaces of your existing tools. Further, this flexibility enables you to refactor to get good modularity and optimize for speed when multi-processing is used. Below we will show three versions of the car model and outline some key differences when multi-processing is used.
 
-#### Model 1
-Model 1 is the one described above where the car price is calculated in a single component i.e. in a single process. Such an approach works well if the lookup of parts prices is fast and the car price calculation is also fast. If, however, the lookup is fast while the car price calculation is slow, and we imagine that another component is consuming the parts prices, then the car price calculation would be a bottleneck. In such cases, separating the lookup from the price calculation would probably boost performance. Models 2 and 3 present two different ways of implementing such a separation.
+#### Car model 1
+Model 1 is the one described above where the car price is calculated in a single component i.e. in a single worker process. Such an approach works well if the lookup of parts prices is fast and the car price calculation is also fast. If, however, the lookup is fast while the car price calculation is slow, and we imagine that another component is also consuming the parts prices, then the car price calculation would be a bottleneck. In such cases, separating the lookup from the price calculation would probably boost performance. Models 2 and 3 present two different ways of implementing such a separation.
 
-#### Model 2
-In this version of the model the parts price lookup and the car price calculation functionalities are implemented in two separate components. Further, the component responsible for the price lookup retrieves the price for one part only. In other words, each lookup will happen in a separate asynchronous process. When all the lookup processes are done, the price component sums the parts prices to get the total car price. The relevant sections of the model file could look like this
+#### Car model 2
+In this version of the model the parts price lookup and the car price calculation are implemented in two separate components. Further, the component that is responsible for the price lookup retrieves the price for one part only. In other words, each lookup will happen in a separate asynchronous worker process. When all the lookup processes are done, the price component sums the parts prices to get the total car price. The relevant sections of the model file could look like this
 
 ```yaml
+# price for one part
 - consumes_input:
     - name: part_name
       path: cars[IDX_CAR].parts[IDX_PART].name 
@@ -151,6 +152,7 @@ In this version of the model the parts price lookup and the car price calculatio
     - name: part_price
       path: cars[IDX_CAR].parts[IDX_PART].price
 
+# car price from parts prices
 - consumes_results:
     - name: prices
       path: cars[IDX_CAR].parts[:@IDX_PART].price
@@ -159,7 +161,7 @@ In this version of the model the parts price lookup and the car price calculatio
       path: cars[IDX_CAR].price
 ```
 
-Notice that the first component consumes a specific part index (`IDX_PART`) for a specific car index (`IDX_CAR`). This allows the component to store results data on a specific part index for a specific car index. The first component (price for one component) could look something like this
+Notice that the first component consumes a specific part index (`IDX_PART`) for a specific car index (`IDX_CAR`). This allows the component to store results data on a specific part index for a specific car index. The entrypoint function for the first component (price for one part) could look something like this
 
 ```python
 def part_price(_input_consumed, _results_consumed, results_provided):
@@ -168,19 +170,20 @@ def part_price(_input_consumed, _results_consumed, results_provided):
     results_provided['part_price'] = count*my_lookup_function(name)
 ```
 
-The second component (car price) could look like this
+The entrypoint function for the second component (car price) could look like this
 
 ```python
 def car_price(_input_consumed, _results_consumed, results_provided):
     results_provided['car_price'] = sum( _results_consumed['prices'] )
 ```
 
-In this refactored model `hubit` will, when submitting a query for the car price using the multi-processor flag, execute each `part_price` calculation in a separate asynchronous process. If the `part_price` lookup is fast, the overhead introduced by multi-processing may be render model 2 less attractive. In such cases performing all the lookups in a single component, but still keeping the lookup separate from the price calculation, could be a good solution. 
+In this refactored model `Hubit` will, when submitting a query for the car price using the multi-processor flag, execute each part price calculation in a separate asynchronous worker process. If the part price lookup is fast, the overhead introduced by multi-processing may be render model 2 less attractive. In such cases performing all the lookups in a single component, but still keeping the lookup separate from the car price calculation, could be a good solution. 
 
-#### Model 3
-In this version of the model all lookups take place in one single process and the car price calculation  takes place in another process. For the lookup component, the relevant sections of the model file could look like this
+#### Car model 3
+In this version of the car model all price lookups take place in one single component and the car price calculation takes place in another component. For the lookup component, the relevant sections of the model file could look like this
 
 ```yaml
+# price for all parts
 consumes_input:
   - name: parts_name
     path: cars[IDX_CAR].parts[:@IDX_PART].name 
@@ -191,17 +194,18 @@ provides_results:
     path: cars[IDX_CAR].parts[:@IDX_PART].price
 ```
 
-Notice that the component consumes all part indices (`:@IDX_PART`) for a specific car index (`IDX_CAR`). This allows the component to store results data on all part indices for a specific car index. The first component (price for one component) could look something like this
+Notice that the component consumes all part indices (`:@IDX_PART`) for a specific car index (`IDX_CAR`). This allows the component to store results data on all part indices for a specific car index. The entrypoint for the first component (price for all parts) could look something like this
 
 ```python
 def part_price(_input_consumed, _results_consumed, results_provided):
     counts = _input_consumed['parts_count'] 
     names = _input_consumed['parts_name'] 
-    results_provided['parts_price'] = [ count*my_lookup_function(name)
-                                         for count, name in zip(counts, names) ]
+    results_provided['parts_price'] = [count*my_lookup_function(name)
+      for count, name in zip(counts, names)
+    ]
 ```
 
-In this model, the car price component is identical to the one used in model 2 and is omitted here.
+In this model, the car price component is identical to the one used in model 2 and is therefore omitted here.
 
 ### Paths
 To tie together the bindings with the the Python code that does the actual work you need to add the path of the Python source code file to the model file. For the first car model it could look like this.
@@ -213,27 +217,27 @@ To tie together the bindings with the the Python code that does the actual work 
     - name: car_price
       path: cars[IDX_CAR].price
   consumes_input:
-      - name: part_names
-        path: cars[IDX_CAR].parts[:@IDX_PART].name
-      - name: part_counts
-        path: cars[IDX_CAR].parts[:@IDX_PART].count
+    - name: part_names
+      path: cars[IDX_CAR].parts[:@IDX_PART].name
+    - name: part_counts
+      path: cars[IDX_CAR].parts[:@IDX_PART].count
 ```
 
-The specified path should be relative to model's `base_path`, which defaults to the location of the model file when the model is initialized using the `from_file` method. To specify a module in site packages replace the `path` attribute in the model file with a `module` attribute. This could look like this 
+The specified path should be relative to [`model's`][hubit.model.HubitModel] `base_path` attribute, which defaults to the location of the model file when the model is initialized using the [`from_file`][hubit.model.HubitModel.from_file] method. You can also use a [dotted path][hubit.config.HubitModelComponent] e.g.
 
 ```yaml
-module: hubit_components.price1
+path: hubit_components.price1
+is_dotted_path: True
 ```
 
-where `hubit_components` is a package you have created that contains the module `price1`.
+where `hubit_components` would typically be a package you have installed in site-packages.
 
 ### Running
-To get results from a model requires you to submit a _query_, which tells `hubit` what attributes from the results data structure you want to have calculated. After `hubit` has processed the query, i.e. executed relevant components, the values of the queried attributes are returned in the _response_. A query may spawn many component _workers_ that may represent the same or different model components. Below are two examples of queries and the corresponding responses.
+To get results from a model requires you to submit a _query_, which is a sequence of [`query paths`][hubit.config.HubitModelPath] each referencing a field in the results data structure that you want to have calculated. After `Hubit` has processed the query, i.e. executed relevant components, the values of the queried attributes are returned in the _response_. A query may spawn many component workers that may be instance of the same or different model components. Below are two examples of queries and the corresponding responses.
 
 ```python
 # Load model from file
-hmodel = HubitModel.from_file('model1.yml',
-                              name='car')
+hmodel = HubitModel.from_file('model1.yml', name='car')
 
 # Load the input
 with open(os.path.join(THISPATH, "input.yml"), "r") as stream:
@@ -250,11 +254,10 @@ response = hmodel.get(query)
 The response looks like this
 
 ```python
-print(response)
 {'cars[0].price': 4280.0}
 ```
 
-A query for parts prices for all cars looks like this
+Is this case the parts prices will also be calculated by `Hubit` to create the response. A query for parts prices for all cars looks like this
 
 ```python
 query = ['cars[:].parts[:].price']
@@ -269,7 +272,7 @@ and the corresponding response is
 ```
 
 ### Rendering
-If Graphviz is installed `hubit` can render models and queries. In the example below we have rendered the query `cars[0].price` i.e. the price of the car at index 0.
+If Graphviz is installed `Hubit` can render models and queries. In the example below we have rendered the query `[cars[0].price]` i.e. the price of the car at index 0.
 
 
 <a target="_blank" rel="noopener noreferrer" href="https://github.com/mrsonne/hubit/blob/master/examples/car/images/query_car_2.png">
@@ -282,8 +285,6 @@ The graph illustrates nodes in the input data structure, nodes in the the result
 query = ['cars[0].price']
 hmodel.render(query)
 ```
-
-The Examples section below lists more examples that illustrate more `hubit` functionality.
 
 ### Validation
 
@@ -304,11 +305,12 @@ will validate various aspects of the query.
 ### Caching
 
 #### Model-level caching. 
-By default hubit `never` caches results internally. A `hubit` model can, however, write results to disk automatically by setting the caching level using the `set_model_caching` method. Results can be saved either in an `incremental` fashion i.e. every time a component worker completes or `after_execution`. Results caching is useful when you want to avoid spending time calculating the same results multiple times. A use case for `incremental` caching is when a calculation is stopped (computer shutdown, keyboard interrupt, exception raised) before the response has been generated. In such cases the calculation can be restarted from the cached results. The overhead introduced by caching makes it especially useful for CPU bound models. The table below comes from printing the log after running model 2 with and without model-level caching
+By default `Hubit` never caches results internally. A `Hubit` model can, however, write results to disk automatically by using the [`set_model_caching`][hubit.model.HubitModel.set_model_caching] method to set the caching level. Results caching is useful when you want to avoid spending time calculating the same results multiple times or to have `Hubit` create restart snapshots. The table below comes from printing the log after running model 2 with and without model-level caching
 
-```
+```python
 print(hmodel.log())
-
+```
+```
 --------------------------------------------------------------------------------------------------
 Query finish time    Query took (s)        Worker name        Workers spawned Component cache hits
 --------------------------------------------------------------------------------------------------
@@ -321,31 +323,17 @@ Query finish time    Query took (s)        Worker name        Workers spawned Co
 
 The second run (top) using the cache is much faster than the first run (bottom) that spawns 17 workers to complete the query. 
 
-__Warning__. Cached results are tied only to the content of the model configuration
-file and the model input. `hubit` does not check if the underlying calculation code has changed. Therefore, using results caching while components are in development is not recommended.
-
-`hubit`'s behavior in four parameter combinations is summarized below
-
-|Write<sup>*</sup>  | Read<sup>**</sup>   |  Behavior |
-|-------|-------|-----------|
-|Yes    | Yes   |  Any cached results for the model are loaded. These results will be saved (incrementally or after execution) and may be augmented in the new run depending on the new query |
-|Yes    | No    |  Model results are cached incrementally or after execution. These new results overwrite any existing results cached for the model |
-|No     | Yes   |  Any cached results for the model are loaded. No new results are cached and therefore the cached results will remain the same after execution.
-|No     | No    |  No results are cached and no results are loaded into the model |
-|       |       |           |
-
-<sup>*</sup> "Yes" corresponds to setting the caching level to either `incremental` or `after_execution` using the `set_model_caching` method. "No" corresponds to caching level `never`. <sup>**</sup> "Yes" corresponds `use_results="cached"` in the `get` method while "No" corresponds to `use_results="none"`.
-
-The model cache can be cleared using the `clear_cache` method on a `hubit` model. To check if a model has an associated cached result use `has_cached_results` method on a `hubit` model. Cached results for all models can be cleared by using `hubit.clear_hubit_cache()`.
+The model cache can be cleared using the [`clear_cache`][hubit.model.HubitModel.clear_cache]  method on a `Hubit` model. To check if a model has an associated cached result use [`has_cached_results`][hubit.model.HubitModel.has_cached_results] method on a `Hubit` model. Cached results for all models can be cleared by using [`hubit.clear_hubit_cache`][hubit.__init__.clear_hubit_cache].
 
 #### Component-level caching 
-Component-level caching can be activated using the method `set_component_caching(True)` on a `hubit` model instance. By default component-level caching is off. If component-level caching is on, the consumed data for all spawned component workers and the corresponding results will be stored in memory during execution of a query. If `hubit` finds that, in the same query, two workers refer to the same model component and the input data are identical, the second worker will simply use the results produced by the first worker. The cache is not shared between sequential queries to a model. Also, the component-level cache is not shared between the individual sampling runs using `get_many`.
+Component-level caching can be activated using [set_component_caching][hubit.model.HubitModel.set_component_caching]. By default component-level caching is off. If component-level caching is on, the consumed data for all spawned component workers and the corresponding results will be stored in memory during execution of a query. If `Hubit` finds that, in the same query, two workers refer to the same model component and the input data are identical, the second worker will simply use the results produced by the first worker. The cache is not shared between sequential queries to a model. Also, the component-level cache is not shared between the individual sampling runs using ['get_many'][hubit.model.HubitModel.get_many].
 
-The table below comes from printing the log after running model 2 with and without component-level caching
+The table below comes from printing the log after running car model 2 with and without component-level caching
 
-```
+```python
 print(hmodel.log())
-
+```
+```
 --------------------------------------------------------------------------------------------------
 Query finish time    Query took (s)        Worker name        Workers spawned Component cache hits
 --------------------------------------------------------------------------------------------------
@@ -356,6 +344,6 @@ Query finish time    Query took (s)        Worker name        Workers spawned Co
 --------------------------------------------------------------------------------------------------
 ```
 
-The second run (top) using component-caching is faster than the first run (bottom). Both queries spawn 17 workers in order to complete the query, but in the case where component-caching is active (top) 8 workers reuse results provided by the remaining 9 workers. 
+The second run (top) uses component-caching and is faster than the first run (bottom). Both queries spawn 17 workers in order to complete the query, but in the case where component-caching is active (top) 8 workers reuse results provided by the remaining 9 workers. 
 
-For smaller jobs any speed-up obtained my using component-level caching cannot be seen on the wall clock when using multi-processing. The effect will, however, be apparent in the model `log()`.
+For smaller jobs any speed-up obtained my using component-level caching cannot be seen on the wall clock when using multi-processing. The effect will, however, be apparent in the model [log][hubit.model.HubitModel.log] as seen above.

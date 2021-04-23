@@ -152,6 +152,31 @@ class HubitModel(_HubitModel):
         """
         Set the model caching mode.
 
+        Results caching is useful when you want to avoid spending time calculating 
+        the same results multiple times. A use case for `incremental` caching is when 
+        a calculation is stopped (computer shutdown, keyboard interrupt, 
+        exception raised) before the response has been generated. In such cases 
+        the calculation can be restarted from the cached results. The overhead 
+        introduced by caching makes it especially useful for CPU bound models.
+        A use case for `after_execution` caching is when writing the result data 
+        incrementally is a bottleneck.
+
+        __Warning__. Cached results are tied only to the content of the model configuration
+        file and the model input. `Hubit` does not check if the underlying calculation code has changed. Therefore, using results caching while components are in development is not recommended.
+
+        `hubit`'s behavior in four parameter combinations is summarized below
+
+        |Write<sup>*</sup>  | Read<sup>**</sup>   |  Behavior |
+        |-------|-------|-----------|
+        |Yes    | Yes   |  Any cached results for the model are loaded. These results will be saved (incrementally or after execution) and may be augmented in the new run depending on the new query |
+        |Yes    | No    |  Model results are cached incrementally or after execution. These new results overwrite any existing results cached for the model |
+        |No     | Yes   |  Any cached results for the model are loaded. No new results are cached and therefore the cached results will remain the same after execution.
+        |No     | No    |  No results are cached and no results are loaded into the model |
+        |       |       |           |
+
+        <sup>*</sup> "Yes" corresponds to setting the caching level to either `incremental` or `after_execution` using the `set_model_caching` method. "No" corresponds to caching level `never`. <sup>**</sup> "Yes" corresponds `use_results="cached"` in the `get` method while "No" corresponds to `use_results="none"`.
+
+
         Arguments:
             caching_mode: Valid options are: "none", "incremental", "after_execution".
                 If "none" model results are not cached. If "incremental" the results are

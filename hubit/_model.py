@@ -251,7 +251,6 @@ class _HubitModel:
             direction = -1
             workers = []
             for component in self.model_cfg.components:
-                func_name = component.func_name
                 path = component.provides_results[0].path
                 dummy_query = HubitModelPath.as_internal(
                     path.set_indices(["0" for _ in path.get_index_specifiers()])
@@ -259,14 +258,13 @@ class _HubitModel:
 
                 # Get function and version to init the worker
                 (func, version, _) = _QueryRunner._get_func(
-                    self.base_path, func_name, component, components={}
+                    self.base_path, component, components={}
                 )
                 manager = None
                 workers.append(
                     _Worker(
                         manager,
                         self,
-                        func_name,
                         component,
                         dummy_query,
                         func,
@@ -713,12 +711,12 @@ class _HubitModel:
         """
         # TODO: Next two lines should only be executed once in init (speed)
         itempairs = [
-            (cmp.func_name, binding.path)
+            (cmp.id, binding.path)
             for cmp in self.model_cfg.components
             for binding in cmp.provides_results
         ]
-        func_names, providerstrings = zip(*itempairs)
-        return [func_names[idx] for idx in idxs_for_matches(qpath, providerstrings)]
+        cmp_ids, providerstrings = zip(*itempairs)
+        return [cmp_ids[idx] for idx in idxs_for_matches(qpath, providerstrings)]
 
     def component_for_name(self, name):
         return self.model_cfg.component_for_name[name]
@@ -737,26 +735,26 @@ class _HubitModel:
             str: Function name
         """
         # Get all components that provide data for the query
-        func_names = self._cmpnames_for_query(path)
+        cmp_ids = self._cmpnames_for_query(path)
 
-        if len(func_names) > 1:
+        if len(cmp_ids) > 1:
             fstr = "Fatal error. Multiple providers for query '{}': {}"
-            msg = fstr.format(path, func_names)
+            msg = fstr.format(path, cmp_ids)
             raise HubitModelQueryError(msg)
 
-        if len(func_names) == 0:
+        if len(cmp_ids) == 0:
             msg = f"Fatal error. No provider for query path '{path}'."
             raise HubitModelQueryError(msg)
 
         # Get the provider function for the query
-        return func_names[0]
+        return cmp_ids[0]
 
     def mpath_for_qpath(self, qpath: str) -> str:
         # Find component that provides queried result
-        cmp_name = self._cmpname_for_query(qpath)
+        cmp_id = self._cmpname_for_query(qpath)
 
         # Find and prune tree
-        cmp = self.model_cfg.component_for_name[cmp_name]
+        cmp = self.model_cfg.component_for_name[cmp_id]
         idx = idxs_for_matches(
             qpath, [binding.path for binding in cmp.provides_results]
         )[0]

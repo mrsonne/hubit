@@ -480,12 +480,25 @@ class LogItem:
     _extra_col = {"worker_counts": "Worker name"}
 
     # Both fields and extra columns
-    _header_fstr = " ".join(["{:<20}", "{:^12}", "{:^25}", "{:^15}", "{:^20}"])
-    _value_fstr = " ".join(["{:<20}", "{:^12.2}", "{:^25}", "{:^15}", "{:^20}"])
+    _header_formats = ["{:<20}", "{:^14}", "DUMMY", "{:^15}", "{:^20}"]
+    _value_formats = ["{:<20}", "{:^14.2}", "DUMMY", "{:^15}", "{:^20}"]
     _n_columns = len(_order) + len(_extra_col)
 
     @classmethod
-    def get_table_header(cls) -> str:
+    def _get_header_fstr(cls, width):
+        _header_formats = cls._header_formats
+        _header_formats[2] = f"{{:^{width}}}"
+        return " ".join(_header_formats)
+
+    @classmethod
+    def _get_value_fstr(cls, width):
+        _value_formats = cls._value_formats
+        _value_formats[2] = f"{{:^{width}}}"
+        return " ".join(_value_formats)
+
+
+    @classmethod
+    def get_table_header(cls, width: int = 30) -> str:
         headers = [
             LogItem._headers[field_name]
             if field_name in LogItem._headers
@@ -500,7 +513,22 @@ class LogItem:
             headers.insert(idx, xtra_header)
             added += 1
 
-        return cls._header_fstr.format(*headers)
+        header_fstr = cls._get_header_fstr(width)
+        return header_fstr.format(*headers)
+
+    
+    def width(self, field_name):
+        val = getattr(self, field_name)
+        if isinstance(val, Dict):
+            values = list(val.values())
+            if field_name in self._extra_col:
+                values += list(val.keys())
+            return max([len(str(val)) for val in values])
+        else:
+            return(len(str(val)))
+
+    def set_width(self, width):
+        self._width = width
 
     def __str__(self) -> str:
         items_for_field_idx = {}
@@ -542,8 +570,9 @@ class LogItem:
                 field_idx_offset += 1
 
         lines = []
+        value_fstr = self._get_value_fstr(self._width)
         for vals in vals_for_row_idx:
-            lines.append(self._value_fstr.format(*vals))
+            lines.append(value_fstr.format(*vals))
 
         # print(lines)
         return "\n".join(lines)
@@ -611,11 +640,14 @@ class HubitLog:
 
     def __str__(self):
         sepstr = "-"
-        lines = [LogItem.get_table_header()]
+        lines = []
+        width = max(logitem.width("worker_counts") for logitem in self.log_items) 
         for logitem in self.log_items:
+            logitem.set_width(width)
             lines.append(str(logitem))
-        width = max([len(line.split("\n")[0]) for line in lines])
-        sep = width * sepstr
+        total_width = max([len(line.split("\n")[0]) for line in lines])
+        sep = total_width * sepstr
+        lines.insert(0, LogItem.get_table_header(width))
         lines.insert(1, sep)
         lines.insert(0, sep)
         lines.append(sep)

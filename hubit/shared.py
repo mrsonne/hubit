@@ -459,7 +459,7 @@ class LengthTree:
         path_type: str = "model",
         as_internal_path: bool = False,
     ) -> List[HubitModelPath]:
-        """Expand external path with wildcard based on tree
+        """Expand model path with wildcard based on tree
 
         Example for a query path:
             list[:].some_attr.numbers ->
@@ -467,7 +467,7 @@ class LengthTree:
 
 
         Args:
-            path (HubitModelPath): Internal model path with wildcards and index IDs
+            path (HubitModelPath): Model path with wildcards and index IDs
             flat (bool): Return expansion result as a flat list.
             path_type (str): The path type. Valid path types are 'model' and 'query'. Not checked.
             as_internal_path (bool): Return expansion result as internal paths

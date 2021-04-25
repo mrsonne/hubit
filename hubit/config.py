@@ -350,15 +350,15 @@ class HubitBinding:
 
 @dataclass
 class HubitModelComponent:
-    """Represents one isolated calculation carried out by
+    """Represents one isolated task carried out by
     the function `func_name` located at `path`. The function requires
     input from the paths defined in `consumes_input` and
     `consumes_results`. The componet delivers results to the paths
     in `provides_results`.
 
     Args:
-        path (str): Path to the module responsible for the calculation.
-        func_name (str): The function name responsible for the calculation.
+        path (str): Path to the module responsible for the task.
+        func_name (str): The function name (entrypoint) that wraps the task.
         provides_results (List[HubitBinding]): [`HubitBinding`][hubit.config.HubitBinding] sequence specifying the results provided by the component.
         consumes_input (List[HubitBinding], optional): [`HubitBinding`][hubit.config.HubitBinding] sequence specifying the input consumed by the input consumed.
         consumes_results (List[HubitBinding]): [`HubitBinding`][hubit.config.HubitBinding] sequence specifying the input consumed by the results consumed.
@@ -366,10 +366,10 @@ class HubitModelComponent:
     """
 
     path: str
-    func_name: str
     provides_results: List[HubitBinding]
     consumes_input: List[HubitBinding] = field(default_factory=list)
     consumes_results: List[HubitBinding] = field(default_factory=list)
+    func_name: str = "main"
     is_dotted_path: bool = False
 
     def validate(self, cfg):
@@ -377,6 +377,17 @@ class HubitModelComponent:
         Validate the object
         """
         return self
+
+    @property
+    def id(self):
+        return self._id
+
+
+    def set_id(self):
+        if self.is_dotted_path:
+            self._id = f"{self.path}.{self.func_name}"
+        else:
+            self._id = f"{self.path.replace('.py', '')}.{self.func_name}"
 
     @classmethod
     def from_cfg(cls, cfg: Dict) -> HubitModelComponent:
@@ -448,13 +459,14 @@ class HubitModelConfig:
         # Convert to absolute paths
         self._base_path = os.path.dirname(self.model_file_path)
         for component in self.components:
+            component.set_id()
             if not component.is_dotted_path:
                 component.path = os.path.abspath(
                     os.path.join(self._base_path, component.path)
                 )
 
         self._component_for_name = {
-            component.func_name: component for component in self.components
+            component.id: component for component in self.components
         }
 
     @property
@@ -469,11 +481,6 @@ class HubitModelConfig:
         """
         Validate the object
         """
-        func_names = [component.func_name for component in self.components]
-
-        if not len(func_names) == len(set(func_names)):
-            raise HubitModelValidationError("Component function names must be unique")
-
         return self
 
     @classmethod

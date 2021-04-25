@@ -1,6 +1,9 @@
 from time import sleep
 
 
-def car_price(_input_consumed, _results_consumed, results_provided):
+def main(_input_consumed, _results_consumed, results_provided):
+    """
+    car price
+    """
     # sleep(0.5)
     results_provided["car_price"] = sum(_results_consumed["prices"])

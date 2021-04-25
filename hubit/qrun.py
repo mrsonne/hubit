@@ -49,26 +49,25 @@ class _QueryRunner:
             worker.join()
 
     @staticmethod
-    def _get_func(base_path, func_name, component_cfg: HubitModelComponent, components):
+    def _get_func(base_path, component_cfg: HubitModelComponent, components):
         """[summary]
 
         Args:
             base_path (str): Model base path
-            func_name (str): Function name
             component_cfg (HubitModelComponent): configuration data from the model definition file
             components (Dict):
 
         Returns:
             tuple: function handle, function version, and component dict
         """
-
+        func_name = component_cfg.func_name
         if not component_cfg.is_dotted_path:
             path, file_name = os.path.split(component_cfg.path)
             path = os.path.join(base_path, path)
             module_name = os.path.splitext(file_name)[0]
             path = os.path.abspath(path)
             file_path = os.path.join(path, file_name)
-            component_id = os.path.join(path, func_name)
+            component_id = component_cfg.id 
             if component_id in components.keys():
                 func, version = components[component_id]
                 return func, version, components
@@ -80,7 +79,7 @@ class _QueryRunner:
             spec.loader.exec_module(module)
         else:
             module = importlib.import_module(component_cfg.path)
-            component_id = f"{component_cfg.path}{func_name}"
+            component_id = component_cfg.id
             if component_id in components.keys():
                 func, version = components[component_id]
                 return func, version, components
@@ -108,11 +107,10 @@ class _QueryRunner:
             Any: _Worker or None
         """
 
-        func_name = self.model._cmpname_for_query(query_path)
-
-        component = self.model.component_for_name(func_name)
+        component_id = self.model._cmpname_for_query(query_path)
+        component = self.model.component_for_name(component_id)
         (func, version, self._components) = _QueryRunner._get_func(
-            self.model.base_path, func_name, component, self._components
+            self.model.base_path, component, self._components
         )
 
         # Create and return worker
@@ -120,7 +118,6 @@ class _QueryRunner:
             return _Worker(
                 manager,
                 self,
-                func_name,
                 component,
                 query_path,
                 func,
@@ -357,13 +354,13 @@ class _QueryRunner:
     def _add_log_items(self, t_start: float) -> float:
         # Set zeros for all components
         worker_counts = {
-            component.func_name: 0 for component in self.model.model_cfg.components
+            component.id: 0 for component in self.model.model_cfg.components
         }
         worker_counts.update(count(self.workers, key_from="name"))
 
         # Set zeros for all components
         cache_counts = {
-            component.func_name: 0 for component in self.model.model_cfg.components
+            component.id: 0 for component in self.model.model_cfg.components
         }
         cache_counts.update(
             count(

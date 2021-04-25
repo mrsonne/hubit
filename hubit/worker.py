@@ -1,4 +1,5 @@
 from __future__ import annotations
+import os
 import pickle
 import hashlib
 import logging
@@ -110,7 +111,6 @@ class _Worker:
         self,
         manager: multiprocessing.Manager,
         qrun: _QueryRunner,
-        name: str,
         component: HubitModelComponent,
         query: HubitModelPath,
         func: Callable,
@@ -128,7 +128,7 @@ class _Worker:
 
         """
         self.func = func  # function to excecute
-        self.name = name  # name of the component
+        self.name = component.id  # name of the component
         self.version = version  # Version of the component
         self.qrun = qrun  # reference to the query runner
         self.job = None  # For referencing the job if using multiprocessing

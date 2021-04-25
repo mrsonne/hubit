@@ -16,7 +16,6 @@ class TestWorker(unittest.TestCase):
         Fails since query does not match.
         """
         hmodel = None
-        cname = None
         func = None
         version = None
         cfg = {
@@ -38,7 +37,6 @@ class TestWorker(unittest.TestCase):
             w = _Worker(
                 self.manager,
                 hmodel,
-                cname,
                 component,
                 querystring,
                 func,
@@ -52,7 +50,6 @@ class TestWorker(unittest.TestCase):
         Initialize a simple worker with no idxids
         """
         hmodel = None
-        cname = None
         func = None
         version = None
         cfg = {
@@ -74,7 +71,6 @@ class TestWorker(unittest.TestCase):
         w = _Worker(
             self.manager,
             hmodel,
-            cname,
             component,
             querystring,
             func,
@@ -135,7 +131,6 @@ class TestWorker(unittest.TestCase):
         w = _Worker(
             self.manager,
             qrunner,
-            cname,
             component,
             querystring,
             func,
@@ -218,7 +213,6 @@ class TestWorker(unittest.TestCase):
         query and ILOC wildcards in bindings
         """
         hmodel = None
-        cname = None
         func = None
         version = None
         cfg = """
@@ -249,7 +243,6 @@ class TestWorker(unittest.TestCase):
         w = _Worker(
             self.manager,
             hmodel,
-            cname,
             component,
             querystr,
             func,
@@ -303,7 +296,6 @@ class TestWorker(unittest.TestCase):
         Test compression of indices. The query does not include any indices
         """
         hmodel = None
-        cname = None
         func = None
         version = None
         comp_yml = """
@@ -334,7 +326,6 @@ class TestWorker(unittest.TestCase):
         w = _Worker(
             self.manager,
             hmodel,
-            cname,
             component,
             querystr,
             func,

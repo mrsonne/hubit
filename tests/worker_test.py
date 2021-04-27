@@ -15,7 +15,7 @@ class TestWorker(unittest.TestCase):
         """
         Fails since query does not match.
         """
-        hmodel = None
+        qrunner = None
         func = None
         version = None
         cfg = {
@@ -36,7 +36,7 @@ class TestWorker(unittest.TestCase):
         with self.assertRaises(HubitWorkerError) as context:
             w = _Worker(
                 self.manager,
-                hmodel,
+                qrunner,
                 component,
                 querystring,
                 func,
@@ -49,7 +49,7 @@ class TestWorker(unittest.TestCase):
         """
         Initialize a simple worker with no idxids
         """
-        hmodel = None
+        qrunner = None
         func = None
         version = None
         cfg = {
@@ -70,7 +70,7 @@ class TestWorker(unittest.TestCase):
         querystring = component.provides_results[0].path
         w = _Worker(
             self.manager,
-            hmodel,
+            qrunner,
             component,
             querystring,
             func,
@@ -212,7 +212,7 @@ class TestWorker(unittest.TestCase):
         Initialize worker with ILOC locations in
         query and ILOC wildcards in bindings
         """
-        hmodel = None
+        qrunner = None
         func = None
         version = None
         cfg = """
@@ -242,7 +242,7 @@ class TestWorker(unittest.TestCase):
         querystr = HubitModelPath.as_internal(querystr)
         w = _Worker(
             self.manager,
-            hmodel,
+            qrunner,
             component,
             querystr,
             func,
@@ -295,7 +295,7 @@ class TestWorker(unittest.TestCase):
         """
         Test compression of indices. The query does not include any indices
         """
-        hmodel = None
+        qrunner = None
         func = None
         version = None
         comp_yml = """
@@ -325,7 +325,7 @@ class TestWorker(unittest.TestCase):
         querystr = HubitModelPath.as_internal(querystr)
         w = _Worker(
             self.manager,
-            hmodel,
+            qrunner,
             component,
             querystr,
             func,

@@ -419,13 +419,13 @@ class TestModel(unittest.TestCase):
         """
         query = ["list[:].some_attr.two_x_numbers"]
         expected_result = {
-            "move_number": 0,
-            "multiply_by_2": 0,
-            "multiply_by_factors": 0,
-            "slicing": 0,
-            "fun4": 0,
-            "fun5": 0,
-            "fun6": 0,
+            "./components/comp0.move_number": 0,
+            "./components/comp1.multiply_by_2": 0,
+            "./components/comp2.multiply_by_factors": 0,
+            "./components/comp3.slicing": 0,
+            "./components/comp4.fun4": 0,
+            "./components/comp5.fun5": 0,
+            "./components/comp6.fun6": 0,
         }
         component_caching_levels = False, True
         expected_n_unique_response_elements = 2
@@ -458,13 +458,13 @@ class TestModel(unittest.TestCase):
         # Component caching enabled. Two chache hits since 2 list elements were duplicated
         component_caching = True
         expected_result = {
-            "move_number": 0,
-            "multiply_by_2": 2,
-            "multiply_by_factors": 0,
-            "slicing": 0,
-            "fun4": 0,
-            "fun5": 0,
-            "fun6": 0,
+            "./components/comp0.move_number": 0,
+            "./components/comp1.multiply_by_2": 2,
+            "./components/comp2.multiply_by_factors": 0,
+            "./components/comp3.slicing": 0,
+            "./components/comp4.fun4": 0,
+            "./components/comp5.fun5": 0,
+            "./components/comp6.fun6": 0,
         }
         self._component_caching(
             component_caching,
@@ -482,13 +482,13 @@ class TestModel(unittest.TestCase):
         # Take out values for newest log item
         result = log.get_all("worker_counts")[0]
         expected_result = {
-            "move_number": 0,
-            "multiply_by_2": 1,
-            "multiply_by_factors": 0,
-            "slicing": 0,
-            "fun4": 0,
-            "fun5": 0,
-            "fun6": 0,
+            "./components/comp0.move_number": 0,
+            "./components/comp1.multiply_by_2": 1,
+            "./components/comp2.multiply_by_factors": 0,
+            "./components/comp3.slicing": 0,
+            "./components/comp4.fun4": 0,
+            "./components/comp5.fun5": 0,
+            "./components/comp6.fun6": 0,
         }
         self.assertEqual(result, expected_result)
 
@@ -497,13 +497,13 @@ class TestModel(unittest.TestCase):
 
         self.hmodel.get([self.querystr_level1], validate=False)
         expected_result = {
-            "move_number": 0,
-            "multiply_by_2": 1,
-            "multiply_by_factors": 1,
-            "slicing": 0,
-            "fun4": 0,
-            "fun5": 0,
-            "fun6": 0,
+            "./components/comp0.move_number": 0,
+            "./components/comp1.multiply_by_2": 1,
+            "./components/comp2.multiply_by_factors": 1,
+            "./components/comp3.slicing": 0,
+            "./components/comp4.fun4": 0,
+            "./components/comp5.fun5": 0,
+            "./components/comp6.fun6": 0,
         }
         log = self.hmodel.log()
         # Take out values for newest log item

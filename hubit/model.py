@@ -44,7 +44,6 @@ class HubitModel(_HubitModel):
     def __init__(
         self,
         model_cfg: HubitModelConfig,
-        base_path: str = "cwd",
         output_path: str = "./",
         name: str = "NA",
     ):
@@ -52,8 +51,7 @@ class HubitModel(_HubitModel):
         [`from_file`][hubit.model.HubitModel.from_file] method instead.
 
         Args:
-            model_cfg: Model configuration
-            base_path: Base path for the model
+            model_cfg: Model configuration object [`HubitModelConfig`][hubit.config.HubitModelConfig]
             output_path: Output path relative to base_path
             name: Model name
 
@@ -81,8 +79,7 @@ class HubitModel(_HubitModel):
         self._modelpath_for_querypath: Dict[str, str] = {}
 
         self.name = name
-        self.base_path = os.getcwd() if base_path == "cwd" else base_path
-        self.odir = os.path.normpath(os.path.join(self.base_path, output_path))
+        self.odir = os.path.normpath(os.path.join(model_cfg.base_path, output_path))
         self.inputdata: Dict[str, Any] = {}
         self.flat_input: Dict[str, Any] = {}
         self.flat_results: Dict[str, Any] = {}
@@ -119,7 +116,7 @@ class HubitModel(_HubitModel):
         base_path = model_config.base_path
 
         return cls(
-            model_config, name=name, output_path=output_path, base_path=base_path
+            model_config, name=name, output_path=output_path
         )
 
     def has_cached_results(self) -> bool:

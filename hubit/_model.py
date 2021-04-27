@@ -135,6 +135,11 @@ class _HubitModel:
     def __init__(self):
         pass
 
+
+    @property
+    def base_path(self):
+        return self.model_cfg.base_path
+
     def _add_log_items(
         self,
         worker_counts: Dict[str, int],

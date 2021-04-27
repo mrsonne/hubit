@@ -372,6 +372,15 @@ class HubitModelComponent:
     func_name: str = "main"
     is_dotted_path: bool = False
 
+    def __post_init__(self):
+        
+        # Set the identifier
+        if self.is_dotted_path:
+            self._id = f"{self.path}.{self.func_name}"
+        else:
+            self._id = f"{self.path.replace('.py', '')}.{self.func_name}"
+
+
     def validate(self, cfg):
         """
         Validate the object
@@ -381,13 +390,6 @@ class HubitModelComponent:
     @property
     def id(self):
         return self._id
-
-
-    def set_id(self):
-        if self.is_dotted_path:
-            self._id = f"{self.path}.{self.func_name}"
-        else:
-            self._id = f"{self.path.replace('.py', '')}.{self.func_name}"
 
     @classmethod
     def from_cfg(cls, cfg: Dict) -> HubitModelComponent:
@@ -448,18 +450,17 @@ class HubitModelConfig:
     """Defines the hubit model configuration.
 
     Args:
-        components (List[HubitModelComponent]): [`HubitModelComponent`][hubit.config.HubitModelComponent] sequence.
-        model_file_path (str): Path to the model configuration file.
+        components: [`HubitModelComponent`][hubit.config.HubitModelComponent] sequence.
     """
 
     components: List[HubitModelComponent]
-    model_file_path: str
+
+    # Internal variable used to store the base path
+    _base_path: str
 
     def __post_init__(self):
         # Convert to absolute paths
-        self._base_path = os.path.dirname(self.model_file_path)
         for component in self.components:
-            component.set_id()
             if not component.is_dotted_path:
                 component.path = os.path.abspath(
                     os.path.join(self._base_path, component.path)
@@ -496,15 +497,16 @@ class HubitModelConfig:
         """
         with open(model_file_path, "r") as stream:
             cfg = yaml.load(stream, Loader=yaml.FullLoader)
-        return cls.from_cfg(cfg, model_file_path)
+        return cls.from_cfg(cfg, os.path.dirname(model_file_path))
 
     @classmethod
-    def from_cfg(cls, cfg: Dict, model_file_path: str) -> HubitModelConfig:
+    def from_cfg(cls, cfg: Dict, base_path: str) -> HubitModelConfig:
         """
         Create instance from configuration data
 
         Args:
-            cfg (Dict): Configuration
+            cfg: Configuration
+            base_path: The path to the model configuration file
 
         Returns:
             HubitModelConfig: Object corresponsing to the configuration data
@@ -512,4 +514,4 @@ class HubitModelConfig:
         components = [
             HubitModelComponent.from_cfg(component_data) for component_data in cfg
         ]
-        return cls(components=components, model_file_path=model_file_path).validate()
+        return cls(components=components, _base_path=base_path).validate()

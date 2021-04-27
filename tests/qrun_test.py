@@ -67,11 +67,10 @@ class TestRunner(unittest.TestCase):
     def setUp(self):
 
         cfg = yaml.load(model, Loader=yaml.FullLoader)
-        self.model_cfg = HubitModelConfig.from_cfg(cfg, model_file_path=THIS_FILE)
+        self.model_cfg = HubitModelConfig.from_cfg(cfg, base_path=THIS_DIR)
         self.hmodel = HubitModel(
             self.model_cfg,
             name="My model",
-            base_path=THIS_DIR,
             output_path=REL_TMP_DIR,
         )
         use_multi_processing = False

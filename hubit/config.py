@@ -135,23 +135,23 @@ class HubitModelPath(HubitQueryPath):
     from. Note that the component itself is unaware of which car (car index)
     the input represents.
 
-    `Hubit` infers indices and list lengths based on the input data 
-    and the index specifiers *defined* for binding paths in the `consumes_input` section. 
-    Therefore, index identifiers *used* in binding paths in the `consumes_results` 
-    and `provides_results` 
-    sections should always be exist in binding paths in `consumes_input`. 
+    `Hubit` infers indices and list lengths based on the input data
+    and the index specifiers *defined* for binding paths in the `consumes_input` section.
+    Therefore, index identifiers *used* in binding paths in the `consumes_results`
+    and `provides_results`
+    sections should always be exist in binding paths in `consumes_input`.
 
-    Further, to provide a meaningful index mapping, the index specifier 
-    used in a binding path in the `provides_results` section should be 
-    identical to the corresponding index specifier in the `consumes_input`. 
-    The first binding in the example below has a more specific index specifier 
-    (for the identifier `IDX_PART`) and is therefore invalid. The second 
+    Further, to provide a meaningful index mapping, the index specifier
+    used in a binding path in the `provides_results` section should be
+    identical to the corresponding index specifier in the `consumes_input`.
+    The first binding in the example below has a more specific index specifier
+    (for the identifier `IDX_PART`) and is therefore invalid. The second
     binding is valid.
 
     ```yaml
-    provides_results: 
+    provides_results:
     # INVALID
-    - name: part_name 
+    - name: part_name
         path: cars[IDX_CAR].parts[IDX_PART].name # more specific for the part index
 
     # VALID: Assign a 'price' attribute each part object in the car object.
@@ -162,21 +162,21 @@ class HubitModelPath(HubitQueryPath):
         path: cars[IDX_CAR].parts[:@IDX_PART].name
     ```
 
-    In the invalid binding above, the component consumes all indices 
-    of the parts list and therefore storing the price data at a specific part 
-    index is not possible. The bindings below are valid since `IDX_PART` is 
+    In the invalid binding above, the component consumes all indices
+    of the parts list and therefore storing the price data at a specific part
+    index is not possible. The bindings below are valid since `IDX_PART` is
     omitted for the bindings in the `provides_results` section
 
     ```yaml
-    provides_results: 
-    # Assign a 'part_names' attribute to the car object. 
+    provides_results:
+    # Assign a 'part_names' attribute to the car object.
     # Could be a a list of all part names for that car
-    - name: part_names 
+    - name: part_names
         path: cars[IDX_CAR].part_names # index specifier for parts omitted
 
     # Assign a 'concatenates_part_names' attribute to the car object.
     # Could be a string with all part names concatenated
-    - name: concatenates_part_names 
+    - name: concatenates_part_names
         path: cars[IDX_CAR].concatenates_part_names # index specifier for parts omitted
     consumes_input:
     - name: part_name
@@ -184,14 +184,14 @@ class HubitModelPath(HubitQueryPath):
     ```
 
     ### Index contexts
-    In addition to defining the index identifiers the input sections 
-    also defines index contexts. The index context is the order and hierarchy 
-    of the index identifiers. For example an input binding 
-    `cars[IDX_CAR].parts[IDX_PART].price` would define both the index 
-    identifiers `IDX_CAR` and `IDX_PART` as well as define the index context 
-    `IDX_CAR -> IDX_PART`. This index context shows that a part index exists 
-    only in the context of a car index. Index identifiers should be used in a unique 
-    context i.e. if one input binding defines `cars[IDX_CAR].parts[IDX_PART].price` 
+    In addition to defining the index identifiers the input sections
+    also defines index contexts. The index context is the order and hierarchy
+    of the index identifiers. For example an input binding
+    `cars[IDX_CAR].parts[IDX_PART].price` would define both the index
+    identifiers `IDX_CAR` and `IDX_PART` as well as define the index context
+    `IDX_CAR -> IDX_PART`. This index context shows that a part index exists
+    only in the context of a car index. Index identifiers should be used in a unique
+    context i.e. if one input binding defines `cars[IDX_CAR].parts[IDX_PART].price`
     then defining or using `parts[IDX_PART].cars[IDX_CAR].price` is not allowed.
 
     """
@@ -373,13 +373,12 @@ class HubitModelComponent:
     is_dotted_path: bool = False
 
     def __post_init__(self):
-        
+
         # Set the identifier
         if self.is_dotted_path:
             self._id = f"{self.path}.{self.func_name}"
         else:
             self._id = f"{self.path.replace('.py', '')}.{self.func_name}"
-
 
     def validate(self, cfg):
         """
@@ -515,3 +514,20 @@ class HubitModelConfig:
             HubitModelComponent.from_cfg(component_data) for component_data in cfg
         ]
         return cls(components=components, _base_path=base_path).validate()
+
+
+@dataclass
+class Query:
+    """A Hubit query.
+
+    Args:
+        paths: [`HubitQueryPath`][hubit.config.HubitQueryPath] sequence.
+    """
+
+    paths: List[HubitQueryPath]
+
+    def __post_init__(self):
+        for idx, path in enumerate(self.paths):
+            path = HubitQueryPath(path)
+            path.validate()
+            self.paths[idx] = path

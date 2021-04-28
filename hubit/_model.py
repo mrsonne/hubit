@@ -12,7 +12,7 @@ from threading import Thread, Event
 
 from .worker import _Worker
 from .qrun import _QueryRunner
-from .config import HubitBinding, HubitModelPath, HubitQueryPath
+from .config import HubitBinding, HubitModelPath, HubitQueryPath, Query
 from .shared import (
     IDX_WILDCARD,
     idxs_for_matches,
@@ -36,7 +36,12 @@ def default_skipfun(_: Dict[str, Any]) -> bool:
 
 
 def _get(
-    queryrunner, query, flat_input, flat_results=None, dryrun=False, expand_iloc=False
+    queryrunner,
+    query: Query,
+    flat_input,
+    flat_results=None,
+    dryrun=False,
+    expand_iloc=False,
 ):
     """
     With the 'queryrunner' object deploy the paths
@@ -59,10 +64,9 @@ def _get(
     if flat_results is None:
         flat_results = {}
 
-    query = [HubitModelPath(qstr) for qstr in query]
-    # Expand the query and get the max ilocs for each query
+    # Expand the query for each path
     queries_for_query = {
-        qstr1: queryrunner.model._expand_query(qstr1) for qstr1 in query
+        qstr1: queryrunner.model._expand_query(qstr1) for qstr1 in query.paths
     }
     _queries = [qstr for qstrs in queries_for_query.values() for qstr in qstrs]
 
@@ -135,7 +139,6 @@ class _HubitModel:
     def __init__(self):
         pass
 
-
     @property
     def base_path(self):
         return self.model_cfg.base_path
@@ -159,7 +162,7 @@ class _HubitModel:
             pickle.dumps({"input": self.inputdata, "cfg": self.model_cfg})
         ).hexdigest()
 
-    def _get_dot(self, queries: List[str], file_idstr: str):
+    def _get_dot(self, query: Query, file_idstr: str):
         """
         Construct dot object and get the filename.
 
@@ -213,7 +216,7 @@ class _HubitModel:
             fontname=fontname,
         )
 
-        if len(queries) > 0:
+        if len(query.paths) > 0:
             # Render a query
 
             if not self._input_is_set:
@@ -225,7 +228,7 @@ class _HubitModel:
             direction = -1
 
             # Run validation since this returns (dummy) workers
-            workers = self._validate_query(queries, use_multi_processing=False)
+            workers = self._validate_query(query, use_multi_processing=False)
 
             with dot.subgraph(
                 name="cluster_request", node_attr={"shape": "box"}
@@ -242,7 +245,7 @@ class _HubitModel:
                 # Make a node for the query
                 subgraph.node(
                     name="_Query",
-                    label="\n".join(queries),
+                    label="\n".join(query.paths),
                     shape=request_shape,
                     color="none",
                     fontsize=fontsize_small,
@@ -690,12 +693,11 @@ class _HubitModel:
             self.model_cfg.component_for_name.values(), self.inputdata
         )
 
-    def _validate_query(self, query, use_multi_processing=False):
+    def _validate_query(self, query: Query, use_multi_processing=False):
         """
         Run the query using a dummy calculation to see that all required
         input and results are available
         """
-        _ = [HubitQueryPath(path).validate() for path in query]
         qrunner = _QueryRunner(self, use_multi_processing)
         _get(qrunner, query, self.flat_input, dryrun=True)
         return qrunner.workers

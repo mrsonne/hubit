@@ -27,7 +27,7 @@ from .shared import (
     flatten,
     inflate,
 )
-from .config import HubitModelConfig, HubitModelPath, HubitQueryPath
+from .config import HubitModelConfig, HubitModelPath, HubitQueryPath, Query
 
 from .errors import (
     HubitError,
@@ -115,9 +115,7 @@ class HubitModel(_HubitModel):
         model_config = HubitModelConfig.from_file(model_file_path)
         base_path = model_config.base_path
 
-        return cls(
-            model_config, name=name, output_path=output_path
-        )
+        return cls(model_config, name=name, output_path=output_path)
 
     def has_cached_results(self) -> bool:
         """
@@ -149,13 +147,13 @@ class HubitModel(_HubitModel):
         """
         Set the model caching mode.
 
-        Results caching is useful when you want to avoid spending time calculating 
-        the same results multiple times. A use case for `incremental` caching is when 
-        a calculation is stopped (computer shutdown, keyboard interrupt, 
-        exception raised) before the response has been generated. In such cases 
-        the calculation can be restarted from the cached results. The overhead 
+        Results caching is useful when you want to avoid spending time calculating
+        the same results multiple times. A use case for `incremental` caching is when
+        a calculation is stopped (computer shutdown, keyboard interrupt,
+        exception raised) before the response has been generated. In such cases
+        the calculation can be restarted from the cached results. The overhead
         introduced by caching makes it especially useful for CPU bound models.
-        A use case for `after_execution` caching is when writing the result data 
+        A use case for `after_execution` caching is when writing the result data
         incrementally is a bottleneck.
 
         __Warning__. Cached results are tied only to the content of the model configuration
@@ -224,16 +222,16 @@ class HubitModel(_HubitModel):
         """Renders graph representing the model or the query.
 
         Args:
-            query: Sequence of strings that each complies with
-                a [`HubitQueryPath`][hubit.config.HubitQueryPath]. If not provided
+            query: Sequence of strings that complies with
+                [`Query`][hubit.config.Query]. If not provided
                 (or is empty) the model is rendered. If a non-empty `query` is
                 provided that query is rendered, which requires the input data
                 be set.
             file_idstr: Identifier appended to the image file name.
         """
-        _ = [HubitQueryPath(path).validate() for path in query]
+        _query = Query(query)
 
-        dot, filename = self._get_dot(query, file_idstr)
+        dot, filename = self._get_dot(_query, file_idstr)
         filepath = os.path.join(self.odir, filename)
         dot.render(filepath, view=False)
         if os.path.exists(filepath):
@@ -270,7 +268,7 @@ class HubitModel(_HubitModel):
 
 
         Args:
-            query: Sequence of strings that each complies with a [`HubitQueryPath`][hubit.config.HubitQueryPath].
+            query: Sequence of strings that complies with [`Query`][hubit.config.Query].
             use_multi_processing: Flag indicating if the respose should be generated using (async) multiprocessing.
             validate: Flag indicating if the query should be validated prior to execution. If `True` a dry-run of the model will be executed.
             use_results. Should previously saved results be used.
@@ -291,7 +289,7 @@ class HubitModel(_HubitModel):
         if use_results == "current" and self.flat_results is None:
             raise HubitModelNoResultsError()
 
-        _ = [HubitQueryPath(path).validate() for path in query]
+        _query = Query(query)
 
         # Make a query runner
         self._qrunner = _QueryRunner(
@@ -299,7 +297,7 @@ class HubitModel(_HubitModel):
         )
 
         if validate:
-            _get(self._qrunner, query, self.flat_input, dryrun=True)
+            _get(self._qrunner, _query, self.flat_input, dryrun=True)
 
         if use_results == "current":
             logging.info("Using current model results.")
@@ -324,7 +322,7 @@ class HubitModel(_HubitModel):
             )
 
         response, self.flat_results = _get(
-            self._qrunner, query, self.flat_input, _flat_results
+            self._qrunner, _query, self.flat_input, _flat_results
         )
         return response
 
@@ -342,7 +340,7 @@ class HubitModel(_HubitModel):
         if `__name__ == '__main__':`
 
         Args:
-            query: Sequence of strings that each complies with a [`HubitQueryPath`][hubit.config.HubitQueryPath].
+            query: Sequence of strings that complies with [`Query`][hubit.config.Query].
             input_values_for_path: Dictionary with keys representing path items. The corresponding values should be an iterable with elements representing discrete values for the attribute at the path.
             skipfun: If returns True the factor combination is skipped
             nproc: Number of processes to use. If `None` a suitable default is used.
@@ -357,7 +355,7 @@ class HubitModel(_HubitModel):
         if not self._input_is_set:
             raise HubitModelNoInputError()
 
-        _ = [HubitQueryPath(path).validate() for path in query]
+        _query = Query(query)
 
         tstart = time.time()
 
@@ -382,7 +380,7 @@ class HubitModel(_HubitModel):
                 component_caching=self._component_caching,
             )
             flat_results: Dict[str, Any] = {}
-            args.append((qrun, query, _flat_input, flat_results))
+            args.append((qrun, _query, _flat_input, flat_results))
             inps.append(_flat_input)
 
         if len(args) == 0:
@@ -408,7 +406,7 @@ class HubitModel(_HubitModel):
         query are provided.
 
         Args:
-            query: Query paths.
+            query: Sequence of strings that complies with [`Query`][hubit.config.Query].
 
         Raises:
             HubitModelNoInputError: If not input is set.
@@ -419,10 +417,13 @@ class HubitModel(_HubitModel):
         """
         # TODO: check for circular references,
         #       Component that consumes a specified index ID should also provide a result at the same location in the results data model. Not necesary if all indices (:) are consumed. I.e. the provider path should contain all index info
-        if len(query) > 0:
+
+        _query = Query(query)
+
+        if len(_query.paths) > 0:
             if not self._input_is_set:
                 raise HubitModelNoInputError()
-            self._validate_query(query, use_multi_processing=False)
+            self._validate_query(_query, use_multi_processing=False)
         else:
             self._validate_model()
 
@@ -493,7 +494,6 @@ class LogItem:
         _value_formats[2] = f"{{:^{width}}}"
         return " ".join(_value_formats)
 
-
     @classmethod
     def get_table_header(cls, width: int = 30) -> str:
         headers = [
@@ -513,7 +513,6 @@ class LogItem:
         header_fstr = cls._get_header_fstr(width)
         return header_fstr.format(*headers)
 
-    
     def width(self, field_name):
         val = getattr(self, field_name)
         if isinstance(val, Dict):
@@ -522,7 +521,7 @@ class LogItem:
                 values += list(val.keys())
             return max([len(str(val)) for val in values])
         else:
-            return(len(str(val)))
+            return len(str(val))
 
     def set_width(self, width):
         self._width = width
@@ -638,7 +637,7 @@ class HubitLog:
     def __str__(self):
         sepstr = "-"
         lines = []
-        width = max(logitem.width("worker_counts") for logitem in self.log_items) 
+        width = max(logitem.width("worker_counts") for logitem in self.log_items)
         for logitem in self.log_items:
             logitem.set_width(width)
             lines.append(str(logitem))

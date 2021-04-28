@@ -47,9 +47,7 @@ class TestModel(unittest.TestCase):
         model_cfg = HubitModelConfig.from_cfg(
             yaml.load(model, Loader=yaml.FullLoader), base_path=THIS_DIR
         )
-        self.hmodel = HubitModel(
-            model_cfg, name=modelname, output_path=REL_TMP_DIR
-        )
+        self.hmodel = HubitModel(model_cfg, name=modelname, output_path=REL_TMP_DIR)
         self.input = yaml.load(yml_input, Loader=yaml.FullLoader)
         self.use_multi_processing_values = False, True
 

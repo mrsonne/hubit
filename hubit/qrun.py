@@ -67,7 +67,7 @@ class _QueryRunner:
             module_name = os.path.splitext(file_name)[0]
             path = os.path.abspath(path)
             file_path = os.path.join(path, file_name)
-            component_id = component_cfg.id 
+            component_id = component_cfg.id
             if component_id in components.keys():
                 func, version = components[component_id]
                 return func, version, components

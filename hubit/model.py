@@ -224,7 +224,7 @@ class HubitModel(_HubitModel):
                 be set.
             file_idstr: Identifier appended to the image file name.
         """
-        _query = Query(query)
+        _query = Query.from_paths(query)
 
         dot, filename = self._get_dot(_query, file_idstr)
         filepath = os.path.join(self.odir, filename)
@@ -284,7 +284,7 @@ class HubitModel(_HubitModel):
         if use_results == "current" and self.flat_results is None:
             raise HubitModelNoResultsError()
 
-        _query = Query(query)
+        _query = Query.from_paths(query)
 
         # Make a query runner
         self._qrunner = _QueryRunner(
@@ -346,7 +346,7 @@ class HubitModel(_HubitModel):
         if not self._input_is_set:
             raise HubitModelNoInputError()
 
-        _query = Query(query)
+        _query = Query.from_paths(query)
 
         tstart = time.time()
 
@@ -409,7 +409,7 @@ class HubitModel(_HubitModel):
         # TODO: check for circular references,
         #       Component that consumes a specified index ID should also provide a result at the same location in the results data model. Not necesary if all indices (:) are consumed. I.e. the provider path should contain all index info
 
-        _query = Query(query)
+        _query = Query.from_paths(query)
 
         if len(_query.paths) > 0:
             if not self._input_is_set:

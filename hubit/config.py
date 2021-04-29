@@ -529,11 +529,13 @@ class Query:
     paths: List[HubitQueryPath]
 
     def __post_init__(self):
-        for idx, path in enumerate(self.paths):
-            path = HubitQueryPath(path)
+        for path in self.paths:
             path.validate()
-            self.paths[idx] = path
 
+    @classmethod
+    def from_paths(cls, paths: List[str]):
+        return cls([HubitQueryPath(path) for path in paths])
+             
 
 class FlatData(Dict):
     """

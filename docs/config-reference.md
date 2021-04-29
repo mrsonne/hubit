@@ -44,3 +44,19 @@
     rendering:
         show_root_heading: true
 
+
+::: hubit.config.Query
+    selection:
+        members:
+            - dummy
+    rendering:
+        show_root_heading: true
+
+
+::: hubit.config.FlatData
+    selection:
+        members:
+            - dummy
+    rendering:
+        show_root_heading: true
+

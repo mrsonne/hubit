@@ -5,8 +5,7 @@ import yaml
 from hubit.model import HubitModel
 from hubit.qrun import _QueryRunner
 from hubit.errors import HubitModelQueryError
-from hubit.shared import flatten
-from hubit.config import HubitModelConfig
+from hubit.config import FlatData, HubitModelConfig
 
 THIS_FILE = os.path.realpath(__file__)
 THIS_DIR = os.path.dirname(THIS_FILE)
@@ -136,8 +135,8 @@ class TestRunner(unittest.TestCase):
 
     def get_worker_counts(self, queries):
         # queries = dot-queries
-        flat_results = {}
-        flat_input = flatten(self.input)
+        flat_results = FlatData()
+        flat_input = FlatData.from_dict(self.input)
         worker_counts = []
         manager = None
         for q in queries:

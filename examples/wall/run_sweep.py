@@ -4,17 +4,16 @@ from math import isclose
 from operator import getitem
 from typing import Any, Dict
 from .utils import get_model, HubitModel
-from hubit.shared import inflate
-from hubit.config import HubitModelPath
+from hubit.config import FlatData, HubitModelPath
 
 logging.basicConfig(level=logging.INFO)
 
 
-def skipfun(value_for_path: Dict) -> bool:
+def skipfun(value_for_path: FlatData) -> bool:
     """
     Skip factor combination if the thickness of the two wall segments differ
     """
-    input = inflate(value_for_path)
+    input = value_for_path.inflate()
 
     inner_materials = [
         segment["layers"][0]["material"]

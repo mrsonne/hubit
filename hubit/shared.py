@@ -2,12 +2,12 @@ from __future__ import annotations
 import re
 import copy
 import itertools
-import collections
 from functools import reduce
 from operator import getitem
 from typing import Any, List, Dict, Tuple, TYPE_CHECKING
 from .errors import HubitIndexError
 from .config import HubitModelPath
+from .utils import is_digit
 
 if TYPE_CHECKING:
     from .config import HubitModelComponent
@@ -597,20 +597,20 @@ def tree_for_idxcontext(
     return out
 
 
-def is_digit(s: str) -> bool:
-    """Alternative to s.isdigit() that handles negative integers
+# def is_digit(s: str) -> bool:
+#     """Alternative to s.isdigit() that handles negative integers
 
-    Args:
-        s (str): A string
+#     Args:
+#         s (str): A string
 
-    Returns:
-        bool: Flag indicating if the input string is a signed int
-    """
-    try:
-        int(s)
-        return True
-    except ValueError:
-        return False
+#     Returns:
+#         bool: Flag indicating if the input string is a signed int
+#     """
+#     try:
+#         int(s)
+#         return True
+#     except ValueError:
+#         return False
 
 
 def get_from_datadict(datadict, keys):
@@ -720,81 +720,6 @@ def set_element(data, value, indices):
     # _data is now the innermost list where the values should be set
     _data[indices[-1]] = value
     return data
-
-
-# def get_nested_list(maxilocs):
-#     """
-#     Create nested list with all values set to None.
-#     Dimensions given in "maxilocs" which are the max element number ie zero-based
-#     """
-#     empty_list = None
-#     for n in maxilocs[::-1]:
-#         empty_list = [copy.deepcopy(empty_list) for _ in range(n + 1)]
-#     return empty_list
-
-
-# def list_from_shape(shape):
-#     """
-#     Create nested list with all values set to None.
-#     Dimensions given in "shape". shape = 1 results in a number
-#     """
-#     empty_list = None
-#     for n in shape[::-1]:
-#         if n > 1:
-#             empty_list = [copy.deepcopy(empty_list) for _ in range(n)]
-#         else:
-#             empty_list = copy.deepcopy(empty_list)
-#     return empty_list
-
-
-def inflate(d, sep="."):
-    """
-    https://gist.github.com/fmder/494aaa2dd6f8c428cede
-    Expands lists as dict to handle queries that do include
-    all elements i.e. to return the result for item at index X
-    at index X and not zero
-    """
-    items = dict()
-    for k, v in d.items():
-        keys = k.split(sep)
-        sub_items = items
-        for ki in keys[:-1]:
-            _ki = int(ki) if is_digit(ki) else ki
-            try:
-                sub_items = sub_items[_ki]
-            except KeyError:
-                sub_items[_ki] = dict()
-                sub_items = sub_items[_ki]
-
-        k_last = keys[-1]
-        k_last = int(k_last) if is_digit(k_last) else k_last
-        sub_items[keys[-1]] = v
-
-    return items
-
-
-def flatten(d, parent_key="", sep="."):
-    """
-    Flattens dict and concatenates keys
-    Modified from: https://stackoverflow.com/questions/6027558/flatten-nested-python-dictionaries-compressing-keys
-    """
-    items = []
-    for k, v in d.items():
-        new_key = parent_key + sep + k if parent_key else k
-        if isinstance(v, collections.abc.MutableMapping):
-            items.extend(flatten(v, new_key, sep=sep).items())
-        elif isinstance(v, collections.abc.Iterable) and not isinstance(v, str):
-            try:
-                # Elements are dicts
-                for idx, item in enumerate(v):
-                    _new_key = new_key + "." + str(idx)
-                    items.extend(flatten(item, _new_key, sep=sep).items())
-            except AttributeError:
-                # Elements are not dicts
-                items.append((new_key, v))
-        else:
-            items.append((new_key, v))
-    return dict(items)
 
 
 def check_path_match(

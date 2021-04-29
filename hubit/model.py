@@ -22,12 +22,8 @@ from multiprocessing import Pool
 
 from .qrun import _QueryRunner
 from ._model import _HubitModel, _get, default_skipfun
-from .shared import (
-    LengthTree,
-    flatten,
-    inflate,
-)
-from .config import HubitModelConfig, HubitModelPath, HubitQueryPath, Query
+from .shared import LengthTree
+from .config import FlatData, HubitModelConfig, HubitModelPath, Query
 
 from .errors import (
     HubitError,
@@ -199,7 +195,7 @@ class HubitModel(_HubitModel):
             Hubit model with input set.
         """
         self.inputdata = input_data
-        self.flat_input = flatten(input_data)
+        self.flat_input = FlatData.from_dict(input_data)
         self._set_trees()
         self._input_is_set = True
         return self
@@ -214,7 +210,7 @@ class HubitModel(_HubitModel):
         Returns:
             Hubit model with input set
         """
-        self.flat_results = flatten(results_data)
+        self.flat_results = FlatData.from_dict(results_data)
         self.flat_results = {HubitModelPath(k): v for k, v in self.flat_results.items()}
         return self
 
@@ -252,7 +248,7 @@ class HubitModel(_HubitModel):
         if flat:
             return self.flat_results
         else:
-            return inflate(self.flat_results)
+            return self.flat_results.inflate()
 
     def get(
         self,
@@ -301,21 +297,17 @@ class HubitModel(_HubitModel):
 
         if use_results == "current":
             logging.info("Using current model results.")
-            _flat_results = self.flat_results
+            _flat_results = FlatData(self.flat_results)
         elif use_results == "cached":
             if self.has_cached_results():
                 logging.info("Using cached results.")
-                with open(self._cache_file_path, "r") as stream:
-                    _flat_results = yaml.load(stream, Loader=yaml.FullLoader)
-                    _flat_results = {
-                        HubitModelPath(k): v for k, v in _flat_results.items()
-                    }
+                _flat_results = FlatData.from_file(self._cache_file_path)
             else:
                 logging.info("No cached results found.")
-                _flat_results = {}
+                _flat_results = FlatData()
         elif use_results == "none":
             logging.info("No results used.")
-            _flat_results = {}
+            _flat_results = FlatData()
         else:
             raise HubitError(
                 f"Unknown value '{use_results}' for argument 'use_results'"
@@ -379,7 +371,7 @@ class HubitModel(_HubitModel):
                 use_multi_processing=False,
                 component_caching=self._component_caching,
             )
-            flat_results: Dict[str, Any] = {}
+            flat_results = FlatData()
             args.append((qrun, _query, _flat_input, flat_results))
             inps.append(_flat_input)
 
@@ -393,7 +385,7 @@ class HubitModel(_HubitModel):
         with Pool(_nproc) as pool:
             results = pool.starmap(_get, args)
             responses, flat_results = zip(*results)
-            results = [inflate(item) for item in flat_results]
+            results = [flat_result.inflate() for flat_result in flat_results]
 
         logging.info("Query processed in {} s".format(time.time() - tstart))
 

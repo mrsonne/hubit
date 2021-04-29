@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Set
 import yaml
 from .worker import _Worker
 from .shared import count
-from .config import HubitModelComponent
+from .config import FlatData, HubitModelComponent
 
 POLLTIME = 0.1
 POLLTIME_LONG = 0.25
@@ -145,7 +145,7 @@ class _QueryRunner:
         manager,
         qpaths,
         extracted_input,
-        flat_results,
+        flat_results: FlatData,
         all_input,
         skip_paths=[],
         dryrun=False,
@@ -308,7 +308,7 @@ class _QueryRunner:
         # Save results to disk
         if self.model._model_caching_mode == "incremental":
             with open(self.model._cache_file_path, "w") as handle:
-                yaml.safe_dump({str(k): v for k, v in flat_results.items()}, handle)
+                flat_results.to_file(self.model._cache_file_path)
         self.workers_working.remove(worker)
 
     def _transfer_results(self, worker, flat_results):
@@ -348,8 +348,7 @@ class _QueryRunner:
 
         # Save results
         if self.model._model_caching_mode == "after_execution":
-            with open(self.model._cache_file_path, "w") as handle:
-                yaml.safe_dump({str(k): v for k, v in flat_results.items()}, handle)
+            flat_results.to_file(self.model._cache_file_path)
 
     def _add_log_items(self, t_start: float) -> float:
         # Set zeros for all components

@@ -7,11 +7,13 @@ in a model config file or the required structure of a query path.
 
 from __future__ import annotations
 from dataclasses import dataclass, field
+import collections
 import yaml
 import os
 import re
 from typing import Dict, List, Any
-from .errors import HubitModelValidationError, HubitModelComponentError
+from .errors import HubitModelComponentError
+from .utils import is_digit
 
 
 # or inherit from collections import UserString
@@ -531,3 +533,81 @@ class Query:
             path = HubitQueryPath(path)
             path.validate()
             self.paths[idx] = path
+
+
+class FlatData(Dict):
+    """
+    A key-value pair data representation. Keys represent a path in 
+    the dotted style.
+    """
+
+    def inflate(self, sep="."):
+        """
+        https://gist.github.com/fmder/494aaa2dd6f8c428cede
+        Expands lists as dict to handle queries that do include
+        all elements i.e. to return the result for item at index X
+        at index X and not zero
+
+        TODO: keys should be set to str
+        """
+        items = dict()
+        for k, v in self.items():
+            keys = k.split(sep)
+            sub_items = items
+            for ki in keys[:-1]:
+                _ki = int(ki) if is_digit(ki) else ki
+                try:
+                    sub_items = sub_items[_ki]
+                except KeyError:
+                    sub_items[_ki] = dict()
+                    sub_items = sub_items[_ki]
+
+            k_last = keys[-1]
+            k_last = int(k_last) if is_digit(k_last) else k_last
+            sub_items[keys[-1]] = v
+
+        return items
+
+
+    @classmethod
+    def from_dict(cls, dict: Dict, parent_key: str = "", sep: str = "."):
+        """
+        Flattens dict and concatenates keys to a dotted style internal path
+        Modified from: https://stackoverflow.com/questions/6027558/flatten-nested-python-dictionaries-compressing-keys
+
+        TODO: keys should be paths
+        """
+        items = []
+        for k, v in dict.items():
+            new_key = parent_key + sep + k if parent_key else k
+            if isinstance(v, collections.abc.MutableMapping):
+                items.extend(cls.from_dict(v, new_key, sep=sep).items())
+            elif isinstance(v, collections.abc.Iterable) and not isinstance(v, str):
+                try:
+                    # Elements are dicts
+                    for idx, item in enumerate(v):
+                        _new_key = new_key + "." + str(idx)
+                        items.extend(cls.from_dict(item, _new_key, sep=sep).items())
+                except AttributeError:
+                    # Elements are not dicts
+                    items.append((new_key, v))
+            else:
+                items.append((new_key, v))
+        return cls(items)
+
+
+    @classmethod
+    def from_file(cls, file_path):
+        """
+        Create object from file
+        """
+        with open(file_path, "r") as stream:
+            data = yaml.load(stream, Loader=yaml.FullLoader)
+            data = {
+                HubitModelPath(k): v for k, v in data.items()
+            }
+        return cls(data)
+
+    def to_file(self, file_path):
+        with open(file_path, "w") as handle:
+            yaml.safe_dump({str(k): v for k, v in self.items()}, handle)

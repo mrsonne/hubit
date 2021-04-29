@@ -12,7 +12,7 @@ from threading import Thread, Event
 
 from .worker import _Worker
 from .qrun import _QueryRunner
-from .config import HubitBinding, HubitModelPath, HubitQueryPath, Query
+from .config import FlatData, HubitBinding, HubitModelPath, HubitQueryPath, Query
 from .shared import (
     IDX_WILDCARD,
     idxs_for_matches,
@@ -28,7 +28,7 @@ from .errors import (
 )
 
 
-def default_skipfun(_: Dict[str, Any]) -> bool:
+def default_skipfun(_: FlatData) -> bool:
     """
     value_for_path is a flat dict with internal paths as keys
     """
@@ -39,9 +39,9 @@ def _get(
     queryrunner,
     query: Query,
     flat_input,
-    flat_results=None,
-    dryrun=False,
-    expand_iloc=False,
+    flat_results: FlatData = FlatData(),
+    dryrun: bool = False,
+    expand_iloc: bool = False,
 ):
     """
     With the 'queryrunner' object deploy the paths
@@ -60,9 +60,6 @@ def _get(
     queryrunner.observers_for_query = {}
 
     extracted_input = {}
-
-    if flat_results is None:
-        flat_results = {}
 
     # Expand the query for each path
     queries_for_query = {

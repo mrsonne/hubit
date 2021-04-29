@@ -6,7 +6,6 @@ import yaml
 from hubit.errors import HubitModelNoInputError, HubitModelQueryError
 from hubit.config import HubitModelConfig, HubitModelPath
 from hubit import HubitModel
-from hubit.shared import inflate
 
 yml_input = None
 model = None
@@ -328,7 +327,7 @@ class TestModel(unittest.TestCase):
         expected_results = []
         calc_responses = []
         for flat_inp, response in zip(inps, responses):
-            inp = inflate(flat_inp)
+            inp = flat_inp.inflate()
             expected_results.append(level0_results_at_idx(inp, idx))
             calc_responses.append(response[self.querystr_level0])
 

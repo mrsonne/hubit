@@ -322,7 +322,7 @@ class HubitModel(_HubitModel):
         self,
         query: List[str],
         input_values_for_path: Dict[str, Any],
-        skipfun: Callable[[Dict[str, Any]], bool] = default_skipfun,
+        skipfun: Callable[[FlatData], bool] = default_skipfun,
         nproc: Any = None,
     ) -> Tuple:
         """Perform a full factorial sampling of the

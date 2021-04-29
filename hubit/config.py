@@ -537,7 +537,7 @@ class Query:
 
 class FlatData(Dict):
     """
-    A key-value pair data representation. Keys represent a path in 
+    A key-value pair data representation. Keys represent a path in
     the dotted style.
     """
 
@@ -568,7 +568,6 @@ class FlatData(Dict):
 
         return items
 
-
     @classmethod
     def from_dict(cls, dict: Dict, parent_key: str = "", sep: str = "."):
         """
@@ -595,7 +594,6 @@ class FlatData(Dict):
                 items.append((new_key, v))
         return cls(items)
 
-
     @classmethod
     def from_file(cls, file_path):
         """
@@ -603,9 +601,7 @@ class FlatData(Dict):
         """
         with open(file_path, "r") as stream:
             data = yaml.load(stream, Loader=yaml.FullLoader)
-            data = {
-                HubitModelPath(k): v for k, v in data.items()
-            }
+            data = {HubitModelPath(k): v for k, v in data.items()}
         return cls(data)
 
     def to_file(self, file_path):

@@ -535,7 +535,7 @@ class Query:
     @classmethod
     def from_paths(cls, paths: List[str]):
         return cls([HubitQueryPath(path) for path in paths])
-             
+
 
 class FlatData(Dict):
     """

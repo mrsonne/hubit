@@ -7,7 +7,7 @@ in a model config file or the required structure of a query path.
 
 from __future__ import annotations
 from dataclasses import dataclass, field
-import collections
+from collections import abc
 import yaml
 import os
 import re
@@ -581,9 +581,9 @@ class FlatData(Dict):
         items = []
         for k, v in dict.items():
             new_key = parent_key + sep + k if parent_key else k
-            if isinstance(v, collections.abc.MutableMapping):
+            if isinstance(v, Dict):
                 items.extend(cls.from_dict(v, new_key, sep=sep).items())
-            elif isinstance(v, collections.abc.Iterable) and not isinstance(v, str):
+            elif isinstance(v, abc.Iterable) and not isinstance(v, str):
                 try:
                     # Elements are dicts
                     for idx, item in enumerate(v):

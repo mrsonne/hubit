@@ -77,8 +77,8 @@ class HubitModel(_HubitModel):
         self.name = name
         self.odir = os.path.normpath(os.path.join(model_cfg.base_path, output_path))
         self.inputdata: Dict[str, Any] = {}
-        self.flat_input: Dict[str, Any] = {}
-        self.flat_results: Dict[str, Any] = {}
+        self.flat_input = FlatData()
+        self.flat_results = FlatData()
         self._input_is_set = False
 
         # Set the query runner. Saving it on the instance is used for testing
@@ -211,7 +211,6 @@ class HubitModel(_HubitModel):
             Hubit model with input set
         """
         self.flat_results = FlatData.from_dict(results_data)
-        self.flat_results = {HubitModelPath(k): v for k, v in self.flat_results.items()}
         return self
 
     def render(self, query: List[str] = [], file_idstr: str = "") -> None:

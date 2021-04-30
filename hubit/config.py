@@ -281,7 +281,8 @@ class HubitModelPath(HubitQueryPath):
 
     @staticmethod
     def as_internal(path: Any) -> str:
-        """Convert path using braces [IDX] to internal path using dots .IDX.
+        """Convert path using braces [IDX] to internal 
+        dotted-style path using dots .IDX.
 
         Returns:
             str: internal path-like string
@@ -540,7 +541,8 @@ class Query:
 class FlatData(Dict):
     """
     A key-value pair data representation. Keys represent a path in
-    the dotted style.
+    dotted-style paths. In a dotted-style Hubit path index 
+    braces [IDX] are represented by dots .IDX.
     """
 
     def inflate(self, sep="."):
@@ -607,5 +609,8 @@ class FlatData(Dict):
         return cls(data)
 
     def to_file(self, file_path):
+        """
+        Write object to file
+        """
         with open(file_path, "w") as handle:
             yaml.safe_dump({str(k): v for k, v in self.items()}, handle)

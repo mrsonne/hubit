@@ -56,7 +56,8 @@
 ::: hubit.config.FlatData
     selection:
         members:
-            - dummy
+            - inflate
+            - as_dict
     rendering:
         show_root_heading: true
 

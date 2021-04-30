@@ -232,7 +232,7 @@ class HubitModel(_HubitModel):
         if os.path.exists(filepath):
             os.remove(filepath)
 
-    def get_results(self, flat: bool = False) -> Dict[str, Any]:
+    def get_results(self) -> FlatData:
         """
         Get model results
 
@@ -244,10 +244,7 @@ class HubitModel(_HubitModel):
         Returns:
             Results
         """
-        if flat:
-            return self.flat_results
-        else:
-            return self.flat_results.inflate()
+        return self.flat_results
 
     def get(
         self,

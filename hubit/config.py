@@ -14,6 +14,7 @@ import re
 from typing import Dict, List, Any
 from .errors import HubitModelComponentError
 from .utils import is_digit
+SEP = "."
 
 
 # or inherit from collections import UserString
@@ -545,18 +546,22 @@ class FlatData(Dict):
     braces [IDX] are represented by dots .IDX.
     """
 
-    def inflate(self, sep="."):
+    def inflate(self) -> Dict:
         """
-        https://gist.github.com/fmder/494aaa2dd6f8c428cede
-        Expands lists as dict to handle queries that do include
-        all elements i.e. to return the result for item at index X
-        at index X and not zero
-
-        TODO: keys should be set to str
+        Inflate flat data to nested dict. Lists are represented as dicts 
+        to handle queries that do not include all list elements. For 
+        example, if the query `["cars[57].price"]` gives the flat data object 
+        `{"cars.57.price": 4280.0}`, the inflated version is 
+        `{'cars': {57: {'price': 4280.0}}`. The access syntax 
+        for the dictionary representation of lists is identical 
+        to the access syntax had it been a list. Using dictionaries 
+        we can, however, represent element 57 without adding empty 
+        elements for the remaining list elements.   
         """
         items = dict()
         for k, v in self.items():
-            keys = k.split(sep)
+            # path components are strings
+            keys = k.split(SEP)
             sub_items = items
             for ki in keys[:-1]:
                 _ki = int(ki) if is_digit(ki) else ki
@@ -576,7 +581,6 @@ class FlatData(Dict):
     def from_dict(cls, dict: Dict, parent_key: str = "", sep: str = "."):
         """
         Flattens dict and concatenates keys to a dotted style internal path
-        Modified from: https://stackoverflow.com/questions/6027558/flatten-nested-python-dictionaries-compressing-keys
 
         TODO: keys should be paths
         """
@@ -598,6 +602,20 @@ class FlatData(Dict):
                 items.append((new_key, v))
         return cls(items)
 
+
+    @classmethod
+    def from_flat_dict(cls, dict: Dict):
+        """
+        Create object from a regular flat dictionary
+        """
+        return cls({HubitModelPath(k): v for k, v in dict.items()})
+
+    def as_dict(self):
+        """
+        Converts the object to a regular dictionary with string keys
+        """
+        return {str(k): v for k, v in self.items()}
+
     @classmethod
     def from_file(cls, file_path):
         """
@@ -605,12 +623,11 @@ class FlatData(Dict):
         """
         with open(file_path, "r") as stream:
             data = yaml.load(stream, Loader=yaml.FullLoader)
-            data = {HubitModelPath(k): v for k, v in data.items()}
-        return cls(data)
+        return cls.from_flat_dict(data)
 
     def to_file(self, file_path):
         """
         Write object to file
         """
         with open(file_path, "w") as handle:
-            yaml.safe_dump({str(k): v for k, v in self.items()}, handle)
+            yaml.safe_dump(self.as_dict(), handle)

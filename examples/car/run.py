@@ -26,6 +26,9 @@ def model_1():
     # Without worker caching
     hmodel.set_component_caching(False)
     response = hmodel.get(query, use_multi_processing=False)
+    results = hmodel.get_results()
+    results_dict = results.as_dict()
+    results_inflated = results.inflate()
 
     print(response)
     elapsed_times = hmodel.log().get_all("elapsed_time")

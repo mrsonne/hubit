@@ -581,8 +581,6 @@ class FlatData(Dict):
     def from_dict(cls, dict: Dict, parent_key: str = "", sep: str = "."):
         """
         Flattens dict and concatenates keys to a dotted style internal path
-
-        TODO: keys should be paths
         """
         items = []
         for k, v in dict.items():
@@ -597,9 +595,9 @@ class FlatData(Dict):
                         items.extend(cls.from_dict(item, _new_key, sep=sep).items())
                 except AttributeError:
                     # Elements are not dicts
-                    items.append((new_key, v))
+                    items.append((HubitModelPath(new_key), v))
             else:
-                items.append((new_key, v))
+                items.append((HubitModelPath(new_key), v))
         return cls(items)
 
 

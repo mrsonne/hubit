@@ -559,7 +559,7 @@ class FlatData(Dict):
         we can, however, represent element 57 without adding empty
         elements for the remaining list elements.
         """
-        items = dict()
+        items: Dict[str, Any] = dict()
         for k, v in self.items():
             # path components are strings
             keys = k.split(SEP)

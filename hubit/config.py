@@ -542,7 +542,7 @@ class Query:
 class FlatData(Dict):
     """
     A key-value pair data representation. Keys represent a path in
-    dotted-style paths. In a dotted-style Hubit path index 
+    the internal dotted-style. In a dotted-style Hubit path index 
     braces [IDX] are represented by dots .IDX.
     """
 
@@ -608,11 +608,19 @@ class FlatData(Dict):
         """
         return cls({HubitModelPath(k): v for k, v in dict.items()})
 
-    def as_dict(self):
+    def as_dict(self, as_internal_path: bool=False) -> Dict:
         """
         Converts the object to a regular dictionary with string keys
+
+        Args:
+            as_internal_path: If False the paths are styled as a HubitModelPath. If True
+                the paths are left as internal dotted style.
         """
-        return {str(k): v for k, v in self.items()}
+        d = {str(k): v for k, v in self.items()}
+        if not as_internal_path:
+            # replace .DIGIT with [DIGIT] using "look behind"
+            d = {re.sub(r"\.(\d+)", r"[\1]", k): v for k, v in d.items()}
+        return d
 
     @classmethod
     def from_file(cls, file_path):
@@ -628,4 +636,7 @@ class FlatData(Dict):
         Write object to file
         """
         with open(file_path, "w") as handle:
-            yaml.safe_dump(self.as_dict(), handle)
+            yaml.safe_dump(self.as_dict(as_internal_path=True), handle)
+
+
+

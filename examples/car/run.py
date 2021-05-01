@@ -27,8 +27,11 @@ def model_1():
     hmodel.set_component_caching(False)
     response = hmodel.get(query, use_multi_processing=False)
     results = hmodel.get_results()
+    print("results", results)
     results_dict = results.as_dict()
+    print("results_dict", results_dict)
     results_inflated = results.inflate()
+    print("results_inflated", results_inflated)
 
     print(response)
     elapsed_times = hmodel.log().get_all("elapsed_time")
@@ -93,6 +96,6 @@ def model_2_component_cache():
 
 
 model_1()
-model_2()
+# model_2()
 # model_3()
 # model_2_component_cache()

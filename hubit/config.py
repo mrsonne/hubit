@@ -14,6 +14,7 @@ import re
 from typing import Dict, List, Any
 from .errors import HubitModelComponentError
 from .utils import is_digit
+
 SEP = "."
 
 
@@ -282,7 +283,7 @@ class HubitModelPath(HubitQueryPath):
 
     @staticmethod
     def as_internal(path: Any) -> str:
-        """Convert path using braces [IDX] to internal 
+        """Convert path using braces [IDX] to internal
         dotted-style path using dots .IDX.
 
         Returns:
@@ -542,21 +543,21 @@ class Query:
 class FlatData(Dict):
     """
     A key-value pair data representation. Keys represent a path in
-    the internal dotted-style. In a dotted-style Hubit path index 
+    the internal dotted-style. In a dotted-style Hubit path index
     braces [IDX] are represented by dots .IDX.
     """
 
     def inflate(self) -> Dict:
         """
-        Inflate flat data to nested dict. Lists are represented as dicts 
-        to handle queries that do not include all list elements. For 
-        example, if the query `["cars[57].price"]` gives the flat data object 
-        `{"cars.57.price": 4280.0}`, the inflated version is 
-        `{'cars': {57: {'price': 4280.0}}`. The access syntax 
-        for the dictionary representation of lists is identical 
-        to the access syntax had it been a list. Using dictionaries 
-        we can, however, represent element 57 without adding empty 
-        elements for the remaining list elements.   
+        Inflate flat data to nested dict. Lists are represented as dicts
+        to handle queries that do not include all list elements. For
+        example, if the query `["cars[57].price"]` gives the flat data object
+        `{"cars.57.price": 4280.0}`, the inflated version is
+        `{'cars': {57: {'price': 4280.0}}`. The access syntax
+        for the dictionary representation of lists is identical
+        to the access syntax had it been a list. Using dictionaries
+        we can, however, represent element 57 without adding empty
+        elements for the remaining list elements.
         """
         items = dict()
         for k, v in self.items():
@@ -600,7 +601,6 @@ class FlatData(Dict):
                 items.append((HubitModelPath(new_key), v))
         return cls(items)
 
-
     @classmethod
     def from_flat_dict(cls, dict: Dict):
         """
@@ -608,7 +608,7 @@ class FlatData(Dict):
         """
         return cls({HubitModelPath(k): v for k, v in dict.items()})
 
-    def as_dict(self, as_internal_path: bool=False) -> Dict:
+    def as_dict(self, as_internal_path: bool = False) -> Dict:
         """
         Converts the object to a regular dictionary with string keys
 
@@ -637,6 +637,3 @@ class FlatData(Dict):
         """
         with open(file_path, "w") as handle:
             yaml.safe_dump(self.as_dict(as_internal_path=True), handle)
-
-
-

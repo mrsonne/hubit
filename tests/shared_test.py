@@ -108,7 +108,7 @@ class TestShared(unittest.TestCase):
     #     self.assertTrue( length == expected_length )
 
     def test_query_all(self):
-        """"""
+        """ """
         self.skipTest("Feature not used yet")
         providerstrings = (
             "price",
@@ -130,7 +130,7 @@ class TestShared(unittest.TestCase):
         self.assertTrue(value == 4)
 
     def test_traverse(self):
-        """ Thest iterator that traverses nested list """
+        """Thest iterator that traverses nested list"""
         l0 = "as", "fv", "dsd", ["fr", "hj", ["gb", 0]]
         self.assertTrue(len(list(shared.traverse(l0))) == 7)
 

@@ -85,7 +85,7 @@ class TestRunner(unittest.TestCase):
         )
 
     def test_worker_comp1(self):
-        """"""
+        """ """
         # Component index in model (TODO: brittle)
         comp_idx = 1
         qstr = self.querystr_level0
@@ -105,7 +105,7 @@ class TestRunner(unittest.TestCase):
         self.assertTrue(test_provides)
 
     def test_worker_comp2(self):
-        """"""
+        """ """
         # Component index in model
         comp_idx = 2
         qstr = self.querystr_level1

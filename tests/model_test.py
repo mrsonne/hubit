@@ -339,7 +339,7 @@ class TestModel(unittest.TestCase):
             self.assertSequenceEqual(calc_responses, expected_results)
 
     def test_model_caching(self):
-        """"""
+        """ """
         self.hmodel.set_input(self.input)
 
         # Clear the cache and check that it's cleared
@@ -472,7 +472,7 @@ class TestModel(unittest.TestCase):
         )
 
     def test_log(self):
-        """"""
+        """ """
         self.hmodel.set_input(self.input)
         self.hmodel.get([self.querystr_level0], validate=False)
         log = self.hmodel.log()

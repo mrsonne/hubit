@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 
 
 class _Worker:
-    """"""
+    """ """
 
     RESULTS_FROM_CACHE_ID = "cache"
     RESULTS_FROM_CALCULATION_ID = "calculation"

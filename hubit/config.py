@@ -7,9 +7,9 @@ in a model config file or the required structure of a query path.
 
 from __future__ import annotations
 from dataclasses import dataclass, field
+import pathlib
 from collections import abc
 import yaml
-import os
 import re
 from typing import Dict, List, Any
 from .errors import HubitModelComponentError
@@ -468,9 +468,9 @@ class HubitModelConfig:
         # Convert to absolute paths
         for component in self.components:
             if not component.is_dotted_path:
-                component.path = os.path.abspath(
-                    os.path.join(self._base_path, component.path)
-                )
+                component.path = pathlib.Path(
+                    pathlib.Path(self._base_path).joinpath(component.path)
+                ).absolute()
 
         self._component_for_name = {
             component.id: component for component in self.components
@@ -504,7 +504,7 @@ class HubitModelConfig:
         """
         with open(model_file_path, "r") as stream:
             cfg = yaml.load(stream, Loader=yaml.FullLoader)
-        return cls.from_cfg(cfg, os.path.dirname(model_file_path))
+        return cls.from_cfg(cfg, pathlib.Path(model_file_path).parent)
 
     @classmethod
     def from_cfg(cls, cfg: Dict, base_path: str) -> HubitModelConfig:

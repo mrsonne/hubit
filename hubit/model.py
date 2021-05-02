@@ -175,8 +175,9 @@ class HubitModel(_HubitModel):
             caching_mode: Valid options are: "none", "incremental", "after_execution".
                 If "none" model results are not cached. If "incremental" the results are
                 saved to disk whenever a component worker finishes its workload. If
-                "after_execution" the results are saved to disk when all component
-                workers have finished their workload
+                the `caching_mode` is set to "after_execution" the results are saved 
+                to disk when all component
+                workers have finished their workloads.
         """
         if not caching_mode in self._valid_model_caching_modes:
             raise HubitError(

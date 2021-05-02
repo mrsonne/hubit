@@ -218,7 +218,7 @@ class HubitModel(_HubitModel):
         return self
 
     def render(self, query: List[str] = [], file_idstr: str = "") -> None:
-        """Renders graph representing the model or the query.
+        """Renders graph representing the model or the query if provided.
 
         Args:
             query: Sequence of strings that complies with
@@ -238,15 +238,10 @@ class HubitModel(_HubitModel):
 
     def get_results(self) -> FlatData:
         """
-        Get model results
-
-        Args:
-            flat: If `True` the results will be returned as a
-                flat dict. Otherwise the returned results is a nested
-                dict.
+        Get model results as [`FlatData`][hubit.config.FlatData]
 
         Returns:
-            Results
+            Results for the model instance.
         """
         return self.flat_results
 
@@ -265,16 +260,22 @@ class HubitModel(_HubitModel):
 
         Args:
             query: Sequence of strings that complies with [`Query`][hubit.config.Query].
-            use_multi_processing: Flag indicating if the respose should be generated using (async) multiprocessing.
-            validate: Flag indicating if the query should be validated prior to execution. If `True` a dry-run of the model will be executed.
-            use_results. Should previously saved results be used.
-                If 'current' the results set on the model will be used
-                as-is i.e. not recalculated. If 'cached' internally saved results
-                will be used if they exists. Defaults to "none" i.e no cached results
-                will be used.
+            use_multi_processing: Flag indicating if the respose should be generated 
+                using (async) multiprocessing.
+            validate: Flag indicating if the query should be validated prior 
+                to execution. If `True` a dry-run of the model will be executed.
+            use_results: Should previously saved results be used.
+                If `use_results` is set to "current" the results set on the model instance 
+                will be used as-is i.e. will not be recalculated. 
+                If `use_results` is set to "cached" cached results will be used 
+                if they exists. If `use_results` is set to "none" no previously 
+                calculated results will be used.
 
         Raises:
             HubitModelNoInputError: If no input is set on the model
+            HubitModelNoResultsError: If `use_results` = "current" but 
+                no results are present on the model.
+            HubitError: If the specified `use_results` option is not known.
 
         Returns:
             The response

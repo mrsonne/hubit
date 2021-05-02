@@ -3,7 +3,6 @@ This module contains the `hubit` HubitModel class which is used
 for executing your calculations.
 """
 
-# TODO: Dataclass for response and flat results
 # TODO: skipfun
 # return value from get_many
 
@@ -17,7 +16,6 @@ import os
 import time
 import copy
 import itertools
-import yaml
 from multiprocessing import Pool
 
 from .qrun import _QueryRunner
@@ -47,12 +45,14 @@ class HubitModel(_HubitModel):
         [`from_file`][hubit.model.HubitModel.from_file] method instead.
 
         Args:
-            model_cfg: Model configuration object [`HubitModelConfig`][hubit.config.HubitModelConfig]
-            output_path: Output path relative to base_path
-            name: Model name
+            model_cfg: Model configuration object 
+                [`HubitModelConfig`][hubit.config.HubitModelConfig]
+            output_path: Output path relative to the base_path on the
+            `HubitModelConfig` instance.
+            name: Model name.
 
         Raises:
-            HubitError: If `output_path` is an absolute path or if components function names are not unique.
+            HubitError: If `output_path` is an absolute path.
         """
 
         if os.path.isabs(output_path):
@@ -98,10 +98,7 @@ class HubitModel(_HubitModel):
         """Creates a `HubitModel` from a configuration file.
 
         Args:
-            model_file_path: The location of the model file. The model `base_path` will
-                be set to the path of the model file and consequently the
-                [`HubitModelComponent`][hubit.config.HubitModelComponent]
-                `path` attribute should be relative to the model file
+            model_file_path: The location of the model file.
             output_path: Path where results should be saved
             name: Model name
 
@@ -132,10 +129,10 @@ class HubitModel(_HubitModel):
 
     def set_component_caching(self, component_caching: bool):
         """
-        Set the caching on/off for workers.
+        Set component worker caching on/off.
 
         Arguments:
-            component_caching (bool): True corresponds to worker caching in on.
+            component_caching (bool): True corresponds to worker caching being on.
         """
         self._component_caching = component_caching
 
@@ -152,10 +149,12 @@ class HubitModel(_HubitModel):
         A use case for `after_execution` caching is when writing the result data
         incrementally is a bottleneck.
 
-        __Warning__. Cached results are tied only to the content of the model configuration
-        file and the model input. `Hubit` does not check if the underlying calculation code has changed. Therefore, using results caching while components are in development is not recommended.
+        __Warning__. Cached results are tied to the content of the model configuration
+        file and the model input. `Hubit` does not check if any of the underlying calculation 
+        code has changed. Therefore, using results caching while components 
+        are in development is not recommended.
 
-        `hubit`'s behavior in four parameter combinations is summarized below
+        `Hubit`'s behavior in four parameter combinations is summarized below
 
         |Write<sup>*</sup>  | Read<sup>**</sup>   |  Behavior |
         |-------|-------|-----------|
@@ -165,7 +164,11 @@ class HubitModel(_HubitModel):
         |No     | No    |  No results are cached and no results are loaded into the model |
         |       |       |           |
 
-        <sup>*</sup> "Yes" corresponds to setting the caching level to either `incremental` or `after_execution` using the `set_model_caching` method. "No" corresponds to caching level `never`. <sup>**</sup> "Yes" corresponds `use_results="cached"` in the `get` method while "No" corresponds to `use_results="none"`.
+        <sup>*</sup> "Yes" corresponds to setting the caching level to either 
+        `incremental` or `after_execution` using the `set_model_caching` method. 
+        "No" corresponds to caching level `never`. <sup>**</sup> "Yes" corresponds 
+        `use_results="cached"` in the `get` method while "No" corresponds to 
+        `use_results="none"`.
 
 
         Arguments:

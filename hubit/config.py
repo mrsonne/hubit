@@ -362,7 +362,9 @@ class HubitModelComponent:
     in `provides_results`.
 
     Args:
-        path (str): Path to the module responsible for the task.
+        path (str): Path to the module responsible for the task. if `is_dotted_path` 
+            is false the `path` attribute is relative to the `base_path`
+            which is the parent path for the model file.
         func_name (str): The function name (entrypoint) that wraps the task.
         provides_results (List[HubitBinding]): [`HubitBinding`][hubit.config.HubitBinding] sequence specifying the results provided by the component.
         consumes_input (List[HubitBinding], optional): [`HubitBinding`][hubit.config.HubitBinding] sequence specifying the input consumed by the input consumed.
@@ -494,7 +496,8 @@ class HubitModelConfig:
         Create instance from configuration data from a configuration file
 
         Args:
-            model_file_path (str): Path to the configuration file
+            model_file_path (str): Path to the configuration file. The 
+            parent path of `model_file_path` will be used as the `base_path`.
 
         Returns:
             HubitModelConfig: Object corresponsing to the configuration data

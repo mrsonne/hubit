@@ -6,8 +6,7 @@ import re
 import subprocess
 
 output = subprocess.run(["git", "branch", "--show-current"], capture_output=True)
-branch_name = output.stdout.decode("utf-8")
-branch_name = branch_name.replace("\n", "")
+branch_name = output.stdout.decode("utf-8").replace("\n", "")
 assert branch_name == "master", "Can only tag from 'master'"
     
 

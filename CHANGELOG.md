@@ -11,10 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - The top-level object `provides` is now named `provides_results`.
     - The sub-objects `consumes.input` is now a top-level object named `consumes_input`.
     - The sub-objects `consumes.results` is now a top-level object named `consumes_results`.
-    - The value of `module_path` should now be specified in the `path` and is interpreted as a path present in `sys.path`. The most common use case is `site-packages`.  `is_python_path`
+    - The value of `module_path` should now be specified in the `path` and is interpreted as a path present in `sys.path` that can be imported as a dotted path. 
+    The most common use case is a package in `site-packages`. If `path` is a dotted path
+    `is_python_path` should be set to `True`.
 
 ### Added
 - Improved model configuration validation
+- Documentation
 
 
 ## [0.2.0] - 2021-03-26

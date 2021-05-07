@@ -233,7 +233,7 @@ is_dotted_path: True
 where `hubit_components` would typically be a package you have installed in site-packages.
 
 ### Running
-To get results from a model requires you to submit a _query_, which is a sequence of [`query paths`][hubit.config.HubitModelPath] each referencing a field in the results data structure that you want to have calculated. After `Hubit` has processed the query, i.e. executed relevant components, the values of the queried attributes are returned in the _response_. A query may spawn many component workers that may be instance of the same or different model components. Below are two examples of queries and the corresponding responses.
+To get results from a model requires you to submit a _query_, which is a sequence of [`query paths`][hubit.config.HubitQueryPath] each referencing a field in the results data structure that you want to have calculated. After `Hubit` has processed the query, i.e. executed relevant components, the values of the queried attributes are returned in the _response_. A query may spawn many component workers that may be instance of the same or different model components. Below are two examples of queries and the corresponding responses.
 
 ```python
 # Load model from file

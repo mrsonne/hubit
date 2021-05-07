@@ -1,5 +1,5 @@
 """
-This module contains the `hubit` HubitModel class which is used 
+This module contains the `HubitModel` class which is used 
 for executing your calculations.
 """
 

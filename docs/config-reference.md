@@ -1,12 +1,13 @@
 
 {% include 'docs/shared/header.html' %}
-# Hubit configuration and queries
+# Hubit configuration, data and queries
 ::: hubit.config
     selection:
         members:
             - dummy
     rendering:
-        show_root_heading: true
+        show_root_heading: false
+        show_root_toc_entry: false
 
 ::: hubit.config.HubitQueryPath
     selection:
@@ -14,7 +15,6 @@
             - dummy
     rendering:
         show_root_heading: true
-
 
 ::: hubit.config.HubitModelConfig
     selection:

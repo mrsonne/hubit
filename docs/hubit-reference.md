@@ -2,9 +2,16 @@
 {% include 'docs/shared/header.html' %}
 
 # Hubit
+Components described below are available directly from the 'hubit' package. 
+Therefore, the model class can be imported as `from hubit import HubitModel`.
 
-<h2 id="hubit.model" class="doc doc-heading">
-    <code>hubit.clear_hubit_cache()</code>
-</h2>
+::: hubit.model.HubitModel
+    rendering:
+        show_root_heading: true
+    selection:
+        filters:
+            - "!^__init__$" 
+
 ::: hubit.__init__.clear_hubit_cache
-
+    rendering:
+        show_root_heading: true

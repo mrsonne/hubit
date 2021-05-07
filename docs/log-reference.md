@@ -1,6 +1,6 @@
 {% include 'docs/shared/header.html' %}
 
-# Model log
+# Log
 
 The model log is useful for debugging a model and for optimizing model 
 performance.

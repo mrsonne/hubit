@@ -25,29 +25,9 @@ Many work places have developed a rich ecosystem of stand-alone tools. These too
 By defining input and results data structures that are shared between your tools `hubit` allows all your Python-wrappable tools to be seamlessly executed asynchronously as a single model. Asynchronous multi-processor execution often assures a better utilization of the available CPU resources compared to sequential single-processor execution. This is especially true when some time is spent in each component. In practice this performance improvement often compensates the management overhead introduced by `hubit`.
 Executing a fixed call graph is faster than executing the same call graph dynamically created by `hubit`. Nevertheless, a fixed call graph will typically encompass all relevant calculations and provide all results, which in many cases will represent wasteful compute since only a subset of the results are actually needed. `hubit` dynamically creates the smallest possible call graph that can provide the results that satisfy the user's query.  
 
-
-## Installation & requirements
-
-Install from pypi
-```sh
-pip install hubit
-```
-
-
-Install from GitHub
-```sh
-pip install git+git://github.com/mrsonne/hubit.git
-```
-
-To render `hubit` models and queries you need to install Graphviz (https://graphviz.org/download/). On e.g. Ubuntu, Graphviz can be installed using the command
-
-```sh
-sudo apt install graphviz
-```
-
 ## Teaser
 
-The full documentation, use cases and an in-depth tutorial can be found in the [`Hubit` examples ](https://mrsonne.github.io/hubit/examples/), which is a part of the documentation. Below is a brief example of how to use `Hubit` once the model is configured.
+The example below is taken from the [in-depth tutorial](https://mrsonne.github.io/hubit/examples/), in the documentation. 
 
 To get results from a `Hubit` model requires you to submit a _query_, which tells `Hubit` what attributes from the results data structure you want to have calculated. After `Hubit` has processed the query, i.e. executed relevant components, the values of the queried attributes are returned in the _response_.
 
@@ -88,6 +68,8 @@ and the corresponding response is
                             [312.0, 1120.0, 178.0, 3400.0]],
 ```
 
+From the response we can see the prices for the five parts that comprise the first car and the 
+prices for the four part that comprise the second car. The full example illustrates how a second calculation component can be used to calculate the total price for each car.
 
 `Hubit` can render models and queries. In the example below we have rendered the query `cars[0].price` i.e. the price of the car at index 0 using 
 
@@ -103,3 +85,24 @@ which yields the graph shown below.
 </a>
 
 The graph illustrates nodes in the input data structure, nodes in the the results data structure, the calculation components involved in creating the response as well as hints at which attributes flow in and out of these components.
+
+
+## Installation & requirements
+
+Install from pypi
+```sh
+pip install hubit
+```
+
+
+Install from GitHub
+```sh
+pip install git+git://github.com/mrsonne/hubit.git
+```
+
+To render `hubit` models and queries you need to install Graphviz (https://graphviz.org/download/). On e.g. Ubuntu, Graphviz can be installed using the command
+
+```sh
+sudo apt install graphviz
+```
+

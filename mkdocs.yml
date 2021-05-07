@@ -20,14 +20,15 @@ plugins:
         python:
           rendering:
             show_source: false
+            show_root_full_path: false
+
 nav:
     - First steps: index.md
     - Examples: examples.md
     - Code Reference:
         - Hubit: hubit-reference.md
-        - Hubit model: model-reference.md
-        - Model config: config-reference.md
-        - Model log: log-reference.md
+        - Config & data: config-reference.md
+        - Log: log-reference.md
     - Change log: changelog.md
 
 # extra:

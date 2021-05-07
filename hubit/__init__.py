@@ -1,4 +1,4 @@
-VERSION = "0.3.0a"
+VERSION = "0.3.0"
 import shutil
 
 

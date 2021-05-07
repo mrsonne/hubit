@@ -504,7 +504,7 @@ class HubitModelConfig:
         """
         with open(model_file_path, "r") as stream:
             cfg = yaml.load(stream, Loader=yaml.FullLoader)
-        return cls.from_cfg(cfg, pathlib.Path(model_file_path).parent)
+        return cls.from_cfg(cfg, pathlib.Path(model_file_path).parent.as_posix())
 
     @classmethod
     def from_cfg(cls, cfg: Dict, base_path: str) -> HubitModelConfig:

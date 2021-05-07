@@ -45,7 +45,7 @@ class HubitModel(_HubitModel):
         [`from_file`][hubit.model.HubitModel.from_file] method instead.
 
         Args:
-            model_cfg: Model configuration object 
+            model_cfg: Model configuration object
                 [`HubitModelConfig`][hubit.config.HubitModelConfig]
             output_path: Output path relative to the base_path on the
             `HubitModelConfig` instance.
@@ -144,7 +144,7 @@ class HubitModel(_HubitModel):
             caching_mode: Valid options are: "none", "incremental", "after_execution".
                 If "none" model results are not cached. If "incremental" results are
                 saved to disk whenever a component worker finishes its workload. If
-                the `caching_mode` is set to "after_execution" the results are saved 
+                the `caching_mode` is set to "after_execution" the results are saved
                 to disk when all component workers have finished their workloads.
 
         Results caching is useful when you want to avoid spending time calculating
@@ -157,16 +157,16 @@ class HubitModel(_HubitModel):
         incrementally is a bottleneck.
 
         __Warning__. Cached results are tied to the content of the model configuration
-        file and the model input. `Hubit` does not check if any of the underlying calculation 
-        code has changed. Therefore, using results caching while components 
+        file and the model input. `Hubit` does not check if any of the underlying calculation
+        code has changed. Therefore, using results caching while components
         are in development is not recommended.
 
-        `Hubit`'s behavior in four parameter combinations is summarized below. 
-        "Yes" in the Write column corresponds to setting the caching level to either 
-        "incremental" or "after_execution" using the `set_model_caching` method. 
-        "No" in the Write column corresponds to caching level "none". 
-        "Yes" in the Read column corresponds 
-        `use_results="cached"` in the `get` method while "No" corresponds to 
+        `Hubit`'s behavior in four parameter combinations is summarized below.
+        "Yes" in the Write column corresponds to setting the caching level to either
+        "incremental" or "after_execution" using the `set_model_caching` method.
+        "No" in the Write column corresponds to caching level "none".
+        "Yes" in the Read column corresponds
+        `use_results="cached"` in the `get` method while "No" corresponds to
         `use_results="none"`.
 
 
@@ -218,8 +218,8 @@ class HubitModel(_HubitModel):
         return self
 
     def render(self, query: List[str] = [], file_idstr: str = ""):
-        """Create graph representing the model or the query and save 
-        the image to the model `output_path`. 
+        """Create graph representing the model or the query and save
+        the image to the model `output_path`.
 
         Args:
             query: Sequence of strings that complies with
@@ -261,20 +261,20 @@ class HubitModel(_HubitModel):
 
         Args:
             query: Sequence of strings that complies with [`Query`][hubit.config.Query].
-            use_multi_processing: Flag indicating if the respose should be generated 
+            use_multi_processing: Flag indicating if the respose should be generated
                 using (async) multiprocessing.
-            validate: Flag indicating if the query should be validated prior 
+            validate: Flag indicating if the query should be validated prior
                 to execution. If `True` a dry-run of the model will be executed.
             use_results: Should previously saved results be used.
-                If `use_results` is set to "current" the results set on the model instance 
-                will be used as-is i.e. will not be recalculated. 
-                If `use_results` is set to "cached" cached results will be used 
-                if they exists. If `use_results` is set to "none" no previously 
+                If `use_results` is set to "current" the results set on the model instance
+                will be used as-is i.e. will not be recalculated.
+                If `use_results` is set to "cached" cached results will be used
+                if they exists. If `use_results` is set to "none" no previously
                 calculated results will be used.
 
         Raises:
             HubitModelNoInputError: If no input is set on the model.
-            HubitModelNoResultsError: If `use_results` = "current" but 
+            HubitModelNoResultsError: If `use_results` = "current" but
                 no results are present on the model.
             HubitError: If the specified `use_results` option is not known.
 
@@ -324,7 +324,7 @@ class HubitModel(_HubitModel):
         self,
         query: List[str],
         input_values_for_path: Dict[str, Any],
-        skipfun: Any = None, #Callable[[FlatData], bool] = _default_skipfun,
+        skipfun: Any = None,  # Callable[[FlatData], bool] = _default_skipfun,
         nproc: Any = None,
     ) -> Tuple:
         """Perform a full factorial sampling of the
@@ -335,17 +335,17 @@ class HubitModel(_HubitModel):
 
         Args:
             query: Sequence of strings that complies with [`Query`][hubit.config.Query].
-            input_values_for_path: Dictionary with string keys that each complies with 
-                [`HubitQueryPath`][hubit.config.HubitQueryPath]. 
-                The corresponding values should be an iterable with elements 
-                representing discrete values for the attribute at the path. For 
-                each factor combination an input data object 
-                ([`FlatData`][hubit.config.FlatData]) will be created 
+            input_values_for_path: Dictionary with string keys that each complies with
+                [`HubitQueryPath`][hubit.config.HubitQueryPath].
+                The corresponding values should be an iterable with elements
+                representing discrete values for the attribute at the path. For
+                each factor combination an input data object
+                ([`FlatData`][hubit.config.FlatData]) will be created
                 and passed to `skipfun`.
-            skipfun: Callable that takes the flattened input for each factor combination 
-                as the only argument. If the skip function returns `True` the 
-                factor combination represented by the input data object is skipped. 
-                The default `skipfun` corresponding to 
+            skipfun: Callable that takes the flattened input for each factor combination
+                as the only argument. If the skip function returns `True` the
+                factor combination represented by the input data object is skipped.
+                The default `skipfun` corresponding to
                 `skipfun=None` always returns `False`.
             nproc: Number of processes to use. If `None` a suitable default is used.
 
@@ -353,7 +353,7 @@ class HubitModel(_HubitModel):
             HubitModelNoInputError: If not input is set.
 
         Returns:
-            Tuple of lists (responses, flat_inputs, flat_results). flat_inputs 
+            Tuple of lists (responses, flat_inputs, flat_results). flat_inputs
             and flat_results both have elements of type [`FlatData`][hubit.config.FlatData]
         """
         if not self._input_is_set:
@@ -420,9 +420,9 @@ class HubitModel(_HubitModel):
             True if validation was successful.
         """
         # TODO: check for circular references,
-        #       Component that consumes a specified index ID should also 
-        # provide a result at the same location in the results data model. 
-        # Not necesary if all indices (:) are consumed. I.e. the provider 
+        #       Component that consumes a specified index ID should also
+        # provide a result at the same location in the results data model.
+        # Not necesary if all indices (:) are consumed. I.e. the provider
         # path should contain all index info
 
         _query = Query.from_paths(query)
@@ -441,7 +441,7 @@ class HubitModel(_HubitModel):
         Get the model log
 
         Returns:
-            [HubitLog][hubit.model.HubitLog] object 
+            [HubitLog][hubit.model.HubitLog] object
         """
         return self._log
 
@@ -458,9 +458,9 @@ class LogItem:
 
     Args:
         elapsed_time (float): Query execution time
-        worker_counts (Dict[str, int]): For each component function name 
+        worker_counts (Dict[str, int]): For each component function name
             the value is the count of spawned workers.
-        cache_counts (Dict[str, int]): For each component function name 
+        cache_counts (Dict[str, int]): For each component function name
             the value is the number of workers that used the cache.
         cached results. The keys are function names.
     """
@@ -619,10 +619,10 @@ class HubitLog:
 
         Examples:
             To get the elapsed time for all queries on the `HubitModel` instance
-            `hmodel` execute `hmodel.log().get_all("elapsed_time")`. If two queries 
+            `hmodel` execute `hmodel.log().get_all("elapsed_time")`. If two queries
             has been executed on the model,  the return value
-            is a list of times e.g. `[0.5028373999812175, 0.6225477000162937]` 
-            where the first element represent the elapsed time for for latest 
+            is a list of times e.g. `[0.5028373999812175, 0.6225477000162937]`
+            where the first element represent the elapsed time for for latest
             query.
 
         Args:

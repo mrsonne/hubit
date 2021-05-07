@@ -362,7 +362,7 @@ class HubitModelComponent:
     in `provides_results`.
 
     Args:
-        path (str): Path to the module responsible for the task. if `is_dotted_path` 
+        path (str): Path to the module responsible for the task. if `is_dotted_path`
             is false the `path` attribute is relative to the `base_path`
             which is the parent path for the model file.
         func_name (str): The function name (entrypoint) that wraps the task.
@@ -496,7 +496,7 @@ class HubitModelConfig:
         Create instance from configuration data from a configuration file
 
         Args:
-            model_file_path (str): Path to the configuration file. The 
+            model_file_path (str): Path to the configuration file. The
             parent path of `model_file_path` will be used as the `base_path`.
 
         Returns:

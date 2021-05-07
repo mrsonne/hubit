@@ -8,13 +8,13 @@ import subprocess
 allowed_branch = "master"
 allowed_branch = "cfg-validation"
 
-# Tag only from master to assure approves pull request
+# Tag only from "allowed_branch" 
 output = subprocess.run(["git", "branch", "--show-current"], capture_output=True)
 branch_name = output.stdout.decode("utf-8").replace("\n", "")
 assert branch_name == allowed_branch, f"Can only tag from '{allowed_branch}'"
-print(f"On branch: {branch_name}")
+print(f"On allowed branch: {branch_name}")
 
-# Check if local is behind origin
+# Do not allow local HEAD to be behind origin
 subprocess.run(["git", "fetch"])
 output = subprocess.run(
     ["git", "rev-list", "--count", f"{allowed_branch}..origin/{allowed_branch}"],
@@ -23,7 +23,7 @@ output = subprocess.run(
 behind = output.stdout.decode("utf-8").replace("\n", "")
 assert behind == "0", f"Local version version is behind by {behind} commits"
 
-# Check if local is ahead of origin
+# Do not allow local HEAD to be ahead of origin
 output = subprocess.run(
     ["git", "rev-list", "--count", f"origin/{allowed_branch}..{allowed_branch}"],
     capture_output=True,

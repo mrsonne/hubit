@@ -9,11 +9,11 @@ from hubit.config import FlatData, HubitModelPath
 logging.basicConfig(level=logging.INFO)
 
 
-def skipfun(value_for_path: FlatData) -> bool:
+def skipfun(flat_input: FlatData) -> bool:
     """
     Skip factor combination if the thickness of the two wall segments differ
     """
-    input = value_for_path.inflate()
+    input = flat_input.inflate()
 
     inner_materials = [
         segment["layers"][0]["material"]

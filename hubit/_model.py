@@ -28,9 +28,10 @@ from .errors import (
 )
 
 
-def default_skipfun(_: FlatData) -> bool:
+def _default_skipfun(flat_input: FlatData) -> bool:
     """
-    value_for_path is a flat dict with internal paths as keys
+    flat_input is the input for one factor combination in a sweep
+    calculation
     """
     return False
 
@@ -130,7 +131,7 @@ class _HubitModel:
     Contains all private methods and should not be used. Use the public version model.HubitModel
     """
 
-    _valid_model_caching_modes = "never", "incremental", "after_execution"
+    _valid_model_caching_modes = "none", "incremental", "after_execution"
     _do_model_caching = "incremental", "after_execution"
 
     def __init__(self):

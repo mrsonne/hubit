@@ -1,7 +1,7 @@
 """
 Objects defined in this module will automatically be created by `Hubit`. 
 Therefore, the class definitions below simply document e.g. the attributes required 
-in a model config file or the required structure of a query path. 
+in a model config file or the required structure of a query path.
 """
 # https://github.com/mkdocstrings/pytkdocs/issues/69
 

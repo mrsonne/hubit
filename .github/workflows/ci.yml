@@ -1,8 +1,11 @@
 name: ci
 on:
+  # push:
+  #   branches:
+  #     - master
   push:
-    branches:
-      - master
+    tags:
+      - '*'
 jobs:
   deploy:
     runs-on: ubuntu-latest

@@ -30,7 +30,8 @@ jobs:
           pip install mkdocstrings
           pip install mkdocs-macros-plugin
 
-      # - name: Build docs
-      #   run: |
-      #     git pull
-      #     mkdocs gh-deploy --force # python -m mkdocs gh-deploy
+      - name: Build docs
+        run: |
+          ls -ltr
+          git pull
+          mkdocs gh-deploy --force

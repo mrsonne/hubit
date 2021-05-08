@@ -15,6 +15,7 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: 3.x
+      - run: echo "$HOME/hubit" >> $GITHUB_PATH
       - run: ls -ltr
       - run: pip install mkdocs-material
       - run: pip install mkdocstrings

@@ -2,7 +2,9 @@ import unittest
 from unittest.mock import Mock
 import yaml
 from hubit import shared
-from hubit.worker import _Worker, HubitWorkerError
+from hubit.worker import _Worker
+from hubit.config import HubitModelComponent, HubitBinding, HubitModelPath
+from hubit.errors import HubitWorkerError
 
 
 class TestWorker(unittest.TestCase):
@@ -13,35 +15,29 @@ class TestWorker(unittest.TestCase):
         """
         Fails since query does not match.
         """
-        hmodel = None
-        cname = None
+        qrunner = None
         func = None
         version = None
-        comp_data = {
-            "provides": [
+        cfg = {
+            "path": "dummy",
+            "func_name": "dummy",
+            "provides_results": [
                 {"name": "attr1", "path": "shared.results.attr1.path"},
                 {"name": "attr2", "path": "shared.results.attr2.path"},
             ],
-            "consumes": {
-                "input": [{"name": "attr", "path": "shared.input.attr.path"}],
-                "results": [],
-            },
+            "consumes_input": [{"name": "attr", "path": "shared.input.attr.path"}],
         }
+        component = HubitModelComponent.from_cfg(cfg)
 
         # No index IDs in model
         tree = shared.DummyLengthTree()
-
-        # inputdata = {'shared' : {"input": {"attr": {"path": 2}}}}
-        # [{'name':, 'path':},
-        # {'name':, 'path':}]
 
         querystring = "shared.attr.path"
         with self.assertRaises(HubitWorkerError) as context:
             w = _Worker(
                 self.manager,
-                hmodel,
-                cname,
-                comp_data,
+                qrunner,
+                component,
                 querystring,
                 func,
                 version,
@@ -53,70 +49,35 @@ class TestWorker(unittest.TestCase):
         """
         Initialize a simple worker with no idxids
         """
-        hmodel = None
-        cname = None
+        qrunner = None
         func = None
         version = None
-        comp_data = {
-            "provides": [
+        cfg = {
+            "path": "dummy",
+            "func_name": "dummy",
+            "provides_results": [
                 {"name": "attr1", "path": "shared.results.attr1.path"},
                 {"name": "attr2", "path": "shared.results.attr2.path"},
             ],
-            "consumes": {
-                "input": [{"name": "attr", "path": "shared.input.attr.path"}],
-                "results": [],
-            },
+            "consumes_input": [{"name": "attr", "path": "shared.input.attr.path"}],
         }
+        component = HubitModelComponent.from_cfg(cfg)
 
         # No index IDs in model
         tree_for_idxcontext = {"": shared.DummyLengthTree()}
 
         # Query something known to exist
-        querystring = comp_data["provides"][0]["path"]
+        querystring = component.provides_results[0].path
         w = _Worker(
             self.manager,
-            hmodel,
-            cname,
-            comp_data,
+            qrunner,
+            component,
             querystring,
             func,
             version,
             tree_for_idxcontext,
             dryrun=True,
         )
-
-    def test_3(self):
-        """
-        Componet provides nothing => error
-        """
-        hmodel = None
-        cname = "Test component"
-        func = None
-        version = None
-        cfg = {
-            "consumes": {
-                "input": [{"name": "attr", "path": "shared.input.attr.path"}],
-                "results": [],
-            }
-        }
-
-        # No index IDs in model
-        tree = shared.DummyLengthTree()
-
-        querystring = "shared.results.attr1.path"
-
-        with self.assertRaises(HubitWorkerError) as context:
-            w = _Worker(
-                self.manager,
-                hmodel,
-                cname,
-                cfg,
-                querystring,
-                func,
-                version,
-                tree,
-                dryrun=True,
-            )
 
     def test_4(self):
         """
@@ -133,26 +94,27 @@ class TestWorker(unittest.TestCase):
         func = None
         version = None
         cfg = {
-            "provides": [
+            "path": "dummy",
+            "func_name": "dummy",
+            "provides_results": [
                 {
                     "name": "attrs1",
                     "path": "items_outer[:@IDX_OUTER].attr.items_inner[:@IDX_INNER].path1",
                 }
             ],
-            "consumes": {
-                "input": [
-                    {
-                        "name": "attrs",
-                        "path": "items_outer[:@IDX_OUTER].attr.items_inner[:@IDX_INNER].path",
-                    },
-                    {"name": "number", "path": "some_number"},
-                ],
-                "results": [
-                    {"name": "dependency", "path": "value"},
-                    {"name": "dependency2", "path": "items_outer[:@IDX_OUTER].value"},
-                ],
-            },
+            "consumes_input": [
+                {
+                    "name": "attrs",
+                    "path": "items_outer[:@IDX_OUTER].attr.items_inner[:@IDX_INNER].path",
+                },
+                {"name": "number", "path": "some_number"},
+            ],
+            "consumes_results": [
+                {"name": "dependency", "path": "value"},
+                {"name": "dependency2", "path": "items_outer[:@IDX_OUTER].value"},
+            ],
         }
+        component = HubitModelComponent.from_cfg(cfg)
 
         # Required for shape inference. TODO: change when shapes are defined in model
         inputdata = {
@@ -164,13 +126,12 @@ class TestWorker(unittest.TestCase):
         }
 
         querystring = "items_outer.1.attr.items_inner.0.path1"
-        tree_for_idxcontext = shared.tree_for_idxcontext([cfg], inputdata)
+        tree_for_idxcontext = shared.tree_for_idxcontext([component], inputdata)
 
         w = _Worker(
             self.manager,
             qrunner,
-            cname,
-            cfg,
+            component,
             querystring,
             func,
             version,
@@ -251,20 +212,20 @@ class TestWorker(unittest.TestCase):
         Initialize worker with ILOC locations in
         query and ILOC wildcards in bindings
         """
-        hmodel = None
-        cname = None
+        qrunner = None
         func = None
         version = None
-        comp_yml = """
-                    provides : 
-                        - name: k_therm 
-                          path: segments[IDX_SEG].layers[:@IDX_LAY].k_therm
-                    consumes:
-                        input:
-                        - name: material
-                          path: segments[IDX_SEG].layers[:@IDX_LAY].material
-                    """
-        comp_data = yaml.load(comp_yml, Loader=yaml.FullLoader)
+        cfg = """
+            path: dummy,
+            func_name: dummy,
+            provides_results: 
+                - name: k_therm 
+                  path: segments[IDX_SEG].layers[:@IDX_LAY].k_therm
+            consumes_input:
+                - name: material
+                  path: segments[IDX_SEG].layers[:@IDX_LAY].material
+        """
+        component = HubitModelComponent.from_cfg(yaml.load(cfg, Loader=yaml.FullLoader))
 
         # Query something known to exist
         querystr = "segments[0].layers[0].k_therm"
@@ -278,12 +239,11 @@ class TestWorker(unittest.TestCase):
         tree = shared.LengthTree(nodes, level_names)
         tree_for_idxcontext = {tree.get_idx_context(): tree}
 
-        querystr = shared.convert_to_internal_path(querystr)
+        querystr = HubitModelPath.as_internal(querystr)
         w = _Worker(
             self.manager,
-            hmodel,
-            cname,
-            comp_data,
+            qrunner,
+            component,
             querystr,
             func,
             version,
@@ -300,10 +260,14 @@ class TestWorker(unittest.TestCase):
         the expansion
         """
         bindings = [
-            {"name": "k_therm", "path": "segments[IDX_SEG].layers[:@IDX_LAY].k_therm"}
+            HubitBinding.from_cfg(
+                {
+                    "name": "k_therm",
+                    "path": "segments[IDX_SEG].layers[:@IDX_LAY].k_therm",
+                }
+            )
         ]
         querystring = "segments[0].layers[0].k_therm"
-        idxids = "IDX_SEG", "IDX_LAY"
         path_for_name, _ = _Worker.get_bindings(bindings, querystring)
         # This is what will be provided for the query: The attribute 'k_therm'
         # for all layers for the specific index ID _IDX=0
@@ -315,32 +279,38 @@ class TestWorker(unittest.TestCase):
         """Queries should be expanded (location specific)
         otherwise a HubitWorkerError is raised
         """
-        provides = [
-            {"name": "k_therm", "path": "segments[IDX_SEG].layers[:@IDX_LAY].k_therm"}
+        provides_results = [
+            HubitBinding.from_cfg(
+                {
+                    "name": "k_therm",
+                    "path": "segments[IDX_SEG].layers[:@IDX_LAY].k_therm",
+                }
+            )
         ]
         querystring = "segments[0].layers[:].k_therm"
-        idxids = "IDX_SEG", "IDX_LAY"
-        with self.assertRaises(HubitWorkerError) as context:
-            _Worker.get_bindings(provides, querystring)
+        with self.assertRaises(HubitWorkerError):
+            _Worker.get_bindings(provides_results, querystring)
 
     def test_8(self):
         """
         Test compression of indices. The query does not include any indices
         """
-        hmodel = None
-        cname = None
+        qrunner = None
         func = None
         version = None
         comp_yml = """
-                    provides:
+                    path: dummy,
+                    func_name: dummy,
+                    provides_results:
                         - name: mylist
                           path: factors
-                    consumes:
-                        input: 
+                    consumes_input: 
                           - name: factors
                             path: list[:@IDX1].some_attr.factors
                     """
-        comp_data = yaml.load(comp_yml, Loader=yaml.FullLoader)
+        component = HubitModelComponent.from_cfg(
+            yaml.load(comp_yml, Loader=yaml.FullLoader)
+        )
 
         # Query something known to exist
         querystr = "factors"
@@ -352,12 +322,11 @@ class TestWorker(unittest.TestCase):
 
         tree_for_idxcontext = {"": dummy_tree, tree.get_idx_context(): tree}
 
-        querystr = shared.convert_to_internal_path(querystr)
+        querystr = HubitModelPath.as_internal(querystr)
         w = _Worker(
             self.manager,
-            hmodel,
-            cname,
-            comp_data,
+            qrunner,
+            component,
             querystr,
             func,
             version,
@@ -370,7 +339,7 @@ class TestWorker(unittest.TestCase):
         Substitute idxids with idxs
         """
         bindings = [{"name": "heat_flux", "path": "segments[IDX_SEG].heat_flux"}]
-
+        bindings = [HubitBinding.from_cfg(binding) for binding in bindings]
         idxval_for_idxid = {"IDX_SEG": "3"}
         path_for_name = _Worker.bindings_from_idxs(bindings, idxval_for_idxid)
         expected_path_for_name = {"heat_flux": "segments[3].heat_flux"}
@@ -382,10 +351,12 @@ class TestWorker(unittest.TestCase):
         and should be left as is
         """
         bindings = [
-            {
-                "name": "outer_temperature_all_layers",
-                "path": "segments[IDX_SEG].layers[:@IDX_LAY].outer_temperature",
-            },
+            HubitBinding.from_cfg(
+                {
+                    "name": "outer_temperature_all_layers",
+                    "path": "segments[IDX_SEG].layers[:@IDX_LAY].outer_temperature",
+                }
+            )
         ]
 
         idxval_for_idxid = {"IDX_SEG": "0"}

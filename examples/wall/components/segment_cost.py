@@ -28,7 +28,7 @@ prices = {
 
 
 def cost(_input_consumed, _results_consumed, results_provided):
-    """"""
+    """ """
     if _input_consumed["type"] == "window":
         # A window has a fixed price
         cost = 1000.0

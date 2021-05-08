@@ -12,17 +12,12 @@ from threading import Thread, Event
 
 from .worker import _Worker
 from .qrun import _QueryRunner
+from .config import FlatData, HubitBinding, HubitModelPath, HubitQueryPath, Query
 from .shared import (
     IDX_WILDCARD,
-    clean_idxids_from_path,
-    convert_to_internal_path,
     idxs_for_matches,
-    get_idx_context,
-    set_ilocs_on_path,
-    idxids_from_path,
     get_iloc_indices,
     set_element,
-    remove_braces_from_path,
     tree_for_idxcontext,
 )
 
@@ -33,15 +28,21 @@ from .errors import (
 )
 
 
-def default_skipfun(_: Dict[str, Any]) -> bool:
+def _default_skipfun(flat_input: FlatData) -> bool:
     """
-    value_for_path is a flat dict with internal paths as keys
+    flat_input is the input for one factor combination in a sweep
+    calculation
     """
     return False
 
 
 def _get(
-    queryrunner, query, flat_input, flat_results=None, dryrun=False, expand_iloc=False
+    queryrunner,
+    query: Query,
+    flat_input,
+    flat_results: FlatData = FlatData(),
+    dryrun: bool = False,
+    expand_iloc: bool = False,
 ):
     """
     With the 'queryrunner' object deploy the paths
@@ -61,12 +62,9 @@ def _get(
 
     extracted_input = {}
 
-    if flat_results is None:
-        flat_results = {}
-
-    # Expand the query and get the max ilocs for each query
+    # Expand the query for each path
     queries_for_query = {
-        qstr1: queryrunner.model._expand_query(qstr1) for qstr1 in query
+        qstr1: queryrunner.model._expand_query(qstr1) for qstr1 in query.paths
     }
     _queries = [qstr for qstrs in queries_for_query.values() for qstr in qstrs]
 
@@ -133,11 +131,15 @@ class _HubitModel:
     Contains all private methods and should not be used. Use the public version model.HubitModel
     """
 
-    _valid_model_caching_modes = "never", "incremental", "after_execution"
+    _valid_model_caching_modes = "none", "incremental", "after_execution"
     _do_model_caching = "incremental", "after_execution"
 
     def __init__(self):
         pass
+
+    @property
+    def base_path(self):
+        return self.model_cfg.base_path
 
     def _add_log_items(
         self,
@@ -155,10 +157,10 @@ class _HubitModel:
         https://stackoverflow.com/questions/3431825/generating-an-md5-checksum-of-a-file
         """
         return hashlib.md5(
-            pickle.dumps({"input": self.inputdata, "cfg": self.cfg})
+            pickle.dumps({"input": self.inputdata, "cfg": self.model_cfg})
         ).hexdigest()
 
-    def _get_dot(self, queries: List[str], file_idstr: str):
+    def _get_dot(self, query: Query, file_idstr: str):
         """
         Construct dot object and get the filename.
 
@@ -212,7 +214,7 @@ class _HubitModel:
             fontname=fontname,
         )
 
-        if len(queries) > 0:
+        if len(query.paths) > 0:
             # Render a query
 
             if not self._input_is_set:
@@ -224,7 +226,7 @@ class _HubitModel:
             direction = -1
 
             # Run validation since this returns (dummy) workers
-            workers = self._validate_query(queries, use_multi_processing=False)
+            workers = self._validate_query(query, use_multi_processing=False)
 
             with dot.subgraph(
                 name="cluster_request", node_attr={"shape": "box"}
@@ -241,7 +243,7 @@ class _HubitModel:
                 # Make a node for the query
                 subgraph.node(
                     name="_Query",
-                    label="\n".join(queries),
+                    label="\n".join(query.paths),
                     shape=request_shape,
                     color="none",
                     fontsize=fontsize_small,
@@ -254,24 +256,22 @@ class _HubitModel:
             filename = "model"
             direction = -1
             workers = []
-            for component_data in self.cfg:
-                func_name = component_data["func_name"]
-                path = component_data["provides"][0]["path"]
-                dummy_query = convert_to_internal_path(
-                    set_ilocs_on_path(path, ["0" for _ in idxids_from_path(path)])
+            for component in self.model_cfg.components:
+                path = component.provides_results[0].path
+                dummy_query = HubitModelPath.as_internal(
+                    path.set_indices(["0" for _ in path.get_index_specifiers()])
                 )
 
                 # Get function and version to init the worker
                 (func, version, _) = _QueryRunner._get_func(
-                    self.base_path, func_name, component_data, components={}
+                    self.base_path, component, components={}
                 )
                 manager = None
                 workers.append(
                     _Worker(
                         manager,
                         self,
-                        func_name,
-                        component_data,
+                        component,
                         dummy_query,
                         func,
                         version,
@@ -360,7 +360,7 @@ class _HubitModel:
                 )
                 self._render_objects(
                     w.name,
-                    w.mpath_for_name("input"),
+                    w.binding_map("consumes_input"),
                     "cluster_input",
                     prefix_input,
                     input_object_ids[0],
@@ -387,7 +387,7 @@ class _HubitModel:
 
                 self._render_objects(
                     w.name,
-                    w.mpath_for_name("provides"),
+                    w.binding_map("provides_results"),
                     "cluster_results",
                     prefix_results,
                     results_object_ids[0],
@@ -403,7 +403,7 @@ class _HubitModel:
                 try:
                     self._render_objects(
                         w.name,
-                        w.mpath_for_name("results"),
+                        w.binding_map("consumes_results"),
                         "cluster_results",
                         prefix_results,
                         results_object_ids[0],
@@ -489,13 +489,13 @@ class _HubitModel:
         skipped = []
         label_for_edgeid = {}
         for name, path in cdata.items():
-            idxids = clean_idxids_from_path(path)
+            idxids = path.get_index_identifiers()
 
             # Path components with braces and index specifiers
-            pathcmps_old = convert_to_internal_path(path).split(".")
+            pathcmps_old = HubitModelPath.as_internal(path).split(".")
 
             # Path components with node names only
-            pathcmps = remove_braces_from_path(path).split(".")
+            pathcmps = path.remove_braces().split(".")
 
             # Collect data for connecting to nearest objects
             # and labeling the edge with the attributes consumed/provided
@@ -604,47 +604,42 @@ class _HubitModel:
         """
         results_object_ids = set()
         input_object_ids = set()
-        for component in self.cfg:
-            binding = component["provides"]
+        for component in self.model_cfg.components:
+            bindings = component.provides_results
             results_object_ids.update(
                 [
                     "{}_{}".format(prefix_results, objname)
-                    for objname in self._get_path_cmps(binding)
+                    for objname in self._get_path_cmps(bindings)
                 ]
             )
 
-            binding = component["consumes"]["input"]
+            bindings = component.consumes_input
             input_object_ids.update(
                 [
                     "{}_{}".format(prefix_input, objname)
-                    for objname in self._get_path_cmps(binding)
+                    for objname in self._get_path_cmps(bindings)
                 ]
             )
 
-            # Not all components consume results
-            try:
-                binding = component["consumes"]["results"]
-                results_object_ids.update(
-                    [
-                        "{}_{}".format(prefix_results, objname)
-                        for objname in self._get_path_cmps(binding)
-                    ]
-                )
-            except KeyError:
-                pass
+            bindings = component.consumes_results
+            results_object_ids.update(
+                [
+                    "{}_{}".format(prefix_results, objname)
+                    for objname in self._get_path_cmps(bindings)
+                ]
+            )
 
         results_object_ids = list(results_object_ids)
         input_object_ids = list(input_object_ids)
         return input_object_ids, results_object_ids
 
-    def _get_path_cmps(self, bindings):
+    def _get_path_cmps(self, bindings: HubitBinding):
         """
-        Get path components from binding data
+        Get path components from bindings
         """
         cmps = set()
         for binding in bindings:
-            pathcmps = remove_braces_from_path(binding["path"]).split(".")
-            # pathcmps = self._cleanpathcmps( binding['path'].split(".") )
+            pathcmps = binding.path.remove_braces().split(".")
             if len(pathcmps) - 1 > 0:
                 cmps.update(pathcmps[:-1])
         return cmps
@@ -693,29 +688,27 @@ class _HubitModel:
     def _set_trees(self):
         """Compute and set trees for all index contexts in model"""
         self.tree_for_idxcontext = tree_for_idxcontext(
-            self.component_for_name.values(), self.inputdata
+            self.model_cfg.component_for_name.values(), self.inputdata
         )
 
-    def _validate_query(self, queries, use_multi_processing=False):
+    def _validate_query(self, query: Query, use_multi_processing=False):
         """
         Run the query using a dummy calculation to see that all required
         input and results are available
         """
         qrunner = _QueryRunner(self, use_multi_processing)
-        _get(qrunner, queries, self.flat_input, dryrun=True)
+        _get(qrunner, query, self.flat_input, dryrun=True)
         return qrunner.workers
 
     def _validate_model(self):
         fname_for_path = {}
-        for compdata in self.cfg:
-            fname = compdata["func_name"]
-            for binding in compdata["provides"]:
-                if not binding["path"] in fname_for_path:
-                    fname_for_path[binding["path"]] = fname
+        for component in self.model_cfg.components:
+            fname = component.func_name
+            for binding in component.provides_results:
+                if not binding.path in fname_for_path:
+                    fname_for_path[binding.path] = fname
                 else:
-                    raise HubitModelValidationError(
-                        binding["path"], fname, fname_for_path
-                    )
+                    raise HubitModelValidationError(binding.path, fname, fname_for_path)
 
     def _cmpnames_for_query(self, qpath: str):
         """
@@ -723,12 +716,15 @@ class _HubitModel:
         """
         # TODO: Next two lines should only be executed once in init (speed)
         itempairs = [
-            (cmpdata["func_name"], bindings["path"])
-            for cmpdata in self.cfg
-            for bindings in cmpdata["provides"]
+            (cmp.id, binding.path)
+            for cmp in self.model_cfg.components
+            for binding in cmp.provides_results
         ]
-        func_names, providerstrings = zip(*itempairs)
-        return [func_names[idx] for idx in idxs_for_matches(qpath, providerstrings)]
+        cmp_ids, providerstrings = zip(*itempairs)
+        return [cmp_ids[idx] for idx in idxs_for_matches(qpath, providerstrings)]
+
+    def component_for_name(self, name):
+        return self.model_cfg.component_for_name[name]
 
     def _cmpname_for_query(self, path: str):
         """Find name of component that can respond to the "query".
@@ -744,34 +740,34 @@ class _HubitModel:
             str: Function name
         """
         # Get all components that provide data for the query
-        func_names = self._cmpnames_for_query(path)
+        cmp_ids = self._cmpnames_for_query(path)
 
-        if len(func_names) > 1:
+        if len(cmp_ids) > 1:
             fstr = "Fatal error. Multiple providers for query '{}': {}"
-            msg = fstr.format(path, func_names)
+            msg = fstr.format(path, cmp_ids)
             raise HubitModelQueryError(msg)
 
-        if len(func_names) == 0:
+        if len(cmp_ids) == 0:
             msg = f"Fatal error. No provider for query path '{path}'."
             raise HubitModelQueryError(msg)
 
         # Get the provider function for the query
-        return func_names[0]
+        return cmp_ids[0]
 
     def mpath_for_qpath(self, qpath: str) -> str:
         # Find component that provides queried result
-        cmp_name = self._cmpname_for_query(qpath)
+        cmp_id = self._cmpname_for_query(qpath)
 
         # Find and prune tree
-        cmp = self.component_for_name[cmp_name]
-        idx = idxs_for_matches(qpath, [binding["path"] for binding in cmp["provides"]])[
-            0
-        ]
-        return cmp["provides"][idx]["path"]
+        cmp = self.model_cfg.component_for_name[cmp_id]
+        idx = idxs_for_matches(
+            qpath, [binding.path for binding in cmp.provides_results]
+        )[0]
+        return cmp.provides_results[idx].path
 
-    def _expand_query(self, qpath: str) -> List[str]:
+    def _expand_query(self, qpath: HubitModelPath) -> List[str]:
         """
-        Expand query so that any index wildcards are converte to
+        Expand query so that any index wildcards are converted to
         real indies
 
         TODO: NEgative indices... prune_tree requires real indices but normalize
@@ -782,12 +778,12 @@ class _HubitModel:
         """
         mpath = self.mpath_for_qpath(qpath)
         self._modelpath_for_querypath[qpath] = mpath
-        idxcontext = get_idx_context(mpath)
+        idxcontext = mpath.get_idx_context()
         tree = self.tree_for_idxcontext[idxcontext]
         # qpath_normalized = tree.normalize_path(qpath)
         pruned_tree = tree.prune_from_path(
-            convert_to_internal_path(qpath),
-            convert_to_internal_path(mpath),
+            HubitModelPath.as_internal(qpath),
+            HubitModelPath.as_internal(mpath),
             inplace=False,
         )
         # Store tree
@@ -813,14 +809,14 @@ class _HubitModel:
         for qpath_org, qpaths_expanded in queries_for_query.items():
             if (
                 qpaths_expanded[0]
-                == convert_to_internal_path(qpath_org)
+                == HubitModelPath.as_internal(qpath_org)
                 # or
-                # qpaths_expanded[0] == convert_to_internal_path( self._normqpath_for_qpath[qpath_org] )
+                # qpaths_expanded[0] == as_internal( self._normqpath_for_qpath[qpath_org] )
             ):
                 _response[qpath_org] = response[qpaths_expanded[0]]
             else:
                 # Get the index IDs from the original query
-                idxids = idxids_from_path(qpath_org)
+                idxids = qpath_org.get_index_specifiers()
 
                 # Get pruned tree
                 tree = self._tree_for_qpath[qpath_org]
@@ -829,7 +825,7 @@ class _HubitModel:
 
                 # Extract iloc indices for each query in the expanded query
                 for qpath in qpaths_expanded:
-                    mpath = convert_to_internal_path(
+                    mpath = HubitModelPath.as_internal(
                         self._modelpath_for_querypath[qpath_org]
                     )
                     ilocs = get_iloc_indices(qpath, mpath, tree.level_names)

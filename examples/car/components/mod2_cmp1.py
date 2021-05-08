@@ -2,7 +2,10 @@ from time import sleep
 import shared
 
 
-def part_price(_input_consumed, _results_consumed, results_provided):
+def main(_input_consumed, _results_consumed, results_provided):
+    """
+    part price calculations
+    """
     count = _input_consumed["part_count"]
     name = _input_consumed["part_name"]
     sleep(0.1)

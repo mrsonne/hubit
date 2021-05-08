@@ -1,3 +1,4 @@
+from hubit.config import HubitModelPath
 import unittest
 import yaml
 
@@ -39,14 +40,14 @@ class TestShared(unittest.TestCase):
             "weight": 567,
         }
 
-        self.providerstring = "segs[IDXSEG].walls[IDXWALL].temps"
-        self.querystring = "segs[42].walls[3].temps"
-        self.idxids = shared.idxids_from_path(self.providerstring)
+        self.providerstring = HubitModelPath("segs[IDXSEG].walls[IDXWALL].temps")
+        self.querystring = HubitModelPath("segs[42].walls[3].temps")
+        self.idxids = self.providerstring.get_index_specifiers()
 
     def test_get_indices(self):
         """Test that indices from query string are extracted correctly"""
-        mpath = shared.convert_to_internal_path(self.providerstring)
-        qpath = shared.convert_to_internal_path(self.querystring)
+        mpath = HubitModelPath.as_internal(self.providerstring)
+        qpath = HubitModelPath.as_internal(self.querystring)
         idxs = shared.get_iloc_indices(qpath, mpath, self.idxids)
         idxs_expected = ("42", "3")
         self.assertSequenceEqual(idxs, idxs_expected)
@@ -56,33 +57,17 @@ class TestShared(unittest.TestCase):
         that match the query
         """
         providerstrings = (
-            "price",
+            HubitModelPath("price"),
             self.providerstring,
-            "segs[IDXSEG].walls.thicknesses",
+            HubitModelPath("segs[IDXSEG].walls.thicknesses"),
             self.querystring,
-            "segs[IDXSEG].walls[IDXWALL].thicknesses",
-            "segs[IDXSEG].walls[IDXWALL]",
+            HubitModelPath("segs[IDXSEG].walls[IDXWALL].thicknesses"),
+            HubitModelPath("segs[IDXSEG].walls[IDXWALL]"),
         )
 
         idxs_match_expected = (1, 3)
         idxs_match = shared.idxs_for_matches(self.querystring, providerstrings)
         self.assertSequenceEqual(idxs_match, idxs_match_expected)
-
-    def test_set_ilocs(self):
-        """Insert real numbers where the ILOC placeholder is found"""
-        expected_pathstr = "segs[34].walls[3].temps"
-        path = shared.set_ilocs_on_path(
-            "segs[IDXSEG].walls[IDXWALL].temps", ("34", "3")
-        )
-        self.assertEqual(path, expected_pathstr)
-
-    def test_set_ilocs_with_wildcard(self):
-        """Insert real numbers where the ILOC placeholder is found"""
-        expected_pathstr = "segs[34].walls[:@IDXWALL].temps"
-        path = shared.set_ilocs_on_path(
-            "segs[IDXSEG].walls[:@IDXWALL].temps", ("34", "3")
-        )
-        self.assertEqual(path, expected_pathstr)
 
     @staticmethod
     def get_tree():
@@ -123,7 +108,7 @@ class TestShared(unittest.TestCase):
     #     self.assertTrue( length == expected_length )
 
     def test_query_all(self):
-        """"""
+        """ """
         self.skipTest("Feature not used yet")
         providerstrings = (
             "price",
@@ -145,7 +130,7 @@ class TestShared(unittest.TestCase):
         self.assertTrue(value == 4)
 
     def test_traverse(self):
-        """ Thest iterator that traverses nested list """
+        """Test iterator that traverses nested list"""
         l0 = "as", "fv", "dsd", ["fr", "hj", ["gb", 0]]
         self.assertTrue(len(list(shared.traverse(l0))) == 7)
 
@@ -165,37 +150,6 @@ class TestShared(unittest.TestCase):
         valuemap = {"attr1": 1, "attr2": 2, "attr3": 3, "attr4": 4}
 
         print("XXX", shared.setelemtents(paths, valuemap))
-
-
-class TestPath(unittest.TestCase):
-    def test_1(self):
-        """Extract idxids from path"""
-        path = "segs[IDX_SEG].walls[IDX_WALL].heat_flow"
-        expected_idxids = ["IDX_SEG", "IDX_WALL"]
-        idxids = shared.idxids_from_path(path)
-        self.assertSequenceEqual(expected_idxids, idxids)
-
-    def test_2(self):
-        """Convert from Hubit user path to internal Hubit path"""
-        path = "segs[IDX_SEG].walls[IDX_WALL].heat_flow"
-        expected_internal_path = "segs.IDX_SEG.walls.IDX_WALL.heat_flow"
-        internal_path = shared.convert_to_internal_path(path)
-        self.assertSequenceEqual(expected_internal_path, internal_path)
-
-    def test_2a(self):
-        """Convert from Hubit user path to internal Hubit path"""
-        path = "segs[:@IDX_SEG].walls[:@IDX_WALL].heat_flow"
-        expected_internal_path = "segs.:@IDX_SEG.walls.:@IDX_WALL.heat_flow"
-        internal_path = shared.convert_to_internal_path(path)
-        self.assertSequenceEqual(expected_internal_path, internal_path)
-
-    def test_3(self):
-        path = "segments[IDX_SEG].layers[IDX_LAY].test.positions[IDX_POS]"
-        idxids = shared.idxids_from_path(path)
-        internal_paths = shared._paths_between_idxids(path, idxids)
-        # Last element is empty since there are no attribute after IDX_POS
-        expected_internal_paths = ["segments", "layers", "test.positions", ""]
-        self.assertSequenceEqual(expected_internal_paths, internal_paths)
 
 
 class TestTree(unittest.TestCase):
@@ -277,7 +231,9 @@ class TestTree(unittest.TestCase):
                     """
         input_data = yaml.load(yml_input, Loader=yaml.FullLoader)
         # path = "segments[:@IDX_SEG].layers[:@IDX_LAY].test.positions[:@IDX_POS]"
-        path = "segments[IDX_SEG].layers[:@IDX_LAY].test.positions[:@IDX_POS]"
+        path = HubitModelPath(
+            "segments[IDX_SEG].layers[:@IDX_LAY].test.positions[:@IDX_POS]"
+        )
 
         tree = shared.LengthTree.from_data(path, input_data)
         tree_as_list = tree.to_list()
@@ -289,7 +245,7 @@ class TestTree(unittest.TestCase):
 
     def test_from_data2(self):
         """No lengths since there are no index IDs in path"""
-        path = "segments.layers.positions"
+        path = HubitModelPath("segments.layers.positions")
         calculated_tree = shared.LengthTree.from_data(path, {})
         self.assertIsInstance(calculated_tree, shared.DummyLengthTree)
 
@@ -455,7 +411,7 @@ class TestTree(unittest.TestCase):
         """
         First index ID is negative so no context
         """
-        qpath = "segments[-1].layers[XX].test.positions[YY]"
+        qpath = HubitModelPath("segments[-1].layers[XX].test.positions[YY]")
         normalized_qpath_expected = "segments[1].layers[XX].test.positions[YY]"
         normalized_qpath = self.tree.normalize_path(qpath)
         self.assertEqual(normalized_qpath_expected, normalized_qpath)
@@ -465,8 +421,8 @@ class TestTree(unittest.TestCase):
         Second index ID is negative there's context
         """
         qpaths = (
-            "segments[0].layers[-1].test.positions[:]",
-            "segments[1].layers[-1].test.positions[:]",
+            HubitModelPath("segments[0].layers[-1].test.positions[:]"),
+            HubitModelPath("segments[1].layers[-1].test.positions[:]"),
         )
         normalized_qpaths_expected = (
             "segments[0].layers[2].test.positions[:]",
@@ -479,14 +435,16 @@ class TestTree(unittest.TestCase):
                 self.assertEqual(expected_qpath, path)
 
     def test_normalize_path3(self):
-        qpath = "segments[1].layers[3].test.positions[-1]"
+        qpath = HubitModelPath("segments[1].layers[3].test.positions[-1]")
         expected_qpath = "segments[1].layers[3].test.positions[3]"
         normalized_qpath = self.tree.normalize_path(qpath)
         self.assertEqual(expected_qpath, normalized_qpath)
 
     def test_expand_mpath1(self):
         """Expand to full template path"""
-        path = "segments[:@IDX_SEG].layers[:@IDX_LAY].test.positions[:@IDX_POS]"
+        path = HubitModelPath(
+            "segments[:@IDX_SEG].layers[:@IDX_LAY].test.positions[:@IDX_POS]"
+        )
 
         # 1 + 3 + 2 values for segment 0 and 5 + 1 + 2 + 4 values for segment 1
         # All all 18 elements
@@ -535,8 +493,8 @@ class TestTree(unittest.TestCase):
     def test_expand_path2(self):
         """Expand path"""
         paths = (
-            "segments[:@IDX_SEG].layers[:@IDX_LAY].test",
-            "segments[:].layers[:].test",
+            HubitModelPath("segments[:@IDX_SEG].layers[:@IDX_LAY].test"),
+            HubitModelPath("segments[:].layers[:].test"),
         )
         path_types = (
             "model",
@@ -570,13 +528,13 @@ class TestTree(unittest.TestCase):
         """Prune tree before expanding. Two indices vary so
         expanded paths is 2D
         """
-        path = "segments[0].layers[:@IDX_LAY].test.positions[:@IDX_POS]"
+        path = HubitModelPath("segments[0].layers[:@IDX_LAY].test.positions[:@IDX_POS]")
         template_path = (
             "segments[:@IDX_SEG].layers[:@IDX_LAY].test.positions[:@IDX_POS]"
         )
         self.tree.prune_from_path(
-            shared.convert_to_internal_path(path),
-            shared.convert_to_internal_path(template_path),
+            HubitModelPath.as_internal(path),
+            HubitModelPath.as_internal(template_path),
         )
         # 1 + 3 + 2 values for segment 0
         expected_paths = [
@@ -600,13 +558,13 @@ class TestTree(unittest.TestCase):
         """Prune tree before expanding. Ine index varies so
         expanded paths is 1D
         """
-        path = "segments[0].layers[:@IDX_LAY].test.positions[1]"
+        path = HubitModelPath("segments[0].layers[:@IDX_LAY].test.positions[1]")
         template_path = (
             "segments[:@IDX_SEG].layers[:@IDX_LAY].test.positions[:@IDX_POS]"
         )
         self.tree.prune_from_path(
-            shared.convert_to_internal_path(path),
-            shared.convert_to_internal_path(template_path),
+            HubitModelPath.as_internal(path),
+            HubitModelPath.as_internal(template_path),
         )
         # 1 + 3 + 2 values for segment 0
         expected_paths = [
@@ -626,8 +584,8 @@ class TestTree(unittest.TestCase):
             "some_number": 33,
         }
         path_consumed_for_name = {
-            "attrs": "items[:@IDX1].attr.items[:@IDX2].path",
-            "number": "some_number",
+            "attrs": HubitModelPath("items[:@IDX1].attr.items[:@IDX2].path"),
+            "number": HubitModelPath("some_number"),
         }
         expected_result = {
             "attrs": [
@@ -662,8 +620,8 @@ class TestTree(unittest.TestCase):
         }
 
         path_consumed_for_name = {
-            "attrs": "items_a[1@IDX1].attr.items[:@IDX2].path",
-            "number": "some_number",
+            "attrs": HubitModelPath("items_a[1@IDX1].attr.items[:@IDX2].path"),
+            "number": HubitModelPath("some_number"),
         }
 
         expected_result = {

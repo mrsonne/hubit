@@ -6,10 +6,9 @@ import sys
 import time
 from typing import Any, Dict, List, Set
 import yaml
-from collections import Counter
 from .worker import _Worker
-from .errors import HubitModelComponentError
 from .shared import count
+from .config import FlatData, HubitModelComponent
 
 POLLTIME = 0.1
 POLLTIME_LONG = 0.25
@@ -50,31 +49,25 @@ class _QueryRunner:
             worker.join()
 
     @staticmethod
-    def _get_func(base_path, func_name, cfgdata, components):
+    def _get_func(base_path, component_cfg: HubitModelComponent, components):
         """[summary]
 
         Args:
             base_path (str): Model base path
-            func_name (str): Function name
-            cfgdata (dict): configuration data from the model definition file
+            component_cfg (HubitModelComponent): configuration data from the model definition file
+            components (Dict):
 
         Returns:
             tuple: function handle, function version, and component dict
         """
-        if "path" in cfgdata and "module" in cfgdata:
-            raise HubitModelComponentError(
-                f'Please specify either "module" '
-                f'or "path" for component with '
-                f'func_name "{func_name}"'
-            )
-
-        if "path" in cfgdata:
-            path, file_name = os.path.split(cfgdata["path"])
+        func_name = component_cfg.func_name
+        if not component_cfg.is_dotted_path:
+            path, file_name = os.path.split(component_cfg.path)
             path = os.path.join(base_path, path)
             module_name = os.path.splitext(file_name)[0]
             path = os.path.abspath(path)
             file_path = os.path.join(path, file_name)
-            component_id = os.path.join(path, func_name)
+            component_id = component_cfg.id
             if component_id in components.keys():
                 func, version = components[component_id]
                 return func, version, components
@@ -84,18 +77,12 @@ class _QueryRunner:
             module = importlib.util.module_from_spec(spec)
             sys.modules[spec.name] = module
             spec.loader.exec_module(module)
-        elif "module" in cfgdata:
-            module = importlib.import_module(cfgdata["module"])
-            component_id = f'{cfgdata["module"]}{func_name}'
+        else:
+            module = importlib.import_module(component_cfg.path)
+            component_id = component_cfg.id
             if component_id in components.keys():
                 func, version = components[component_id]
                 return func, version, components
-        else:
-            raise HubitModelComponentError(
-                f'Please specify either "module" '
-                f'or "path" for component with '
-                f'func_name "{func_name}"'
-            )
 
         func = getattr(module, func_name)
         try:
@@ -120,11 +107,10 @@ class _QueryRunner:
             Any: _Worker or None
         """
 
-        func_name = self.model._cmpname_for_query(query_path)
-
-        component_data = self.model.component_for_name[func_name]
+        component_id = self.model._cmpname_for_query(query_path)
+        component = self.model.component_for_name(component_id)
         (func, version, self._components) = _QueryRunner._get_func(
-            self.model.base_path, func_name, component_data, self._components
+            self.model.base_path, component, self._components
         )
 
         # Create and return worker
@@ -132,8 +118,7 @@ class _QueryRunner:
             return _Worker(
                 manager,
                 self,
-                func_name,
-                component_data,
+                component,
                 query_path,
                 func,
                 version,
@@ -160,7 +145,7 @@ class _QueryRunner:
         manager,
         qpaths,
         extracted_input,
-        flat_results,
+        flat_results: FlatData,
         all_input,
         skip_paths=[],
         dryrun=False,
@@ -323,7 +308,7 @@ class _QueryRunner:
         # Save results to disk
         if self.model._model_caching_mode == "incremental":
             with open(self.model._cache_file_path, "w") as handle:
-                yaml.dump(flat_results, handle)
+                flat_results.to_file(self.model._cache_file_path)
         self.workers_working.remove(worker)
 
     def _transfer_results(self, worker, flat_results):
@@ -363,19 +348,18 @@ class _QueryRunner:
 
         # Save results
         if self.model._model_caching_mode == "after_execution":
-            with open(self.model._cache_file_path, "w") as handle:
-                yaml.dump(flat_results, handle)
+            flat_results.to_file(self.model._cache_file_path)
 
     def _add_log_items(self, t_start: float) -> float:
         # Set zeros for all components
         worker_counts = {
-            component_data["func_name"]: 0 for component_data in self.model.cfg
+            component.id: 0 for component in self.model.model_cfg.components
         }
         worker_counts.update(count(self.workers, key_from="name"))
 
         # Set zeros for all components
         cache_counts = {
-            component_data["func_name"]: 0 for component_data in self.model.cfg
+            component.id: 0 for component in self.model.model_cfg.components
         }
         cache_counts.update(
             count(

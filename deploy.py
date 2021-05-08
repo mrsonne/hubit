@@ -5,6 +5,31 @@ from hubit import VERSION
 import re
 import subprocess
 
+allowed_branch = "master"
+
+# Tag only from "allowed_branch"
+output = subprocess.run(["git", "branch", "--show-current"], capture_output=True)
+branch_name = output.stdout.decode("utf-8").replace("\n", "")
+assert branch_name == allowed_branch, f"Can only tag from '{allowed_branch}'"
+print(f"On allowed branch: {branch_name}")
+
+# Do not allow local HEAD to be behind origin
+subprocess.run(["git", "fetch"])
+output = subprocess.run(
+    ["git", "rev-list", "--count", f"{allowed_branch}..origin/{allowed_branch}"],
+    capture_output=True,
+)
+behind = output.stdout.decode("utf-8").replace("\n", "")
+assert behind == "0", f"Local version version is behind by {behind} commits"
+
+# Do not allow local HEAD to be ahead of origin
+output = subprocess.run(
+    ["git", "rev-list", "--count", f"origin/{allowed_branch}..{allowed_branch}"],
+    capture_output=True,
+)
+ahead = output.stdout.decode("utf-8").replace("\n", "")
+assert ahead == "0", f"Local version version is ahead by {ahead} commits"
+
 
 with open("CHANGELOG.md", "r") as stream:
     text = stream.read()

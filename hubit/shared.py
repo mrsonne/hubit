@@ -2,52 +2,18 @@ from __future__ import annotations
 import re
 import copy
 import itertools
-import collections
 from functools import reduce
 from operator import getitem
-from typing import Any, List, Dict, Tuple
-from dataclasses import dataclass
+from typing import Any, List, Dict, Tuple, TYPE_CHECKING
+from .errors import HubitIndexError
+from .config import HubitModelPath
+from .utils import is_digit
 
-from .errors import HubitIndexError, HubitWorkerError
+if TYPE_CHECKING:
+    from .config import HubitModelComponent
 
 IDX_WILDCARD = ":"
-REGEX_IDXID = r"\[(.*?)\]"
-
-
-@dataclass
-class HubitModelComponent:
-    def _validate(self):
-        return True
-
-
-@dataclass
-class HubitModelConfig:
-    components: List[HubitWorkerError]
-
-    def _validate(self):
-        return True
-
-
-class HubitModelPath(str):
-    def __init__(self, path: str):
-        self.path = path
-
-    def _validate(self):
-        return True
-
-
-class HubitPath(str):
-    path: str
-
-    def _validate(self):
-        return True
-
-
-class HubitQuery(HubitPath):
-    query: List[HubitPath]
-
-    def _validate(self):
-        return True
+# REGEX_IDXID = r"\[(.*?)\]"
 
 
 class LengthNode:
@@ -358,7 +324,7 @@ class LengthTree:
             LengthTree: Element 0 is DummyLengthTree if no index IDs found in 'path'
             otherwise a LengthTree.
         """
-        level_names = idxids_from_path(path)
+        level_names = path.get_index_specifiers()
         clean_level_names = [
             idxid.split("@")[1] if "@" in idxid else idxid for idxid in level_names
         ]
@@ -370,7 +336,7 @@ class LengthTree:
         if all([is_digit(level_name) for level_name in level_names]):
             return DummyLengthTree()
 
-        connecting_paths = _paths_between_idxids(path, level_names)
+        connecting_paths = path.paths_between_idxids(level_names)
         nodes, paths = LengthTree._nodes_for_iterpaths(connecting_paths[:-1], data)
         if not connecting_paths[-1] == "":
             paths = ["{}.{}".format(path, connecting_paths[-1]) for path in paths]
@@ -379,16 +345,16 @@ class LengthTree:
 
         # Some path indices may have specific locations some prune the tree
         new_idxitems = []
-        for idxitem in idxids_from_path(path):
+        for idxitem in path.get_index_specifiers():
             iloc = idxitem.split("@")[0]
             if is_digit(iloc):
                 new_idxitems.append(iloc)
             else:
                 new_idxitems.append(idxitem)
 
-        new_model_path = set_ilocs_on_path(path, new_idxitems)
-        new_internal_path = convert_to_internal_path(new_model_path)
-        tree.prune_from_path(new_internal_path, convert_to_internal_path(path))
+        new_model_path = path.set_indices(new_idxitems)
+        new_internal_path = HubitModelPath.as_internal(new_model_path)
+        tree.prune_from_path(new_internal_path, HubitModelPath.as_internal(path))
         return tree
 
     def reshape(self, items: List, inplace: bool = True) -> List:
@@ -473,25 +439,27 @@ class LengthTree:
         on the context
         """
 
-        idxids = idxids_from_path(qpath)
+        idxids = qpath.get_index_specifiers()
         _path = copy.copy(qpath)
 
         for idx_level, idxid in enumerate(idxids):
             if is_digit(idxid) and int(idxid) < 0:
                 # Get index context i.e. indices prior to current level
-                _idx_context = [int(idx) for idx in idxids_from_path(_path)[:idx_level]]
+                _idx_context = [
+                    int(idx) for idx in _path.get_index_specifiers()[:idx_level]
+                ]
                 node = self._node_for_idxs(_idx_context)
                 _path = _path.replace(idxid, str(node.nchildren() + int(idxid)), 1)
         return _path
 
     def expand_path(
         self,
-        path: str,
+        path: HubitModelPath,
         flat: bool = False,
         path_type: str = "model",
         as_internal_path: bool = False,
-    ) -> List[str]:
-        """Expand external path with wildcard based on tree
+    ) -> List[HubitModelPath]:
+        """Expand model path with wildcard based on tree
 
         Example for a query path:
             list[:].some_attr.numbers ->
@@ -499,13 +467,13 @@ class LengthTree:
 
 
         Args:
-            path (str): Hubit internal model path with wildcards and index IDs
+            path (HubitModelPath): Model path with wildcards and index IDs
             flat (bool): Return expansion result as a flat list.
             path_type (str): The path type. Valid path types are 'model' and 'query'. Not checked.
             as_internal_path (bool): Return expansion result as internal paths
 
         Returns:
-            [List]: Paths from expansion. Arranged in the shape
+            List[HubitModelPath]: Paths from expansion. Arranged in the shape
             defined by the tree if flat = False. Otherwise a
             flat list.
         """
@@ -513,7 +481,7 @@ class LengthTree:
         path_preprocessor = LengthTree.precessor_for_pathtype[path_type]
 
         # Get the content of the braces
-        idxids = idxids_from_path(path)
+        idxids = path.get_index_specifiers()
 
         # Expand the path (and do some pruning)
         paths = [path]
@@ -546,8 +514,9 @@ class LengthTree:
             paths = paths_current_level
 
         if as_internal_path:
-            paths = [convert_to_internal_path(path) for path in paths]
+            paths = [HubitModelPath.as_internal(path) for path in paths]
 
+        paths = [HubitModelPath(path) for path in paths]
         if flat:
             return paths
         else:
@@ -595,15 +564,9 @@ class LengthTree:
         return "\n".join(lines)
 
 
-class Container:
-    def __init__(self, val):
-        self.val = val
-
-    def __str__(self):
-        return str(self.val)
-
-
-def tree_for_idxcontext(components: List, data: Dict) -> Dict[str, LengthTree]:
+def tree_for_idxcontext(
+    components: List[HubitModelComponent], data: Dict
+) -> Dict[str, LengthTree]:
     """Compute LengthTree for relevant index contexts.
 
     Args:
@@ -615,9 +578,9 @@ def tree_for_idxcontext(components: List, data: Dict) -> Dict[str, LengthTree]:
     """
     out = {"": DummyLengthTree()}
     for component in components:
-        for binding in component["consumes"]["input"]:
-            tree = LengthTree.from_data(binding["path"], data)
-            idx_context = get_idx_context(binding["path"])
+        for binding in component.consumes_input:
+            tree = LengthTree.from_data(binding.path, data)
+            idx_context = binding.path.get_idx_context()
             if idx_context in out.keys():
                 continue
             out[idx_context] = tree
@@ -634,20 +597,20 @@ def tree_for_idxcontext(components: List, data: Dict) -> Dict[str, LengthTree]:
     return out
 
 
-def is_digit(s: str) -> bool:
-    """Alternative to s.isdigit() that handles negative integers
+# def is_digit(s: str) -> bool:
+#     """Alternative to s.isdigit() that handles negative integers
 
-    Args:
-        s (str): A string
+#     Args:
+#         s (str): A string
 
-    Returns:
-        bool: Flag indicating if the input string is a signed int
-    """
-    try:
-        int(s)
-        return True
-    except ValueError:
-        return False
+#     Returns:
+#         bool: Flag indicating if the input string is a signed int
+#     """
+#     try:
+#         int(s)
+#         return True
+#     except ValueError:
+#         return False
 
 
 def get_from_datadict(datadict, keys):
@@ -658,18 +621,6 @@ def get_from_datadict(datadict, keys):
     # Convert digits strings to int
     _keys = [int(key) if is_digit(key) else key for key in keys]
     return reduce(getitem, _keys, datadict)
-
-
-def convert_to_internal_path(path: str) -> str:
-    """Convert user path using [IDX] to internal path using .IDX.
-
-    Args:
-        path (str): Hubit user path string
-
-    Returns:
-        str: Hubit internal path string
-    """
-    return path.replace("[", ".").replace("]", "")
 
 
 def _length_for_iterpaths(
@@ -724,69 +675,6 @@ def _length_for_iterpaths(
     return out, paths_next
 
 
-def idxids_from_path(path: str) -> List[str]:
-    """Get the index identifiers (in square braces) from a Hubit
-    model path string
-
-    Args:
-        path (str): Hubit user path string
-
-    Returns:
-        List: Sequence of index identification strings
-    """
-    # return re.findall(r"\[(\w+)\]", path) # Only word charaters i.e. [a-zA-Z0-9_]+
-    return re.findall(REGEX_IDXID, path)  # Any character in square brackets
-
-
-def clean_idxids_from_path(path):
-    """TODO add documentation
-
-    Args:
-        path ([type]): [description]
-
-    Returns:
-        [type]: [description]
-    """
-    return [
-        idxid.split("@")[1] if "@" in idxid else idxid
-        for idxid in idxids_from_path(path)
-    ]
-
-
-def remove_braces_from_path(path: str) -> str:
-    """Removes braces and their content from the path
-
-    Args:
-        path (str): Hubit external path (with square braces)
-
-    Returns:
-        str: Hubit path with braces and content removed
-    """
-    return re.sub("\[([^\.]+)]", "", path)
-
-
-def _paths_between_idxids(path: str, idxids: List[str]) -> List[str]:
-    """Find list of path components inbetween index IDs
-
-    Args:
-        path (str): Hubit user path string
-        idxids (List[str]): Sequence of index identification strings in 'path'
-
-    Returns:
-        List[str]: Sequence of index identification strings between index IDs. Includes path after last index ID
-    """
-    # Remove [] and replace with ..
-    p2 = convert_to_internal_path(path)
-    paths = []
-    for idxid in idxids:
-        # Split at current index ID
-        p1, p2 = p2.split(idxid, 1)
-        # Remove leading and trailing
-        paths.append(p1.rstrip(".").lstrip("."))
-    paths.append(p2.rstrip(".").lstrip("."))
-    return paths
-
-
 def reshape(paths, valmap):
     """
     paths contains path strings in the correct shape i.e. a nested list.
@@ -834,108 +722,10 @@ def set_element(data, value, indices):
     return data
 
 
-# def get_nested_list(maxilocs):
-#     """
-#     Create nested list with all values set to None.
-#     Dimensions given in "maxilocs" which are the max element number ie zero-based
-#     """
-#     empty_list = None
-#     for n in maxilocs[::-1]:
-#         empty_list = [copy.deepcopy(empty_list) for _ in range(n + 1)]
-#     return empty_list
-
-
-# def list_from_shape(shape):
-#     """
-#     Create nested list with all values set to None.
-#     Dimensions given in "shape". shape = 1 results in a number
-#     """
-#     empty_list = None
-#     for n in shape[::-1]:
-#         if n > 1:
-#             empty_list = [copy.deepcopy(empty_list) for _ in range(n)]
-#         else:
-#             empty_list = copy.deepcopy(empty_list)
-#     return empty_list
-
-
-def inflate(d, sep="."):
-    """
-    https://gist.github.com/fmder/494aaa2dd6f8c428cede
-    Expands lists as dict to handle queries that do include
-    all elements i.e. to return the result for item at index X
-    at index X and not zero
-    """
-    items = dict()
-    for k, v in d.items():
-        keys = k.split(sep)
-        sub_items = items
-        for ki in keys[:-1]:
-            _ki = int(ki) if is_digit(ki) else ki
-            try:
-                sub_items = sub_items[_ki]
-            except KeyError:
-                sub_items[_ki] = dict()
-                sub_items = sub_items[_ki]
-
-        k_last = keys[-1]
-        k_last = int(k_last) if is_digit(k_last) else k_last
-        sub_items[keys[-1]] = v
-
-    return items
-
-
-def flatten(d, parent_key="", sep="."):
-    """
-    Flattens dict and concatenates keys
-    Modified from: https://stackoverflow.com/questions/6027558/flatten-nested-python-dictionaries-compressing-keys
-    """
-    items = []
-    for k, v in d.items():
-        new_key = parent_key + sep + k if parent_key else k
-        if isinstance(v, collections.abc.MutableMapping):
-            items.extend(flatten(v, new_key, sep=sep).items())
-        elif isinstance(v, collections.abc.Iterable) and not isinstance(v, str):
-            try:
-                # Elements are dicts
-                for idx, item in enumerate(v):
-                    _new_key = new_key + "." + str(idx)
-                    items.extend(flatten(item, _new_key, sep=sep).items())
-            except AttributeError:
-                # Elements are not dicts
-                items.append((new_key, v))
-        else:
-            items.append((new_key, v))
-    return dict(items)
-
-
-def set_ilocs_on_path(path: str, ilocs: List) -> str:
-    """Replace the index IDs on the path with location indices
-    in ilocs
-
-    Args:
-        path (str): Hubit model path
-        ilocs (List): Sequence of index locations to be inserted into the path.
-        The sequence should match the index IDs in the path
-
-    Returns:
-        str: Path with index IDs replaced by integers
-    """
-    _path = copy.copy(path)
-    for iloc, idxid in zip(ilocs, idxids_from_path(path)):
-
-        # Don't replace if there is an index wildcard
-        if IDX_WILDCARD in idxid:
-            continue
-
-        _path = _path.replace(idxid, iloc, 1)
-    return _path
-
-
 def check_path_match(
     query_path: str, model_path: str, accept_idx_wildcard: bool = True
 ) -> bool:
-    """Check if the query mathches the model path from the
+    """Check if the query matches the model path from the
     model bindings
 
     Args:
@@ -946,9 +736,9 @@ def check_path_match(
     Returns:
         bool: True if the query matches the model path
     """
-    idxids = idxids_from_path(model_path)
-    query_path_cmps = convert_to_internal_path(query_path).split(".")
-    model_path_cmps = convert_to_internal_path(model_path).split(".")
+    idxids = model_path.get_index_specifiers()
+    query_path_cmps = HubitModelPath.as_internal(query_path).split(".")
+    model_path_cmps = HubitModelPath.as_internal(model_path).split(".")
     # Should have same number of path components
     if not len(query_path_cmps) == len(model_path_cmps):
         return False
@@ -1020,10 +810,6 @@ def set_nested_item(data, keys, val):
 
 def get_nested_item(data, keys):
     return reduce(getitem, keys, data)
-
-
-def get_idx_context(path):
-    return "-".join(clean_idxids_from_path(path))
 
 
 def split_items(items: List, sizes: List[int]) -> List:

@@ -4,14 +4,14 @@ import os
 import pathlib
 import yaml
 from hubit.errors import HubitModelNoInputError, HubitModelQueryError
-
+from hubit.config import HubitModelConfig, HubitModelPath
 from hubit import HubitModel
-from hubit.shared import convert_to_internal_path, inflate
 
 yml_input = None
 model = None
 
-THIS_DIR = os.path.dirname(os.path.realpath(__file__))
+THIS_FILE = os.path.realpath(__file__)
+THIS_DIR = os.path.dirname(THIS_FILE)
 REL_TMP_DIR = "./tmp"
 TMP_DIR = os.path.join(THIS_DIR, REL_TMP_DIR)
 pathlib.Path(TMP_DIR).mkdir(parents=True, exist_ok=True)
@@ -43,10 +43,10 @@ def level1_results_at_idx(input, idx):
 class TestModel(unittest.TestCase):
     def setUp(self):
         modelname = "Test model"
-        model_data = yaml.load(model, Loader=yaml.FullLoader)
-        self.hmodel = HubitModel(
-            model_data, name=modelname, base_path=THIS_DIR, output_path=REL_TMP_DIR
+        model_cfg = HubitModelConfig.from_cfg(
+            yaml.load(model, Loader=yaml.FullLoader), base_path=THIS_DIR
         )
+        self.hmodel = HubitModel(model_cfg, name=modelname, output_path=REL_TMP_DIR)
         self.input = yaml.load(yml_input, Loader=yaml.FullLoader)
         self.use_multi_processing_values = False, True
 
@@ -92,8 +92,8 @@ class TestModel(unittest.TestCase):
         Validate query for first list element
         """
         self.hmodel.set_input(self.input)
-        queries = [self.querystr_level0]
-        is_ok = self.hmodel.validate(queries)
+        query = [self.querystr_level0]
+        is_ok = self.hmodel.validate(query)
         self.assertTrue(is_ok)
 
     def test_validate_query_all_elements(self):
@@ -101,8 +101,8 @@ class TestModel(unittest.TestCase):
         Validate query for all list element
         """
         self.hmodel.set_input(self.input)
-        queries = [self.querystr_level0_slice]
-        is_ok = self.hmodel.validate(queries)
+        query = [self.querystr_level0_slice]
+        is_ok = self.hmodel.validate(query)
         self.assertTrue(is_ok)
 
     def test_validate_query_last_element(self):
@@ -111,8 +111,8 @@ class TestModel(unittest.TestCase):
         """
         self.skipTest("Catch22 in normalize, prune, expand")
         self.hmodel.set_input(self.input)
-        queries = [self.querystr_level0_last]
-        is_ok = self.hmodel.validate(queries)
+        query = [self.querystr_level0_last]
+        is_ok = self.hmodel.validate(query)
 
     def test_render_model(self):
         """
@@ -125,11 +125,11 @@ class TestModel(unittest.TestCase):
         """
         Render the query, but not input.
         """
-        queries = ["list.1.some_attr.two_x_numbers"]
+        query = ["list.1.some_attr.two_x_numbers"]
 
         # ModuleNotFoundError raised if graphviz is not installed
         with self.assertRaises(HubitModelNoInputError) as context:
-            self.hmodel.render(queries)
+            self.hmodel.render(query)
 
     def test_render_query(self):
         """
@@ -140,8 +140,8 @@ class TestModel(unittest.TestCase):
         Warning: cluster_resultslist -> _Response: tail not inside tail cluster cluster_results
         """
         self.hmodel.set_input(self.input)
-        queries = [self.querystr_level0]
-        self.hmodel.render(queries)
+        query = [self.querystr_level0]
+        self.hmodel.render(query)
 
     def test_get_fail_no_input(self):
         """
@@ -316,7 +316,7 @@ class TestModel(unittest.TestCase):
         idx = 1
         # TODO change this
         path = "list[{}].some_attr.numbers".format(idx)
-        ipath = convert_to_internal_path(path)
+        ipath = HubitModelPath.as_internal(path)
         input_values_for_path = {
             path: ([1.0, 2.0, 3.0], [4.0, 5.0, 6.0]),
         }
@@ -327,7 +327,7 @@ class TestModel(unittest.TestCase):
         expected_results = []
         calc_responses = []
         for flat_inp, response in zip(inps, responses):
-            inp = inflate(flat_inp)
+            inp = flat_inp.inflate()
             expected_results.append(level0_results_at_idx(inp, idx))
             calc_responses.append(response[self.querystr_level0])
 
@@ -339,7 +339,7 @@ class TestModel(unittest.TestCase):
             self.assertSequenceEqual(calc_responses, expected_results)
 
     def test_model_caching(self):
-        """"""
+        """ """
         self.hmodel.set_input(self.input)
 
         # Clear the cache and check that it's cleared
@@ -416,13 +416,13 @@ class TestModel(unittest.TestCase):
         """
         query = ["list[:].some_attr.two_x_numbers"]
         expected_result = {
-            "move_number": 0,
-            "multiply_by_2": 0,
-            "multiply_by_factors": 0,
-            "slicing": 0,
-            "fun4": 0,
-            "fun5": 0,
-            "fun6": 0,
+            "./components/comp0.move_number": 0,
+            "./components/comp1.multiply_by_2": 0,
+            "./components/comp2.multiply_by_factors": 0,
+            "./components/comp3.slicing": 0,
+            "./components/comp4.fun4": 0,
+            "./components/comp5.fun5": 0,
+            "./components/comp6.fun6": 0,
         }
         component_caching_levels = False, True
         expected_n_unique_response_elements = 2
@@ -455,13 +455,13 @@ class TestModel(unittest.TestCase):
         # Component caching enabled. Two chache hits since 2 list elements were duplicated
         component_caching = True
         expected_result = {
-            "move_number": 0,
-            "multiply_by_2": 2,
-            "multiply_by_factors": 0,
-            "slicing": 0,
-            "fun4": 0,
-            "fun5": 0,
-            "fun6": 0,
+            "./components/comp0.move_number": 0,
+            "./components/comp1.multiply_by_2": 2,
+            "./components/comp2.multiply_by_factors": 0,
+            "./components/comp3.slicing": 0,
+            "./components/comp4.fun4": 0,
+            "./components/comp5.fun5": 0,
+            "./components/comp6.fun6": 0,
         }
         self._component_caching(
             component_caching,
@@ -472,20 +472,20 @@ class TestModel(unittest.TestCase):
         )
 
     def test_log(self):
-        """"""
+        """ """
         self.hmodel.set_input(self.input)
         self.hmodel.get([self.querystr_level0], validate=False)
         log = self.hmodel.log()
         # Take out values for newest log item
         result = log.get_all("worker_counts")[0]
         expected_result = {
-            "move_number": 0,
-            "multiply_by_2": 1,
-            "multiply_by_factors": 0,
-            "slicing": 0,
-            "fun4": 0,
-            "fun5": 0,
-            "fun6": 0,
+            "./components/comp0.move_number": 0,
+            "./components/comp1.multiply_by_2": 1,
+            "./components/comp2.multiply_by_factors": 0,
+            "./components/comp3.slicing": 0,
+            "./components/comp4.fun4": 0,
+            "./components/comp5.fun5": 0,
+            "./components/comp6.fun6": 0,
         }
         self.assertEqual(result, expected_result)
 
@@ -494,13 +494,13 @@ class TestModel(unittest.TestCase):
 
         self.hmodel.get([self.querystr_level1], validate=False)
         expected_result = {
-            "move_number": 0,
-            "multiply_by_2": 1,
-            "multiply_by_factors": 1,
-            "slicing": 0,
-            "fun4": 0,
-            "fun5": 0,
-            "fun6": 0,
+            "./components/comp0.move_number": 0,
+            "./components/comp1.multiply_by_2": 1,
+            "./components/comp2.multiply_by_factors": 1,
+            "./components/comp3.slicing": 0,
+            "./components/comp4.fun4": 0,
+            "./components/comp5.fun5": 0,
+            "./components/comp6.fun6": 0,
         }
         log = self.hmodel.log()
         # Take out values for newest log item

@@ -1,36 +1,36 @@
 from __future__ import annotations
+import os
 import pickle
 import hashlib
 import logging
-from multiprocessing import Process, Manager
+import multiprocessing
 import copy
-from typing import Dict, Set, TYPE_CHECKING, List
+from typing import Callable, Dict, Set, TYPE_CHECKING, List
+from .config import HubitBinding, HubitModelPath
 from .shared import (
+    LengthTree,
     idxs_for_matches,
-    get_idx_context,
     check_path_match,
-    clean_idxids_from_path,
     get_iloc_indices,
-    set_ilocs_on_path,
     traverse,
     reshape,
-    convert_to_internal_path,
 )
 from .errors import HubitWorkerError
 
 if TYPE_CHECKING:
     from .qrun import _QueryRunner
+    from .shared import HubitModelComponent
 
 
 class _Worker:
-    """"""
+    """ """
 
     RESULTS_FROM_CACHE_ID = "cache"
     RESULTS_FROM_CALCULATION_ID = "calculation"
     RESULTS_FROM_UNKNOWN = "unknown"
 
     @staticmethod
-    def bindings_from_idxs(bindings, idxval_for_idxid) -> Dict:
+    def bindings_from_idxs(bindings: List[HubitBinding], idxval_for_idxid) -> Dict:
         """
         replace index IDs with the actual indices
         if idxid from binding path not found in idxval_for_idxid it
@@ -40,21 +40,20 @@ class _Worker:
         Returns path for name
         """
         if len(idxval_for_idxid) == 0:
-            return {binding["name"]: binding["path"] for binding in bindings}
+            return {binding.name: binding.path for binding in bindings}
         else:
             return {
-                binding["name"]: set_ilocs_on_path(
-                    binding["path"],
+                binding.name: binding.path.set_indices(
                     [
                         idxval_for_idxid[idxid] if idxid in idxval_for_idxid else None
-                        for idxid in clean_idxids_from_path(binding["path"])
+                        for idxid in binding.path.get_index_identifiers()
                     ],
                 )
                 for binding in bindings
             }
 
     @staticmethod
-    def get_bindings(bindings, query_path):
+    def get_bindings(bindings: List[HubitBinding], query_path):
         """Make symbolic binding specific i.e. replace index IDs
         with actual indices based on query
 
@@ -69,7 +68,7 @@ class _Worker:
         Returns:
             [type]: TODO [description]
         """
-        binding_paths = [binding["path"] for binding in bindings]
+        binding_paths = [binding.path for binding in bindings]
         # Get indices in binding_paths list that match the query
         idxs = idxs_for_matches(query_path, binding_paths, accept_idx_wildcard=False)
         if len(idxs) == 0:
@@ -80,11 +79,11 @@ class _Worker:
         # matched the query suffice
         idxval_for_idxid = {}
         for binding in bindings:
-            if check_path_match(query_path, binding["path"], accept_idx_wildcard=False):
-                idxids = clean_idxids_from_path(binding["path"])
+            if check_path_match(query_path, binding.path, accept_idx_wildcard=False):
+                idxids = binding.path.get_index_identifiers()
                 idxs = get_iloc_indices(
-                    convert_to_internal_path(query_path),
-                    convert_to_internal_path(binding["path"]),
+                    HubitModelPath.as_internal(query_path),
+                    HubitModelPath.as_internal(binding.path),
                     idxids,
                 )
                 idxval_for_idxid.update(dict(zip(idxids, idxs)))
@@ -98,10 +97,10 @@ class _Worker:
     def expand(path_for_name, tree_for_idxcontext, model_path_for_name):
         paths_for_name = {}
         for name, path in path_for_name.items():
-            tree = tree_for_idxcontext[get_idx_context(model_path_for_name[name])]
+            tree = tree_for_idxcontext[model_path_for_name[name].get_idx_context()]
             pruned_tree = tree.prune_from_path(
-                convert_to_internal_path(path),
-                convert_to_internal_path(model_path_for_name[name]),
+                HubitModelPath.as_internal(path),
+                HubitModelPath.as_internal(model_path_for_name[name]),
                 inplace=False,
             )
 
@@ -110,16 +109,15 @@ class _Worker:
 
     def __init__(
         self,
-        manager: Manager,
+        manager: multiprocessing.Manager,
         qrun: _QueryRunner,
-        name,
-        cfg,
-        query,
-        func,
-        version,
-        tree_for_idxcontext,
-        dryrun=False,
-        caching=False,
+        component: HubitModelComponent,
+        query: HubitModelPath,
+        func: Callable,
+        version: str,
+        tree_for_idxcontext: Dict[str, LengthTree],
+        dryrun: bool = False,
+        caching: bool = False,
     ):
         """
         If inputdata is None the worker cannot work but can still
@@ -130,13 +128,13 @@ class _Worker:
 
         """
         self.func = func  # function to excecute
-        self.name = name  # name of the component
+        self.name = component.id  # name of the component
         self.version = version  # Version of the component
         self.qrun = qrun  # reference to the query runner
         self.job = None  # For referencing the job if using multiprocessing
         self.query = query
         self.tree_for_idxcontext = tree_for_idxcontext
-        self.cfg = cfg
+        self.component = component
         self._consumed_data_set = False
         self._consumed_input_ready = False
         self._consumed_results_ready = False
@@ -181,13 +179,13 @@ class _Worker:
 
         # TODO: assumes provider has the all ilocs defined.
         # Model path for input provisions with ilocs from query
-        if "provides" in cfg:
+        if self.component.does_provide_results():
             self.rpath_provided_for_name, self.idxval_for_idxid = _Worker.get_bindings(
-                cfg["provides"], query
+                self.component.provides_results, query
             )
-            self.provided_mpath_for_name = {
-                binding["name"]: binding["path"] for binding in cfg["provides"]
-            }
+            self.provided_mpath_for_name = self.component.binding_map(
+                "provides_results"
+            )
         else:
             self.provided_mpath_for_name = None
             raise HubitWorkerError(
@@ -198,30 +196,23 @@ class _Worker:
             )
 
         # Model path for input dependencies with ilocs from query
-        if _Worker.consumes_type(cfg, "input"):
-            # print('idxval_for_idxid', idxval_for_idxid, query)
-            # print(cfg["consumes"]["input"])
+        if self.component.does_consume_input():
             self.ipath_consumed_for_name = _Worker.bindings_from_idxs(
-                cfg["consumes"]["input"], self.idxval_for_idxid
+                self.component.consumes_input, self.idxval_for_idxid
             )
             # Allow model path lookup by internal name
-            iconsumed_mpath_for_name = {
-                binding["name"]: binding["path"] for binding in cfg["consumes"]["input"]
-            }
+            iconsumed_mpath_for_name = self.component.binding_map("consumes_input")
         else:
             self.ipath_consumed_for_name = {}
             iconsumed_mpath_for_name = {}
 
         # Model path for results dependencies with ilocs from query
-        if _Worker.consumes_type(cfg, "results"):
+        if self.component.does_consume_results():
             self._consumes_input_only = False
             self.rpath_consumed_for_name = _Worker.bindings_from_idxs(
-                cfg["consumes"]["results"], self.idxval_for_idxid
+                self.component.consumes_results, self.idxval_for_idxid
             )
-            rconsumed_mpath_for_name = {
-                binding["name"]: binding["path"]
-                for binding in cfg["consumes"]["results"]
-            }
+            rconsumed_mpath_for_name = self.component.binding_map("consumes_results")
         else:
             self._consumes_input_only = True
             self.rpath_consumed_for_name = {}
@@ -266,36 +257,38 @@ class _Worker:
     def consumes_input_only(self):
         return self._consumes_input_only
 
-    def mpath_for_name(self, type):
-        def make_map(bindings):
-            return {binding["name"]: binding["path"] for binding in bindings}
+    def binding_map(self, binding_type):
+        return self.component.binding_map(binding_type)
 
-        if type == "provides":  # provides is always present in worker
-            return make_map(self.cfg["provides"])
-        elif type in ("results", "input"):
-            if _Worker.consumes_type(self.cfg, type):
-                return make_map(self.cfg["consumes"][type])
-            else:
-                return {}
-        else:
-            raise HubitWorkerError(f'Unknown type "{type}"')
+    #     def make_map(bindings):
+    #         return {binding.name: binding.path for binding in bindings}
 
-    @staticmethod
-    def consumes_type(cfg: Dict, consumption_type: str) -> bool:
-        """Check if configuration (cfg) consumes the "consumption_type"
+    #     if type == "provides":  # provides is always present in worker
+    #         return make_map(self.cfg["provides"])
+    #     elif type in ("results", "input"):
+    #         if _Worker.consumes_type(self.cfg, type):
+    #             return make_map(self.cfg["consumes"][type])
+    #         else:
+    #             return {}
+    #     else:
+    #         raise HubitWorkerError(f'Unknown type "{type}"')
 
-        Args:
-            cfg (Dict): Componet configuration
-            consumption_type (str): The consumption type. Can either be "input" or "results". Validity not checked.
+    # @staticmethod
+    # def consumes_type(cfg: Dict, consumption_type: str) -> bool:
+    #     """Check if configuration (cfg) consumes the "consumption_type"
 
-        Returns:
-            bool: Flag indicating if the configuration consumes the "consumption_type"
-        """
-        return (
-            "consumes" in cfg
-            and consumption_type in cfg["consumes"]
-            and len(cfg["consumes"][consumption_type]) > 0
-        )
+    #     Args:
+    #         cfg (Dict): Componet configuration
+    #         consumption_type (str): The consumption type. Can either be "input" or "results". Validity not checked.
+
+    #     Returns:
+    #         bool: Flag indicating if the configuration consumes the "consumption_type"
+    #     """
+    #     return (
+    #         "consumes" in cfg
+    #         and consumption_type in cfg["consumes"]
+    #         and len(cfg["consumes"][consumption_type]) > 0
+    # )
 
     def paths_provided(self):
         """Generates a list of the (expanded) paths that will be provided.
@@ -339,7 +332,7 @@ class _Worker:
         self.qrun._set_worker_working(self)
         for name in self.rpath_provided_for_name.keys():
             tree = self.tree_for_idxcontext[
-                get_idx_context(self.provided_mpath_for_name[name])
+                self.provided_mpath_for_name[name].get_idx_context()
             ]
             self.results[name] = tree.none_like()
 
@@ -367,7 +360,7 @@ class _Worker:
         # Notify the hubit model that we are about to start the work
         self.qrun._set_worker_working(self)
         if self.use_multiprocessing:
-            self.job = Process(
+            self.job = multiprocessing.Process(
                 target=self.func,
                 args=(self.inputval_for_name, self.resultval_for_name, self.results),
             )

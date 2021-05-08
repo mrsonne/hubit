@@ -9,15 +9,18 @@ before_install:
 install:
 - pip install -e .[dev]
 script:
-- coverage run --source=hubit -m unittest discover -s ./tests -p "*_test.py"
+- coverage run --source=hubit -m pytest ./tests
 - coverage report -m
 - black --version
 - black --check .
-- mypy hubit/model.py
+- mypy hubit/model.py hubit/config.py
 after_success: coveralls
 stages:
 - test
 - deploy
+# branches:
+#   only:
+#     - master
 jobs:
   include:
   - stage: test

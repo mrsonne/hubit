@@ -1,0 +1,35 @@
+site_name: Hubit Docs
+
+theme:
+  name: "material"
+
+markdown_extensions:
+  - pymdownx.highlight
+  - pymdownx.superfences
+
+plugins:
+  - search
+  - autorefs
+  - macros:
+      include_dir: ./
+  - mkdocstrings:
+      watch: 
+        - hubit
+      default_handler: python
+      handlers:
+        python:
+          rendering:
+            show_source: false
+            show_root_full_path: false
+
+nav:
+    - First steps: index.md
+    - Examples: examples.md
+    - Code Reference:
+        - Hubit: hubit-reference.md
+        - Config & data: config-reference.md
+        - Log: log-reference.md
+    - Change log: changelog.md
+
+# extra:
+#   version: 0.3.0

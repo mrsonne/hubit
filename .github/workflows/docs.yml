@@ -22,12 +22,12 @@ jobs:
         with:
           python-version: 3.x
 
-      - name: Install dependecies
+      - name: Install dependencies
       - run: | 
-        ls -ltr
-        pip install mkdocs-material
-        pip install mkdocstrings
-        pip install mkdocs-macros-plugin
+          ls -ltr
+          pip install mkdocs-material
+          pip install mkdocstrings
+          pip install mkdocs-macros-plugin
 
       - name: Build docs
         run: |

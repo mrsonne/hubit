@@ -6,9 +6,8 @@ import re
 import subprocess
 
 allowed_branch = "master"
-allowed_branch = "cfg-validation"
 
-# Tag only from "allowed_branch" 
+# Tag only from "allowed_branch"
 output = subprocess.run(["git", "branch", "--show-current"], capture_output=True)
 branch_name = output.stdout.decode("utf-8").replace("\n", "")
 assert branch_name == allowed_branch, f"Can only tag from '{allowed_branch}'"

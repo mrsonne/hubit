@@ -3,6 +3,7 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
 [![Version](https://img.shields.io/pypi/v/hubit.svg)](https://pypi.python.org/pypi/hubit/)
 [![Python versions](https://img.shields.io/pypi/pyversions/hubit.svg)](https://pypi.python.org/pypi/hubit/)
+[![Docs](https://github.com/mrsonne/hubit/actions/workflows/docs.yml/badge.svg)](https://github.com/mrsonne/hubit/actions/workflows/docs.yml)
 
 # hubit - a calculation hub  
 

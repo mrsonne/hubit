@@ -23,12 +23,17 @@ jobs:
           python-version: 3.x
 
       - name: Install dependencies
-      - run: | 
-          ls -ltr
+        run: |
           python -m pip install --upgrade pip
           pip install mkdocs-material
-          pip install mkdocstrings
-          pip install mkdocs-macros-plugin
+
+      # - name: Install dependencies
+      # - run: |
+      #     ls -ltr
+      #     python -m pip install --upgrade pip
+      #     pip install mkdocs-material
+      #     pip install mkdocstrings
+      #     pip install mkdocs-macros-plugin
 
       # - name: Build docs
       #   run: |

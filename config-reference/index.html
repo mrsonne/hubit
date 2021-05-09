@@ -1,0 +1,1085 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-7.1.4">
+    
+    
+      
+        <title>Config & data - Hubit Docs</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.bde7dde4.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ef6f36e2.min.css">
+        
+      
+    
+    
+    
+      
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>:root{--md-text-font-family:"Roboto";--md-code-font-family:"Roboto Mono"}</style>
+      
+    
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    
+      
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="none" data-md-color-accent="none">
+  
+    
+    <script>function __prefix(e){return new URL("..",location).pathname+"."+e}function __get(e,t=localStorage){return JSON.parse(t.getItem(__prefix(e)))}</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#hubit-configuration-data-and-queries" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Hubit Docs" class="md-header__button md-logo" aria-label="Hubit Docs" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Hubit Docs
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Config & data
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" data-md-state="active" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Hubit Docs" class="md-nav__button md-logo" aria-label="Hubit Docs" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    Hubit Docs
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        First steps
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/" class="md-nav__link">
+        Examples
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_3" type="checkbox" id="__nav_3" checked>
+      
+      <label class="md-nav__link" for="__nav_3">
+        Code Reference
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Code Reference" data-md-level="1">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          Code Reference
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hubit-reference/" class="md-nav__link">
+        Hubit
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Config & data
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Config & data
+      </a>
+      
+        
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#hubit.config.HubitQueryPath" class="md-nav__link">
+    HubitQueryPath
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hubit.config.HubitModelConfig" class="md-nav__link">
+    HubitModelConfig
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hubit.config.HubitModelComponent" class="md-nav__link">
+    HubitModelComponent
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hubit.config.HubitBinding" class="md-nav__link">
+    HubitBinding
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hubit.config.HubitModelPath" class="md-nav__link">
+    HubitModelPath
+  </a>
+  
+    <nav class="md-nav" aria-label="HubitModelPath">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hubit.config.HubitModelPath--index-contexts" class="md-nav__link">
+    Index contexts
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hubit.config.Query" class="md-nav__link">
+    Query
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hubit.config.FlatData" class="md-nav__link">
+    FlatData
+  </a>
+  
+    <nav class="md-nav" aria-label="FlatData">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hubit.config.FlatData.as_dict" class="md-nav__link">
+    as_dict()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hubit.config.FlatData.inflate" class="md-nav__link">
+    inflate()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../log-reference/" class="md-nav__link">
+        Log
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../changelog/" class="md-nav__link">
+        Change log
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#hubit.config.HubitQueryPath" class="md-nav__link">
+    HubitQueryPath
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hubit.config.HubitModelConfig" class="md-nav__link">
+    HubitModelConfig
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hubit.config.HubitModelComponent" class="md-nav__link">
+    HubitModelComponent
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hubit.config.HubitBinding" class="md-nav__link">
+    HubitBinding
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hubit.config.HubitModelPath" class="md-nav__link">
+    HubitModelPath
+  </a>
+  
+    <nav class="md-nav" aria-label="HubitModelPath">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hubit.config.HubitModelPath--index-contexts" class="md-nav__link">
+    Index contexts
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hubit.config.Query" class="md-nav__link">
+    Query
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hubit.config.FlatData" class="md-nav__link">
+    FlatData
+  </a>
+  
+    <nav class="md-nav" aria-label="FlatData">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hubit.config.FlatData.as_dict" class="md-nav__link">
+    as_dict()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hubit.config.FlatData.inflate" class="md-nav__link">
+    inflate()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content" data-md-component="content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                
+                <p><span style="color:RGBA(0,0,0,.4); font-size: 11px;">
+Version 0.3.0. Page built on 
+    <script type="text/javascript"> 
+    var md = new Date(document.lastModified) 
+    document.write( md.toDateString() )
+    </script>.
+</span></p>
+<h1 id="hubit-configuration-data-and-queries">Hubit configuration, data and queries</h1>
+
+
+  <div class="doc doc-object doc-module">
+
+
+    <div class="doc doc-contents first">
+
+      <p>Objects defined here will automatically be created by <code>Hubit</code>. 
+Therefore, the class definitions below simply document e.g. the attributes required 
+in a model config file or the required structure of a query path.</p>
+
+
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-class">
+
+
+
+<h2 id="hubit.config.HubitQueryPath" class="doc doc-heading">
+        <code>HubitQueryPath</code>
+
+
+
+</h2>
+
+    <div class="doc doc-contents first">
+
+      <p>Reference a field in the results data. The syntax follows general
+Python syntax for nested objects. Only square
+brackets are allowed. The content of the brackets is called an index specifier.
+Currently, index specifiers should be either a positive integer or
+the character <code>:</code>. General slicing and negative indices is not supported.</p>
+<p>To query, for example, the attribute <code>weight</code> in the 4<em>th</em> element of the list
+<code>wheels</code>, which is stored on the object <code>car</code> use the path
+<code>car.wheels[3].weight</code>. The query path <code>car.wheels[:].weight</code>
+represents a list with elements being the <code>weight</code> for all
+wheels of the car.</p>
+<p>If there are multiple cars stored in a list of cars, the
+query path <code>cars[:].wheels[3].weight</code> represents a list where the elements
+would be the weights for the 4<em>th</em> wheel for all cars. The
+query path <code>cars[:].wheels[:].weight</code> represents a nested list where
+each outer list item represents a car and the corresponding inner list elements
+represent the weights for all wheels for that car.</p>
+
+
+
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-class">
+
+
+
+<h2 id="hubit.config.HubitModelConfig" class="doc doc-heading">
+        <code>HubitModelConfig</code>
+
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-dataclass"><code>dataclass</code></small>
+  </span>
+
+</h2>
+
+    <div class="doc doc-contents first">
+
+      <p>Defines the hubit model configuration.</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>components</code></td>
+        <td><code></code></td>
+        <td><p><a href="#hubit.config.HubitModelComponent"><code>HubitModelComponent</code></a> sequence.</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+
+
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-class">
+
+
+
+<h2 id="hubit.config.HubitModelComponent" class="doc doc-heading">
+        <code>HubitModelComponent</code>
+
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-dataclass"><code>dataclass</code></small>
+  </span>
+
+</h2>
+
+    <div class="doc doc-contents first">
+
+      <p>Represents one isolated task carried out by
+the function <code>func_name</code> located at <code>path</code>. The function requires
+input from the paths defined in <code>consumes_input</code> and
+<code>consumes_results</code>. The componet delivers results to the paths
+in <code>provides_results</code>.</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>path</code></td>
+        <td><code>str</code></td>
+        <td><p>Path to the module responsible for the task. if <code>is_dotted_path</code>
+is false the <code>path</code> attribute is relative to the <code>base_path</code>
+which is the parent path for the model file.</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>func_name</code></td>
+        <td><code>str</code></td>
+        <td><p>The function name (entrypoint) that wraps the task.</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>provides_results</code></td>
+        <td><code>List[HubitBinding]</code></td>
+        <td><p><a href="#hubit.config.HubitBinding"><code>HubitBinding</code></a> sequence specifying the results provided by the component.</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>consumes_input</code></td>
+        <td><code>List[HubitBinding]</code></td>
+        <td><p><a href="#hubit.config.HubitBinding"><code>HubitBinding</code></a> sequence specifying the input consumed by the input consumed.</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>consumes_results</code></td>
+        <td><code>List[HubitBinding]</code></td>
+        <td><p><a href="#hubit.config.HubitBinding"><code>HubitBinding</code></a> sequence specifying the input consumed by the results consumed.</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>is_dotted_path</code></td>
+        <td><code>bool</code></td>
+        <td><p>Set to True if the specified <code>path</code> is a dotted path (typically for a package module in site-packages).</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+
+
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-class">
+
+
+
+<h2 id="hubit.config.HubitBinding" class="doc doc-heading">
+        <code>HubitBinding</code>
+
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-dataclass"><code>dataclass</code></small>
+  </span>
+
+</h2>
+
+    <div class="doc doc-contents first">
+
+      <p>Binds an internal component attribute with <code>name</code> to a field
+at <code>path</code> in the shared data model</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>path</code></td>
+        <td><code>HubitModelPath</code></td>
+        <td><p><a href="#hubit.config.HubitModelPath"><code>HubitModelPath</code></a> pointing to the relevant field in the shared data.</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>name</code></td>
+        <td><code>str</code></td>
+        <td><p>Attribute name as it will be exposed in the component.</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+
+
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-class">
+
+
+
+<h2 id="hubit.config.HubitModelPath" class="doc doc-heading">
+        <code>HubitModelPath</code>
+
+
+
+</h2>
+
+    <div class="doc doc-contents first">
+
+      <p>References a field in the input or results data. Compared to a
+<a href="#hubit.config.HubitQueryPath"><code>HubitQueryPath</code></a>,
+a <code>HubitModelPath</code> instance has different rules for index specifiers. Most
+importantly an index specifier must contain an index identifier.
+Index identifiers are used to create index mapping and to infer
+list lengths. Index mapping is the mapping indices from lists in
+the input data to equivalent indices in the results data.</p>
+<p>Consider the HubitModelPath instance <code>cars[IDX_CAR].parts[:@IDX_PART].name</code>. As for
+query paths, the strings in square brackets are called index specifiers.
+The index specifier <code>:@IDX_PART</code> points to all elements (<code>:</code>) of the parts list
+and defines an identifier (<code>IDX_PART</code>) for elements of the parts list.
+So in this case, the index specifier contains both a slice and an index
+identifier. The left-most index specifier <code>IDX_CAR</code> is actually only an index
+identifier and refers to a specific car (no <code>:@</code>).
+<code>cars[IDX_CAR].parts[:@IDX_PART].name</code> therefore references the names of
+all parts of a specific car. A component that consumes this path
+would have access to these names in a list.</p>
+<p>To illustrate the use of the index identifiers for index mapping
+consider a <code>Hubit</code> model component that consumes the path discussed
+above. The component could use the parts names for a database
+lookup to get the prices for each component. If we want <code>Hubit</code> to store
+these prices in the results, one option would be to store them in a
+data structure similar to the input. To achieve this behavior the
+component should provide a path that looks something like
+<code>cars[IDX_CAR].parts[:@IDX_PART].price</code>. Alternatively, the provided
+path could be <code>cars[IDX_CAR].parts_price[:@IDX_PART]</code>. In both cases,
+the index identifiers defined in the input path (<code>cars[IDX_CAR].parts[:@IDX_PART].name</code>)
+allows <code>Hubit</code> to store the parts prices for a car
+at the same car index and part index as where the input was taken
+from. Note that the component itself is unaware of which car (car index)
+the input represents.</p>
+<p><code>Hubit</code> infers indices and list lengths based on the input data
+and the index specifiers <em>defined</em> for binding paths in the <code>consumes_input</code> section.
+Therefore, index identifiers <em>used</em> in binding paths in the <code>consumes_results</code>
+and <code>provides_results</code>
+sections should always be exist in binding paths in <code>consumes_input</code>.</p>
+<p>Further, to provide a meaningful index mapping, the index specifier
+used in a binding path in the <code>provides_results</code> section should be
+identical to the corresponding index specifier in the <code>consumes_input</code>.
+The first binding in the example below has a more specific index specifier
+(for the identifier <code>IDX_PART</code>) and is therefore invalid. The second
+binding is valid.</p>
+<div class="highlight"><pre><span></span><code><span class="nt">provides_results</span><span class="p">:</span>
+<span class="c1"># INVALID</span>
+<span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">part_name</span>
+    <span class="l l-Scalar l-Scalar-Plain">path</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">cars[IDX_CAR].parts[IDX_PART].name</span> <span class="c1"># more specific for the part index</span>
+
+<span class="c1"># VALID: Assign a &#39;price&#39; attribute each part object in the car object.</span>
+<span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">parts_price</span>
+    <span class="l l-Scalar l-Scalar-Plain">path</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">cars[IDX_CAR].parts[:@IDX_PART].price</span> <span class="c1"># index specifier for parts is equal to consumes.input.path</span>
+<span class="nt">consumes_input</span><span class="p">:</span>
+<span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">part_name</span>
+    <span class="l l-Scalar l-Scalar-Plain">path</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">cars[IDX_CAR].parts[:@IDX_PART].name</span>
+</code></pre></div>
+<p>In the invalid binding above, the component consumes all indices
+of the parts list and therefore storing the price data at a specific part
+index is not possible. The bindings below are valid since <code>IDX_PART</code> is
+omitted for the bindings in the <code>provides_results</code> section</p>
+<div class="highlight"><pre><span></span><code><span class="nt">provides_results</span><span class="p">:</span>
+<span class="c1"># Assign a &#39;part_names&#39; attribute to the car object.</span>
+<span class="c1"># Could be a a list of all part names for that car</span>
+<span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">part_names</span>
+    <span class="l l-Scalar l-Scalar-Plain">path</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">cars[IDX_CAR].part_names</span> <span class="c1"># index specifier for parts omitted</span>
+
+<span class="c1"># Assign a &#39;concatenates_part_names&#39; attribute to the car object.</span>
+<span class="c1"># Could be a string with all part names concatenated</span>
+<span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">concatenates_part_names</span>
+    <span class="l l-Scalar l-Scalar-Plain">path</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">cars[IDX_CAR].concatenates_part_names</span> <span class="c1"># index specifier for parts omitted</span>
+<span class="nt">consumes_input</span><span class="p">:</span>
+<span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">part_name</span>
+    <span class="l l-Scalar l-Scalar-Plain">path</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">cars[IDX_CAR].parts[:@IDX_PART].name</span>
+</code></pre></div>
+<h5 id="hubit.config.HubitModelPath--index-contexts">Index contexts</h5>
+<p>In addition to defining the index identifiers the input sections
+also defines index contexts. The index context is the order and hierarchy
+of the index identifiers. For example an input binding
+<code>cars[IDX_CAR].parts[IDX_PART].price</code> would define both the index
+identifiers <code>IDX_CAR</code> and <code>IDX_PART</code> as well as define the index context
+<code>IDX_CAR -&gt; IDX_PART</code>. This index context shows that a part index exists
+only in the context of a car index. Index identifiers should be used in a unique
+context i.e. if one input binding defines <code>cars[IDX_CAR].parts[IDX_PART].price</code>
+then defining or using <code>parts[IDX_PART].cars[IDX_CAR].price</code> is not allowed.</p>
+
+
+
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-class">
+
+
+
+<h2 id="hubit.config.Query" class="doc doc-heading">
+        <code>Query</code>
+
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-dataclass"><code>dataclass</code></small>
+  </span>
+
+</h2>
+
+    <div class="doc doc-contents first">
+
+      <p>A Hubit query.</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>paths</code></td>
+        <td><code></code></td>
+        <td><p><a href="#hubit.config.HubitQueryPath"><code>HubitQueryPath</code></a> sequence.</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+
+
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-class">
+
+
+
+<h2 id="hubit.config.FlatData" class="doc doc-heading">
+        <code>FlatData</code>
+
+
+
+</h2>
+
+    <div class="doc doc-contents first">
+
+      <p>A key-value pair data representation. Keys represent a path in
+the internal dotted-style. In a dotted-style Hubit path index
+braces [IDX] are represented by dots .IDX.</p>
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="hubit.config.FlatData.as_dict" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">as_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">as_internal_path</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Converts the object to a regular dictionary with string keys</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>as_internal_path</code></td>
+        <td><code>bool</code></td>
+        <td><p>If False the paths are styled as a HubitModelPath. If True
+the paths are left as internal dotted style.</p></td>
+        <td><code>False</code></td>
+      </tr>
+  </tbody>
+</table>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="hubit.config.FlatData.inflate" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">inflate</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Inflate flat data to nested dict. Lists are represented as dicts
+to handle queries that do not include all list elements. For
+example, if the query <code>["cars[57].price"]</code> gives the flat data object
+<code>{"cars.57.price": 4280.0}</code>, the inflated version is
+<code>{'cars': {57: {'price': 4280.0}}</code>. The access syntax
+for the dictionary representation of lists is identical
+to the access syntax had it been a list. Using dictionaries
+we can, however, represent element 57 without adding empty
+elements for the remaining list elements.</p>
+
+    </div>
+
+  </div>
+
+
+
+
+
+  </div>
+
+    </div>
+
+  </div>
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+        
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <nav class="md-footer__inner md-grid" aria-label="Footer">
+      
+        <a href="../hubit-reference/" class="md-footer__link md-footer__link--prev" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              Hubit
+            </div>
+          </div>
+        </a>
+      
+      
+        <a href="../log-reference/" class="md-footer__link md-footer__link--next" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              Log
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+        Made with
+        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+          Material for MkDocs
+        </a>
+        
+      </div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    <script id="__config" type="application/json">{"base": "..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing"}, "search": "../assets/javascripts/workers/search.4fa0e4ee.min.js", "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.1d3bfcf1.min.js"></script>
+      
+    
+  </body>
+</html>

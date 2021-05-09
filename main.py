@@ -1,3 +1,5 @@
+import pathlib
+print(pathlib.Path(__file__).parent.absolute().joinpath("hubit"))
 from hubit import VERSION
 
 

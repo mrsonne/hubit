@@ -34,5 +34,4 @@ jobs:
       - name: Build docs
         run: |
           python -c "import sys; print(sys.path)"
-          working-directory: hubit
           mkdocs gh-deploy --force

@@ -24,7 +24,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          export PYTHONPATH="$PWD/hubit"
+          export PYTHONPATH=$PYTHONPATH:"$PWD/hubit"
           pwd
           ls -ltr
           python -m pip install --upgrade pip
@@ -35,4 +35,5 @@ jobs:
       - name: Build docs
         run: |
           python -c "import sys; print(sys.path)"
+          python -c "import os; os.environ['PYTHONPATH']"
           mkdocs gh-deploy --force

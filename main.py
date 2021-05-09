@@ -1,8 +1,9 @@
 import os
+import sys
 WORK_DIR = os.getcwd()
 THIS_FILE_DIR = os.path.dirname(os.path.abspath(__file__))
-print('WORK_DIR', WORK_DIR)
-print('THIS_FILE_DIR', THIS_FILE_DIR)
+sys.path.insert(0, os.path.join(THIS_FILE_DIR, "hubit"))
+print(sys.path)
 
 from hubit import VERSION
 

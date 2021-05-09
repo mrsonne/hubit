@@ -1,14 +1,14 @@
 name: docs
 on:
-  push:
-    branches:
-      - master
-      - '*'
+  # push:
+  #   branches:
+  #     - master
+  #     - '*'
   # pull_request:
   #   branches: [master]
-  # push:
-  #   tags:
-  #     - '*'
+  push:
+    tags:
+      - '*'
 jobs:
   deploy:
     name: Build and Deploy Documentation

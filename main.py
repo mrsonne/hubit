@@ -6,12 +6,13 @@
 # sys.path.insert(0, os.path.join(THIS_FILE_DIR, "hubit"))
 # print(sys.path)
 
+# Required 
 import sys
 import pathlib
 THIS_FILE_DIR =  pathlib.Path(__file__).parent.absolute()
 print(THIS_FILE_DIR)
-sys.path.insert(0, THIS_FILE_DIR)
-sys.path.insert(0, THIS_FILE_DIR.joinpath("hubit"))
+sys.path.insert(0, THIS_FILE_DIR.as_posix())
+sys.path.insert(0, THIS_FILE_DIR.joinpath("hubit").as_posix())
 print(sys.path)
 
 

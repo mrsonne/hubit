@@ -4,7 +4,7 @@ THIS_FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 print('WORK_DIR', WORK_DIR)
 print('THIS_FILE_DIR', THIS_FILE_DIR)
 
-from .hubit import VERSION
+from hubit import VERSION
 
 def define_env(env):
     "Hook function for mkdocs"

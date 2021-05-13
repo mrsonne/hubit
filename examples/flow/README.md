@@ -49,6 +49,8 @@ Further, each tank is fitted with an overflow outlet at height <i>h</i><sub>o,<i
                                  └───────┘    ˅
 ```
 
+The mass balance for the first tank can be solved without any data from the remaining tanks. With the outflow from the first tank the mass balance for the second tank can be solved. Thus, to get the outflow from the N'th tank the mass balances for the N-1 preceding tanks must be solved sequentially.
+
 ```yaml
 tanks:
     - orifice_area: 0.2

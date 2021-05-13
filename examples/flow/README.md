@@ -52,11 +52,11 @@ Further, each tank is fitted with an overflow outlet at height <i>h</i><sub>o,<i
 ```yaml
 tanks:
     - orifice_area: 0.2
-      dischage_coef: 0.9
+      discharge_coef: 0.9
       tank_diameter: 0.8
       overflow_height: 0.8
     - orifice_area: 0.4
-      dischage_coef: 0.4
+      discharge_coef: 0.4
       tank_diameter: 0.4
       overflow_height: 0.6
 ```

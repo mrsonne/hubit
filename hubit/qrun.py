@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Set
 import yaml
 from .worker import _Worker
 from .shared import count
-from .config import FlatData, HubitModelComponent
+from .config import FlatData, HubitModelComponent, HubitModelPath
 
 POLLTIME = 0.1
 POLLTIME_LONG = 0.25
@@ -130,7 +130,12 @@ class _QueryRunner:
             return None
 
     @staticmethod
-    def _transfer_input(input_paths, worker, inputdata, all_input):
+    def _transfer_input(
+        input_paths: List[HubitModelPath],
+        worker: _Worker,
+        inputdata: Dict,
+        all_input: FlatData,
+    ):
         """
         Transfer required input from all input to extracted input
         and to worker

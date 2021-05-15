@@ -1,5 +1,5 @@
 import unittest
-from hubit.config import HubitModelComponent, HubitModelPath, HubitQueryPath
+from hubit.config import HubitModelComponent, HubitModelPath, HubitQueryPath, FlatData
 from hubit.errors import HubitModelComponentError
 
 
@@ -141,3 +141,19 @@ class TestHubitModelPath(unittest.TestCase):
         path = HubitModelPath("segments[IDX_SEG].layers[@]")
         with self.assertRaises(AssertionError):
             path._validate_index_identifiers()
+
+
+class TestFlatData(unittest.TestCase):
+    def test_from_dict(self):
+        """
+        Test nested dict
+        """
+        data = {"level1": {"level2": [{"attr1": 1}, {"attr2": 2}]}, "number": 3}
+        result = FlatData.from_dict(data)
+        expected_result = {
+            "level1.level2.0.attr1": 1,
+            "level1.level2.1.attr2": 2,
+            "number": 3,
+        }
+        assert result == expected_result
+

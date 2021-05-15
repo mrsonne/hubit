@@ -74,3 +74,6 @@ tanks:
 For each tank we can "precompute"
 
 A*c \sqrt(2*g)
+
+# Ideas
+* Add components and chemical reactions

@@ -1,0 +1,12 @@
+- path: ./components/mod1.py 
+  provides_results: 
+    - name: inflow
+      path: inlets[IDX_INLET].tanks[IDX_TANK].inflow
+  consumes_input:
+    - name: number
+      # path: numbers[0@IDX_NUMBER]
+      path: numbers[0]
+    - name: total_flow
+      path: inlets[IDX_INLET].flow
+    - name: fraction
+      path: inlets[IDX_INLET].tanks[IDX_TANK].fraction

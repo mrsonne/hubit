@@ -1,0 +1,10 @@
+numbers: [1, 2, 3]
+inlets:
+  - flow: 17
+    tanks:
+      - name: large 
+        fraction: 0.6
+      - name: small
+        fraction: 0.1
+      - name: medium
+        fraction: 0.3

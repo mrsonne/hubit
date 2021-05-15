@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 """Do some basic version checks. If these pass and the user confirms 
 the code will be tagged and pushed and consequently deployed by the CI/CD pipeline.
 """

@@ -110,7 +110,6 @@ class _Worker:
                 HubitModelPath.as_internal(model_path_for_name[name]),
                 inplace=False,
             )
-
             paths_for_name[name] = pruned_tree.expand_path(path, as_internal_path=True)
         return paths_for_name
 

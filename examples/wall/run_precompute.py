@@ -1,4 +1,5 @@
 import logging
+import pprint
 from .utils import get_model, HubitModel
 
 logging.basicConfig(level=logging.INFO)
@@ -27,8 +28,20 @@ def query_with_precomputed_results(
     print("response", response)
     # Get the full results object
     results = hmodel.get_results()
-    print("results", results)
-    print("outer_temperature", results["segments"][0]["layers"][1]["outer_temperature"])
+
+    print("\n*** RESULTS (FlatData) ***")
+    pprint.pprint(results)
+
+    print("\n*** RESULTS (as dict) ***")
+    pprint.pprint(results.as_dict())
+
+    print("\n*** RESULTS (inflates)***")
+    pprint.pprint(results.inflate())
+
+    print(
+        "outer_temperature",
+        results.inflate()["segments"][0]["layers"][1]["outer_temperature"],
+    )
 
 
 if (

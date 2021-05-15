@@ -277,7 +277,6 @@ class HubitModelPath(HubitQueryPath):
             # Don't replace if there is an index wildcard
             if HubitModelPath.char_wildcard in idx_spec:
                 continue
-
             _path = _path.replace(idx_spec, index, 1)
         return HubitModelPath(_path)
 
@@ -599,7 +598,13 @@ class FlatData(Dict):
                         items.extend(cls.from_dict(item, _new_key, sep=sep).items())
                 except AttributeError:
                     # Elements are not dicts
-                    items.append((HubitModelPath(new_key), v))
+                    # Keep list with not flattening
+                    # items.append((HubitModelPath(new_key), v))
+
+                    # Flatten simple list
+                    for idx, item in enumerate(v):
+                        _new_key = new_key + "." + str(idx)
+                        items.append((HubitModelPath(_new_key), item))
             else:
                 items.append((HubitModelPath(new_key), v))
         return cls(items)

@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Components may consume specific elements in lists from the input.
+- Fix broken example (`examples/wall/run_precompute.py`)
 
 ## [0.3.0] - 2021-05-07
 ### Changed

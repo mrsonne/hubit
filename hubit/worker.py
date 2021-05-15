@@ -1,4 +1,5 @@
 from __future__ import annotations
+from hubit.utils import is_digit
 import os
 import pickle
 import hashlib
@@ -42,15 +43,21 @@ class _Worker:
         if len(idxval_for_idxid) == 0:
             return {binding.name: binding.path for binding in bindings}
         else:
-            return {
-                binding.name: binding.path.set_indices(
-                    [
-                        idxval_for_idxid[idxid] if idxid in idxval_for_idxid else None
-                        for idxid in binding.path.get_index_identifiers()
-                    ],
-                )
-                for binding in bindings
-            }
+            result = {}
+            for binding in bindings:
+                indices = []
+                for idxid in binding.path.get_index_identifiers():
+                    if idxid in idxval_for_idxid:
+                        # Map index ID to the value
+                        index = idxval_for_idxid[idxid]
+                    elif is_digit(idxid):
+                        # already an index so no transformation required
+                        index = str(idxid)
+                    else:
+                        index = None
+                    indices.append(index)
+                result[binding.name] = binding.path.set_indices(indices)
+            return result
 
     @staticmethod
     def get_bindings(bindings: List[HubitBinding], query_path):

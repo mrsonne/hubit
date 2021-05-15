@@ -98,8 +98,13 @@ class DummyLengthTree:
     def fix_idx_at_level(self, *args, **kwargs):
         pass
 
-    def expand_path(self, path: HubitModelPath, *args, **kwargs) -> List[str]:
-        return [HubitModelPath.as_internal(path)]
+    def expand_path(
+        self, path: HubitModelPath, as_internal_path: bool = False, *args, **kwargs
+    ) -> List[str]:
+        if as_internal_path:
+            return [HubitModelPath.as_internal(path)]
+        else:
+            return [path]
 
     def none_like(self):
         return None

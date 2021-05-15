@@ -1,11 +1,52 @@
+# - path: ./components/mod1.py 
+#   provides_results: 
+#     - name: inflow
+#       path: inlets[IDX_INLET].tanks[IDX_TANK].inflow
+#   consumes_input:
+#     - name: number
+#       path: numbers[0]
+#     - name: total_flow
+#       path: inlets[IDX_INLET].flow
+#     - name: fraction
+#       path: inlets[IDX_INLET].tanks[IDX_TANK].fraction
+
+# Hard reference inlets[1].tanks[2]
 - path: ./components/mod1.py 
   provides_results: 
     - name: inflow
-      path: inlets[IDX_INLET].tanks[IDX_TANK].inflow
+      path: inlets[1].tanks[2].inflow
   consumes_input:
     - name: number
       path: numbers[0]
     - name: total_flow
-      path: inlets[IDX_INLET].flow
+      path: inlets[1].flow
     - name: fraction
-      path: inlets[IDX_INLET].tanks[IDX_TANK].fraction
+      path: inlets[1].tanks[2].fraction
+
+
+# Hard reference inlets[0].tanks[2]
+# - path: ./components/mod1.py 
+#   provides_results: 
+#     - name: inflow
+#       path: inlets[0].tanks[2].inflow
+#   consumes_input:
+#     - name: number
+#       path: numbers[0]
+#     - name: total_flow
+#       path: inlets[0].flow
+#     - name: fraction
+#       path: inlets[0].tanks[2].fraction
+
+
+# Hard reference inlets[1].tanks[1]
+# - path: ./components/mod1.py 
+#   provides_results: 
+#     - name: inflow
+#       path: inlets[1].tanks[1].inflow
+#   consumes_input:
+#     - name: number
+#       path: numbers[4]
+#     - name: total_flow
+#       path: inlets[1].flow
+#     - name: fraction
+#       path: inlets[1].tanks[1].fraction

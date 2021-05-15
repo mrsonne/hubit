@@ -1,3 +1,5 @@
+# Cascading tanks
+
 Birs Steward and Lightfoot probably has this example as well
 https://www.lmnoeng.com/Tank/TankTime.php
 
@@ -13,7 +15,7 @@ Tank parameters
 - Discharge coefficient, C  
 - Orifice area, A
 
-With no accumulation the mass balance for each tank reads
+With no accumulation and no chemical reactions the mass balance for each tank reads
 
 ```math
 IN = OUT

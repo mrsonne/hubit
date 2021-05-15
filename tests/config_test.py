@@ -157,3 +157,18 @@ class TestFlatData(unittest.TestCase):
         }
         assert result == expected_result
 
+    def test_from_dict_with_simple_list(self):
+        """
+        Test flattening of simple list
+        """
+        data = {"list": [1, 2, 3], "level1": {"list": [1, 2, 3]}}
+        result = FlatData.from_dict(data)
+        expected_result = {
+            "list.0": 1,
+            "list.1": 2,
+            "list.2": 3,
+            "level1.list.0": 1,
+            "level1.list.1": 2,
+            "level1.list.2": 3,
+        }
+        assert result == expected_result

@@ -275,6 +275,34 @@ class TestWorker(unittest.TestCase):
         expected_path_for_name = {"k_therm": "segments[0].layers[:@IDX_LAY].k_therm"}
         self.assertDictEqual(expected_path_for_name, path_for_name)
 
+
+    def test_get_bindings(self):
+        """
+        Get bindings for query where model path is fully specified
+        """
+        bindings = [
+            HubitBinding.from_cfg(
+                {
+                    "name": "inflow",
+                    "path": "inlets[0].tanks[2].inflow",
+                }
+            )
+        ]
+
+        # The query path mathces the model path
+        querypath = "inlets.0.tanks.2.inflow"
+        path_for_name, idxval_for_idxid = _Worker.get_bindings(bindings, querypath)
+        
+        expected_idxval_for_idxid = {"0": "0", "2": "2"}
+        self.assertDictEqual(expected_idxval_for_idxid, idxval_for_idxid)
+
+        expected_path_for_name = {"inflow": "inlets[0].tanks[2].inflow"}
+        self.assertDictEqual(expected_path_for_name, path_for_name)
+
+        querypath = "inlets.1.tanks.2.inflow"
+        with self.assertRaises(HubitWorkerError):
+            _Worker.get_bindings(bindings, querypath)
+
     def test_7(self):
         """Queries should be expanded (location specific)
         otherwise a HubitWorkerError is raised

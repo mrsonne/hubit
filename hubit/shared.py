@@ -728,14 +728,14 @@ def set_element(data, value, indices):
 
 
 def check_path_match(
-    query_path: str, model_path: str, accept_idx_wildcard: bool = True
+    query_path: str, model_path: HubitModelPath, accept_idx_wildcard: bool = True
 ) -> bool:
     """Check if the query matches the model path from the
     model bindings
 
     Args:
-        query_path (str): The query path (external)
-        symbolic_path (str): The model path (external)
+        query_path (str): Query path
+        model_path (HubitModelPath): Model path
         accept_idx_wildcard (bool): Should idx wildcard in the query path be accepted. Default True.
 
     Returns:
@@ -753,6 +753,10 @@ def check_path_match(
             # a wildcard or a digit should be found in the symbolic path
             if not (mcmp in idxids or IDX_WILDCARD in mcmp or is_digit(mcmp)):
                 return False
+
+            if is_digit(mcmp) and not (qcmp == mcmp):
+                return False
+
         elif accept_idx_wildcard and qcmp == IDX_WILDCARD:
             # When a wildcard is found in the query an index ID must be in the model
             if not mcmp in idxids:

@@ -190,12 +190,9 @@ class _QueryRunner:
 
             # Set available data on the worker. If data is missing the corresponding
             # paths (queries) are returned
-            print('extracted_input 1', extracted_input)
             (input_paths_missing, queries_next) = worker.set_values(
                 extracted_input, flat_results
             )
-            print('extracted_input 2', extracted_input)
-            print("input_paths_missing", input_paths_missing)
 
             # THIS WILL START THE WORKER BUT WE DONT WANT THAT
             # IF ANOTHER WORKER IS ALREADY CALCULATING THAT

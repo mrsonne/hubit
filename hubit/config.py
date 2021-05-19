@@ -591,8 +591,7 @@ class FlatData(Dict):
         for k, v in dict.items():
             new_key = parent_key + sep + k if parent_key else k
 
-            # TODO generalize using regex and list
-            if any(new_key == path for path in stop_at):
+            if any(re.search(path, new_key) for path in stop_at):
                 items.append((HubitModelPath(new_key), v))
                 continue
 

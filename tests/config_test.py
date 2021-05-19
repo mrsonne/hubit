@@ -206,3 +206,25 @@ class TestFlatData(unittest.TestCase):
         result = FlatData.from_dict(data, stop_at=["level0", "level0.level1"])
         expected_result = data
         assert result == expected_result
+
+    def test_from_dict_stop_at_level1_list(self):
+        """
+        Test stop at root level
+        """
+        data = {
+            "level0": [{"level1": [1, 2, 3, 4], "ff": 4}, {"level1": [2, 5], "gg": 5}],
+            "number": 3,
+        }
+        spec = "level0[:].level1"
+        spec = spec.replace("[", "\.").replace("].", "\.").replace(":", "[0-9]+")
+        spec = [r"{}".format(spec)]
+        result = FlatData.from_dict(data, stop_at=spec)
+        expected_result = {
+            "level0.0.level1": [1, 2, 3, 4],
+            "level0.0.ff": 4,
+            "level0.1.level1": [2, 5],
+            "level0.1.gg": 5,
+            "number": 3,
+        }
+
+        assert result == expected_result

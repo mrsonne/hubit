@@ -1,4 +1,5 @@
 import unittest
+import re
 from hubit.config import HubitModelComponent, HubitModelPath, HubitQueryPath, FlatData
 from hubit.errors import HubitModelComponentError
 
@@ -179,7 +180,7 @@ class TestFlatData(unittest.TestCase):
         Test stop at root level
         """
         data = {"level0": {"level1": [{"attr1": 1}, {"attr2": 2}]}, "number": 3}
-        result = FlatData.from_dict(data, stop_at=["level0"])
+        result = FlatData.from_dict(data, stop_at=[re.compile("level0")])
         expected_result = data
         assert result == expected_result
 
@@ -188,7 +189,7 @@ class TestFlatData(unittest.TestCase):
         Test stop at level 1
         """
         data = {"level0": {"level1": [{"attr1": 1}, {"attr2": 2}]}, "number": 3}
-        result = FlatData.from_dict(data, stop_at=["level0.level1"])
+        result = FlatData.from_dict(data, stop_at=[re.compile("level0.level1")])
         expected_result = {
             "level0.level1": [{"attr1": 1}, {"attr2": 2}],
             "number": 3,
@@ -203,7 +204,9 @@ class TestFlatData(unittest.TestCase):
         by level0
         """
         data = {"level0": {"level1": [{"attr1": 1}, {"attr2": 2}]}, "number": 3}
-        result = FlatData.from_dict(data, stop_at=["level0", "level0.level1"])
+        result = FlatData.from_dict(
+            data, stop_at=[re.compile("level0"), re.compile("level0.level1")]
+        )
         expected_result = data
         assert result == expected_result
 
@@ -217,8 +220,9 @@ class TestFlatData(unittest.TestCase):
         }
         spec = "level0[:].level1"
         spec = spec.replace("[", "\.").replace("].", "\.").replace(":", "[0-9]+")
-        spec = [r"{}".format(spec)]
-        result = FlatData.from_dict(data, stop_at=spec)
+        specs = [r"{}".format(spec)]
+        specs = [re.compile(spec) for spec in specs]
+        result = FlatData.from_dict(data, stop_at=specs)
         expected_result = {
             "level0.0.level1": [1, 2, 3, 4],
             "level0.0.ff": 4,

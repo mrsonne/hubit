@@ -582,7 +582,11 @@ class FlatData(Dict):
 
     @classmethod
     def from_dict(
-        cls, dict: Dict, parent_key: str = "", sep: str = ".", stop_at: List = []
+        cls,
+        dict: Dict,
+        parent_key: str = "",
+        sep: str = ".",
+        stop_at: List = [re.Pattern],
     ):
         """
         Flattens dict and concatenates keys to a dotted style internal path
@@ -591,7 +595,7 @@ class FlatData(Dict):
         for k, v in dict.items():
             new_key = parent_key + sep + k if parent_key else k
 
-            if any(re.search(path, new_key) for path in stop_at):
+            if any(prog.search(new_key) for prog in stop_at):
                 items.append((HubitModelPath(new_key), v))
                 continue
 

@@ -155,20 +155,54 @@ class TestFlatData(unittest.TestCase):
             "level1.level2.1.attr2": 2,
             "number": 3,
         }
+
         assert result == expected_result
 
     def test_from_dict_with_simple_list(self):
         """
         Test flattening of simple list
         """
-        data = {"list": [1, 2, 3], "level1": {"list": [1, 2, 3]}}
+        data = {"list": [1, 2, 3], "level0": {"list": [1, 2, 3]}}
         result = FlatData.from_dict(data)
         expected_result = {
             "list.0": 1,
             "list.1": 2,
             "list.2": 3,
-            "level1.list.0": 1,
-            "level1.list.1": 2,
-            "level1.list.2": 3,
+            "level0.list.0": 1,
+            "level0.list.1": 2,
+            "level0.list.2": 3,
         }
+        assert result == expected_result
+
+    def test_from_dict_stop_at_level0(self):
+        """
+        Test stop at root level
+        """
+        data = {"level0": {"level1": [{"attr1": 1}, {"attr2": 2}]}, "number": 3}
+        result = FlatData.from_dict(data, stop_at=["level0"])
+        expected_result = data
+        assert result == expected_result
+
+    def test_from_dict_stop_at_level1(self):
+        """
+        Test stop at level 1
+        """
+        data = {"level0": {"level1": [{"attr1": 1}, {"attr2": 2}]}, "number": 3}
+        result = FlatData.from_dict(data, stop_at=["level0.level1"])
+        expected_result = {
+            "level0.level1": [{"attr1": 1}, {"attr2": 2}],
+            "number": 3,
+        }
+        print(result)
+
+        assert result == expected_result
+
+    def test_from_dict_stop_at_level0_a(self):
+        """
+        Test stop at level0. level1 also specified but is preceded
+        by level0
+        """
+        data = {"level0": {"level1": [{"attr1": 1}, {"attr2": 2}]}, "number": 3}
+        result = FlatData.from_dict(data, stop_at=["level0", "level0.level1"])
+        expected_result = data
         assert result == expected_result

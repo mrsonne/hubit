@@ -581,21 +581,35 @@ class FlatData(Dict):
         return items
 
     @classmethod
-    def from_dict(cls, dict: Dict, parent_key: str = "", sep: str = "."):
+    def from_dict(
+        cls, dict: Dict, parent_key: str = "", sep: str = ".", stop_at: List = []
+    ):
         """
         Flattens dict and concatenates keys to a dotted style internal path
         """
         items = []
         for k, v in dict.items():
             new_key = parent_key + sep + k if parent_key else k
+
+            # TODO generalize using regex and list
+            if any(new_key == path for path in stop_at):
+                items.append((HubitModelPath(new_key), v))
+                continue
+
             if isinstance(v, Dict):
-                items.extend(cls.from_dict(v, new_key, sep=sep).items())
+                items.extend(
+                    cls.from_dict(v, new_key, sep=sep, stop_at=stop_at).items()
+                )
             elif isinstance(v, abc.Iterable) and not isinstance(v, str):
                 try:
                     # Elements are dicts
                     for idx, item in enumerate(v):
                         _new_key = new_key + "." + str(idx)
-                        items.extend(cls.from_dict(item, _new_key, sep=sep).items())
+                        items.extend(
+                            cls.from_dict(
+                                item, _new_key, sep=sep, stop_at=stop_at
+                            ).items()
+                        )
                 except AttributeError:
                     # Elements are not dicts
                     # Keep list with not flattening

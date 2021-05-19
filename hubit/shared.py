@@ -417,7 +417,7 @@ class LengthTree:
         #                 path), level_name
         # For epath
         return (
-            re.sub("\[([^\.]+){}]".format(level_name), f"[{level_name}]", path),
+            re.sub(r"\[([^\.]+){}]".format(level_name), f"[{level_name}]", path),
             level_name,
         )
 

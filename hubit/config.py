@@ -200,7 +200,7 @@ class HubitModelPath(HubitQueryPath):
 
     """
 
-    regex_allowed_idx_ids = "^[a-zA-Z_\-0-9]+$"
+    regex_allowed_idx_ids = r"^[a-zA-Z_\-0-9]+$"
 
     def _validate_index_specifiers(self):
         idx_specs = self.get_index_specifiers()
@@ -239,7 +239,7 @@ class HubitModelPath(HubitQueryPath):
         Returns:
             str: path-like string with braces and content removed
         """
-        return re.sub("\[([^\.]+)]", "", self)
+        return re.sub(r"\[([^\.]+)]", "", self)
 
     def get_index_identifiers(self) -> List[str]:
         """Get the index identifiers from the path i.e. a

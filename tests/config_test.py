@@ -219,8 +219,7 @@ class TestFlatData(unittest.TestCase):
             "number": 3,
         }
         spec = "level0[:].level1"
-        spec = spec.replace("[", "\.").replace("].", "\.").replace(":", "[0-9]+")
-        specs = [r"{}".format(spec)]
+        specs = [spec.replace("[", r"\.").replace("].", r"\.").replace(":", "[0-9]+")]
         specs = [re.compile(spec) for spec in specs]
         result = FlatData.from_dict(data, stop_at=specs)
         expected_result = {

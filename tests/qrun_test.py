@@ -136,7 +136,9 @@ class TestRunner(unittest.TestCase):
     def get_worker_counts(self, queries):
         # queries = dot-queries
         flat_results = FlatData()
-        flat_input = FlatData.from_dict(self.input)
+        flat_input = FlatData.from_dict(
+            self.input, stop_at=self.model_cfg.compiled_query_depths
+        )
         worker_counts = []
         manager = None
         for q in queries:

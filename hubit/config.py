@@ -455,6 +455,10 @@ class HubitModelConfig:
     """Defines the hubit model configuration.
 
     Args:
+        query_depths: Query depths in the model file. Paths in the query depths list
+            indicate the depth to which the user can query and the maximum depth which
+            model paths can reference.
+            The default is to enable deep queries i.e. all the way to the input tree's leaves.
         components: [`HubitModelComponent`][hubit.config.HubitModelComponent] sequence.
     """
 
@@ -462,6 +466,7 @@ class HubitModelConfig:
 
     # Internal variable used to store the base path
     _base_path: str
+    query_depths: List[str] = field(default_factory=list)
 
     def __post_init__(self):
         # Convert to absolute paths
@@ -474,6 +479,19 @@ class HubitModelConfig:
         self._component_for_name = {
             component.id: component for component in self.components
         }
+
+        # Compile query depths
+        self.compiled_query_depths = [
+            HubitModelConfig.compile_query_depth(query_depth)
+            for query_depth in self.query_depths
+        ]
+
+    @staticmethod
+    def compile_query_depth(query_depth: str):
+        """Convert to internal path but escaping dots"""
+        return re.compile(
+            query_depth.replace("[", r"\.").replace("].", r"\.").replace(":", "[0-9]+")
+        )
 
     @property
     def base_path(self):
@@ -518,9 +536,18 @@ class HubitModelConfig:
             HubitModelConfig: Object corresponsing to the configuration data
         """
         components = [
-            HubitModelComponent.from_cfg(component_data) for component_data in cfg
+            HubitModelComponent.from_cfg(component_data)
+            for component_data in cfg["components"]
         ]
-        return cls(components=components, _base_path=base_path).validate()
+
+        if "query_depths" in cfg:
+            query_depths = cfg["query_depths"]
+        else:
+            query_depths = []
+
+        return cls(
+            components=components, query_depths=query_depths, _base_path=base_path
+        ).validate()
 
 
 @dataclass
@@ -586,7 +613,7 @@ class FlatData(Dict):
         dict: Dict,
         parent_key: str = "",
         sep: str = ".",
-        stop_at: List = [re.Pattern],
+        stop_at: List = [],
     ):
         """
         Flattens dict and concatenates keys to a dotted style internal path

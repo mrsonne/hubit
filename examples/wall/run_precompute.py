@@ -35,7 +35,7 @@ def query_with_precomputed_results(
     print("\n*** RESULTS (as dict) ***")
     pprint.pprint(results.as_dict())
 
-    print("\n*** RESULTS (inflates)***")
+    print("\n*** RESULTS (inflated)***")
     pprint.pprint(results.inflate())
 
     print(

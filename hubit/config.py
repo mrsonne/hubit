@@ -105,15 +105,20 @@ class HubitQueryPath(str):
 
 class HubitQueryDepthPath(HubitQueryPath):
     """
-    Index specifiers can only be an asterisk
+    A `HubitQueryDepthPath` specifies the maximum depth that can
+    be queried and referenced from a [`HubitModelPath`][hubit.config.HubitModelPath].
+    Compared to a [`HubitQueryPath`][hubit.config.HubitQueryPath] the index specifiers
+    for a `HubitQueryDepthPath` can only be an asterisk (*) signifying
+    "any" index.
 
-    `cars` Only the full list of car objects are available `cars[0]` or `cars[:]`
-    a component consuming `cars[IDX_CAR]` will have the whole car object
-    available.
+    If, for example a `HubitQueryDepthPath` is specified as `cars` in the
+    [`HubitModelConfig`][hubit.config.HubitModelConfig] only the full list
+    of car objects are available for component consuming the `car`
+    `HubitModelPath`. Queries for `cars[0]` or `cars[:]` will not work.
 
-    `cars[*]` individual car objects are available `cars[0]` or `cars[:]`
-    a component consuming `cars[IDX_CAR]` will have the whole car object
-    available.
+    If a `HubitQueryDepthPath` is specified as `cars[*]` whole car objects
+    will available a for components consuming e.g. `cars[IDX_CAR]`.
+    Queries for `cars[0]` or `cars[:]` will work.
 
     `cars[*].wheels[*]`. No query such as `cars[:].wheels[:].weight`
     wheels object transferred

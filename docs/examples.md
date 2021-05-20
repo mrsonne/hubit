@@ -211,16 +211,17 @@ In this model, the car price component is identical to the one used in model 2 a
 To tie together the bindings with the the Python code that does the actual work you need to add the path of the Python source code file to the model file. For the first car model it could look like this.
 
 ```yaml
-- path: ./components/price1.py 
-  func_name: price
-  provides_results: 
-    - name: car_price
-      path: cars[IDX_CAR].price
-  consumes_input:
-    - name: part_names
-      path: cars[IDX_CAR].parts[:@IDX_PART].name
-    - name: part_counts
-      path: cars[IDX_CAR].parts[:@IDX_PART].count
+components:
+  - path: ./components/price1.py 
+    func_name: price
+    provides_results: 
+      - name: car_price
+        path: cars[IDX_CAR].price
+    consumes_input:
+      - name: part_names
+        path: cars[IDX_CAR].parts[:@IDX_PART].name
+      - name: part_counts
+        path: cars[IDX_CAR].parts[:@IDX_PART].count
 ```
 
 The specified path should be relative to [`model's`][hubit.model.HubitModel] `base_path` attribute, which defaults to the location of the model file when the model is initialized using the [`from_file`][hubit.model.HubitModel.from_file] method. You can also use a [dotted path][hubit.config.HubitModelComponent] e.g.

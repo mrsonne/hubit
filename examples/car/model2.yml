@@ -1,17 +1,18 @@
-- path: ./components/mod2_cmp1.py 
-  consumes_input:
-      - name: part_name
-        path: cars[IDX_CAR].parts[IDX_PART].name 
-      - name: part_count
-        path: cars[IDX_CAR].parts[IDX_PART].count
-  provides_results:
-    - name: part_price
-      path: cars[IDX_CAR].parts[IDX_PART].price
+components:
+  - path: ./components/mod2_cmp1.py 
+    consumes_input:
+        - name: part_name
+          path: cars[IDX_CAR].parts[IDX_PART].name 
+        - name: part_count
+          path: cars[IDX_CAR].parts[IDX_PART].count
+    provides_results:
+      - name: part_price
+        path: cars[IDX_CAR].parts[IDX_PART].price
 
-- path: ./components/mod2_cmp2.py 
-  consumes_results:
-      - name: prices
-        path: cars[IDX_CAR].parts[:@IDX_PART].price
-  provides_results: 
-    - name: car_price 
-      path: cars[IDX_CAR].price
+  - path: ./components/mod2_cmp2.py 
+    consumes_results:
+        - name: prices
+          path: cars[IDX_CAR].parts[:@IDX_PART].price
+    provides_results: 
+      - name: car_price 
+        path: cars[IDX_CAR].price

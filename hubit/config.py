@@ -140,7 +140,7 @@ class HubitQueryDepthPath(HubitQueryPath):
         """Convert to internal path but escaping dots"""
         return re.compile(
             self.replace("[", r"\.")
-            .replace("].", r"\.")
+            .replace("]", r"")
             .replace(HubitQueryDepthPath.idx_wildcard, "[0-9]+")
         )
 
@@ -646,6 +646,13 @@ class FlatData(Dict):
 
         return items
 
+    @staticmethod
+    def _match(new_key, stop_at):
+        if any(prog.search(new_key) for prog in stop_at):
+            return True
+        else:
+            return False
+
     @classmethod
     def from_dict(
         cls,
@@ -660,8 +667,7 @@ class FlatData(Dict):
         items = []
         for k, v in dict.items():
             new_key = parent_key + sep + k if parent_key else k
-
-            if any(prog.search(new_key) for prog in stop_at):
+            if FlatData._match(new_key, stop_at):
                 items.append((HubitModelPath(new_key), v))
                 continue
 
@@ -670,20 +676,24 @@ class FlatData(Dict):
                     cls.from_dict(v, new_key, sep=sep, stop_at=stop_at).items()
                 )
             elif isinstance(v, abc.Iterable) and not isinstance(v, str):
-                try:
-                    # Elements are dicts
-                    for idx, item in enumerate(v):
-                        _new_key = new_key + "." + str(idx)
-                        items.extend(
-                            cls.from_dict(
-                                item, _new_key, sep=sep, stop_at=stop_at
-                            ).items()
-                        )
+                try:  # Elements are dicts
+                    # Test with element 0 - if there is a match then treat all elements accordingly
+                    if FlatData._match(new_key + ".0", stop_at):
+                        for idx, item in enumerate(v):
+                            _new_key = new_key + "." + str(idx)
+                            items.append((HubitModelPath(_new_key), item))
+                    else:
+                        for idx, item in enumerate(v):
+                            _new_key = new_key + "." + str(idx)
+                            items.extend(
+                                cls.from_dict(
+                                    item, _new_key, sep=sep, stop_at=stop_at
+                                ).items()
+                            )
                 except AttributeError:
                     # Elements are not dicts
                     # Keep list with not flattening
                     # items.append((HubitModelPath(new_key), v))
-
                     # Flatten simple list
                     for idx, item in enumerate(v):
                         _new_key = new_key + "." + str(idx)

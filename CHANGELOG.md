@@ -9,9 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Components need be specified under the `components` key in the model file. This breaks previous model files.
 
 ### Added
-- Specify query depths in the model file. This adds support for shallow models. The default is to enable deep queries i.e. all the way to the input tree's leaves.
 - Components may consume specific elements in lists from the input.
 - Fix broken example (`examples/wall/run_precompute.py`)
+- Improved performance for input data where only some branches are used and not all branches are used all the way to the leaves.
+
+### Fixed
+- The elements of lists that are leaves in the input data tree can now be referenced and queried. 
 
 ## [0.3.0] - 2021-05-07
 ### Changed

@@ -44,13 +44,6 @@
     rendering:
         show_root_heading: true
 
-::: hubit.config.HubitQueryDepthPath
-    selection:
-        members:
-            - dummy
-    rendering:
-        show_root_heading: true
-
 ::: hubit.config.Query
     selection:
         members:

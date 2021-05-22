@@ -143,6 +143,10 @@ class TestHubitModelPath(unittest.TestCase):
         with self.assertRaises(AssertionError):
             path._validate_index_identifiers()
 
+    def test_as_query_depth_path(self):
+        path = HubitModelPath("segments[IDX_SEG].layers[:@IDX1LAY113]")
+        assert path.as_query_depth_path() == "segments[*].layers[*]"
+
 
 class TestFlatData(unittest.TestCase):
     def test_from_dict(self):

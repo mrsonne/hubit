@@ -1,9 +1,6 @@
 # Paths are relative to the root directory where the tests are executed from
 # This model collects wall data in a list on the end node
 model = """
-  query_depths:
-    - list[*].some_attr.numbers
-    - list[*].some_attr.factors
   components:
     -   
         # move a number

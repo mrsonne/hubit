@@ -103,20 +103,20 @@ class HubitQueryPath(str):
         )  # Any character in square brackets
 
 
-class HubitQueryDepthPath(HubitQueryPath):
+class _HubitQueryDepthPath(HubitQueryPath):
     """
-    A `HubitQueryDepthPath` specifies the maximum depth that can
+    A `_HubitQueryDepthPath` specifies the maximum depth that can
     be queried and referenced from a [`HubitModelPath`][hubit.config.HubitModelPath].
     Compared to a [`HubitQueryPath`][hubit.config.HubitQueryPath] the index specifiers
-    for a `HubitQueryDepthPath` can only be an asterisk (*) signifying
+    for a `_HubitQueryDepthPath` can only be an asterisk (*) signifying
     "any" index.
 
-    If, for example a `HubitQueryDepthPath` is specified as `cars` in the
+    If, for example a `_HubitQueryDepthPath` is specified as `cars` in the
     [`HubitModelConfig`][hubit.config.HubitModelConfig] only the full list
     of car objects are available for component consuming the `car`
     `HubitModelPath`. Queries for `cars[0]` or `cars[:]` will not work.
 
-    If a `HubitQueryDepthPath` is specified as `cars[*]` whole car objects
+    If a `_HubitQueryDepthPath` is specified as `cars[*]` whole car objects
     will available a for components consuming e.g. `cars[IDX_CAR]`.
     Queries for `cars[0]` or `cars[:]` will work.
 
@@ -129,7 +129,7 @@ class HubitQueryDepthPath(HubitQueryPath):
     def _validate_index_specifiers(self):
         idx_specs = self.get_index_specifiers()
         assert all(
-            [idx_spec == HubitQueryDepthPath.idx_wildcard for idx_spec in idx_specs]
+            [idx_spec == _HubitQueryDepthPath.idx_wildcard for idx_spec in idx_specs]
         ), f"Unexpected index specifier found in {self.__class__.__name__} with value {self}"
 
     def validate(self):
@@ -141,7 +141,7 @@ class HubitQueryDepthPath(HubitQueryPath):
         return re.compile(
             self.replace("[", r"\.")
             .replace("]", r"")
-            .replace(HubitQueryDepthPath.idx_wildcard, "[0-9]+")
+            .replace(_HubitQueryDepthPath.idx_wildcard, "[0-9]+")
         )
 
 
@@ -322,6 +322,9 @@ class HubitModelPath(HubitQueryPath):
             _path = _path.replace(idx_spec, index, 1)
         return HubitModelPath(_path)
 
+    def as_query_depth_path(self):
+        return _HubitQueryDepthPath(re.sub(r"\[.*?\]", "[*]", self))
+
     @staticmethod
     def as_internal(path: Any) -> str:
         """Convert path using braces [IDX] to internal
@@ -491,6 +494,9 @@ class HubitModelComponent:
         bindings = getattr(self, binding_type)
         return {binding.name: binding.path for binding in bindings}
 
+    def query_depths(self):
+        return [binding.path.as_query_depth_path() for binding in self.consumes_input]
+
 
 @dataclass
 class HubitModelConfig:
@@ -498,17 +504,12 @@ class HubitModelConfig:
 
     Args:
         components: [`HubitModelComponent`][hubit.config.HubitModelComponent] sequence.
-        query_depths: Query depths like [`HubitQueryDepthPath`][hubit.config.HubitQueryDepthPath]
-            in the model file. Paths in the query depths list indicate the depth to
-            which the user can query and the maximum depth which model paths can reference.
-            The default is to enable deep queries i.e. all the way to the input tree's leaves.
     """
 
     components: List[HubitModelComponent]
 
     # Internal variable used to store the base path
     _base_path: str
-    query_depths: List[HubitQueryDepthPath] = field(default_factory=list)
 
     def __post_init__(self):
         # Convert to absolute paths
@@ -522,9 +523,15 @@ class HubitModelConfig:
             component.id: component for component in self.components
         }
 
+        self._query_depths = [
+            query_depth
+            for component in self.components
+            for query_depth in component.query_depths()
+        ]
+
         # Compile query depths
         self.compiled_query_depths = [
-            query_depth.compile_regex() for query_depth in self.query_depths
+            query_depth.compile_regex() for query_depth in self._query_depths
         ]
 
     @property
@@ -539,7 +546,7 @@ class HubitModelConfig:
         """
         Validate the object
         """
-        [query_depth.validate() for query_depth in self.query_depths]
+        # [query_depth.validate() for query_depth in self.query_depths]
         return self
 
     @classmethod
@@ -576,17 +583,7 @@ class HubitModelConfig:
             for component_data in cfg["components"]
         ]
 
-        # Read and instantiate query depths
-        if "query_depths" in cfg:
-            query_depths = [
-                HubitQueryDepthPath(query_depth) for query_depth in cfg["query_depths"]
-            ]
-        else:
-            query_depths = []
-
-        return cls(
-            components=components, query_depths=query_depths, _base_path=base_path
-        ).validate()
+        return cls(components=components, _base_path=base_path).validate()
 
 
 @dataclass

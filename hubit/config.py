@@ -644,8 +644,12 @@ class FlatData(Dict):
         return items
 
     @staticmethod
-    def _match(new_key, stop_at):
-        if any(prog.search(new_key) for prog in stop_at):
+    def _match(key: str, stop_at: List):
+        """
+        Check if key matches any of the compiled regex in the
+        stop_at list
+        """
+        if any(prog.search(key) for prog in stop_at):
             return True
         else:
             return False

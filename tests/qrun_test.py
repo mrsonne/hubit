@@ -164,7 +164,7 @@ class TestRunner(unittest.TestCase):
         self.assertListEqual(worker_counts, expected_worker_counts)
 
     def test_number_of_workers_level1(self):
-        """Test number of workers on level 1 quries ie queries
+        """Test number of workers on level 1 queries i.e. queries
         that have one dependency
         """
         queries = [

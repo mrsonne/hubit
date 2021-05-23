@@ -325,6 +325,9 @@ class HubitModelPath(HubitQueryPath):
     def as_query_depth_path(self):
         return _HubitQueryDepthPath(re.sub(r"\[.*?\]", "[*]", self))
 
+    def as_include_pattern(self):
+        return self.remove_braces()
+
     @staticmethod
     def as_internal(path: Any) -> str:
         """Convert path using braces [IDX] to internal
@@ -497,6 +500,9 @@ class HubitModelComponent:
     def query_depths(self):
         return [binding.path.as_query_depth_path() for binding in self.consumes_input]
 
+    def include_patterns(self):
+        return [binding.path.as_include_pattern() for binding in self.consumes_input]
+
 
 @dataclass
 class HubitModelConfig:
@@ -527,6 +533,12 @@ class HubitModelConfig:
             query_depth
             for component in self.components
             for query_depth in component.query_depths()
+        ]
+
+        self.include_patterns = [
+            include_pattern
+            for component in self.components
+            for include_pattern in component.include_patterns()
         ]
 
         # Compile query depths
@@ -644,15 +656,24 @@ class FlatData(Dict):
         return items
 
     @staticmethod
-    def _match(key: str, stop_at: List):
+    def _match(path: str, stop_at: List):
         """
-        Check if key matches any of the compiled regex in the
+        Check if path matches any of the compiled regex in the
         stop_at list
         """
-        if any(prog.search(key) for prog in stop_at):
+        if any(prog.search(path) for prog in stop_at):
             return True
         else:
             return False
+
+    @staticmethod
+    def _include(path: str, include_patterns: List[str]):
+        """
+        Check if the path is in the list of patterns to be included
+        """
+        # Remove digits from path
+        _path = re.sub(r"\.(\d+)", "", path)
+        return any(include.startswith(_path) for include in include_patterns)
 
     @classmethod
     def from_dict(
@@ -661,6 +682,7 @@ class FlatData(Dict):
         parent_key: str = "",
         sep: str = ".",
         stop_at: List = [],
+        include_patterns=[],
     ):
         """
         Flattens dict and concatenates keys to a dotted style internal path
@@ -672,9 +694,18 @@ class FlatData(Dict):
                 items.append((HubitModelPath(new_key), v))
                 continue
 
+            if not FlatData._include(new_key, include_patterns):
+                continue
+
             if isinstance(v, Dict):
                 items.extend(
-                    cls.from_dict(v, new_key, sep=sep, stop_at=stop_at).items()
+                    cls.from_dict(
+                        v,
+                        new_key,
+                        sep=sep,
+                        stop_at=stop_at,
+                        include_patterns=include_patterns,
+                    ).items()
                 )
             elif isinstance(v, abc.Iterable) and not isinstance(v, str):
                 try:  # Elements are dicts
@@ -688,7 +719,11 @@ class FlatData(Dict):
                             _new_key = new_key + "." + str(idx)
                             items.extend(
                                 cls.from_dict(
-                                    item, _new_key, sep=sep, stop_at=stop_at
+                                    item,
+                                    _new_key,
+                                    sep=sep,
+                                    stop_at=stop_at,
+                                    include_patterns=include_patterns,
                                 ).items()
                             )
                 except AttributeError:

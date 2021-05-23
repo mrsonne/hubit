@@ -1,6 +1,12 @@
 import unittest
 import re
-from hubit.config import HubitModelComponent, HubitModelPath, HubitQueryPath, FlatData
+from hubit.config import (
+    HubitModelComponent,
+    HubitModelPath,
+    HubitQueryPath,
+    FlatData,
+    _HubitQueryDepthPath,
+)
 from hubit.errors import HubitModelComponentError
 
 
@@ -154,11 +160,12 @@ class TestFlatData(unittest.TestCase):
         Test nested dict
         """
         data = {"level1": {"level2": [{"attr1": 1}, {"attr2": 2}]}, "number": 3}
-        result = FlatData.from_dict(data)
+        result = FlatData.from_dict(
+            data, include_patterns=["level1.level2.attr1", "level1.level2.attr2"]
+        )
         expected_result = {
             "level1.level2.0.attr1": 1,
             "level1.level2.1.attr2": 2,
-            "number": 3,
         }
 
         assert result == expected_result
@@ -168,7 +175,7 @@ class TestFlatData(unittest.TestCase):
         Test flattening of simple list
         """
         data = {"list": [1, 2, 3], "level0": {"list": [1, 2, 3]}}
-        result = FlatData.from_dict(data)
+        result = FlatData.from_dict(data, include_patterns=["list", "level0.list"])
         expected_result = {
             "list.0": 1,
             "list.1": 2,
@@ -184,7 +191,11 @@ class TestFlatData(unittest.TestCase):
         Test stop at root level
         """
         data = {"level0": {"level1": [{"attr1": 1}, {"attr2": 2}]}, "number": 3}
-        result = FlatData.from_dict(data, stop_at=[re.compile("level0")])
+        result = FlatData.from_dict(
+            data,
+            stop_at=[re.compile("level0")],
+            include_patterns=["level0", "number"],
+        )
         expected_result = data
         assert result == expected_result
 
@@ -193,10 +204,12 @@ class TestFlatData(unittest.TestCase):
         Test stop at level 1
         """
         data = {"level0": {"level1": [{"attr1": 1}, {"attr2": 2}]}, "number": 3}
-        result = FlatData.from_dict(data, stop_at=[re.compile("level0.level1")])
+        include_path = "level0.level1"
+        result = FlatData.from_dict(
+            data, stop_at=[re.compile(include_path)], include_patterns=[include_path]
+        )
         expected_result = {
             "level0.level1": [{"attr1": 1}, {"attr2": 2}],
-            "number": 3,
         }
         print(result)
 
@@ -208,8 +221,11 @@ class TestFlatData(unittest.TestCase):
         by level0
         """
         data = {"level0": {"level1": [{"attr1": 1}, {"attr2": 2}]}, "number": 3}
+        include_path = "level0"
         result = FlatData.from_dict(
-            data, stop_at=[re.compile("level0"), re.compile("level0.level1")]
+            data,
+            stop_at=[re.compile(include_path)],
+            include_patterns=[include_path, "number"],
         )
         expected_result = data
         assert result == expected_result
@@ -222,10 +238,14 @@ class TestFlatData(unittest.TestCase):
             "level0": [{"level1": [1, 2, 3, 4], "ff": 4}, {"level1": [2, 5], "gg": 5}],
             "number": 3,
         }
-        spec = "level0[:].level1"
-        specs = [spec.replace("[", r"\.").replace("].", r"\.").replace(":", "[0-9]+")]
-        specs = [re.compile(spec) for spec in specs]
-        result = FlatData.from_dict(data, stop_at=specs)
+        spec = _HubitQueryDepthPath("level0[*].level1")
+        specs = [spec.compile_regex()]
+        result = FlatData.from_dict(
+            data,
+            stop_at=specs,
+            include_patterns=["level0.level1", "level0.ff", "level0.gg", "number"],
+        )
+        print(result)
         expected_result = {
             "level0.0.level1": [1, 2, 3, 4],
             "level0.0.ff": 4,
@@ -234,4 +254,16 @@ class TestFlatData(unittest.TestCase):
             "number": 3,
         }
 
+        assert result == expected_result
+
+    def test_include(self):
+        key = "list1.1.list2.3"
+        includes = "list1.list2", "ok"
+        result = FlatData._include(key, includes)
+        expected_result = True
+        assert result == expected_result
+
+        includes = "list1", "ok"
+        result = FlatData._include(key, includes)
+        expected_result = False
         assert result == expected_result

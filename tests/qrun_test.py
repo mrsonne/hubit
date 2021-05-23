@@ -137,7 +137,9 @@ class TestRunner(unittest.TestCase):
         # queries = dot-queries
         flat_results = FlatData()
         flat_input = FlatData.from_dict(
-            self.input, stop_at=self.model_cfg.compiled_query_depths
+            self.input,
+            stop_at=self.model_cfg.compiled_query_depths,
+            include_patterns=self.model_cfg.include_patterns,
         )
         worker_counts = []
         manager = None

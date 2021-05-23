@@ -200,7 +200,9 @@ class HubitModel(_HubitModel):
         """
         self.inputdata = input_data
         self.flat_input = FlatData.from_dict(
-            input_data, stop_at=self.model_cfg.compiled_query_depths
+            input_data,
+            stop_at=self.model_cfg.compiled_query_depths,
+            include_patterns=self.model_cfg.include_patterns,
         )
         self._set_trees()
         self._input_is_set = True

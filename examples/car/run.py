@@ -7,7 +7,7 @@ from hubit import clear_hubit_cache
 
 
 def model_0():
-    """"""
+    """Send entire car object to worker"""
     print(f"\n***MODEL 0***")
     hmodel = get_model("model0.yml")
     query = ["cars[0].price", "cars[1].price", "cars[2].price"]

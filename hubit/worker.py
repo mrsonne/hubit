@@ -118,7 +118,7 @@ class _Worker:
         manager: multiprocessing.Manager,
         qrun: _QueryRunner,
         component: HubitModelComponent,
-        query: HubitModelPath, # TODO: still string actually
+        query: HubitModelPath,  # TODO: still string actually
         func: Callable,
         version: str,
         tree_for_idxcontext: Dict[str, LengthTree],

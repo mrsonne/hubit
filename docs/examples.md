@@ -7,7 +7,7 @@ In the examples all calculation are, for simplicity, carried out directly in the
 `Hubit` component, but the component could just as well wrap a C library, request 
 data from a web server or use an installed Python package. The examples are summarized below.
 
-* [`examples/car`](https://github.com/mrsonne/hubit/tree/master/examples/car). This example encompass the four similar car models. The examples illustrate the use of model-level caching and component-level caching.
+* [`examples/car`](https://github.com/mrsonne/hubit/tree/master/examples/car). This example encompass the four similar car models. The examples illustrate how the `Hubit` model file can be used to interface with cars models that carry out the same task, but have quite different levels of modularity. Further, the use of model-level caching and component-level caching is illustrated.
 * [`examples/wall`](https://github.com/mrsonne/hubit/tree/master/examples/wall). This example illustrates heat flow calculations and cost calculations for a wall with two segments. Each wall segment has multiple wall layers that consist of different materials. The example demonstrates model rendering (`run_render.py`), simple queries (`run_queries.py`) with model level caching, reusing previously calculated results `run_precompute.py`, setting results manually (`run_set_results.py`) and input parameter sweeps (`run_sweep.py`). Most of the wall examples run with or without multi-processing.
 
 To run, for example, the car example clone the repository and execute the command below from the project root 
@@ -134,6 +134,33 @@ in the documentation for [`HubitModelPath`][hubit.config.HubitModelPath].
 ### Refactoring
 
 The flexibility in the `Hubit` binding paths allows you to match the interfaces of your existing tools. Further, this flexibility enables you to refactor to get good modularity and optimize for speed when multi-processing is used. Below we will show three versions of the car model and outline some key differences when multi-processing is used.
+
+#### Car model 0 
+In car model 0 the price calculation receives an entire car object at a specific car index (`IDX_CAR`). This allows the component to store results data on the corresponding car index in the results data object that `Hubit` creates. 
+
+```yaml
+provides_results: 
+  - name: car_price
+    path: cars[IDX_CAR].price
+consumes_input:
+  - name: car
+    path: cars[IDX_CAR]
+```
+
+This model allows quires such as `cars[:].price` and `cars[1].price`. If car objects in the input data only contains `count` and `name` (like in the example above) this simple model definition is more or less equivalent to the more elaborate model shown above. If, on the other hand, car objects in the input data contains more data that is not relevant for price calculation model 0 would expose that data to the price calculation. Further, in the implementation of the car prices calculation an undesirable tight coupling to the input data structure would be unavoidable. The entrypoint function could look something like this
+
+```python
+  counts, names = list(
+      zip(
+          *[(part["count"], part["name"]) for part in _input_consumed["car"]["parts"]]
+      )
+  )
+  unit_prices = [my_lookup_function(name) for name in names]
+  result = sum([count * unit_price for count, unit_price in zip(counts, unit_prices)])
+  results_provided["car_price"] = result
+```
+
+Notice how the `parts` list and the `count` and `name` attributes are accessed directly on the car object leading to a tight coupling.
 
 #### Car model 1
 Model 1 is the one described above where the car price is calculated in a single component i.e. in a single worker process. Such an approach works well if the lookup of parts prices is fast and the car price calculation is also fast. If, however, the lookup is fast while the car price calculation is slow, and we imagine that another component is also consuming the parts prices, then the car price calculation would be a bottleneck. In such cases, separating the lookup from the price calculation would probably boost performance. Models 2 and 3 present two different ways of implementing such a separation.

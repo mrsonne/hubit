@@ -7,7 +7,7 @@ In the examples all calculation are, for simplicity, carried out directly in the
 `Hubit` component, but the component could just as well wrap a C library, request 
 data from a web server or use an installed Python package. The examples are summarized below.
 
-* [`examples/car`](https://github.com/mrsonne/hubit/tree/master/examples/car). This example encompass the two car models shown above. The example also illustrates the use of model-level caching and component-level caching.
+* [`examples/car`](https://github.com/mrsonne/hubit/tree/master/examples/car). This example encompass the four similar car models. The examples illustrate the use of model-level caching and component-level caching.
 * [`examples/wall`](https://github.com/mrsonne/hubit/tree/master/examples/wall). This example illustrates heat flow calculations and cost calculations for a wall with two segments. Each wall segment has multiple wall layers that consist of different materials. The example demonstrates model rendering (`run_render.py`), simple queries (`run_queries.py`) with model level caching, reusing previously calculated results `run_precompute.py`, setting results manually (`run_set_results.py`) and input parameter sweeps (`run_sweep.py`). Most of the wall examples run with or without multi-processing.
 
 To run, for example, the car example clone the repository and execute the command below from the project root 

@@ -1,5 +1,3 @@
-query_depths:
-  - cars[*]
 components:
   - path: ./components/mod0_cmp1.py 
     provides_results: 

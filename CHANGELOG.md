@@ -6,12 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Changed
-- Components need be specified under the `components` key in the model file. This breaks previous model files.
+- Components need be specified under the `components` key in the model file. This **breaks** previous model files.
 
 ### Added
-- Components may consume specific elements in lists from the input.
+- Components may consume specific elements in lists from the input. This allows for sequential calculations dependent calculations. Such cascading dependencies essentially corresponds to a for-loop. See `examples/flow/run.py`.
 - Fix broken example (`examples/wall/run_precompute.py`)
-- Improved performance for input data where only some branches are used and not all branches are used all the way to the leaves.
+- Improved performance for input data where only some branches in the input are consumed and where branches are not consumed all the way to the leaves.
 
 ### Fixed
 - The elements of lists that are leaves in the input data tree can now be referenced and queried. 

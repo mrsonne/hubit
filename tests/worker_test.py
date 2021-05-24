@@ -27,7 +27,7 @@ class TestWorker(unittest.TestCase):
             ],
             "consumes_input": [{"name": "attr", "path": "shared.input.attr.path"}],
         }
-        component = HubitModelComponent.from_cfg(cfg)
+        component = HubitModelComponent.from_cfg(cfg, 0)
 
         # No index IDs in model
         tree = shared.DummyLengthTree()
@@ -61,7 +61,7 @@ class TestWorker(unittest.TestCase):
             ],
             "consumes_input": [{"name": "attr", "path": "shared.input.attr.path"}],
         }
-        component = HubitModelComponent.from_cfg(cfg)
+        component = HubitModelComponent.from_cfg(cfg, 0)
 
         # No index IDs in model
         tree_for_idxcontext = {"": shared.DummyLengthTree()}
@@ -114,7 +114,7 @@ class TestWorker(unittest.TestCase):
                 {"name": "dependency2", "path": "items_outer[:@IDX_OUTER].value"},
             ],
         }
-        component = HubitModelComponent.from_cfg(cfg)
+        component = HubitModelComponent.from_cfg(cfg, 0)
 
         # Required for shape inference. TODO: change when shapes are defined in model
         inputdata = {
@@ -225,7 +225,9 @@ class TestWorker(unittest.TestCase):
                 - name: material
                   path: segments[IDX_SEG].layers[:@IDX_LAY].material
         """
-        component = HubitModelComponent.from_cfg(yaml.load(cfg, Loader=yaml.FullLoader))
+        component = HubitModelComponent.from_cfg(
+            yaml.load(cfg, Loader=yaml.FullLoader), 0
+        )
 
         # Query something known to exist
         querystr = "segments[0].layers[0].k_therm"
@@ -336,7 +338,7 @@ class TestWorker(unittest.TestCase):
                             path: list[:@IDX1].some_attr.factors
                     """
         component = HubitModelComponent.from_cfg(
-            yaml.load(comp_yml, Loader=yaml.FullLoader)
+            yaml.load(comp_yml, Loader=yaml.FullLoader), 0
         )
 
         # Query something known to exist

@@ -134,7 +134,8 @@ class _Worker:
 
         """
         self.func = func  # function to excecute
-        self.name = component.id  # name of the component
+        self.id = component.id  # name of the component
+        self.name = component.name  # name of the component
         self.version = version  # Version of the component
         self.qrun = qrun  # reference to the query runner
         self.job = None  # For referencing the job if using multiprocessing
@@ -197,7 +198,7 @@ class _Worker:
             raise HubitWorkerError(
                 'No provider for Hubit \
                                      model component "{}"'.format(
-                    self.name
+                    self.id
                 )
             )
 
@@ -258,7 +259,7 @@ class _Worker:
                 for path in traverse(paths)
             }
 
-        logging.info(f'Worker "{self.name}" was deployed for query "{self.query}"')
+        logging.info(f'Worker "{self.id}" was deployed for query "{self.query}"')
 
     def consumes_input_only(self):
         return self._consumes_input_only
@@ -349,7 +350,7 @@ class _Worker:
             self.job.join()
 
     def use_cached_result(self, result):
-        logging.info(f'Worker "{self.name}" using CACHE for query "{self.query}"')
+        logging.info(f'Worker "{self.id}" using CACHE for query "{self.query}"')
         self.qrun._set_worker_working(self)
         # Set each key-val pair from the cached results to the worker results
         # The worker results may be a managed dict
@@ -361,7 +362,7 @@ class _Worker:
         """
         Executes actual work
         """
-        logging.info(f'Worker "{self.name}" STARTED for query "{self.query}"')
+        logging.info(f'Worker "{self.id}" STARTED for query "{self.query}"')
 
         # Notify the hubit model that we are about to start the work
         self.qrun._set_worker_working(self)
@@ -377,7 +378,7 @@ class _Worker:
         self._results_from = self.RESULTS_FROM_CALCULATION_ID
 
         logging.debug("\n**STOP WORKING**\n{}".format(self.__str__()))
-        logging.info(f'Worker "{self.name}" finished for query "{self.query}"')
+        logging.info(f'Worker "{self.id}" finished for query "{self.query}"')
 
     @staticmethod
     def reshape(path_for_name, val_for_path):
@@ -474,7 +475,7 @@ class _Worker:
         if all ilocs are the same for the same component
         """
         return "name={} v{} idxs={}".format(
-            self.name,
+            self.id,
             self.version,
             "&".join([f"{k}={v}" for k, v in self.idxval_for_idxid.items()]),
         )

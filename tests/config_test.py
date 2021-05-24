@@ -21,7 +21,7 @@ class TestHubitComponent(unittest.TestCase):
             "consumes_input": [{"name": "attr", "path": "shared.input.attr.path"}],
         }
         with self.assertRaises(HubitModelComponentError):
-            HubitModelComponent.from_cfg(cfg)
+            HubitModelComponent.from_cfg(cfg, 0)
 
 
 class TestHubitQueryPath(unittest.TestCase):

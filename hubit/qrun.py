@@ -358,13 +358,13 @@ class _QueryRunner:
     def _add_log_items(self, t_start: float) -> float:
         # Set zeros for all components
         worker_counts = {
-            component.id: 0 for component in self.model.model_cfg.components
+            component.name: 0 for component in self.model.model_cfg.components
         }
         worker_counts.update(count(self.workers, key_from="name"))
 
         # Set zeros for all components
         cache_counts = {
-            component.id: 0 for component in self.model.model_cfg.components
+            component.name: 0 for component in self.model.model_cfg.components
         }
         cache_counts.update(
             count(

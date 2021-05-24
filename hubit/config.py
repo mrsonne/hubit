@@ -8,6 +8,7 @@ in a model config file or the required structure of a query path.
 from __future__ import annotations
 from dataclasses import dataclass, field
 import pathlib
+import uuid
 from collections import abc
 import yaml
 import re
@@ -417,10 +418,12 @@ class HubitModelComponent:
         consumes_input (List[HubitBinding], optional): [`HubitBinding`][hubit.config.HubitBinding] sequence specifying the input consumed by the input consumed.
         consumes_results (List[HubitBinding]): [`HubitBinding`][hubit.config.HubitBinding] sequence specifying the input consumed by the results consumed.
         is_dotted_path (bool, optional): Set to True if the specified `path` is a dotted path (typically for a package module in site-packages).
+        _index (int): Component index in model file
     """
 
     path: str
     provides_results: List[HubitBinding]
+    _index: int
     consumes_input: List[HubitBinding] = field(default_factory=list)
     consumes_results: List[HubitBinding] = field(default_factory=list)
     func_name: str = "main"
@@ -428,11 +431,13 @@ class HubitModelComponent:
 
     def __post_init__(self):
 
-        # Set the identifier
+        # Set the identifier & name
         if self.is_dotted_path:
-            self._id = f"{self.path}.{self.func_name}"
+            self._name = f"{self.path}.{self.func_name}"
         else:
-            self._id = f"{self.path.replace('.py', '')}.{self.func_name}"
+            self._name = f"{self.path.replace('.py', '')}.{self.func_name}"
+
+        self._id = f"cmp{self._index}@" + self._name
 
     def validate(self, cfg):
         """
@@ -444,8 +449,12 @@ class HubitModelComponent:
     def id(self):
         return self._id
 
+    @property
+    def name(self):
+        return self._name
+
     @classmethod
-    def from_cfg(cls, cfg: Dict) -> HubitModelComponent:
+    def from_cfg(cls, cfg: Dict, idx: int) -> HubitModelComponent:
         """
         Create instance from configuration data
 
@@ -481,6 +490,8 @@ class HubitModelComponent:
             ]
         except KeyError:
             pass
+
+        cfg["_index"] = idx
 
         return cls(**cfg).validate(cfg)
 
@@ -591,8 +602,8 @@ class HubitModelConfig:
         """
         # Read, instantiate and validate components
         components = [
-            HubitModelComponent.from_cfg(component_data)
-            for component_data in cfg["components"]
+            HubitModelComponent.from_cfg(component_data, idx)
+            for idx, component_data in enumerate(cfg["components"])
         ]
 
         return cls(components=components, _base_path=base_path).validate()

@@ -1,52 +1,45 @@
-# - path: ./components/mod1.py 
-#   provides_results: 
-#     - name: inflow
-#       path: inlets[IDX_INLET].tanks[IDX_TANK].inflow
-#   consumes_input:
-#     - name: number
-#       path: numbers[0]
-#     - name: total_flow
-#       path: inlets[IDX_INLET].flow
-#     - name: fraction
-#       path: inlets[IDX_INLET].tanks[IDX_TANK].fraction
+components:
 
-# Hard reference inlets[1].tanks[2]
-- path: ./components/mod1.py 
-  provides_results: 
-    - name: inflow
-      path: inlets[1].tanks[2].inflow
-  consumes_input:
-    - name: number
-      path: numbers[0]
-    - name: total_flow
-      path: inlets[1].flow
-    - name: fraction
-      path: inlets[1].tanks[2].fraction
+  # First tank
+  - path: ./components/mod1.py 
+    provides_results:
+      - name: vol_outlet_flow
+        path: tanks[0].vol_outlet_flow
+      - name: vol_over_flow
+        path: tanks[0].vol_over_flow
+    consumes_input:
+      # use global inlet flow
+      - name: vol_inlet_flow
+        path: vol_inlet_flow
+      - name: tank_parameters
+        path: tanks[0]
 
+  # Second tank
+  - path: ./components/mod1.py 
+    provides_results:
+      - name: vol_outlet_flow
+        path: tanks[1].vol_outlet_flow
+      - name: vol_over_flow
+        path: tanks[1].vol_over_flow
+    consumes_results:
+      # use outlet flow from previous tank as inlet flow
+      - name: vol_inlet_flow
+        path: tanks[0].vol_outlet_flow
+    consumes_input:
+      - name: tank_parameters
+        path: tanks[1]
 
-# Hard reference inlets[0].tanks[2]
-# - path: ./components/mod1.py 
-#   provides_results: 
-#     - name: inflow
-#       path: inlets[0].tanks[2].inflow
-#   consumes_input:
-#     - name: number
-#       path: numbers[0]
-#     - name: total_flow
-#       path: inlets[0].flow
-#     - name: fraction
-#       path: inlets[0].tanks[2].fraction
-
-
-# Hard reference inlets[1].tanks[1]
-# - path: ./components/mod1.py 
-#   provides_results: 
-#     - name: inflow
-#       path: inlets[1].tanks[1].inflow
-#   consumes_input:
-#     - name: number
-#       path: numbers[4]
-#     - name: total_flow
-#       path: inlets[1].flow
-#     - name: fraction
-#       path: inlets[1].tanks[1].fraction
+  # Third tank
+  - path: ./components/mod1.py 
+    provides_results:
+      - name: vol_outlet_flow
+        path: tanks[2].vol_outlet_flow
+      - name: vol_over_flow
+        path: tanks[2].vol_over_flow
+    consumes_results:
+      # use outlet flow from previous tank as inlet flow
+      - name: vol_inlet_flow
+        path: tanks[1].vol_outlet_flow
+    consumes_input:
+      - name: tank_parameters
+        path: tanks[2]

@@ -1,7 +1,9 @@
 # Cascading tanks
 
-Birs Steward and Lightfoot probably has this example as well
+Bird Steward and Lightfoot probably has this example as well
 https://www.lmnoeng.com/Tank/TankTime.php
+
+** Activate expand endpoints? **
 
 *N* cascading tanks with overflow.
 
@@ -14,6 +16,10 @@ Tank parameters
 - Tank diameter, d
 - Discharge coefficient, C  
 - Orifice area, A
+
+```math
+IN + PRODUCED = CONSUMED + OUT + ACCUMULATED
+```
 
 With no accumulation and no chemical reactions the mass balance for each tank reads
 

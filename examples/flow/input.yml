@@ -1,18 +1,14 @@
-numbers: [2, 3, 4]
-inlets:
-  - flow: 17
-    tanks:
-      - name: large 
-        fraction: 0.6
-      - name: small
-        fraction: 0.1
-      - name: medium
-        fraction: 0.3
-  - flow: 11
-    tanks:
-      - name: large 
-        fraction: 0.2
-      - name: small
-        fraction: 0.1
-      - name: medium
-        fraction: 0.7
+vol_inlet_flow: 20.
+tanks:
+  - orifice_area: 0.5
+    discharge_coefficient: 0.4
+    tank_diameter: 0.4
+    overflow_height: 0.6
+  - orifice_area: 0.5
+    discharge_coefficient: 0.3
+    tank_diameter: 0.2
+    overflow_height: 0.8
+  - orifice_area: 0.5
+    discharge_coefficient: 0.3
+    tank_diameter: 0.2
+    overflow_height: 0.8

@@ -710,7 +710,7 @@ class _HubitModel:
                 else:
                     raise HubitModelValidationError(binding.path, fname, fname_for_path)
 
-    def _cmpnames_for_query(self, qpath: str):
+    def _cmpids_for_query(self, qpath: str):
         """
         Find names of components that can respond to the "query".
         """
@@ -726,11 +726,11 @@ class _HubitModel:
     def component_for_name(self, name):
         return self.model_cfg.component_for_name[name]
 
-    def _cmpname_for_query(self, path: str):
+    def _cmpname_for_query(self, path: HubitQueryPath):
         """Find name of component that can respond to the "query".
 
         Args:
-            path (str): Query path
+            path: Query path
 
         Raises:
             HubitModelQueryError: Raised if no or multiple components provide the
@@ -740,11 +740,10 @@ class _HubitModel:
             str: Function name
         """
         # Get all components that provide data for the query
-        cmp_ids = self._cmpnames_for_query(path)
+        cmp_ids = self._cmpids_for_query(path)
 
         if len(cmp_ids) > 1:
-            fstr = "Fatal error. Multiple providers for query '{}': {}"
-            msg = fstr.format(path, cmp_ids)
+            msg = f"Fatal error. Multiple providers for query '{path}': {cmp_ids}"
             raise HubitModelQueryError(msg)
 
         if len(cmp_ids) == 0:
@@ -754,7 +753,7 @@ class _HubitModel:
         # Get the provider function for the query
         return cmp_ids[0]
 
-    def mpath_for_qpath(self, qpath: str) -> str:
+    def mpath_for_qpath(self, qpath: HubitQueryPath) -> str:
         # Find component that provides queried result
         cmp_id = self._cmpname_for_query(qpath)
 
@@ -765,7 +764,7 @@ class _HubitModel:
         )[0]
         return cmp.provides_results[idx].path
 
-    def _expand_query(self, qpath: HubitModelPath) -> List[str]:
+    def _expand_query(self, qpath: HubitQueryPath) -> List[str]:
         """
         Expand query so that any index wildcards are converted to
         real indies

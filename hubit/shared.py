@@ -220,7 +220,9 @@ class LengthTree:
             except HubitIndexError:
                 raise HubitIndexError(
                     f"Cannot find index {idx_value} "
-                    f"for index ID {obj.level_names[level_idx]}"
+                    f"for index ID {obj.level_names[level_idx]} "
+                    f"in tree "
+                    f"{self}"
                 )
         return obj
 

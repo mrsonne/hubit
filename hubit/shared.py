@@ -319,7 +319,7 @@ class LengthTree:
         return nodes, paths_next
 
     @classmethod
-    def from_data(cls, path: str, data: dict) -> Any:
+    def from_data(cls, path: HubitModelPath, data: dict) -> Any:
         """Infer lengths of lists in 'input_data' that correspond
         to index IDs in the path.
 

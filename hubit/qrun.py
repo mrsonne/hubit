@@ -1,11 +1,18 @@
+from __future__ import annotations
 import copy
 import importlib
 import logging
 import os
 import sys
 import time
-from typing import Any, Dict, List, Set
+from typing import Any, Callable, Dict, List, Set, Tuple
 import yaml
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from hubit.model import HubitModel
+
 from .worker import _Worker
 from .shared import count
 from .config import FlatData, HubitModelComponent, HubitModelPath
@@ -15,7 +22,12 @@ POLLTIME_LONG = 0.25
 
 
 class _QueryRunner:
-    def __init__(self, model, use_multi_processing, component_caching=False):
+    def __init__(
+        self,
+        model: HubitModel,
+        use_multi_processing: bool,
+        component_caching: bool = False,
+    ):
         """Internal class managing workers. Is in a model, the query runner
         is responsible for deploying and book keeping workers according
         to a query specified to the model.
@@ -49,7 +61,11 @@ class _QueryRunner:
             worker.join()
 
     @staticmethod
-    def _get_func(base_path, component_cfg: HubitModelComponent, components):
+    def _get_func(
+        base_path,
+        component_cfg: HubitModelComponent,
+        components: Dict[str : Tuple(Callable, str)],
+    ):
         """[summary]
 
         Args:
@@ -92,11 +108,13 @@ class _QueryRunner:
         components[component_id] = func, version
         return func, version, components
 
-    def _worker_for_query(self, manager, query_path: str, dryrun: bool = False) -> Any:
+    def _worker_for_query(
+        self, manager, path: HubitModelPath, dryrun: bool = False
+    ) -> Any:
         """Creates instance of the worker class that can respond to the query
 
         Args:
-            query_path (str): Explicit path
+            query_path: Explicit path
             dryrun (bool, optional): Dryrun flag for the worker. Defaults to False.
 
         Raises:

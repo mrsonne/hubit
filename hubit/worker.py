@@ -519,8 +519,7 @@ class _Worker:
 
     def __str__(self):
         n = 100
-        fstr1 = "R provided {}\nR provided exp {}\nI consumed {}\nI consumed exp {}\nR consumed {}\nR consumed exp {}\n"
-        fstr2 = "I attr values {}\nI path values {}\nR attr values {}\nR path values {}\nI pending {}\nR pending {}\n"
+        fstr1 = "{:30}{}\n"
         strtmp = "=" * n + "\n"
         strtmp += "ID {}\n".format(self.idstr())
         strtmp += "Function {}\n".format(self.func)

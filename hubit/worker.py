@@ -525,23 +525,25 @@ class _Worker:
         strtmp += "ID {}\n".format(self.idstr())
         strtmp += "Function {}\n".format(self.func)
         strtmp += "-" * n + "\n"
+        strtmp += fstr1.format("Results provided", self.rpath_provided_for_name)
         strtmp += fstr1.format(
-            self.rpath_provided_for_name,
-            self.rpaths_provided_for_name,
-            self.ipath_consumed_for_name,
-            self.ipaths_consumed_for_name,
-            self.rpath_consumed_for_name,
-            self.rpaths_consumed_for_name,
+            "Results provided expanded", self.rpaths_provided_for_name
         )
+        strtmp += fstr1.format("Input consumed", self.ipath_consumed_for_name)
+        strtmp += fstr1.format("Input consumed expanded", self.ipaths_consumed_for_name)
+        strtmp += fstr1.format("Results consumed", self.rpath_consumed_for_name)
+        strtmp += fstr1.format(
+            "Results consumed expanded", self.rpaths_consumed_for_name
+        )
+
         strtmp += "-" * n + "\n"
-        strtmp += fstr2.format(
-            self.inputval_for_name,
-            self.inputval_for_path,
-            self.resultval_for_name,
-            self.resultval_for_path,
-            self.pending_input_paths,
-            self.pending_results_paths,
-        )
+        strtmp += fstr1.format("Input attr values", self.inputval_for_name)
+        strtmp += fstr1.format("Input path values", self.inputval_for_path)
+        strtmp += fstr1.format("Results attr values", self.resultval_for_name)
+        strtmp += fstr1.format("Results path values", self.resultval_for_path)
+        strtmp += fstr1.format("Input pending", self.pending_input_paths)
+        strtmp += fstr1.format("Results pending", self.pending_results_paths)
+
         strtmp += "-" * n + "\n"
         strtmp += "Results {}\n".format(self.results)
 

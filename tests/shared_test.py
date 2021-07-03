@@ -1,6 +1,7 @@
 from hubit.config import HubitModelPath
 import unittest
 import yaml
+import pprint
 
 from hubit import shared
 
@@ -607,8 +608,8 @@ class TestTree(unittest.TestCase):
         self.assertDictEqual(expected_result, result)
 
     def test_expand_mpath6(self):
-        """As test 8 but the consumed path only subscribes to element 0
-        of the (leftmost) items. Thus, the expasion leads to a flat list
+        """As test 8 but the consumed path only subscribes to element 1
+        of the (leftmost) items. Thus, the expansion leads to a flat list
         corresponding to the (rightmost) items
         """
         input_data = {

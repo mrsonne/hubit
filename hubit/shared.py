@@ -319,22 +319,22 @@ class LengthTree:
         return nodes, paths_next
 
     @classmethod
-    def from_data(cls, path: HubitModelPath, data: dict) -> Any:
+    def from_data(cls, path: HubitModelPath, data: dict, prune: bool = False) -> Any:
         """Infer lengths of lists in 'input_data' that correspond
         to index IDs in the path.
 
         Args:
             path (str): Hubit model path
             input_data (Dict): Input data
+            prune (bool): Tree is pruned if True
 
         Returns:
             LengthTree: Element 0 is DummyLengthTree if no index IDs found in 'path'
             otherwise a LengthTree.
         """
         level_names = path.get_index_specifiers()
-        clean_level_names = [
-            idxid.split("@")[1] if "@" in idxid else idxid for idxid in level_names
-        ]
+        clean_level_names = path.get_index_identifiers()
+
         # Handle no index IDs
         if len(level_names) == 0:
             return DummyLengthTree()
@@ -350,18 +350,24 @@ class LengthTree:
 
         tree = cls(nodes, clean_level_names)
 
-        # Some path indices may have specific locations some prune the tree
-        new_idxitems = []
-        for idxitem in path.get_index_specifiers():
-            iloc = idxitem.split("@")[0]
-            if is_digit(iloc):
-                new_idxitems.append(iloc)
-            else:
-                new_idxitems.append(idxitem)
+        # Some path indices may have specific locations so prune the tree
+        # This does not work when different indices can be provided by
+        # different components since the tress are only stored according to their
+        # index context. When different indices are be provided by
+        # different components the index context are the same but the trees are
+        # different
+        if prune:
+            new_idxitems = []
+            for idxitem in path.get_index_specifiers():
+                iloc = idxitem.split("@")[0]
+                if is_digit(iloc):
+                    new_idxitems.append(iloc)
+                else:
+                    new_idxitems.append(idxitem)
 
-        new_model_path = path.set_indices(new_idxitems)
-        new_internal_path = HubitModelPath.as_internal(new_model_path)
-        tree.prune_from_path(new_internal_path, HubitModelPath.as_internal(path))
+            new_model_path = path.set_indices(new_idxitems)
+            new_internal_path = HubitModelPath.as_internal(new_model_path)
+            tree.prune_from_path(new_internal_path, HubitModelPath.as_internal(path))
         return tree
 
     def reshape(self, items: List, inplace: bool = True) -> List:
@@ -751,12 +757,17 @@ def check_path_match(
         return False
     for qcmp, mcmp in zip(query_path_cmps, model_path_cmps):
         if is_digit(qcmp):
+
+            # Get index part of specifier (digit or wildcard)
+            # TODO: centralized index specifier in a class
+            midx = mcmp.split("@")[0]
+
             # When a digit is found in the query either an ilocstr,
-            # a wildcard or a digit should be found in the symbolic path
-            if not (mcmp in idxids or IDX_WILDCARD in mcmp or is_digit(mcmp)):
+            # a wildcard or a digit should be found in the model path
+            if not (mcmp in idxids or IDX_WILDCARD == midx or is_digit(midx)):
                 return False
 
-            if is_digit(mcmp) and not (qcmp == mcmp):
+            if is_digit(midx) and not (qcmp == midx):
                 return False
 
         elif accept_idx_wildcard and qcmp == IDX_WILDCARD:

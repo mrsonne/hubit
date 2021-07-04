@@ -631,7 +631,7 @@ class TestTree(unittest.TestCase):
         }
 
         tree_for_name = {
-            name: shared.LengthTree.from_data(path, input_data)
+            name: shared.LengthTree.from_data(path, input_data, prune=True)
             for name, path in path_consumed_for_name.items()
         }
 

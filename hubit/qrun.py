@@ -124,9 +124,8 @@ class _QueryRunner:
         Returns:
             Any: _Worker or None
         """
-
-        component_id = self.model._cmpname_for_query(query_path)
-        component = self.model.component_for_name(component_id)
+        component_id = self.model._cmpname_for_query(path)
+        component = self.model.component_for_id(component_id)
         (func, version, self._components) = _QueryRunner._get_func(
             self.model.base_path, component, self._components
         )
@@ -137,7 +136,7 @@ class _QueryRunner:
                 manager,
                 self,
                 component,
-                query_path,
+                path,
                 func,
                 version,
                 self.model.tree_for_idxcontext,
@@ -224,7 +223,9 @@ class _QueryRunner:
             qpaths_next_exp = [
                 qstrexp
                 for qstr in queries_next
-                for qstrexp in self.model._expand_query(qstr)
+                for qstrexp in self.model._expand_query(
+                    qstr, store=False
+                ).flat_expanded_paths()
             ]
             logging.debug("qpaths_next: {}".format(qpaths_next_exp))
 

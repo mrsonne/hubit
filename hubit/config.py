@@ -18,6 +18,10 @@ from .utils import is_digit
 
 SEP = "."
 
+# TODO: Create IndexSpecifier class
+# slice @ index_identifier
+# slice = number or :
+# index_identifier = string where letters, numbers and _ are allowed
 
 # or inherit from collections import UserString
 class HubitQueryPath(str):
@@ -65,6 +69,16 @@ class HubitQueryPath(str):
                 return False
         return len(stack) == 0
 
+    @staticmethod
+    def as_internal(path: Any) -> str:
+        """Convert path using braces [IDX] to internal
+        dotted-style path using dots .IDX.
+
+        Returns:
+            str: internal path-like string
+        """
+        return path.replace("[", ".").replace("]", "")
+
     def _validate_index_specifiers(self):
         idx_specs = self.get_index_specifiers()
         assert all(
@@ -92,7 +106,7 @@ class HubitQueryPath(str):
         self._validate_index_specifiers()
 
     def get_index_specifiers(self) -> List[str]:
-        """Get the indexspecifiers from the path i.e. the
+        """Get the index specifiers from the path i.e. the
         full content of the square braces.
 
         Returns:
@@ -102,6 +116,52 @@ class HubitQueryPath(str):
         return re.findall(
             HubitQueryPath.regex_idx_spec, self
         )  # Any character in square brackets
+
+    # def set_slice(self, indices: List[str]) -> HubitQueryPath:
+    #     _path = str(self)
+    #     # Get all specifiers. Later the specifiers containing a wildcard are skipped
+    #     index_specifiers = self.get_index_specifiers()
+    #     assert len(indices) == len(
+    #         index_specifiers
+    #     ), "The number of indices provided and number of index specifiers found are not the same"
+    #     for index, idx_spec in zip(indices, index_specifiers):
+    #         # Don't replace if there is an index wildcard
+    #         if self.char_wildcard in idx_spec:
+    #             continue
+    #         _path = _path.replace(idx_spec, index, 1)
+    #     return self.__class__(_path)
+
+    def set_indices(self, indices: List[str], mode: int = 0) -> HubitQueryPath:
+        """Replace the index identifiers on the path with location indices
+
+        Args:
+            indices (List[str]): Index locations to be inserted into the path.
+            mode (int): 0: do not replace if wildcard found in index specifier
+                        1: only replace if wildcard found in index specifier
+
+        Raises:
+            AssertionError: If the lengths of indices does not match the length
+            the number of index specifiers found in the path.
+
+        Returns:
+            HubitModelPath: Path with index identifiers replaced by (string) integers
+        """
+        _path = str(self)
+        # Get all specifiers. Later the specifiers containing a wildcard are skipped
+        index_specifiers = self.get_index_specifiers()
+        assert len(indices) == len(
+            index_specifiers
+        ), "The number of indices provided and number of index specifiers found are not the same"
+        for index, idx_spec in zip(indices, index_specifiers):
+
+            # Don't replace if there is an index wildcard
+            if mode == 0 and self.char_wildcard in idx_spec:
+                continue
+            elif mode == 1 and self.char_wildcard not in idx_spec:
+                continue
+
+            _path = _path.replace(idx_spec, index, 1)
+        return self.__class__(_path)
 
 
 class _HubitQueryDepthPath(HubitQueryPath):
@@ -297,47 +357,25 @@ class HubitModelPath(HubitQueryPath):
         ]
 
     def set_indices(self, indices: List[str]) -> HubitModelPath:
-        """Replace the index identifiers on the path with location indices
+        """Change the return type compared to the super class"""
+        return super().set_indices(indices)
 
-        Args:
-            indices (List[str]): Index locations to be inserted into the path.
-
-        Raises:
-            AssertionError: If the lengths of indices does not match the length
-            the number of index specifiers found in the path.
+    def get_slices(self) -> List[str]:
+        """Get the slices from the path i.e. the part of all square braces preceding the @.
 
         Returns:
-            HubitModelPath: Path with index identifiers replaced by (string) integers
+            List[str]: Indexes from path
         """
-        _path = str(self)
-        # Get all specifiers. Later the specifiers containing a wildcard are skipped
-        index_specifiers = self.get_index_specifiers()
-        assert len(indices) == len(
-            index_specifiers
-        ), "The number of indices provided and number of index specifiers found are not the same"
-        for index, idx_spec in zip(indices, index_specifiers):
-
-            # Don't replace if there is an index wildcard
-            if HubitModelPath.char_wildcard in idx_spec:
-                continue
-            _path = _path.replace(idx_spec, index, 1)
-        return HubitModelPath(_path)
+        return [
+            index_specifier.split("@")[0] if "@" in index_specifier else ""
+            for index_specifier in self.get_index_specifiers()
+        ]
 
     def as_query_depth_path(self):
         return _HubitQueryDepthPath(re.sub(r"\[.*?\]", "[*]", self))
 
     def as_include_pattern(self):
         return self.remove_braces()
-
-    @staticmethod
-    def as_internal(path: Any) -> str:
-        """Convert path using braces [IDX] to internal
-        dotted-style path using dots .IDX.
-
-        Returns:
-            str: internal path-like string
-        """
-        return path.replace("[", ".").replace("]", "")
 
     def get_idx_context(self):
         """
@@ -536,7 +574,7 @@ class HubitModelConfig:
                     pathlib.Path(self._base_path).joinpath(component.path)
                 ).absolute()
 
-        self._component_for_name = {
+        self._component_for_id = {
             component.id: component for component in self.components
         }
 
@@ -562,8 +600,8 @@ class HubitModelConfig:
         return self._base_path
 
     @property
-    def component_for_name(self):
-        return self._component_for_name
+    def component_for_id(self):
+        return self._component_for_id
 
     def validate(self):
         """
@@ -626,6 +664,62 @@ class Query:
     @classmethod
     def from_paths(cls, paths: List[str]):
         return cls([HubitQueryPath(path) for path in paths])
+
+
+class _QueryExpansion:
+    """A Hubit query expansion. A query can be split into multiple queries
+
+    Args:
+        path: A [`HubitQueryPath`][hubit.config.HubitQueryPath] representing the original query.
+        decomposed_paths: If a single component can provide results for `path`, `decomposed_paths`
+            has one element of type [`HubitQueryPath`][hubit.config.HubitQueryPath]. If multiple
+            components are required their individual path contributions are the items in the list.
+        expanded_paths: For each element in `decomposed_paths` these are the expanded
+        paths i.e. dotted paths with real indices not wildcards.
+    """
+
+    def __init__(self, path: HubitQueryPath, decomposed_paths: List[HubitQueryPath]):
+        self.path = path
+        self.decomposed_paths = decomposed_paths
+        self.expanded_paths_for_decomposed_path = {}
+
+    def update_expanded_paths(
+        self, decomposed_path: HubitQueryPath, expanded_paths: List[HubitQueryPath]
+    ):
+        self.expanded_paths_for_decomposed_path[decomposed_path] = expanded_paths
+
+    def flat_expanded_paths(self):
+        """ Returns flat list of expanded paths"""
+        return [
+            path
+            for paths in self.expanded_paths_for_decomposed_path.values()
+            for path in paths
+        ]
+
+    def is_decomposed(self):
+        return len(self.decomposed_paths) > 1
+
+    def is_expanded(self):
+        if (
+            not self.is_decomposed()
+            and self.path == self.decomposed_paths[0]
+            and len(self.expanded_paths_for_decomposed_path[self.decomposed_paths[0]])
+            == 1
+            and HubitQueryPath.as_internal(self.path)
+            == self.expanded_paths_for_decomposed_path[self.decomposed_paths[0]][0]
+        ):
+            return False
+        else:
+            return True
+
+    def __str__(self):
+        lines = [f"\nQuery\n  {self.path}"]
+        lines.append("Decomposition & expansion")
+        for decomp_path, expanded_paths in zip(
+            self.decomposed_paths, self.expanded_paths_for_decomposed_path.values()
+        ):
+            lines.append(f"  {decomp_path} -> {expanded_paths}")
+        return "\n".join(lines)
 
 
 class FlatData(Dict):

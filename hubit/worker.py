@@ -46,13 +46,15 @@ class _Worker:
             result = {}
             for binding in bindings:
                 indices = []
-                for idxid in binding.path.get_index_identifiers():
-                    if idxid in idxval_for_idxid:
+                for idxid, idx in zip(
+                    binding.path.get_index_identifiers(), binding.path.get_slices()
+                ):
+                    if is_digit(idx):
+                        # already an index so no transformation required
+                        index = str(idx)
+                    elif idxid in idxval_for_idxid:
                         # Map index ID to the value
                         index = idxval_for_idxid[idxid]
-                    elif is_digit(idxid):
-                        # already an index so no transformation required
-                        index = str(idxid)
                     else:
                         index = None
                     indices.append(index)

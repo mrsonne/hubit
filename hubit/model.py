@@ -449,6 +449,9 @@ class HubitModel(_HubitModel):
         """
         return self._log
 
+    def clean_log(self):
+        self._log._clean()
+
 
 def now():
     return datetime.datetime.now().strftime("%d-%b-%Y %H:%M:%S")
@@ -599,6 +602,9 @@ class HubitLog:
     """
 
     log_items: List[LogItem] = field(default_factory=list)
+
+    def _clean(self):
+        self.log_items = []
 
     def _add_items(
         self,

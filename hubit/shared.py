@@ -156,7 +156,7 @@ class LengthTree:
         self, path: str, template_path: str, inplace: bool = True
     ) -> LengthTree:
         """Prune the length tree based on a path where zero
-        to all inices are already specified.
+        to all indices are already specified.
 
         TODO: id the path used [] the model path is not required
 
@@ -168,7 +168,6 @@ class LengthTree:
         Returns:
             LengthTree: Pruned tree. If inplace=True the instance itself is also pruned.
         """
-
         obj = self if inplace else copy.deepcopy(self)
 
         # Loop over the index ID levels
@@ -586,7 +585,7 @@ class _QueryExpansion:
             has one element of type [`HubitQueryPath`][hubit.config.HubitQueryPath]. If multiple
             components are required their individual path contributions are the items in the list.
         expanded_paths_for_decomposed_path: For each element in `decomposed_paths`
-            these are the expanded paths i.e. dotted paths with real indices not 
+            these are the expanded paths i.e. dotted paths with real indices not
             wildcards.
     """
 
@@ -596,7 +595,9 @@ class _QueryExpansion:
         mpaths: the model paths that match the query
         """
         self.path = path
-        self.decomposed_paths, index_identifiers = _QueryExpansion.decompose_query(path, mpaths)
+        self.decomposed_paths, index_identifiers = _QueryExpansion.decompose_query(
+            path, mpaths
+        )
         self.expanded_paths_for_decomposed_path = {}
 
         # Get the index contexts for doing some tests
@@ -612,21 +613,18 @@ class _QueryExpansion:
 
         if index_identifiers is None:
             self.decomposed_idx_identifier = None
-        else: 
+        else:
             if len(set(index_identifiers)) > 1:
                 msg = f"Fatal error. Inconsistent decomposition for query '{path}': {', '.join(mpaths)}"
                 raise HubitModelQueryError(msg)
             self.decomposed_idx_identifier = index_identifiers[0]
 
-
         self._idx_context = list(_idx_contexts)[0]
 
     @property
     def idx_context(self):
-        """The (one) index context corresponding to the model paths
-        """
+        """The (one) index context corresponding to the model paths"""
         return self._idx_context
-
 
     def update_expanded_paths(
         self, decomposed_path: HubitQueryPath, expanded_paths: List[HubitQueryPath]
@@ -657,9 +655,10 @@ class _QueryExpansion:
         else:
             return True
 
-
     @staticmethod
-    def decompose_query(qpath: HubitQueryPath, mpaths: List[HubitModelPath]) -> List[HubitQueryPath]:
+    def decompose_query(
+        qpath: HubitQueryPath, mpaths: List[HubitModelPath]
+    ) -> Tuple(List[HubitQueryPath], Any):
         """
         If a single component can provide results for `path`, `decomposed_paths`
         has one element of type [`HubitQueryPath`][hubit.config.HubitQueryPath]. If multiple
@@ -674,16 +673,21 @@ class _QueryExpansion:
             index_identifiers = []
             for mpath in mpaths:
                 slices = mpath.get_slices()
-                digits = {idx: slice for idx, slice in enumerate(slices) if is_digit(slice)}
-                assert len(digits) == 1, f"Only 1 index slice may be specified for each model path. For model path '{mpath}', '{idxs}' were found."
+                digits = {
+                    idx: slice for idx, slice in enumerate(slices) if is_digit(slice)
+                }
+                assert (
+                    len(digits) == 1
+                ), f"Only 1 index slice may be specified for each model path. For model path '{mpath}', '{idxs}' were found."
                 decomposed_qpaths.append(qpath.set_indices(slices, mode=1))
-                index_identifiers.append(mpath.get_index_identifiers()[list(digits.keys())[0]])
+                index_identifiers.append(
+                    mpath.get_index_identifiers()[list(digits.keys())[0]]
+                )
         else:
             decomposed_qpaths = [qpath]
             index_identifiers = None
 
         return decomposed_qpaths, index_identifiers
-
 
     def validate_tree(self, tree: LengthTree):
         """Validate that we get the expected number of mpaths in the expansion
@@ -691,24 +695,30 @@ class _QueryExpansion:
         TODO: If the tree was pruned I think the test could be more strict using ==
         instead of >=.
         """
-        if isinstance(tree, DummyLengthTree): return
+        if isinstance(tree, DummyLengthTree):
+            return
 
         for idx_id in self._idx_context.split("-"):
 
             # Only validate the relevant index identifier
-            if not idx_id == self.decomposed_idx_identifier: continue
+            if not idx_id == self.decomposed_idx_identifier:
+                continue
 
             try:
                 # TODO handle contexts with more than one index identifier
                 level_idx = tree.level_names.index(idx_id)
             except ValueError as err:
-                raise Exception(f"Index context '{idx_id}' not found in tree '{tree}'") from err
+                raise Exception(
+                    f"Index context '{idx_id}' not found in tree '{tree}'"
+                ) from err
 
             n_decomposed_paths = len(self.decomposed_paths)
             n_children = [node.nchildren() for node in tree.nodes_for_level[level_idx]]
             results = [n >= n_decomposed_paths for n in n_children]
             if not all(results):
-                print(f"Too few children at level {level_idx} of tree. Expected at least {n_decomposed_paths} children corresponding to the number of decomposed paths.\n")
+                print(
+                    f"Too few children at level {level_idx} of tree. Expected at least {n_decomposed_paths} children corresponding to the number of decomposed paths.\n"
+                )
                 print(tree)
                 print(self)
                 raise HubitError("Query expansion error.")
@@ -717,7 +727,9 @@ class _QueryExpansion:
         lines = [f"\nQuery\n  {self.path}"]
         lines.append("Decomposition & expansion")
         for decomp_path, expanded_paths in itertools.zip_longest(
-            self.decomposed_paths, self.expanded_paths_for_decomposed_path.values(), fillvalue=None
+            self.decomposed_paths,
+            self.expanded_paths_for_decomposed_path.values(),
+            fillvalue=None,
         ):
             lines.append(f"  {decomp_path} -> {expanded_paths}")
         return "\n".join(lines)

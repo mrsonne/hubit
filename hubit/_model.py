@@ -790,7 +790,7 @@ class _HubitModel:
         # TODO: save component so we dont have to find top level components again
         """
 
-        # Get all model paths that mathc the query
+        # Get all model paths that match the query
         mpaths = self.mpath_for_qpath(qpath)
 
         # Prepare query expansion object

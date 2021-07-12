@@ -643,5 +643,30 @@ class TestTree(unittest.TestCase):
         self.assertDictEqual(expected_result, result)
 
 
+class TestQueryExpansion(unittest.TestCase):
+    def test_decompose_query(self):
+
+        qpath = shared.HubitQueryPath("lines[:].tanks[:].vol_outlet_flow")
+        mpaths = [
+            "lines[IDX_LINE].tanks[0@IDX_TANK].vol_outlet_flow",
+            "lines[IDX_LINE].tanks[1@IDX_TANK].vol_outlet_flow",
+            "lines[IDX_LINE].tanks[2@IDX_TANK].vol_outlet_flow",
+        ]
+        mpaths = [HubitModelPath(mpath) for mpath in mpaths]
+        result, index_identifiers = shared._QueryExpansion.decompose_query(
+            qpath, mpaths
+        )
+        index_identifiers = set(index_identifiers)
+        self.assertTrue(len(index_identifiers) == 1)
+        self.assertIn("IDX_TANK", index_identifiers)
+        self.assertTrue(len(result) == len(mpaths))
+        expected_result = [
+            "lines[:].tanks[0].vol_outlet_flow",
+            "lines[:].tanks[1].vol_outlet_flow",
+            "lines[:].tanks[2].vol_outlet_flow",
+        ]
+        self.assertListEqual(result, expected_result)
+
+
 if __name__ == "__main__":
     unittest.main()

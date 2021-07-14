@@ -364,7 +364,7 @@ class LengthTree:
                 else:
                     new_idxitems.append(idxitem)
 
-            new_model_path = path.set_indices(new_idxitems)
+            new_model_path = path.set_indices(new_idxitems, mode=1)
             new_internal_path = HubitModelPath.as_internal(new_model_path)
             tree.prune_from_path(new_internal_path, HubitModelPath.as_internal(path))
         return tree
@@ -672,17 +672,17 @@ class _QueryExpansion:
             # Index identifiers corresponding to decomposed field
             index_identifiers = []
             for mpath in mpaths:
+                q_idx_specs = qpath.get_index_specifiers()
                 slices = mpath.get_slices()
-                digits = {
-                    idx: slice for idx, slice in enumerate(slices) if is_digit(slice)
-                }
+                digits = [
+                    (idx, slice) for idx, slice in enumerate(slices) if is_digit(slice)
+                ]
                 assert (
                     len(digits) == 1
                 ), f"Only 1 index slice may be specified for each model path. For model path '{mpath}', '{idxs}' were found."
-                decomposed_qpaths.append(qpath.set_indices(slices, mode=1))
-                index_identifiers.append(
-                    mpath.get_index_identifiers()[list(digits.keys())[0]]
-                )
+                q_idx_specs[digits[0][0]] = digits[0][1]
+                decomposed_qpaths.append(qpath.set_indices(q_idx_specs))
+                index_identifiers.append(mpath.get_index_identifiers()[digits[0][0]])
         else:
             decomposed_qpaths = [qpath]
             index_identifiers = None

@@ -264,7 +264,7 @@ class _HubitModel:
             for component in self.model_cfg.components:
                 path = component.provides_results[0].path
                 dummy_query = HubitModelPath.as_internal(
-                    path.set_indices(["0" for _ in path.get_index_specifiers()])
+                    path.set_indices(["0" for _ in path.get_index_specifiers()], mode=1)
                 )
 
                 # Get function and version to init the worker
@@ -773,14 +773,15 @@ class _HubitModel:
             paths.append(cmp.provides_results[idxs[0]].path)
         return paths
 
-
-    def _expand_query(self, qpath: HubitQueryPath, store: bool=True) -> _QueryExpansion:
+    def _expand_query(
+        self, qpath: HubitQueryPath, store: bool = True
+    ) -> _QueryExpansion:
         """
         Expand query so that any index wildcards are converted to
         real indies
 
         qpath: The query path to be expanded. Both braced and dotted paths are accepted.
-        store: If True some intermediate results will be saved on the 
+        store: If True some intermediate results will be saved on the
             instance for later use.
 
         TODO: NEgative indices... prune_tree requires real indices but normalize

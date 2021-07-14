@@ -58,7 +58,7 @@ class _Worker:
                     else:
                         index = None
                     indices.append(index)
-                result[binding.name] = binding.path.set_indices(indices)
+                result[binding.name] = binding.path.set_indices(indices, mode=1)
             return result
 
     @staticmethod

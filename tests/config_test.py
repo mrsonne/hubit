@@ -82,21 +82,21 @@ class TestHubitModelPath(unittest.TestCase):
         """Insert real numbers where the ILOC placeholder is found"""
         expected_pathstr = "segs[34].walls[3].temps"
         path = HubitModelPath("segs[IDXSEG].walls[IDXWALL].temps")
-        new_path = path.set_indices(("34", "3"))
+        new_path = path.set_indices(("34", "3"), mode=1)
         self.assertEqual(new_path, expected_pathstr)
 
     def test_set_ilocs_with_wildcard(self):
         """Insert real numbers where the ILOC placeholder is found"""
         expected_pathstr = "segs[34].walls[:@IDXWALL].temps"
         path = HubitModelPath("segs[IDXSEG].walls[:@IDXWALL].temps")
-        new_path = path.set_indices(("34", "3"))
+        new_path = path.set_indices(("34", "3"), mode=1)
         self.assertEqual(new_path, expected_pathstr)
 
     def test_set_ilocs_assertion_error(self):
         """Too many indices specified"""
         path = HubitModelPath("segs[IDXSEG].walls[:@IDXWALL].temps")
         with self.assertRaises(AssertionError):
-            path.set_indices(("34", "3", "19"))
+            path.set_indices(("34", "3", "19"), mode=1)
 
     def test_as_internal(self):
         """Convert Hubit path to internal path"""

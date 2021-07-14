@@ -25,12 +25,12 @@ SEP = "."
 # TODO: Create IndexSpecifier class
 # slice @ index_identifier offset
 # slice = positive integer or :
-# @ = required separation character 
+# @ = required separation character
 # index_identifier = string where letters, numbers and _ are allowed# +/- = direction of o
-# offset = signed integer (sign required). Offset is optional and defaults to +0. 
+# offset = signed integer (sign required). Offset is optional and defaults to +0.
 
 
-# TODO: 
+# TODO:
 # distinguish braced and dotted paths in classes
 
 # or inherit from collections import UserString
@@ -146,8 +146,9 @@ class HubitQueryPath(str):
 
         Args:
             indices (List[str]): Index locations to be inserted into the path.
-            mode (int): 0: do not replace if wildcard found in index specifier
-                        1: only replace if wildcard found in index specifier
+            mode (int): 0: replace all
+                        1: do not replace if wildcard found in index specifier
+                        2: only replace if wildcard found in index specifier
 
         Raises:
             AssertionError: If the lengths of indices does not match the length
@@ -162,15 +163,25 @@ class HubitQueryPath(str):
         assert len(indices) == len(
             index_specifiers
         ), "The number of indices provided and number of index specifiers found are not the same"
+        length_open_and_close_braces = 2
+        start = 0
         for index, idx_spec in zip(indices, index_specifiers):
-
             # Don't replace if there is an index wildcard
-            if mode == 0 and self.char_wildcard in idx_spec:
-                continue
-            elif mode == 1 and self.char_wildcard not in idx_spec:
-                continue
+            if mode > 0:
+                if mode == 1 and self.char_wildcard in idx_spec:
+                    continue
+                elif mode == 2 and self.char_wildcard not in idx_spec:
+                    continue
 
-            _path = _path.replace(idx_spec, index, 1)
+            # replace starting from index 0 in the string. Always move forward i.e.
+            # a simple replace will not always work
+            start = _path.find(f"[{idx_spec}]", start)
+            _path = (
+                _path[:start]
+                + f"[{index}]"
+                + _path[start + len(idx_spec) + length_open_and_close_braces :]
+            )
+            start += 1
         return self.__class__(_path)
 
 
@@ -356,7 +367,7 @@ class HubitModelPath(HubitQueryPath):
 
     def get_index_identifiers(self) -> List[str]:
         """Get the index identifiers from the path i.e. the
-        part of all square braces after the @ (if any) else the 
+        part of all square braces after the @ (if any) else the
         whole content of the square braces.
 
         Returns:
@@ -367,9 +378,9 @@ class HubitModelPath(HubitQueryPath):
             for index_specifier in self.get_index_specifiers()
         ]
 
-    def set_indices(self, indices: List[str]) -> HubitModelPath:
+    def set_indices(self, indices: List[str], mode: int = 0) -> HubitModelPath:
         """Change the return type compared to the super class"""
-        return super().set_indices(indices)
+        return super().set_indices(indices, mode)
 
     def get_slices(self) -> List[str]:
         """Get the slices from the path i.e. the part of all square braces preceding the @.

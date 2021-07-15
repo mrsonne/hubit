@@ -152,6 +152,14 @@ class TestShared(unittest.TestCase):
 
         print("XXX", shared.setelemtents(paths, valuemap))
 
+    def test_set_element(self):
+        values_decomp = [[None, None, None], [None, None]]
+        ilocs = 0, 2
+        value = 17.0
+        result = shared.set_element(values_decomp, value, ilocs)
+        expected_result = [[None, None, 17.0], [None, None]]
+        self.assertListEqual(result, expected_result)
+
 
 class TestTree(unittest.TestCase):
     def setUp(self):

@@ -880,8 +880,19 @@ def traverse(items):
 
 def set_element(data, value, indices):
     """
-    Set the "value" on the "data" (nested list) at the
-    "indices" (list of indices)
+    Set the "value" on the "data" (nested list with all elements initialized)
+    at the "indices" (list of indices)
+
+    For example the input
+
+    data = [[None, None, None], [None, None]]
+    indices = 0, 2
+    value = 17.0
+
+    Gives the return value
+
+    [[None, None, 17.0], [None, None]]
+
     """
     _data = data
     # Loop over indices excluding last and point to list

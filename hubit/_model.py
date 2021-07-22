@@ -775,6 +775,7 @@ class _HubitModel:
             paths.append(cmp.provides_results[idxs[0]].path)
         return paths
 
+
     def _expand_query(self, qpath: HubitQueryPath, store=True) -> _QueryExpansion:
         """
         Expand query so that any index wildcards are converted to
@@ -786,7 +787,11 @@ class _HubitModel:
         # TODO: Save pruned trees so the worker need not prune top level trees again
         # TODO: save component so we dont have to find top level components again
         """
+
+        # Get all model paths that mathc the query
         mpaths = self.mpath_for_qpath(qpath)
+
+        # Get the index contexts for doing some tests
         idx_contexts = {mpath.get_idx_context() for mpath in mpaths}
 
         if len(idx_contexts) > 1:
@@ -797,44 +802,32 @@ class _HubitModel:
             msg = f"Fatal error. No provider for query path '{qpath}'."
             raise HubitModelQueryError(msg)
 
+        # Prepare query expansion object
+        qexp = _QueryExpansion(qpath, mpaths)
+
+        # Get the tree that corresponds to the (one) index context
         idxcontext = list(idx_contexts)[0]
         tree = self.tree_for_idxcontext[idxcontext]
 
-        if len(mpaths) > 1:
-            # More than one provide requires to match query. Split query into queries
-            # each having a unique provider
-
-            # TODO
-            print("FIX THIS HARDCODED STUFF")
-            idxs_model = ("0",), ("1",), ("2",)
-            decomposed_paths = [qpath.set_indices(midx, mode=1) for midx in idxs_model]
-        else:
-            decomposed_paths = [qpath]
-
-        # if store:
-        #     self._qpaths_for_qpath[qpath] = decomposed_paths
-
-        qexp = _QueryExpansion(qpath, decomposed_paths)
-
         paths = []
-        for decomposed_path, _mpath in zip(decomposed_paths, mpaths):
+        for decomposed_qpath, _mpath in zip(qexp.decomposed_paths, mpaths):
             pruned_tree = tree.prune_from_path(
-                HubitQueryPath.as_internal(decomposed_path),
+                HubitQueryPath.as_internal(decomposed_qpath),
                 HubitModelPath.as_internal(_mpath),
                 inplace=False,
             )
 
             if store:
                 # Store tree
-                self._tree_for_qpath[decomposed_path] = pruned_tree
-                self._modelpath_for_querypath[decomposed_path] = _mpath
+                self._tree_for_qpath[decomposed_qpath] = pruned_tree
+                self._modelpath_for_querypath[decomposed_qpath] = _mpath
 
             # Expand the path
             expanded_paths = pruned_tree.expand_path(
-                decomposed_path, flat=True, path_type="query", as_internal_path=True
+                decomposed_qpath, flat=True, path_type="query", as_internal_path=True
             )
 
-            qexp.update_expanded_paths(decomposed_path, expanded_paths)
+            qexp.update_expanded_paths(decomposed_qpath, expanded_paths)
 
         return qexp
 

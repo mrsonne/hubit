@@ -345,8 +345,9 @@ class HubitModelPath(HubitQueryPath):
         return re.sub(r"\[([^\.]+)]", "", self)
 
     def get_index_identifiers(self) -> List[str]:
-        """Get the index identifiers from the path i.e. a
-        part of all square braces.
+        """Get the index identifiers from the path i.e. the
+        part of all square braces after the @ (if any) else the 
+        whole content of the square braces.
 
         Returns:
             List[str]: Index identifiers from path
@@ -674,13 +675,18 @@ class _QueryExpansion:
         decomposed_paths: If a single component can provide results for `path`, `decomposed_paths`
             has one element of type [`HubitQueryPath`][hubit.config.HubitQueryPath]. If multiple
             components are required their individual path contributions are the items in the list.
-        expanded_paths: For each element in `decomposed_paths` these are the expanded
-        paths i.e. dotted paths with real indices not wildcards.
+        expanded_paths_for_decomposed_path: For each element in `decomposed_paths`
+            these are the expanded paths i.e. dotted paths with real indices not 
+            wildcards.
     """
 
-    def __init__(self, path: HubitQueryPath, decomposed_paths: List[HubitQueryPath]):
+    def __init__(self, path: HubitQueryPath, mpaths: List[HubitModelPath]):
+        """
+        path: the query path
+        mpaths: the model paths that match the query
+        """
         self.path = path
-        self.decomposed_paths = decomposed_paths
+        self.decomposed_paths = _QueryExpansion.decompose_query(path, mpaths)
         self.expanded_paths_for_decomposed_path = {}
 
     def update_expanded_paths(
@@ -711,6 +717,31 @@ class _QueryExpansion:
             return False
         else:
             return True
+
+
+    @staticmethod
+    def decompose_query(qpath: HubitQueryPath, mpaths: List[HubitModelPath]) -> List[HubitQueryPath]:
+        """
+        If a single component can provide results for `path`, `decomposed_paths`
+        has one element of type [`HubitQueryPath`][hubit.config.HubitQueryPath]. If multiple
+        components are required their individual path contributions are the items in the list.
+        """
+        if len(mpaths) > 1:
+            # More than one provide requires to match query. Split query into queries
+            # each having a unique provider
+
+            decomposed_qpaths = []
+            for mpath in mpaths:
+                idxs = mpath.get_slices()
+                digits = [idx for idx in idxs if is_digit(idx)]
+                # print("idxs", idxs, digits)
+                assert len(digits) == 1, f"Only 1 index slice may be specified for each model path. For model path '{mpath}', '{idxs}' were found."
+                decomposed_qpaths.append(qpath.set_indices(idxs, mode=1))
+        else:
+            decomposed_qpaths = [qpath]
+
+        return decomposed_qpaths
+
 
     def __str__(self):
         lines = [f"\nQuery\n  {self.path}"]

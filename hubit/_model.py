@@ -4,8 +4,6 @@ import pickle
 import hashlib
 from multiprocessing import Manager
 import logging
-import os
-import time
 import subprocess
 from datetime import datetime
 from threading import Thread, Event
@@ -18,9 +16,9 @@ from .config import (
     HubitModelPath,
     HubitQueryPath,
     Query,
-    _QueryExpansion,
 )
 from .shared import (
+    _QueryExpansion,
     IDX_WILDCARD,
     idxs_for_matches,
     get_iloc_indices,
@@ -776,10 +774,14 @@ class _HubitModel:
         return paths
 
 
-    def _expand_query(self, qpath: HubitQueryPath, store=True) -> _QueryExpansion:
+    def _expand_query(self, qpath: HubitQueryPath, store: bool=True) -> _QueryExpansion:
         """
         Expand query so that any index wildcards are converted to
         real indies
+
+        qpath: The query path to be expanded. Both braced and dotted paths are accepted.
+        store: If True some intermediate results will be saved on the 
+            instance for later use.
 
         TODO: NEgative indices... prune_tree requires real indices but normalize
         path require all IDX_WILDCARDs be expanded to get the context
@@ -791,25 +793,15 @@ class _HubitModel:
         # Get all model paths that mathc the query
         mpaths = self.mpath_for_qpath(qpath)
 
-        # Get the index contexts for doing some tests
-        idx_contexts = {mpath.get_idx_context() for mpath in mpaths}
-
-        if len(idx_contexts) > 1:
-            msg = f"Fatal error. Inconsistent providers for query '{qpath}': {', '.join(mpaths)}"
-            raise HubitModelQueryError(msg)
-
-        if len(idx_contexts) == 0:
-            msg = f"Fatal error. No provider for query path '{qpath}'."
-            raise HubitModelQueryError(msg)
-
         # Prepare query expansion object
         qexp = _QueryExpansion(qpath, mpaths)
 
         # Get the tree that corresponds to the (one) index context
-        idxcontext = list(idx_contexts)[0]
-        tree = self.tree_for_idxcontext[idxcontext]
+        tree = self.tree_for_idxcontext[qexp.idx_context]
 
-        paths = []
+        # Validate that tree and expantion are consistent
+        qexp.validate_tree(tree)
+
         for decomposed_qpath, _mpath in zip(qexp.decomposed_paths, mpaths):
             pruned_tree = tree.prune_from_path(
                 HubitQueryPath.as_internal(decomposed_qpath),

@@ -5,8 +5,8 @@ import itertools
 from functools import reduce
 from operator import getitem
 from typing import Any, List, Dict, Tuple, TYPE_CHECKING
-from .errors import HubitIndexError
-from .config import HubitModelPath
+from .errors import HubitIndexError, HubitError, HubitModelQueryError
+from .config import HubitModelPath, HubitQueryPath
 from .utils import is_digit
 
 if TYPE_CHECKING:
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 IDX_WILDCARD = ":"
 # REGEX_IDXID = r"\[(.*?)\]"
 
-
+# TODO: have common superclass for trees
 class LengthNode:
     def __init__(self, nchildren: int):
         """A node in the length tree i.e. a generalized
@@ -574,6 +574,136 @@ class LengthTree:
         for idx, (name, size) in enumerate(zip(self.level_names, size_for_level)):
             lines.append(f"level={idx} ({name}), {size}")
 
+        return "\n".join(lines)
+
+
+class _QueryExpansion:
+    """A Hubit query expansion. A query can be split into multiple queries
+
+    Args:
+        path: A [`HubitQueryPath`][hubit.config.HubitQueryPath] representing the original query.
+        decomposed_paths: If a single component can provide results for `path`, `decomposed_paths`
+            has one element of type [`HubitQueryPath`][hubit.config.HubitQueryPath]. If multiple
+            components are required their individual path contributions are the items in the list.
+        expanded_paths_for_decomposed_path: For each element in `decomposed_paths`
+            these are the expanded paths i.e. dotted paths with real indices not 
+            wildcards.
+    """
+
+    def __init__(self, path: HubitQueryPath, mpaths: List[HubitModelPath]):
+        """
+        path: the query path
+        mpaths: the model paths that match the query
+        """
+        self.path = path
+        self.decomposed_paths = _QueryExpansion.decompose_query(path, mpaths)
+        self.expanded_paths_for_decomposed_path = {}
+
+        # Get the index contexts for doing some tests
+        _idx_contexts = {mpath.get_idx_context() for mpath in mpaths}
+
+        if len(_idx_contexts) > 1:
+            msg = f"Fatal error. Inconsistent providers for query '{path}': {', '.join(mpaths)}"
+            raise HubitModelQueryError(msg)
+
+        if len(_idx_contexts) == 0:
+            msg = f"Fatal error. No provider for query path '{path}'."
+            raise HubitModelQueryError(msg)
+
+
+        self._idx_context = list(_idx_contexts)[0]
+
+    @property
+    def idx_context(self):
+        """The (one) index context corresponding to the model paths
+        """
+        return self._idx_context
+
+
+    def update_expanded_paths(
+        self, decomposed_path: HubitQueryPath, expanded_paths: List[HubitQueryPath]
+    ):
+        self.expanded_paths_for_decomposed_path[decomposed_path] = expanded_paths
+
+    def flat_expanded_paths(self):
+        """ Returns flat list of expanded paths"""
+        return [
+            path
+            for paths in self.expanded_paths_for_decomposed_path.values()
+            for path in paths
+        ]
+
+    def is_decomposed(self):
+        return len(self.decomposed_paths) > 1
+
+    def is_expanded(self):
+        if (
+            not self.is_decomposed()
+            and self.path == self.decomposed_paths[0]
+            and len(self.expanded_paths_for_decomposed_path[self.decomposed_paths[0]])
+            == 1
+            and HubitQueryPath.as_internal(self.path)
+            == self.expanded_paths_for_decomposed_path[self.decomposed_paths[0]][0]
+        ):
+            return False
+        else:
+            return True
+
+
+    @staticmethod
+    def decompose_query(qpath: HubitQueryPath, mpaths: List[HubitModelPath]) -> List[HubitQueryPath]:
+        """
+        If a single component can provide results for `path`, `decomposed_paths`
+        has one element of type [`HubitQueryPath`][hubit.config.HubitQueryPath]. If multiple
+        components are required their individual path contributions are the items in the list.
+        """
+        if len(mpaths) > 1:
+            # More than one provide requires to match query. Split query into queries
+            # each having a unique provider
+
+            decomposed_qpaths = []
+            for mpath in mpaths:
+                idxs = mpath.get_slices()
+                digits = [idx for idx in idxs if is_digit(idx)]
+                assert len(digits) == 1, f"Only 1 index slice may be specified for each model path. For model path '{mpath}', '{idxs}' were found."
+                decomposed_qpaths.append(qpath.set_indices(idxs, mode=1))
+        else:
+            decomposed_qpaths = [qpath]
+
+        return decomposed_qpaths
+
+
+    def validate_tree(self, tree: LengthTree):
+        """Validate that we get the expected number of mpaths in the expansion
+
+        TODO: If the tree was pruned I think the test could be more strict using ==
+        instead of >=.
+        """
+        if isinstance(tree, DummyLengthTree): return
+
+        for idx_id in self._idx_context.split("-"):
+            try:
+                # TODO handle contexts with more than one index identifier
+                level_idx = tree.level_names.index(idx_id)
+            except ValueError as err:
+                raise Exception(f"Index context '{idx_id}' not found in tree '{tree}'") from err
+
+            n_decomposed_paths = len(self.decomposed_paths)
+            n_children = [node.nchildren() for node in tree.nodes_for_level[level_idx]]
+            results = [n >= n_decomposed_paths for n in n_children]
+            if not all(results):
+                print(f"Too few children at level {level_idx} of tree.\n")
+                print(tree)
+                print(self)
+                raise HubitError("Query expansion error.")
+
+    def __str__(self):
+        lines = [f"\nQuery\n  {self.path}"]
+        lines.append("Decomposition & expansion")
+        for decomp_path, expanded_paths in itertools.zip_longest(
+            self.decomposed_paths, self.expanded_paths_for_decomposed_path.values(), fillvalue=None
+        ):
+            lines.append(f"  {decomp_path} -> {expanded_paths}")
         return "\n".join(lines)
 
 

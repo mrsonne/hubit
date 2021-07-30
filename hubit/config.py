@@ -12,16 +12,26 @@ import uuid
 from collections import abc
 import yaml
 import re
-from typing import Dict, List, Any
+from typing import Dict, List, Any, TYPE_CHECKING
 from .errors import HubitModelComponentError
 from .utils import is_digit
+
+
+if TYPE_CHECKING:
+    from .shared import LengthTree
 
 SEP = "."
 
 # TODO: Create IndexSpecifier class
-# slice @ index_identifier
-# slice = number or :
-# index_identifier = string where letters, numbers and _ are allowed
+# slice @ index_identifier offset
+# slice = positive integer or :
+# @ = required separation character 
+# index_identifier = string where letters, numbers and _ are allowed# +/- = direction of o
+# offset = signed integer (sign required). Offset is optional and defaults to +0. 
+
+
+# TODO: 
+# distinguish braced and dotted paths in classes
 
 # or inherit from collections import UserString
 class HubitQueryPath(str):
@@ -665,92 +675,6 @@ class Query:
     @classmethod
     def from_paths(cls, paths: List[str]):
         return cls([HubitQueryPath(path) for path in paths])
-
-
-class _QueryExpansion:
-    """A Hubit query expansion. A query can be split into multiple queries
-
-    Args:
-        path: A [`HubitQueryPath`][hubit.config.HubitQueryPath] representing the original query.
-        decomposed_paths: If a single component can provide results for `path`, `decomposed_paths`
-            has one element of type [`HubitQueryPath`][hubit.config.HubitQueryPath]. If multiple
-            components are required their individual path contributions are the items in the list.
-        expanded_paths_for_decomposed_path: For each element in `decomposed_paths`
-            these are the expanded paths i.e. dotted paths with real indices not 
-            wildcards.
-    """
-
-    def __init__(self, path: HubitQueryPath, mpaths: List[HubitModelPath]):
-        """
-        path: the query path
-        mpaths: the model paths that match the query
-        """
-        self.path = path
-        self.decomposed_paths = _QueryExpansion.decompose_query(path, mpaths)
-        self.expanded_paths_for_decomposed_path = {}
-
-    def update_expanded_paths(
-        self, decomposed_path: HubitQueryPath, expanded_paths: List[HubitQueryPath]
-    ):
-        self.expanded_paths_for_decomposed_path[decomposed_path] = expanded_paths
-
-    def flat_expanded_paths(self):
-        """ Returns flat list of expanded paths"""
-        return [
-            path
-            for paths in self.expanded_paths_for_decomposed_path.values()
-            for path in paths
-        ]
-
-    def is_decomposed(self):
-        return len(self.decomposed_paths) > 1
-
-    def is_expanded(self):
-        if (
-            not self.is_decomposed()
-            and self.path == self.decomposed_paths[0]
-            and len(self.expanded_paths_for_decomposed_path[self.decomposed_paths[0]])
-            == 1
-            and HubitQueryPath.as_internal(self.path)
-            == self.expanded_paths_for_decomposed_path[self.decomposed_paths[0]][0]
-        ):
-            return False
-        else:
-            return True
-
-
-    @staticmethod
-    def decompose_query(qpath: HubitQueryPath, mpaths: List[HubitModelPath]) -> List[HubitQueryPath]:
-        """
-        If a single component can provide results for `path`, `decomposed_paths`
-        has one element of type [`HubitQueryPath`][hubit.config.HubitQueryPath]. If multiple
-        components are required their individual path contributions are the items in the list.
-        """
-        if len(mpaths) > 1:
-            # More than one provide requires to match query. Split query into queries
-            # each having a unique provider
-
-            decomposed_qpaths = []
-            for mpath in mpaths:
-                idxs = mpath.get_slices()
-                digits = [idx for idx in idxs if is_digit(idx)]
-                # print("idxs", idxs, digits)
-                assert len(digits) == 1, f"Only 1 index slice may be specified for each model path. For model path '{mpath}', '{idxs}' were found."
-                decomposed_qpaths.append(qpath.set_indices(idxs, mode=1))
-        else:
-            decomposed_qpaths = [qpath]
-
-        return decomposed_qpaths
-
-
-    def __str__(self):
-        lines = [f"\nQuery\n  {self.path}"]
-        lines.append("Decomposition & expansion")
-        for decomp_path, expanded_paths in zip(
-            self.decomposed_paths, self.expanded_paths_for_decomposed_path.values()
-        ):
-            lines.append(f"  {decomp_path} -> {expanded_paths}")
-        return "\n".join(lines)
 
 
 class FlatData(Dict):

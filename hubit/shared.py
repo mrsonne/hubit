@@ -692,7 +692,7 @@ class _QueryExpansion:
             n_children = [node.nchildren() for node in tree.nodes_for_level[level_idx]]
             results = [n >= n_decomposed_paths for n in n_children]
             if not all(results):
-                print(f"Too few children at level {level_idx} of tree.\n")
+                print(f"Too few children at level {level_idx} of tree. Expected at least {n_decomposed_paths} children corresponding to the number of decomposed paths.\n")
                 print(tree)
                 print(self)
                 raise HubitError("Query expansion error.")

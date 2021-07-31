@@ -563,7 +563,7 @@ class LengthTree:
                 f"nodes={len(nodes)}, "
                 f"parents={nparents}, "
                 f"children={nchildren}, "
-                f"children_is_none (children are leafs)={children_is_none}"
+                f"children are leaves={children_is_none}"
             )
 
         lines.append("--------------------")

@@ -596,7 +596,7 @@ class _QueryExpansion:
         mpaths: the model paths that match the query
         """
         self.path = path
-        self.decomposed_paths = _QueryExpansion.decompose_query(path, mpaths)
+        self.decomposed_paths, index_identifiers = _QueryExpansion.decompose_query(path, mpaths)
         self.expanded_paths_for_decomposed_path = {}
 
         # Get the index contexts for doing some tests
@@ -609,6 +609,14 @@ class _QueryExpansion:
         if len(_idx_contexts) == 0:
             msg = f"Fatal error. No provider for query path '{path}'."
             raise HubitModelQueryError(msg)
+
+        if index_identifiers is None:
+            self.decomposed_idx_identifier = None
+        else: 
+            if len(set(index_identifiers)) > 1:
+                msg = f"Fatal error. Inconsistent decomposition for query '{path}': {', '.join(mpaths)}"
+                raise HubitModelQueryError(msg)
+            self.decomposed_idx_identifier = index_identifiers[0]
 
 
         self._idx_context = list(_idx_contexts)[0]
@@ -662,15 +670,19 @@ class _QueryExpansion:
             # each having a unique provider
 
             decomposed_qpaths = []
+            # Index identifiers corresponding to decomposed field
+            index_identifiers = []
             for mpath in mpaths:
-                idxs = mpath.get_slices()
-                digits = [idx for idx in idxs if is_digit(idx)]
+                slices = mpath.get_slices()
+                digits = {idx: slice for idx, slice in enumerate(slices) if is_digit(slice)}
                 assert len(digits) == 1, f"Only 1 index slice may be specified for each model path. For model path '{mpath}', '{idxs}' were found."
-                decomposed_qpaths.append(qpath.set_indices(idxs, mode=1))
+                decomposed_qpaths.append(qpath.set_indices(slices, mode=1))
+                index_identifiers.append(mpath.get_index_identifiers()[list(digits.keys())[0]])
         else:
             decomposed_qpaths = [qpath]
+            index_identifiers = None
 
-        return decomposed_qpaths
+        return decomposed_qpaths, index_identifiers
 
 
     def validate_tree(self, tree: LengthTree):
@@ -682,6 +694,10 @@ class _QueryExpansion:
         if isinstance(tree, DummyLengthTree): return
 
         for idx_id in self._idx_context.split("-"):
+
+            # Only validate the relevant index identifier
+            if not idx_id == self.decomposed_idx_identifier: continue
+
             try:
                 # TODO handle contexts with more than one index identifier
                 level_idx = tree.level_names.index(idx_id)

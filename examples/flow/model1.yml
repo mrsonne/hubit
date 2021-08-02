@@ -4,42 +4,42 @@ components:
   - path: ./components/mod1.py 
     provides_results:
       - name: vol_outlet_flow
-        path: tanks[0@IDX_TANK].vol_outlet_flow
+        path: lines[IDX_LINE].tanks[0@IDX_TANK].vol_outlet_flow
       - name: vol_over_flow
-        path: tanks[0@IDX_TANK].vol_over_flow
+        path: lines[IDX_LINE].tanks[0@IDX_TANK].vol_over_flow
     consumes_input:
       # use global inlet flow
       - name: vol_inlet_flow
         path: vol_inlet_flow
       - name: tank_parameters
-        path: tanks[0@IDX_TANK]
+        path: lines[IDX_LINE].tanks[0@IDX_TANK]
 
   # Second tank
   - path: ./components/mod1.py 
     provides_results:
       - name: vol_outlet_flow
-        path: tanks[1@IDX_TANK].vol_outlet_flow
+        path: lines[IDX_LINE].tanks[1@IDX_TANK].vol_outlet_flow
       - name: vol_over_flow
-        path: tanks[1@IDX_TANK].vol_over_flow
+        path: lines[IDX_LINE].tanks[1@IDX_TANK].vol_over_flow
     consumes_results:
       # use outlet flow from previous tank as inlet flow
       - name: vol_inlet_flow
-        path: tanks[0@IDX_TANK].vol_outlet_flow
+        path: lines[IDX_LINE].tanks[0@IDX_TANK].vol_outlet_flow
     consumes_input:
       - name: tank_parameters
-        path: tanks[1@IDX_TANK]
+        path: lines[IDX_LINE].tanks[1@IDX_TANK]
 
   # Third tank
   - path: ./components/mod1.py 
     provides_results:
       - name: vol_outlet_flow
-        path: tanks[2@IDX_TANK].vol_outlet_flow
+        path: lines[IDX_LINE].tanks[2@IDX_TANK].vol_outlet_flow
       - name: vol_over_flow
-        path: tanks[2@IDX_TANK].vol_over_flow
+        path: lines[IDX_LINE].tanks[2@IDX_TANK].vol_over_flow
     consumes_results:
       # use outlet flow from previous tank as inlet flow
       - name: vol_inlet_flow
-        path: tanks[1@IDX_TANK].vol_outlet_flow
+        path: lines[IDX_LINE].tanks[1@IDX_TANK].vol_outlet_flow
     consumes_input:
       - name: tank_parameters
-        path: tanks[2@IDX_TANK]
+        path: lines[IDX_LINE].tanks[2@IDX_TANK]

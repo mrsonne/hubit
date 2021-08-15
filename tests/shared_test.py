@@ -273,7 +273,11 @@ class TestTree(unittest.TestCase):
         self.assertEqual(self.tree, pruned_tree)
 
     def test_1(self):
-        """Top level index fixed to 0"""
+        """Top level index fixed to 0
+        [['IDX_SEG', 2],
+        ['IDX_LAY', [3, 4]],
+        ['IDX_POS', [[1, 3, 2], [5, 1, 2, 4]]]]
+        """
         path = "segments.0.layers.:@IDX_LAY.test.positions.:@IDX_POS"
         self.tree.prune_from_path(path, self.template_path)
         expected_lengths = [1, 3, [1, 3, 2]]
@@ -657,6 +661,141 @@ class TestTree(unittest.TestCase):
         }
 
         self.assertDictEqual(expected_result, result)
+
+    def test_none_like_1(self):
+        """
+        Get a nested list corresponding to the tree
+        """
+        result = self.tree.none_like()
+        expected_result = [
+            [[None], [None, None, None], [None, None]],
+            [
+                [None, None, None, None, None],
+                [None],
+                [None, None],
+                [None, None, None, None],
+            ],
+        ]
+        self.assertListEqual(result, expected_result)
+
+    def test_none_like_2(self):
+        """
+        Get a nested list corresponding to a tree with
+        only node element per nested list
+        """
+        #
+        yml_input = """
+                        segments:
+                            - layers:
+                                - dummy1: 0.1 
+                                  dummy2: dummy_value
+                                  test:
+                                    positions: 
+                                        - 1
+                    """
+        input_data = yaml.load(yml_input, Loader=yaml.FullLoader)
+
+        # Point to all elements
+        path = HubitModelPath(
+            "segments[:@IDX_SEG].layers[:@IDX_LAY].test.positions[:@IDX_POS]"
+        )
+        tree = shared.LengthTree.from_data(path, input_data)
+        # print(tree)
+        # print(tree.to_list())
+        result = tree.none_like()
+        print(result)
+        # expected_result = [None]
+        # self.assertListEqual(result, expected_result)
+
+        path = HubitModelPath(
+            "segments[:@IDX_SEG].layers[:@IDX_LAY].test.positions[IDX_POS]"
+        )
+        tree = shared.LengthTree.from_data(path, input_data)
+        # print(tree)
+        # print(tree.to_list())
+        result = tree.none_like()
+        print(result)
+        # self.assertListEqual(result, expected_result)
+
+    def test_none_like_2(self):
+        """
+        Get a nested list corresponding to a tree with
+        only node element per nested list
+        """
+        #
+        yml_input = """
+                        segments:
+                            - layers:
+                                - dummy1: 0.1 
+                                  dummy2: dummy_value
+                                  test:
+                                    positions: 
+                                        - 1
+                                        - 2
+                    """
+        input_data = yaml.load(yml_input, Loader=yaml.FullLoader)
+
+        # Point to all elements
+        path = HubitModelPath(
+            "segments[:@IDX_SEG].layers[:@IDX_LAY].test.positions[:@IDX_POS]"
+        )
+        tree = shared.LengthTree.from_data(path, input_data)
+        # print(tree)
+        # print(tree.to_list())
+        result = tree.none_like()
+        print(result)
+        # expected_result = [None]
+        # self.assertListEqual(result, expected_result)
+
+        path = HubitModelPath(
+            "segments[:@IDX_SEG].layers[:@IDX_LAY].test.positions[IDX_POS]"
+        )
+        tree = shared.LengthTree.from_data(path, input_data)
+        # print(tree)
+        # print(tree.to_list())
+        result = tree.none_like()
+        print(result)
+        # self.assertListEqual(result, expected_result)
+
+    def test_none_like_3(self):
+        """
+        Get a nested list corresponding to a tree with
+        only node element per nested list
+        """
+        #
+        yml_input = """
+                    layers:
+                      - dummy1: 0.1 
+                        dummy2: dummy_value
+                        test:
+                          positions: 
+                            - 1
+                            - 2
+                      - dummy1: 0.1 
+                        dummy2: dummy_value
+                        test:
+                          positions: 
+                            - 1
+                    """
+        input_data = yaml.load(yml_input, Loader=yaml.FullLoader)
+
+        # Point to all elements
+        path = HubitModelPath("layers[:@IDX_LAY].test.positions[:@IDX_POS]")
+        tree = shared.LengthTree.from_data(path, input_data)
+        # print(tree)
+        # print(tree.to_list())
+        result = tree.none_like()
+        print(result)
+        # expected_result = [None]
+        # self.assertListEqual(result, expected_result)
+
+        path = HubitModelPath("layers[:@IDX_LAY].test.positions[IDX_POS]")
+        tree = shared.LengthTree.from_data(path, input_data)
+        # print(tree)
+        # print(tree.to_list())
+        result = tree.none_like()
+        print(result)
+        # self.assertListEqual(result, expected_result)
 
 
 class TestQueryExpansion(unittest.TestCase):

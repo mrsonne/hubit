@@ -797,6 +797,85 @@ class TestTree(unittest.TestCase):
         print(result)
         # self.assertListEqual(result, expected_result)
 
+    def test_none_like_4(self):
+        """
+        Get a nested list corresponding to a tree with
+        only node element per nested list
+        """
+        # Two nested lists of length 1
+        yml_input = """
+                    layers:
+                      - dummy1: 0.1 
+                        dummy2: dummy_value
+                        test:
+                          positions: 
+                            - 1
+                    """
+        input_data = yaml.load(yml_input, Loader=yaml.FullLoader)
+
+        # Point to all elements
+        path = HubitModelPath("layers[:@IDX_LAY].test.positions[:@IDX_POS]")
+        tpath = HubitModelPath.as_internal(path)
+        tree = shared.LengthTree.from_data(path, input_data)
+        print(type(tree))
+        result = tree.none_like()
+        print(tree)
+        print("1D list: WHY?!!?")
+        print(result)
+        print(
+            f"expected 2D list like {[[None]]} since these are actually lists in the model"
+        )
+        print("Reduction in dimensionality should only happen during pruning")
+        pruned_tree = tree.prune_from_path(
+            "layers.:.test.positions.:", tpath, inplace=False
+        )
+
+        # Two nested lists of length 2
+        yml_input = """
+                    layers:
+                      - dummy1: 0.1 
+                        dummy2: dummy_value
+                        test:
+                          positions: 
+                            - 1
+                            - 2
+                      - dummy1: 0.1 
+                        dummy2: dummy_value
+                        test:
+                          positions: 
+                            - 3
+                            - 4
+                    """
+        input_data = yaml.load(yml_input, Loader=yaml.FullLoader)
+
+        # Point to all elements
+        tree = shared.LengthTree.from_data(path, input_data)
+        result = tree.none_like()
+        print(tree)
+        print("2D list: ok")
+        print(result)
+
+        path = "layers.:.test.positions.:"
+        pruned_tree = tree.prune_from_path(path, tpath, inplace=False)
+        print(pruned_tree)
+        result = pruned_tree.none_like()
+        print("2D list: ok")
+        print(result)
+
+        path = "layers.0.test.positions.:"
+        pruned_tree = tree.prune_from_path(path, tpath, inplace=False)
+        print(pruned_tree)
+        result = pruned_tree.none_like()
+        print("1D list: ok")
+        print(result)
+
+        path = "layers.0.test.positions.0"
+        pruned_tree = tree.prune_from_path(path, tpath, inplace=False)
+        print(pruned_tree)
+        result = pruned_tree.none_like()
+        print("1D list: WHY?!?!? I would expect a single object like None")
+        print(result)
+
 
 class TestQueryExpansion(unittest.TestCase):
     def test_decompose_query(self):

@@ -108,8 +108,8 @@ class _Worker:
         for name, path in path_for_name.items():
             tree = tree_for_idxcontext[model_path_for_name[name].get_idx_context()]
             pruned_tree = tree.prune_from_path(
-                HubitModelPath.as_internal(path),
-                HubitModelPath.as_internal(model_path_for_name[name]),
+                path,
+                model_path_for_name[name],
                 inplace=False,
             )
             paths_for_name[name] = pruned_tree.expand_path(path, as_internal_path=True)

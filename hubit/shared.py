@@ -135,7 +135,7 @@ class LengthTree:
         return "-".join(self.level_names)
 
     def clip_at_level(self, level_name: str, inplace: bool = True) -> LengthTree:
-        """Remove level below 'level_name'
+        """Remove levels below 'level_name'
 
         Args:
             level_name (str): Name of deepest level to include. Levels below will be remove
@@ -153,7 +153,7 @@ class LengthTree:
         return obj
 
     def prune_from_path(
-        self, path: str, template_path: str, inplace: bool = True
+        self, path: HubitModelPath, template_path: HubitModelPath, inplace: bool = True
     ) -> LengthTree:
         """Prune the length tree based on a path where zero
         to all indices are already specified.
@@ -161,8 +161,8 @@ class LengthTree:
         TODO: id the path used [] the model path is not required
 
         Args:
-            path (str): A Hubit internal path with zero to all index IDs replaced by indices
-            template_path (str): A Hubit internal path with all relevant index IDs defined
+            path: A Hubit model path with zero to all index IDs replaced by indices
+            template_path: A Hubit model path with all relevant index IDs defined
             inplace (bool, optional): If True the instance itself will be pruned. If False a pruned copy will be created. Defaults to True.
 
         Returns:
@@ -170,12 +170,15 @@ class LengthTree:
         """
         obj = self if inplace else copy.deepcopy(self)
 
+        _path = HubitModelPath.as_internal(path)
+        _template_path = HubitModelPath.as_internal(template_path)
+
         # Loop over the index ID levels
         for level_idx, level_name in enumerate(obj.level_names):
-            # Check in the index is fixed i.e. if the index ID is missing
-            if not level_name in path:
+            # Check if the index is fixed i.e. if the index ID is missing
+            if not level_name in _path:  # TODO:no longer safe !!!!
                 # Get fixed index from path
-                idxstr = get_iloc_indices(path, template_path, [f"{level_name}"])[0]
+                idxstr = get_iloc_indices(_path, _template_path, [f"{level_name}"])[0]
 
                 if idxstr == IDX_WILDCARD:
                     continue
@@ -365,8 +368,7 @@ class LengthTree:
                     new_idxitems.append(idxitem)
 
             new_model_path = path.set_indices(new_idxitems, mode=1)
-            new_internal_path = HubitModelPath.as_internal(new_model_path)
-            tree.prune_from_path(new_internal_path, HubitModelPath.as_internal(path))
+            tree.prune_from_path(new_model_path, path)
         return tree
 
     def reshape(self, items: List, inplace: bool = True) -> List:

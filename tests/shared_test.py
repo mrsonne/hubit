@@ -199,8 +199,8 @@ class TestTree(unittest.TestCase):
         nodes.extend(pos_lay1_nodes)
         level_names = "IDX_SEG", "IDX_LAY", "IDX_POS"
         self.tree = shared.LengthTree(nodes, level_names)
-        self.template_path = (
-            "segments.:@IDX_SEG.layers.:@IDX_LAY.test.positions.:@IDX_POS"
+        self.template_path = HubitModelPath(
+            "segments[:@IDX_SEG].layers[:@IDX_LAY].test.positions[:@IDX_POS]"
         )
 
     def test_from_data1(self):
@@ -278,27 +278,27 @@ class TestTree(unittest.TestCase):
         ['IDX_LAY', [3, 4]],
         ['IDX_POS', [[1, 3, 2], [5, 1, 2, 4]]]]
         """
-        path = "segments.0.layers.:@IDX_LAY.test.positions.:@IDX_POS"
+        path = HubitModelPath("segments[0].layers[:@IDX_LAY].test.positions[:@IDX_POS]")
         self.tree.prune_from_path(path, self.template_path)
         expected_lengths = [1, 3, [1, 3, 2]]
         self.assertListEqual(self.tree.to_list(), expected_lengths)
 
     def test_2(self):
         """Top level index fixed to 1"""
-        path = "segments.1.layers.:@IDX_LAY.test.positions.:@IDX_POS"
+        path = HubitModelPath("segments[1].layers[:@IDX_LAY].test.positions[:@IDX_POS]")
         self.tree.prune_from_path(path, self.template_path)
         expected_lengths = [1, 4, [5, 1, 2, 4]]
         self.assertListEqual(self.tree.to_list(), expected_lengths)
 
     def test_2a(self):
         """Outside bounds top level index"""
-        path = "segments.2.layers.:@IDX_LAY.test.positions.:@IDX_POS"
+        path = HubitModelPath("segments[2].layers[:@IDX_LAY].test.positions[:@IDX_POS]")
         with self.assertRaises(shared.HubitIndexError) as context:
             self.tree.prune_from_path(path, self.template_path)
 
     def test_3(self):
         """Middle index fixed"""
-        path = "segments.:@IDX_SEG.layers.1.test.positions.:@IDX_POS"
+        path = HubitModelPath("segments[:@IDX_SEG].layers[1].test.positions[:@IDX_POS]")
         expected_lengths = [
             2,
             [1, 1],
@@ -316,14 +316,14 @@ class TestTree(unittest.TestCase):
 
     def test_4(self):
         """In bounds for all bottom-most paths."""
-        path = "segments.:@IDX_SEG.layers.:@IDX_LAY.test.positions.0"
+        path = HubitModelPath("segments[:@IDX_SEG].layers[:@IDX_LAY].test.positions[0]")
         expected_lengths = [2, [3, 4], [[1, 1, 1], [1, 1, 1, 1]]]
         self.tree.prune_from_path(path, self.template_path)
         self.assertListEqual(self.tree.to_list(), expected_lengths)
 
     def test_5(self):
         """Two indices fixed"""
-        path = "segments.1.layers.:@IDX_LAY.test.positions.0"
+        path = HubitModelPath("segments[1].layers[:@IDX_LAY].test.positions[0]")
         expected_lengths = [1, 4, [1, 1, 1, 1]]
         self.tree.prune_from_path(path, self.template_path)
         # print(self.tree)
@@ -336,14 +336,16 @@ class TestTree(unittest.TestCase):
         ['IDX_LAY', [3, 4*]], -> 2
         ['IDX_POS', [[1, 3, 2], [5*, 1, 2, 4*]]]] -> [1, 1]
         """
-        path = "segments.:@IDX_SEG.layers.:@IDX_LAY.test.positions.3"
+        path = HubitModelPath("segments[:@IDX_SEG].layers[:@IDX_LAY].test.positions[3]")
         expected_lengths = [1, 2, [1, 1]]
         self.tree.prune_from_path(path, self.template_path)
         self.assertListEqual(self.tree.to_list(), expected_lengths)
 
     def test_6(self):
         """Out of bounds for all paths"""
-        path = "segments.:@IDX_SEG.layers.:@IDX_LAY.test.positions.17"
+        path = HubitModelPath(
+            "segments[:@IDX_SEG].layers[:@IDX_LAY].test.positions1[7]"
+        )
         with self.assertRaises(shared.HubitIndexError) as context:
             self.tree.prune_from_path(path, self.template_path)
 

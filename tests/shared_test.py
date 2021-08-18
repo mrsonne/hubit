@@ -363,12 +363,20 @@ class TestTree(unittest.TestCase):
         self.assertListEqual(pruned_tree.to_list(), expected_lengths)
 
     def test_6(self):
-        """Out of bounds for all paths"""
+        """Out of bounds for all paths
+
+        The tree is modified even when an error is raised if inplace=True
+        Thats is OK since Hubit will raise an error and stop execution
+        """
         path = HubitModelPath(
             "segments[:@IDX_SEG].layers[:@IDX_LAY].test.positions1[7]"
         )
         with self.assertRaises(shared.HubitIndexError) as context:
-            self.tree.prune_from_path(path, self.template_path)
+            self.tree.prune_from_path(path, self.template_path, inplace=False)
+
+        path = HubitQueryPath("segments[:].layers[:].test.positions1[7]")
+        with self.assertRaises(shared.HubitIndexError) as context:
+            self.tree.prune_from_path(path, self.template_path, inplace=False)
 
     def test_prune(self):
         def print_test(tree):
@@ -572,11 +580,9 @@ class TestTree(unittest.TestCase):
         """Prune tree before expanding. Two indices vary so
         expanded paths is 2D
         """
-        path = HubitModelPath("segments[0].layers[:@IDX_LAY].test.positions[:@IDX_POS]")
         template_path = HubitModelPath(
             "segments[:@IDX_SEG].layers[:@IDX_LAY].test.positions[:@IDX_POS]"
         )
-        self.tree.prune_from_path(path, template_path)
         # 1 + 3 + 2 values for segment 0
         expected_paths = [
             [
@@ -592,7 +598,17 @@ class TestTree(unittest.TestCase):
                 "segments[0].layers[2].test.positions[1]",
             ],
         ]
-        paths = self.tree.expand_path(path)
+
+        mpath = HubitModelPath(
+            "segments[0].layers[:@IDX_LAY].test.positions[:@IDX_POS]"
+        )
+        pruned_tree = self.tree.prune_from_path(mpath, template_path, inplace=False)
+        paths = pruned_tree.expand_path(mpath)
+        self.assertSequenceEqual(paths, expected_paths)
+
+        qpath = HubitQueryPath("segments[0].layers[:].test.positions[:]")
+        pruned_tree = self.tree.prune_from_path(qpath, template_path, inplace=False)
+        paths = pruned_tree.expand_path(mpath)
         self.assertSequenceEqual(paths, expected_paths)
 
     def test_expand_mpath4(self):

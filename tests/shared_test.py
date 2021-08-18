@@ -552,13 +552,10 @@ class TestTree(unittest.TestCase):
         expanded paths is 2D
         """
         path = HubitModelPath("segments[0].layers[:@IDX_LAY].test.positions[:@IDX_POS]")
-        template_path = (
+        template_path = HubitModelPath(
             "segments[:@IDX_SEG].layers[:@IDX_LAY].test.positions[:@IDX_POS]"
         )
-        self.tree.prune_from_path(
-            HubitModelPath.as_internal(path),
-            HubitModelPath.as_internal(template_path),
-        )
+        self.tree.prune_from_path(path, template_path)
         # 1 + 3 + 2 values for segment 0
         expected_paths = [
             [

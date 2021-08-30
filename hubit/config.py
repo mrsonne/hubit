@@ -30,11 +30,45 @@ SEP = "."
 # offset = signed integer (sign required). Offset is optional and defaults to +0.
 
 
-# TODO:
-# distinguish braced and dotted paths in classes
+class _HubitPath(str):
+    # TODO relative-spatial-refs as metaclass & implement shared functionality
+    @staticmethod
+    def as_internal(path: Any) -> str:
+        """Convert path using braces [IDX] to internal
+        dotted-style path using dots .IDX.
+
+        Returns:
+            str: internal path-like string
+        """
+        return path.replace("[", ".").replace("]", "")
+
+    @classmethod
+    def from_dotted(cls, dotted_string: str) -> Any:
+        # replace .DIGIT with [DIGIT] using "look behind"
+        return cls(re.sub(r"\.(\d+)", r"[\1]", dotted_string))
+
+    @staticmethod
+    def balanced(path):
+        """
+        Check for balanced bracket in string
+        """
+        opens = "["
+        closes = "]"
+        pairs = dict(zip(opens, closes))
+        _braces = [c for c in path if c in opens or c in closes]
+        stack = []
+        for c in _braces:
+            if c in opens:
+                stack.append(c)
+            elif len(stack) > 0 and c == pairs[stack[-1]]:
+                stack.pop()
+            else:
+                return False
+        return len(stack) == 0
+
 
 # or inherit from collections import UserString
-class HubitQueryPath(str):
+class HubitQueryPath(_HubitPath):
     """
     Reference a field in the results data. The syntax follows general
     Python syntax for nested objects. Only square
@@ -59,35 +93,6 @@ class HubitQueryPath(str):
     char_wildcard = ":"
     regex_idx_spec = r"\[(.*?)\]"
     regex_allowed_idx_spec = "^[:0-9]+$"
-
-    @staticmethod
-    def balanced(path):
-        """
-        Check for balanced bracket in string
-        """
-        opens = "["
-        closes = "]"
-        pairs = dict(zip(opens, closes))
-        _braces = [c for c in path if c in opens or c in closes]
-        stack = []
-        for c in _braces:
-            if c in opens:
-                stack.append(c)
-            elif len(stack) > 0 and c == pairs[stack[-1]]:
-                stack.pop()
-            else:
-                return False
-        return len(stack) == 0
-
-    @staticmethod
-    def as_internal(path: Any) -> str:
-        """Convert path using braces [IDX] to internal
-        dotted-style path using dots .IDX.
-
-        Returns:
-            str: internal path-like string
-        """
-        return path.replace("[", ".").replace("]", "")
 
     def _validate_index_specifiers(self):
         idx_specs = self.get_index_specifiers()
@@ -126,6 +131,14 @@ class HubitQueryPath(str):
         return re.findall(
             HubitQueryPath.regex_idx_spec, self
         )  # Any character in square brackets
+
+    def get_slices(self) -> List[str]:
+        """Get the slices from the path i.e. the full content of the braces
+
+        Returns:
+            List[str]: Indexes from path
+        """
+        return self.get_index_specifiers()
 
     # def set_slice(self, indices: List[str]) -> HubitQueryPath:
     #     _path = str(self)
@@ -695,6 +708,8 @@ class FlatData(Dict):
     braces [IDX] are represented by dots .IDX.
     """
 
+    _path_cls = HubitQueryPath
+
     def inflate(self) -> Dict:
         """
         Inflate flat data to nested dict. Lists are represented as dicts
@@ -710,7 +725,8 @@ class FlatData(Dict):
         items: Dict[str, Any] = dict()
         for k, v in self.items():
             # path components are strings
-            keys = k.split(SEP)
+            _k = _HubitPath.as_internal(k)
+            keys = _k.split(SEP)
             sub_items = items
             for ki in keys[:-1]:
                 _ki = int(ki) if is_digit(ki) else ki
@@ -754,6 +770,7 @@ class FlatData(Dict):
         sep: str = ".",
         stop_at: List = [],
         include_patterns=[],
+        as_dotted: bool = False,
     ):
         """
         Flattens dict and concatenates keys to a dotted style internal path
@@ -762,7 +779,7 @@ class FlatData(Dict):
         for k, v in dict.items():
             new_key = parent_key + sep + k if parent_key else k
             if FlatData._match(new_key, stop_at):
-                items.append((HubitModelPath(new_key), v))
+                items.append((cls._path_cls(new_key), v))
                 continue
 
             if not FlatData._include(new_key, include_patterns):
@@ -784,7 +801,7 @@ class FlatData(Dict):
                     if FlatData._match(new_key + ".0", stop_at):
                         for idx, item in enumerate(v):
                             _new_key = new_key + "." + str(idx)
-                            items.append((HubitModelPath(_new_key), item))
+                            items.append((cls._path_cls(_new_key), item))
                     else:
                         for idx, item in enumerate(v):
                             _new_key = new_key + "." + str(idx)
@@ -804,31 +821,26 @@ class FlatData(Dict):
                     # Flatten simple list
                     for idx, item in enumerate(v):
                         _new_key = new_key + "." + str(idx)
-                        items.append((HubitModelPath(_new_key), item))
+                        items.append((cls._path_cls(_new_key), item))
             else:
-                items.append((HubitModelPath(new_key), v))
-        return cls(items)
+                items.append((cls._path_cls(new_key), v))
+        if as_dotted:
+            return cls(items)
+        else:
+            return cls([(cls._path_cls.from_dotted(key), val) for key, val in items])
 
     @classmethod
     def from_flat_dict(cls, dict: Dict):
         """
         Create object from a regular flat dictionary
         """
-        return cls({HubitModelPath(k): v for k, v in dict.items()})
+        return cls({cls._path_cls(k): v for k, v in dict.items()})
 
-    def as_dict(self, as_internal_path: bool = False) -> Dict:
+    def as_dict(self) -> Dict[str, Any]:
         """
         Converts the object to a regular dictionary with string keys
-
-        Args:
-            as_internal_path: If False the paths are styled as a HubitModelPath. If True
-                the paths are left as internal dotted style.
         """
-        d = {str(k): v for k, v in self.items()}
-        if not as_internal_path:
-            # replace .DIGIT with [DIGIT] using "look behind"
-            d = {re.sub(r"\.(\d+)", r"[\1]", k): v for k, v in d.items()}
-        return d
+        return {str(k): v for k, v in self.items()}
 
     @classmethod
     def from_file(cls, file_path):
@@ -844,4 +856,4 @@ class FlatData(Dict):
         Write object to file
         """
         with open(file_path, "w") as handle:
-            yaml.safe_dump(self.as_dict(as_internal_path=True), handle)
+            yaml.safe_dump(self.as_dict(), handle)

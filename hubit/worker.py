@@ -7,12 +7,11 @@ import logging
 import multiprocessing
 import copy
 from typing import Callable, Dict, Set, TYPE_CHECKING, List
-from .config import HubitBinding, HubitModelPath
+from .config import HubitBinding, HubitQueryPath
 from .shared import (
     LengthTree,
     idxs_for_matches,
     check_path_match,
-    get_iloc_indices,
     traverse,
     reshape,
 )
@@ -57,12 +56,14 @@ class _Worker:
                         index = idxval_for_idxid[idxid]
                     else:
                         index = None
-                    indices.append(index)
+                    # Insert artificial @ to comply with model path structure
+                    indices.append(f"{index}@{idxid}")
+
                 result[binding.name] = binding.path.set_indices(indices, mode=1)
             return result
 
     @staticmethod
-    def get_bindings(bindings: List[HubitBinding], query_path):
+    def get_bindings(bindings: List[HubitBinding], query_path: HubitQueryPath):
         """Make symbolic binding specific i.e. replace index IDs
         with actual indices based on query
 
@@ -90,11 +91,7 @@ class _Worker:
         for binding in bindings:
             if check_path_match(query_path, binding.path, accept_idx_wildcard=False):
                 idxids = binding.path.get_index_identifiers()
-                idxs = get_iloc_indices(
-                    HubitModelPath.as_internal(query_path),
-                    HubitModelPath.as_internal(binding.path),
-                    idxids,
-                )
+                idxs = query_path.get_slices()
                 idxval_for_idxid.update(dict(zip(idxids, idxs)))
                 break
 
@@ -107,12 +104,8 @@ class _Worker:
         paths_for_name = {}
         for name, path in path_for_name.items():
             tree = tree_for_idxcontext[model_path_for_name[name].get_idx_context()]
-            pruned_tree = tree.prune_from_path(
-                path,
-                model_path_for_name[name],
-                inplace=False,
-            )
-            paths_for_name[name] = pruned_tree.expand_path(path, as_internal_path=True)
+            pruned_tree = tree.prune_from_path(path, inplace=False)
+            paths_for_name[name] = pruned_tree.expand_path(path)
         return paths_for_name
 
     def __init__(
@@ -120,7 +113,7 @@ class _Worker:
         manager: multiprocessing.Manager,
         qrun: _QueryRunner,
         component: HubitModelComponent,
-        query: HubitModelPath,  # TODO: still string actually
+        query: HubitQueryPath,
         func: Callable,
         version: str,
         tree_for_idxcontext: Dict[str, LengthTree],
@@ -412,7 +405,7 @@ class _Worker:
             else:
                 self.use_cached_result(results)
 
-    def set_consumed_input(self, path, value):
+    def set_consumed_input(self, path: HubitQueryPath, value):
         if path in self.pending_input_paths:
             self.pending_input_paths.remove(path)
             self.inputval_for_path[path] = value
@@ -440,7 +433,8 @@ class _Worker:
         Set the consumed values if they are ready otherwise add them
         to the list of pending items
         """
-        # set the worker here since in init we have not yet checked that a similar instance does not exist
+        # set the worker here since in init we have not yet
+        # checked that a similar instance does not exist
         self.qrun._set_worker(self)
 
         # Check consumed input (should not have any pending items by definition)

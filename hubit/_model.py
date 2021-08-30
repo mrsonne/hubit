@@ -13,7 +13,7 @@ from .qrun import _QueryRunner
 from .config import (
     FlatData,
     HubitBinding,
-    HubitModelPath,
+    _HubitPath,
     HubitQueryPath,
     Query,
 )
@@ -21,7 +21,6 @@ from .shared import (
     _QueryExpansion,
     IDX_WILDCARD,
     idxs_for_matches,
-    get_iloc_indices,
     set_element,
     tree_for_idxcontext,
 )
@@ -263,7 +262,7 @@ class _HubitModel:
             workers = []
             for component in self.model_cfg.components:
                 path = component.provides_results[0].path
-                dummy_query = HubitModelPath.as_internal(
+                dummy_query = HubitQueryPath(
                     path.set_indices(["0" for _ in path.get_index_specifiers()], mode=1)
                 )
 
@@ -497,7 +496,7 @@ class _HubitModel:
             idxids = path.get_index_identifiers()
 
             # Path components with braces and index specifiers
-            pathcmps_old = HubitModelPath.as_internal(path).split(".")
+            pathcmps_old = _HubitPath.as_internal(path).split(".")
 
             # Path components with node names only
             pathcmps = path.remove_braces().split(".")
@@ -715,7 +714,7 @@ class _HubitModel:
                 else:
                     raise HubitModelValidationError(binding.path, fname, fname_for_path)
 
-    def _cmpids_for_query(self, qpath: str):
+    def _cmpids_for_query(self, qpath: HubitQueryPath):
         """
         Find IDs of components that can respond to the "query".
         """
@@ -790,7 +789,6 @@ class _HubitModel:
         # TODO: Save pruned trees so the worker need not prune top level trees again
         # TODO: save component so we dont have to find top level components again
         """
-
         # Get all model paths that match the query
         mpaths = self.mpath_for_qpath(qpath)
 
@@ -803,22 +801,23 @@ class _HubitModel:
         # Validate that tree and expantion are consistent
         qexp.validate_tree(tree)
 
+        # First store unpruned tree
+        if store:
+            self._tree_for_qpath[qpath] = tree
+
         for decomposed_qpath, _mpath in zip(qexp.decomposed_paths, mpaths):
             pruned_tree = tree.prune_from_path(
-                HubitQueryPath.as_internal(decomposed_qpath),
-                HubitModelPath.as_internal(_mpath),
+                decomposed_qpath,
                 inplace=False,
             )
 
             if store:
-                # Store tree
+                # Store pruned tree
                 self._tree_for_qpath[decomposed_qpath] = pruned_tree
                 self._modelpath_for_querypath[decomposed_qpath] = _mpath
 
             # Expand the path
-            expanded_paths = pruned_tree.expand_path(
-                decomposed_qpath, flat=True, path_type="query", as_internal_path=True
-            )
+            expanded_paths = pruned_tree.expand_path(decomposed_qpath, flat=True)
 
             qexp.update_expanded_paths(decomposed_qpath, expanded_paths)
 
@@ -835,33 +834,24 @@ class _HubitModel:
         _response = {}
         for qexp in queries_expanded:
             if not qexp.is_expanded():
-                _response[qexp.path] = response[HubitModelPath.as_internal(qexp.path)]
+                # Path not expanded so no need to compress
+                _response[qexp.path] = response[qexp.path]
             else:
                 # Get the index IDs from the original query
                 idxids = qexp.path.get_index_specifiers()
-
-                # Build values based on each provider's tree
-                values_decomp = []
-                for decomposed_path in qexp.decomposed_paths:
-                    tree = self._tree_for_qpath[decomposed_path]
-                    # Initialize list to collect all iloc indices for each wildcard
-                    values_decomp.extend(tree.none_like())
-
+                tree = self._tree_for_qpath[qexp.path]
+                # TODO: relative-spatial-refs. Can we prune earlier on?
+                tree.prune_from_path(qexp.path)
+                values_decomp = tree.none_like()
                 # Extract iloc indices for each query in the expanded query
-                for (
-                    decomposed_path,
-                    expanded_paths,
-                ) in qexp.expanded_paths_for_decomposed_path.items():
-                    mpath = HubitModelPath.as_internal(
-                        self._modelpath_for_querypath[decomposed_path]
-                    )
+                for expanded_paths in qexp.expanded_paths_for_decomposed_path.values():
                     for path in expanded_paths:
-                        ilocs = get_iloc_indices(path, mpath, tree.level_names)
+                        slices = path.get_slices()
                         # Only keep ilocs that come from an expansion... otherwise
                         # the dimensions of "values" do no match
                         ilocs = [
-                            iloc
-                            for iloc, idxid in zip(ilocs, idxids)
+                            _slice
+                            for _slice, idxid in zip(slices, idxids)
                             if idxid == IDX_WILDCARD
                         ]
                         values_decomp = set_element(

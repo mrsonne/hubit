@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 from .worker import _Worker
 from .shared import count
-from .config import FlatData, HubitModelComponent, HubitModelPath
+from .config import FlatData, HubitModelComponent, HubitModelPath, HubitQueryPath
 
 POLLTIME = 0.1
 POLLTIME_LONG = 0.25
@@ -109,7 +109,7 @@ class _QueryRunner:
         return func, version, components
 
     def _worker_for_query(
-        self, manager, path: HubitModelPath, dryrun: bool = False
+        self, manager, path: HubitQueryPath, dryrun: bool = False
     ) -> Any:
         """Creates instance of the worker class that can respond to the query
 
@@ -165,7 +165,7 @@ class _QueryRunner:
     def spawn_workers(
         self,
         manager,
-        qpaths,
+        qpaths: List[HubitQueryPath],
         extracted_input,
         flat_results: FlatData,
         all_input,

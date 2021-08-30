@@ -6,7 +6,7 @@ from functools import reduce
 from operator import getitem
 from typing import Any, List, Dict, Tuple, TYPE_CHECKING
 from .errors import HubitIndexError, HubitError, HubitModelQueryError
-from .config import HubitModelPath, HubitQueryPath
+from .config import _HubitPath, HubitModelPath, HubitQueryPath
 from .utils import is_digit
 
 if TYPE_CHECKING:
@@ -15,7 +15,18 @@ if TYPE_CHECKING:
 IDX_WILDCARD = ":"
 # REGEX_IDXID = r"\[(.*?)\]"
 
-# TODO: have common superclass for trees
+
+class LeafNode:
+    """Used for leaves in the LengthTree instead of a LengthNode"""
+
+    def __init__(self, idx: int):
+        # Stores index in parent's list of children
+        self.index = idx
+
+    def remove_decendants(self):
+        pass
+
+
 class LengthNode:
     def __init__(self, nchildren: int):
         """A node in the length tree i.e. a generalized
@@ -26,8 +37,9 @@ class LengthNode:
             indices for the current node.
         """
         self.level = 0
-        # Assume bottom level (children = None)
-        self.children = [None for _ in range(nchildren)]
+        # Assume bottom level
+        self.children = [LeafNode(idx) for idx in range(nchildren)]
+        self._child_for_idx = {child.index: child for child in self.children}
 
         # Assume top level (children = None)
         self.parent = None
@@ -35,6 +47,9 @@ class LengthNode:
 
         # Stores index in parent's list of children
         self.index = None
+
+        # Is node constrained by pruning
+        self.is_constrained = False
 
     def nchildren(self) -> int:
         return len(self.children)
@@ -45,6 +60,7 @@ class LengthNode:
             child.parent = self
             child.level = self.level + 1
             child.index = idx
+        self._child_for_idx = {child.index: child for child in self.children}
 
     def remove(self):
         """remove node"""
@@ -53,28 +69,36 @@ class LengthNode:
 
         self.remove_decendants()
         self.parent.children.remove(self)
+        del self.parent._child_for_idx[self.index]
         if self.parent.nchildren() == 0:
             self.parent.remove()
         self.tree.nodes_for_level[self.level].remove(self)
+        # for node in self.tree.nodes_for_level[self.level]:
+        #     node.is_constrained = False
 
     def pop_child_for_idx(self, idx):
+        # TODO. relative-spatial-refs to allow pruning multiple times
         child = self.children[idx]
-        if child is not None:
-            # Not the bottom-most level
-            child.remove_decendants()
+        # child = self._child_for_idx[idx]
+        child.remove_decendants()
+        if not isinstance(child, LeafNode):
+            # Not the bottom-most level so safe to access self.level + 1
             self.tree.nodes_for_level[self.level + 1].remove(child)
         self.children.pop(idx)
+        del self._child_for_idx[idx]
 
     def remove_decendants(self):
         for child in self.children:
-            if child is not None:
-                # Remove child from tree
-                child.tree.nodes_for_level[child.level].remove(child)
-                child.remove_decendants()
-        self.children = [None for _ in range(len(self.children))]
+            if isinstance(child, LeafNode):
+                continue
+
+            # Remove child from tree
+            child.tree.nodes_for_level[child.level].remove(child)
+            child.remove_decendants()
+        self.children = [LeafNode(idx) for idx in range(len(self.children))]
 
     def __str__(self):
-        return f'LengthNode nchildren={self.nchildren()}, has parent={"Yes" if self.parent else "No"}'
+        return f'LengthNode(nchildren={self.nchildren()}, index={self.index}, has parent={"Yes" if self.parent else "No"}, is_constrained={self.is_constrained})'
 
     def __repr__(self):
         return str(self)
@@ -99,12 +123,9 @@ class DummyLengthTree:
         pass
 
     def expand_path(
-        self, path: HubitModelPath, as_internal_path: bool = False, *args, **kwargs
-    ) -> List[str]:
-        if as_internal_path:
-            return [HubitModelPath.as_internal(path)]
-        else:
-            return [path]
+        self, path: HubitModelPath, *args, **kwargs
+    ) -> List[HubitModelPath]:
+        return [path]
 
     def none_like(self):
         return None
@@ -152,40 +173,35 @@ class LengthTree:
         obj.nodes_for_level = obj.nodes_for_level[: level_idx + 1]
         return obj
 
-    def prune_from_path(
-        self, path: HubitModelPath, template_path: HubitModelPath, inplace: bool = True
-    ) -> LengthTree:
+    def prune_from_path(self, path: _HubitPath, inplace: bool = True) -> LengthTree:
         """Prune the length tree based on a path where zero
         to all indices are already specified.
 
-        TODO: id the path used [] the model path is not required
-
         Args:
-            path: A Hubit model path with zero to all index IDs replaced by indices
-            template_path: A Hubit model path with all relevant index IDs defined
+            path: A Hubit path with zero to all index IDs replaced by indices
             inplace (bool, optional): If True the instance itself will be pruned. If False a pruned copy will be created. Defaults to True.
 
         Returns:
             LengthTree: Pruned tree. If inplace=True the instance itself is also pruned.
         """
         obj = self if inplace else copy.deepcopy(self)
-
-        _path = HubitModelPath.as_internal(path)
-        _template_path = HubitModelPath.as_internal(template_path)
+        _slices = path.get_slices()
+        if all([_slice == IDX_WILDCARD for _slice in _slices]):
+            return obj
 
         # Loop over the index ID levels
-        for level_idx, level_name in enumerate(obj.level_names):
-            # Check if the index is fixed i.e. if the index ID is missing
-            if not level_name in _path:  # TODO:no longer safe !!!!
-                # Get fixed index from path
-                idxstr = get_iloc_indices(_path, _template_path, [f"{level_name}"])[0]
+        assert len(_slices) == len(
+            obj.level_names
+        ), f"Path {path} does not math tree with levels {obj.level_names}"
 
-                if idxstr == IDX_WILDCARD:
-                    continue
+        for level_idx, _slice in enumerate(_slices):
 
-                idx = int(idxstr)
-                # Prune the tree to reflect that the index is fixed
-                obj.fix_idx_at_level(idx, level_idx)
+            if _slice == IDX_WILDCARD:
+                # No pruning required since all elements are in scope
+                continue
+
+            if is_digit(_slice):
+                obj.fix_idx_at_level(int(_slice), level_idx)
 
         return obj
 
@@ -207,12 +223,14 @@ class LengthTree:
         nodes_to_be_deleted = []
         for node in obj.nodes_for_level[level_idx]:
             # Keep child corresponding to idx remove the rest
-            idx_others = list(range(node.nchildren()))
+            idx_others = [child.index for child in node.children]
+            node.is_constrained = True
             if idx_value in idx_others:
                 # idx can be provided
                 idx_others.remove(idx_value)
                 for idx_other in reversed(idx_others):
                     node.pop_child_for_idx(idx_other)
+
             else:
                 nodes_to_be_deleted.append(node)
 
@@ -246,7 +264,12 @@ class LengthTree:
             # divide list into sub-lists
             for sizes in idx_vals[1:idx][::-1]:
                 # Cast to list in case of an integer
-                vals = split_items(vals, traverse([sizes]))
+                if is_digit(sizes):
+                    vals = split_items(vals, traverse([sizes]))
+                elif len(sizes) == 1:
+                    vals = split_items(vals, traverse(sizes))[0]
+                else:
+                    vals = split_items(vals, traverse(sizes))
 
             if len(vals) == 1:
                 vals = vals[0]
@@ -268,9 +291,9 @@ class LengthTree:
         Args:
             connecting_paths (List[str]): Sequence of index identification strings between index IDs
             data (Dict): Input data
-            nodes (List[LengthNode], optional): Cummulative list of nodes. Defaults to None.
+            nodes (List[LengthNode], optional): Cumulative list of nodes. Defaults to None.
             paths_previous (List, optional): Hubit internal paths found in
-            previous level of recusion with explicit indeices. Defaults to None.
+            previous level of recursion with explicit indices. Defaults to None.
             parent (LengthNode, optional): Parent node
 
         Returns:
@@ -334,23 +357,23 @@ class LengthTree:
             LengthTree: Element 0 is DummyLengthTree if no index IDs found in 'path'
             otherwise a LengthTree.
         """
-        level_names = path.get_index_specifiers()
-        clean_level_names = path.get_index_identifiers()
+        index_specifiers = path.get_index_specifiers()
+        index_identifiers = path.get_index_identifiers()
+        slices = path.get_slices()
 
         # Handle no index IDs
-        if len(level_names) == 0:
+        if len(index_specifiers) == 0:
             return DummyLengthTree()
 
         # Handle all IDs are digits
-        if all([is_digit(level_name) for level_name in level_names]):
+        if all([is_digit(_slice) for _slice in slices]):
             return DummyLengthTree()
 
-        connecting_paths = path.paths_between_idxids(level_names)
-        nodes, paths = LengthTree._nodes_for_iterpaths(connecting_paths[:-1], data)
-        if not connecting_paths[-1] == "":
-            paths = ["{}.{}".format(path, connecting_paths[-1]) for path in paths]
-
-        tree = cls(nodes, clean_level_names)
+        connecting_paths = path.paths_between_idxids(index_specifiers)
+        # Exclude leaf attribute (empty string or path following last index specifier)
+        connecting_paths = connecting_paths[:-1]
+        nodes, _ = LengthTree._nodes_for_iterpaths(connecting_paths, data)
+        tree = cls(nodes, index_identifiers)
 
         # Some path indices may have specific locations so prune the tree
         # This does not work when different indices can be provided by
@@ -359,19 +382,11 @@ class LengthTree:
         # different components the index context are the same but the trees are
         # different
         if prune:
-            new_idxitems = []
-            for idxitem in path.get_index_specifiers():
-                iloc = idxitem.split("@")[0]
-                if is_digit(iloc):
-                    new_idxitems.append(iloc)
-                else:
-                    new_idxitems.append(idxitem)
+            tree.prune_from_path(path)
 
-            new_model_path = path.set_indices(new_idxitems, mode=1)
-            tree.prune_from_path(new_model_path, path)
         return tree
 
-    def reshape(self, items: List, inplace: bool = True) -> List:
+    def reshape(self, items: List, inplace: bool = True) -> Any:
         """Reshape items according to the shape defined by the tree
 
         Args:
@@ -380,60 +395,46 @@ class LengthTree:
             If False a copy will be created and reshaped.
 
         Returns:
-            List: [description]
+            None objects arraged like the tree.
         """
         _items = items if inplace else copy.deepcopy(items)
-        # TODO: rewrite as no not use the list version of the tree object
-        as_list = self.to_list()
-        for sizes in reversed(as_list):
-            try:
-                if len(sizes) < 1:
-                    continue
-            except TypeError:
-                # not a list so not need to split
+
+        # Always one node at the top of the tree
+        top_node = self.nodes_for_level[0][0]
+
+        # Used to check if items are ever split.
+        # Use top node since it is not part of the loop
+        as_list = not top_node.is_constrained
+
+        for nodes in reversed(self.nodes_for_level[1:]):
+
+            # If 1 node and contrained by pruning do not split
+            # Assures that "segments[0].layers[0].thickness[:]" would result
+            # in a 1D list while "segments[0].layers[:].thickness[:]" would
+            # result in a 2D list even if there were only 1 layer
+            # print("is_constrained", nodes[0].is_constrained)
+            # if len(nodes) == 1 and nodes[0].is_constrained:
+            #     continue
+
+            if all([node.is_constrained for node in nodes]):
                 continue
 
-            # Don't add a level if all have only one child
-            if all([size == 1 for size in sizes]):
-                continue
+            as_list = True
+            nchildren = [node.nchildren() for node in nodes]
+            _items = split_items(_items, nchildren)
 
-            _items = split_items(_items, list(traverse(sizes)))
-        return _items
+        if as_list:
+            # Reduce dimensionality by 1
+            if top_node.is_constrained:
+                _items = _items[0]
 
-    def preprocess_query_path(path, *args, **kwargs):
-        """
-        Dummy preprocessor for query paths
-        """
-        return path, IDX_WILDCARD
-
-    def preprocess_model_path(path, level_name):
-        """
-        # Replace string between braces ([*level_name]) with [level_name].
-        # # * could be 2@, :@ or nothing
-
-        TODO: remove this old doc
-        Replace string between dots (.*level_name.) with .level_name.
-        # * could be 2@, :@ or nothing
-        """
-        # For dot-path
-        # pcmps = path.split('.')
-        # idxs = [idx for idx, pcmp in enumerate(pcmps) if level_name in pcmp]
-        # if len(idxs):
-        #     pcmps[idxs[0]] = level_name
-        # _path = '.'.join(pcmps)
-        # return re.sub("\.([^\.]+){}".format(level_name),
-        #                 '.{}'.format(level_name),
-        #                 path), level_name
-        # For epath
-        return (
-            re.sub(r"\[([^\.]+){}]".format(level_name), f"[{level_name}]", path),
-            level_name,
-        )
-
-    precessor_for_pathtype = {
-        "model": preprocess_model_path,
-        "query": preprocess_query_path,
-    }
+            return _items
+        else:
+            # TODO: could check len(items) = 1 at the top
+            assert (
+                len(items) == 1
+            ), f"Expected list of length 1, but found {len(items)}."
+            return _items
 
     def _node_for_idxs(self, idxs: List[int]):
         """
@@ -470,9 +471,7 @@ class LengthTree:
         self,
         path: HubitModelPath,
         flat: bool = False,
-        path_type: str = "model",
-        as_internal_path: bool = False,
-    ) -> List[HubitModelPath]:
+    ) -> List[HubitQueryPath]:
         """Expand model path with wildcard based on tree
 
         Example for a query path:
@@ -483,68 +482,73 @@ class LengthTree:
         Args:
             path (HubitModelPath): Model path with wildcards and index IDs
             flat (bool): Return expansion result as a flat list.
-            path_type (str): The path type. Valid path types are 'model' and 'query'. Not checked.
-            as_internal_path (bool): Return expansion result as internal paths
 
         Returns:
-            List[HubitModelPath]: Paths from expansion. Arranged in the shape
+            List: Paths from expansion. Arranged in the shape
             defined by the tree if flat = False. Otherwise a
             flat list.
         """
-        # Get the appropriate path preprocessor
-        path_preprocessor = LengthTree.precessor_for_pathtype[path_type]
-
         # Get the content of the braces
-        idxids = path.get_index_specifiers()
+        idxspecs = path.get_index_specifiers()
+        slices = path.get_slices()
 
-        # Expand the path (and do some pruning)
         paths = [path]
-        for idx_level, (level_name, idxid) in enumerate(zip(self.level_names, idxids)):
+        for idx_level, (idxspec, _slice, level_name) in enumerate(
+            zip(idxspecs, slices, self.level_names)
+        ):
             nodes = self.nodes_for_level[idx_level]
             paths_current_level = []
-
-            if path_type == "query" and not IDX_WILDCARD in idxid:
-                # for query paths we only look for IDX_WILDCARD (tgtstr)
-                # and therefor cannot handle fixed ilocs. For list[0].some_attr.numbers[:]
-                # the first level in the tree will have one child which would erroneously
-                # be inserted at the numbers wildcard
-                continue
-
             for _path, node in zip(paths, nodes):
+                if is_digit(_slice):
+                    # slice is digit so replace index specifier with that digit
+                    paths_current_level.append(_path.replace(idxspec, _slice))
+                elif _slice == IDX_WILDCARD or idxspec == level_name:
+                    # slice is wildcard so expand from node children
+                    paths_current_level.extend(
+                        [
+                            _path.replace(
+                                idxspec,
+                                str(child.index if child is not None else idx),
+                                1,
+                            )
+                            for idx, child in enumerate(node.children)
+                        ]
+                    )
+                else:
+                    raise HubitError(
+                        f"Unknown slice '{_slice}' for path '{path}' of type '{type(path)}'."
+                    )
+            paths = copy.deepcopy(paths_current_level)
 
-                _path, tgtstr = path_preprocessor(_path, level_name)
-
-                # Replace tgtstr with indices of children. Only replace first occurence
-                # from left since query strings may have multiple index wildcards (:)
-                paths_current_level.extend(
-                    [
-                        _path.replace(
-                            tgtstr, str(child.index if child is not None else idx), 1
-                        )
-                        for idx, child in enumerate(node.children)
-                    ]
-                )
-
-            paths = paths_current_level
-
-        if as_internal_path:
-            paths = [HubitModelPath.as_internal(path) for path in paths]
-
-        paths = [HubitModelPath(path) for path in paths]
+        paths = [HubitQueryPath(_path) for _path in paths]
         if flat:
             return paths
         else:
             return self.reshape(paths)
 
-    def none_like(self):
-        """Create nested lists in the shape of the tree
+    def _all_nodes_constrained(self):
+        return all(
+            [node.is_constrained for nodes in self.nodes_for_level for node in nodes]
+        )
+
+    def number_of_leaves(self):
+        """Number of leaves in the tree"""
+        return sum([node.nchildren() for node in self.nodes_for_level[-1]])
+
+    def none_like(self) -> Any:
+        """Create data structure in the shape of the tree
         filled with None
 
         Returns:
-            List: Nested list with None
+            Data structure with None
         """
-        nitems = sum([node.nchildren() for node in self.nodes_for_level[-1]])
-        return self.reshape([None for _ in range(nitems)])
+        # If all node are constrained the result is None. No list to reshape
+        if self._all_nodes_constrained():
+            return None
+
+        # Reshape a flat list with all elements set to None. The list has length
+        # like all leaves in the tree
+        return self.reshape([None for _ in range(self.number_of_leaves())])
 
     def __eq__(self, other):
         return self.to_list() == other.to_list()
@@ -552,19 +556,27 @@ class LengthTree:
     def __str__(self):
         lines = ["--------------------", "Tree"]
         for idx, (name, nodes) in enumerate(
-            zip(self.level_names, self.nodes_for_level)
+            zip(
+                self.level_names,
+                self.nodes_for_level,
+            )
         ):
             nparents = len({node.parent for node in nodes if node.parent is not None})
             nchildren = sum([node.nchildren() for node in nodes])
-            children_is_none = [
-                all([child is None for child in node.children]) for node in nodes
+            children_are_leaves = [
+                all([isinstance(child, LeafNode) for child in node.children])
+                for node in nodes
             ]
+            idx_node = [[child.index for child in node.children] for node in nodes]
+            is_constrained = [node.is_constrained for node in nodes]
+
             lines.append(
                 f"level={idx} ({name}), "
-                f"nodes={len(nodes)}, "
+                f"nodes={len(nodes)} (constrained: {is_constrained}), "
                 f"parents={nparents}, "
                 f"children={nchildren}, "
-                f"children are leaves={children_is_none}"
+                f"children are leaves={children_are_leaves}, "
+                f"child idxs={idx_node}"
             )
 
         lines.append("--------------------")
@@ -601,7 +613,6 @@ class _QueryExpansion:
             path, mpaths
         )
         self.expanded_paths_for_decomposed_path = {}
-
         # Get the index contexts for doing some tests
         _idx_contexts = {mpath.get_idx_context() for mpath in mpaths}
 
@@ -650,7 +661,7 @@ class _QueryExpansion:
             and self.path == self.decomposed_paths[0]
             and len(self.expanded_paths_for_decomposed_path[self.decomposed_paths[0]])
             == 1
-            and HubitQueryPath.as_internal(self.path)
+            and self.path
             == self.expanded_paths_for_decomposed_path[self.decomposed_paths[0]][0]
         ):
             return False
@@ -823,16 +834,14 @@ def _length_for_iterpaths(
 
     paths_next = paths_previous
     if len(connecting_paths) > 1:
-        # print(paths_previous)
         # Prepare paths for next recursive call by appending the
         # indices (from out_current_level) and the connecting path
-        # to the previosly found paths
+        # to the previously found paths
         paths_next = [
             "{}.{}.{}".format(path_previous, curidx, connecting_paths[1])
             for length, path_previous in zip(out_current_level, paths_previous)
             for curidx in range(length)
         ]
-        # print(paths_next)
         # Call again for next index ID
         out, paths_next = _length_for_iterpaths(
             connecting_paths[1:], input_data, out=out, paths_previous=paths_next
@@ -964,26 +973,6 @@ def idxs_for_matches(
         for idx, mpath in enumerate(mpaths)
         if check_path_match(qpath, mpath, accept_idx_wildcard)
     ]
-
-
-def get_iloc_indices(query_path: str, model_path: str, idxids: List[str]) -> Tuple:
-    """
-    List indices extracted from query based on location of
-    ilocstr in providerstring
-
-    BOTH SHOULD BE INTERNAL PATHS
-    """
-    # If no index IDS specified we cant find any index locations
-    if len(idxids) == 0:
-        return []
-
-    idxs = []
-    for qcmp, scmp in zip(query_path.split("."), model_path.split(".")):
-        if idxids[len(idxs)] in scmp:
-            idxs.append(qcmp.split("@")[0])
-            if len(idxs) == len(idxids):
-                break
-    return tuple(idxs)
 
 
 # def query_all(providerstrings, flat_input, ilocstr):

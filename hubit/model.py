@@ -380,7 +380,7 @@ class HubitModel(_HubitModel):
         for pvalues in ppvalues:
             _flat_input = copy.deepcopy(self.flat_input)
             for path, val in zip(paths, pvalues):
-                _flat_input[HubitModelPath.as_internal(path)] = val
+                _flat_input[path] = val
 
             if skipfun(_flat_input):
                 continue

@@ -1,19 +1,19 @@
 vol_inlet_flow: 20.
-lines:
+sites:
+- lines:
   - tanks:
-      - orifice_area: 0.5
-        discharge_coefficient: 0.4
-        tank_diameter: 0.4
-        overflow_height: 0.6
-        name: "tank0"
-      - orifice_area: 0.5
-        discharge_coefficient: 0.3
-        tank_diameter: 0.2
-        overflow_height: 0.8
-        name: "tank1"
-      - orifice_area: 0.5
-        discharge_coefficient: 0.3
-        tank_diameter: 0.2
-        overflow_height: 0.8
-        name: "tank2"
-  
+    - orifice_area: 0.5
+      discharge_coefficient: 0.4
+      tank_diameter: 0.4
+      overflow_height: 0.6
+      name: "tank0"
+    - orifice_area: 0.5
+      discharge_coefficient: 0.3
+      tank_diameter: 0.2
+      overflow_height: 0.8
+      name: "tank1"
+    - orifice_area: 0.5
+      discharge_coefficient: 0.3
+      tank_diameter: 0.2
+      overflow_height: 0.8
+      name: "tank2"

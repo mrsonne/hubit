@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Changed
 - Components need be specified under the `components` key in the model file. This **breaks** previous model files.
+- The format for cache files stored in the folder `.hubit_cache` has changed. To convert old cache files see the example code below. Alternatively, clear the `Hubit` cache using the function `hubit.clear_hubit_cache()`.
+
+
+The example code below converts the cache file `old.yml` to `new.yml`. The file name `old.yml` will, more realistically, be named something like `a70300027991e56db5e3b91acf8b68a5.yml`.
+
+```
+import re
+with open("old.yml", "r") as stream:
+    old_cache_data = stream.read()
+
+# Replace .DIGIT. with [DIGIT].
+new_cache_data = re.sub(r"\.(\d+).", r"[\1].", old_cache_data)
+
+with open("new.yml", "w") as handle:
+    handle.write(new_cache_data)
+```
+All files in the hubit cache folder `.hubit_cache` should be converted.
 
 ### Added
 - Multiple component may share the same entrypoint function. 
@@ -18,6 +35,7 @@ Jointly, the first two items allow for sequential calculations dependent calcula
 
 ### Fixed
 - The elements of lists that are leaves in the input data tree can now be referenced and queried. 
+- Lists of length 1 in input were erroneously interpreted as a simple value 
 
 ## [0.3.0] - 2021-05-07
 ### Changed

@@ -45,14 +45,6 @@ class TestShared(unittest.TestCase):
         self.querystring = HubitModelPath("segs[42].walls[3].temps")
         self.idxids = self.providerstring.get_index_specifiers()
 
-    def test_get_indices(self):
-        """Test that indices from query string are extracted correctly"""
-        mpath = HubitModelPath.as_internal(self.providerstring)
-        qpath = HubitModelPath.as_internal(self.querystring)
-        idxs = shared.get_iloc_indices(qpath, mpath, self.idxids)
-        idxs_expected = ("42", "3")
-        self.assertSequenceEqual(idxs, idxs_expected)
-
     def test_get_matches(self):
         """Test that we can find the provider strings
         that match the query
@@ -149,8 +141,6 @@ class TestShared(unittest.TestCase):
 
         paths = [["attr1", "attr2"], ["attr3", "attr4"]]
         valuemap = {"attr1": 1, "attr2": 2, "attr3": 3, "attr4": 4}
-
-        print("XXX", shared.setelemtents(paths, valuemap))
 
     def test_set_element_1d(self):
         data = [None, None, None]
@@ -269,7 +259,7 @@ class TestTree(unittest.TestCase):
     def test_0(self):
         """path is identical to template_path so the tree remains unchanged"""
         path = self.template_path
-        pruned_tree = self.tree.prune_from_path(path, self.template_path, inplace=False)
+        pruned_tree = self.tree.prune_from_path(path, inplace=False)
         self.assertEqual(self.tree, pruned_tree)
 
     def test_1(self):
@@ -279,70 +269,82 @@ class TestTree(unittest.TestCase):
         ['IDX_POS', [[1, 3, 2], [5, 1, 2, 4]]]]
         """
         expected_lengths = [1, 3, [1, 3, 2]]
-        path = HubitModelPath("segments[0].layers[:@IDX_LAY].test.positions[:@IDX_POS]")
-        pruned_tree = self.tree.prune_from_path(path, self.template_path, inplace=False)
+        path = HubitModelPath(
+            "segments[0@IDX_SEG].layers[:@IDX_LAY].test.positions[:@IDX_POS]"
+        )
+        pruned_tree = self.tree.prune_from_path(path, inplace=False)
         self.assertListEqual(pruned_tree.to_list(), expected_lengths)
 
         path = HubitQueryPath("segments[0].layers[:].test.positions[:]")
-        pruned_tree = self.tree.prune_from_path(path, self.template_path, inplace=False)
+        pruned_tree = self.tree.prune_from_path(path, inplace=False)
         self.assertListEqual(pruned_tree.to_list(), expected_lengths)
 
     def test_2(self):
         """Top level index fixed to 1"""
         expected_lengths = [1, 4, [5, 1, 2, 4]]
 
-        path = HubitModelPath("segments[1].layers[:@IDX_LAY].test.positions[:@IDX_POS]")
-        pruned_tree = self.tree.prune_from_path(path, self.template_path, inplace=False)
+        path = HubitModelPath(
+            "segments[1@IDX_SEG].layers[:@IDX_LAY].test.positions[:@IDX_POS]"
+        )
+        pruned_tree = self.tree.prune_from_path(path, inplace=False)
         self.assertListEqual(pruned_tree.to_list(), expected_lengths)
 
         path = HubitQueryPath("segments[1].layers[:].test.positions[:]")
-        pruned_tree = self.tree.prune_from_path(path, self.template_path, inplace=False)
+        pruned_tree = self.tree.prune_from_path(path, inplace=False)
         self.assertListEqual(pruned_tree.to_list(), expected_lengths)
 
     def test_2a(self):
         """Outside bounds top level index"""
-        path = HubitModelPath("segments[2].layers[:@IDX_LAY].test.positions[:@IDX_POS]")
+        path = HubitModelPath(
+            "segments[2@IDX_SEG].layers[:@IDX_LAY].test.positions[:@IDX_POS]"
+        )
         with self.assertRaises(shared.HubitIndexError) as context:
-            self.tree.prune_from_path(path, self.template_path)
+            self.tree.prune_from_path(path)
 
         path = HubitQueryPath("segments[2].layers[:].test.positions[:]")
         with self.assertRaises(shared.HubitIndexError) as context:
-            self.tree.prune_from_path(path, self.template_path)
+            self.tree.prune_from_path(path)
 
     def test_3(self):
         """Middle index fixed"""
         expected_lengths = [2, [1, 1], [[3], [1]]]
 
-        path = HubitModelPath("segments[:@IDX_SEG].layers[1].test.positions[:@IDX_POS]")
-        pruned_tree = self.tree.prune_from_path(path, self.template_path, inplace=False)
+        path = HubitModelPath(
+            "segments[:@IDX_SEG].layers[1@IDX_LAY].test.positions[:@IDX_POS]"
+        )
+        pruned_tree = self.tree.prune_from_path(path, inplace=False)
         self.assertListEqual(pruned_tree.to_list(), expected_lengths)
 
         path = HubitQueryPath("segments[:].layers[1].test.positions[:]")
-        pruned_tree = self.tree.prune_from_path(path, self.template_path)
+        pruned_tree = self.tree.prune_from_path(path)
         self.assertListEqual(pruned_tree.to_list(), expected_lengths)
 
     def test_4(self):
         """In bounds for all bottom-most paths."""
         expected_lengths = [2, [3, 4], [[1, 1, 1], [1, 1, 1, 1]]]
 
-        path = HubitModelPath("segments[:@IDX_SEG].layers[:@IDX_LAY].test.positions[0]")
-        pruned_tree = self.tree.prune_from_path(path, self.template_path, inplace=False)
+        path = HubitModelPath(
+            "segments[:@IDX_SEG].layers[:@IDX_LAY].test.positions[0@IDX_POS]"
+        )
+        pruned_tree = self.tree.prune_from_path(path, inplace=False)
         self.assertListEqual(pruned_tree.to_list(), expected_lengths)
 
         path = HubitQueryPath("segments[:].layers[:].test.positions[0]")
-        pruned_tree = self.tree.prune_from_path(path, self.template_path, inplace=False)
+        pruned_tree = self.tree.prune_from_path(path, inplace=False)
         self.assertListEqual(pruned_tree.to_list(), expected_lengths)
 
     def test_5(self):
         """Two indices fixed"""
         expected_lengths = [1, 4, [1, 1, 1, 1]]
 
-        path = HubitModelPath("segments[1].layers[:@IDX_LAY].test.positions[0]")
-        pruned_tree = self.tree.prune_from_path(path, self.template_path, inplace=False)
+        path = HubitModelPath(
+            "segments[1@IDX_SEG].layers[:@IDX_LAY].test.positions[0@IDX_POS]"
+        )
+        pruned_tree = self.tree.prune_from_path(path, inplace=False)
         self.assertListEqual(pruned_tree.to_list(), expected_lengths)
 
         path = HubitQueryPath("segments[1].layers[:].test.positions[0]")
-        pruned_tree = self.tree.prune_from_path(path, self.template_path, inplace=False)
+        pruned_tree = self.tree.prune_from_path(path, inplace=False)
         self.assertListEqual(pruned_tree.to_list(), expected_lengths)
 
     def test_5a(self):
@@ -354,12 +356,14 @@ class TestTree(unittest.TestCase):
         """
         expected_lengths = [1, 2, [1, 1]]
 
-        path = HubitModelPath("segments[:@IDX_SEG].layers[:@IDX_LAY].test.positions[3]")
-        pruned_tree = self.tree.prune_from_path(path, self.template_path, inplace=False)
+        path = HubitModelPath(
+            "segments[:@IDX_SEG].layers[:@IDX_LAY].test.positions[3@IDX_POS]"
+        )
+        pruned_tree = self.tree.prune_from_path(path, inplace=False)
         self.assertListEqual(pruned_tree.to_list(), expected_lengths)
 
         path = HubitQueryPath("segments[:].layers[:].test.positions[3]")
-        pruned_tree = self.tree.prune_from_path(path, self.template_path, inplace=False)
+        pruned_tree = self.tree.prune_from_path(path, inplace=False)
         self.assertListEqual(pruned_tree.to_list(), expected_lengths)
 
     def test_6(self):
@@ -369,14 +373,14 @@ class TestTree(unittest.TestCase):
         Thats is OK since Hubit will raise an error and stop execution
         """
         path = HubitModelPath(
-            "segments[:@IDX_SEG].layers[:@IDX_LAY].test.positions1[7]"
+            "segments[:@IDX_SEG].layers[:@IDX_LAY].test.positions1[7@IDX_POS]"
         )
         with self.assertRaises(shared.HubitIndexError) as context:
-            self.tree.prune_from_path(path, self.template_path, inplace=False)
+            self.tree.prune_from_path(path, inplace=False)
 
         path = HubitQueryPath("segments[:].layers[:].test.positions1[7]")
         with self.assertRaises(shared.HubitIndexError) as context:
-            self.tree.prune_from_path(path, self.template_path, inplace=False)
+            self.tree.prune_from_path(path, inplace=False)
 
     def test_prune(self):
         def print_test(tree):
@@ -399,12 +403,13 @@ class TestTree(unittest.TestCase):
         nodes = clipped_tree.nodes_for_level[-1]
 
         # all children should be None at bottom level
-        children_is_none = [
-            all([child is None for child in node.children]) for node in nodes
+        children_are_leaves = [
+            all([isinstance(child, shared.LeafNode) for child in node.children])
+            for node in nodes
         ]
 
         with self.subTest():
-            self.assertTrue(all(children_is_none))
+            self.assertTrue(all(children_are_leaves))
 
         with self.subTest():
             self.assertTrue(len(clipped_tree.level_names) == 1)
@@ -503,54 +508,50 @@ class TestTree(unittest.TestCase):
         expected_paths = [
             [  # IDX_SEG element 0 has 3 IDX_LAY elements
                 [  # IDX_LAY element 0 has 1 IDX_POS elements
-                    "segments.0.layers.0.test.positions.0"
+                    "segments[0].layers[0].test.positions[0]"
                 ],
                 [  # IDX_LAY element 1 has 3 IDX_POS elements
-                    "segments.0.layers.1.test.positions.0",
-                    "segments.0.layers.1.test.positions.1",
-                    "segments.0.layers.1.test.positions.2",
+                    "segments[0].layers[1].test.positions[0]",
+                    "segments[0].layers[1].test.positions[1]",
+                    "segments[0].layers[1].test.positions[2]",
                 ],
                 [  # IDX_LAY element 2 has 2 IDX_POS elements
-                    "segments.0.layers.2.test.positions.0",
-                    "segments.0.layers.2.test.positions.1",
+                    "segments[0].layers[2].test.positions[0]",
+                    "segments[0].layers[2].test.positions[1]",
                 ],
             ],
             [  # IDX_SEG element 1 has 4 IDX_LAY elements
                 [  # IDX_LAY element 0 has 5 IDX_POS elements
-                    "segments.1.layers.0.test.positions.0",
-                    "segments.1.layers.0.test.positions.1",
-                    "segments.1.layers.0.test.positions.2",
-                    "segments.1.layers.0.test.positions.3",
-                    "segments.1.layers.0.test.positions.4",
+                    "segments[1].layers[0].test.positions[0]",
+                    "segments[1].layers[0].test.positions[1]",
+                    "segments[1].layers[0].test.positions[2]",
+                    "segments[1].layers[0].test.positions[3]",
+                    "segments[1].layers[0].test.positions[4]",
                 ],
                 [  # IDX_LAY element 0 has 1 IDX_POS elements
-                    "segments.1.layers.1.test.positions.0",
+                    "segments[1].layers[1].test.positions[0]",
                 ],
                 [  # IDX_LAY element 0 has 2 IDX_POS elements
-                    "segments.1.layers.2.test.positions.0",
-                    "segments.1.layers.2.test.positions.1",
+                    "segments[1].layers[2].test.positions[0]",
+                    "segments[1].layers[2].test.positions[1]",
                 ],
                 [  # IDX_LAY element 0 has 4 IDX_POS elements
-                    "segments.1.layers.3.test.positions.0",
-                    "segments.1.layers.3.test.positions.1",
-                    "segments.1.layers.3.test.positions.2",
-                    "segments.1.layers.3.test.positions.3",
+                    "segments[1].layers[3].test.positions[0]",
+                    "segments[1].layers[3].test.positions[1]",
+                    "segments[1].layers[3].test.positions[2]",
+                    "segments[1].layers[3].test.positions[3]",
                 ],
             ],
         ]
 
-        paths = self.tree.expand_path(path, as_internal_path=True)
+        paths = self.tree.expand_path(path)
         self.assertSequenceEqual(paths, expected_paths)
 
     def test_expand_path2(self):
         """Expand path"""
         paths = (
             HubitModelPath("segments[:@IDX_SEG].layers[:@IDX_LAY].test"),
-            HubitModelPath("segments[:].layers[:].test"),
-        )
-        path_types = (
-            "model",
-            "query",
+            HubitQueryPath("segments[:].layers[:].test"),
         )
 
         # path = "segments.:@IDX_SEG.layers.:@IDX_LAY.test"
@@ -571,18 +572,15 @@ class TestTree(unittest.TestCase):
             ],
         ]
 
-        for path, path_type in zip(paths, path_types):
-            with self.subTest(path=path, path_type=path_type):
-                expanded_paths = tree.expand_path(path, path_type=path_type)
+        for path in paths:
+            with self.subTest(path=path):
+                expanded_paths = tree.expand_path(path)
                 self.assertSequenceEqual(expanded_paths, expected_paths)
 
     def test_expand_mpath3(self):
         """Prune tree before expanding. Two indices vary so
         expanded paths is 2D
         """
-        template_path = HubitModelPath(
-            "segments[:@IDX_SEG].layers[:@IDX_LAY].test.positions[:@IDX_POS]"
-        )
         # 1 + 3 + 2 values for segment 0
         expected_paths = [
             [
@@ -600,26 +598,30 @@ class TestTree(unittest.TestCase):
         ]
 
         mpath = HubitModelPath(
-            "segments[0].layers[:@IDX_LAY].test.positions[:@IDX_POS]"
+            "segments[0@IDX_SEG].layers[:@IDX_LAY].test.positions[:@IDX_POS]"
         )
-        pruned_tree = self.tree.prune_from_path(mpath, template_path, inplace=False)
+        pruned_tree = self.tree.prune_from_path(mpath, inplace=False)
         paths = pruned_tree.expand_path(mpath)
         self.assertSequenceEqual(paths, expected_paths)
 
         qpath = HubitQueryPath("segments[0].layers[:].test.positions[:]")
-        pruned_tree = self.tree.prune_from_path(qpath, template_path, inplace=False)
+        pruned_tree = self.tree.prune_from_path(qpath, inplace=False)
         paths = pruned_tree.expand_path(mpath)
         self.assertSequenceEqual(paths, expected_paths)
 
     def test_expand_mpath4(self):
-        """Prune tree before expanding. Ine index varies so
+        """Prune tree before expanding. One index varies so
         expanded paths is 1D
         """
-        path = HubitModelPath("segments[0].layers[:@IDX_LAY].test.positions[1]")
+        print(self.tree)
+        path = HubitModelPath(
+            "segments[0@IDX_SEG].layers[:@IDX_LAY].test.positions[1@IDX_POS]"
+        )
+        # path = HubitModelPath("segments[0].layers[:@IDX_LAY].test.positions[1]")
         template_path = HubitModelPath(
             "segments[:@IDX_SEG].layers[:@IDX_LAY].test.positions[:@IDX_POS]"
         )
-        self.tree.prune_from_path(path, template_path)
+        self.tree.prune_from_path(path)
         # 1 + 3 + 2 values for segment 0
         expected_paths = [
             "segments[0].layers[1].test.positions[1]",
@@ -654,7 +656,7 @@ class TestTree(unittest.TestCase):
         }
 
         result = {
-            name: tree.expand_path(path_consumed_for_name[name], as_internal_path=False)
+            name: tree.expand_path(path_consumed_for_name[name])
             for name, tree in tree_for_name.items()
         }
 
@@ -688,17 +690,19 @@ class TestTree(unittest.TestCase):
             for name, path in path_consumed_for_name.items()
         }
 
+        tree_for_name["attrs"].prune_from_path(path_consumed_for_name["attrs"])
+
         result = {
-            name: tree.expand_path(path_consumed_for_name[name], path_type="model")
+            name: tree.expand_path(path_consumed_for_name[name])
             for name, tree in tree_for_name.items()
         }
-
         self.assertDictEqual(expected_result, result)
 
     def test_none_like_1(self):
         """
         Get a nested list corresponding to the tree
         """
+        print(self.tree)
         result = self.tree.none_like()
         expected_result = [
             [[None], [None, None, None], [None, None]],
@@ -709,6 +713,7 @@ class TestTree(unittest.TestCase):
                 [None, None, None, None],
             ],
         ]
+        print(expected_result)
         self.assertListEqual(result, expected_result)
 
     def test_none_like_2(self):
@@ -836,35 +841,16 @@ class TestTree(unittest.TestCase):
         only node element per nested list
         """
         # Two nested lists of length 1
-        yml_input = """
+        yml_inputs = {
+            "1d": """
                     layers:
                       - dummy1: 0.1 
                         dummy2: dummy_value
                         test:
                           positions: 
                             - 1
-                    """
-        input_data = yaml.load(yml_input, Loader=yaml.FullLoader)
-
-        # Point to all elements
-        path = HubitModelPath("layers[:@IDX_LAY].test.positions[:@IDX_POS]")
-        tpath = HubitModelPath.as_internal(path)
-        tree = shared.LengthTree.from_data(path, input_data)
-        print(type(tree))
-        result = tree.none_like()
-        print(tree)
-        print("1D list: WHY?!!?")
-        print(result)
-        print(
-            f"expected 2D list like {[[None]]} since these are actually lists in the model"
-        )
-        print("Reduction in dimensionality should only happen during pruning")
-        pruned_tree = tree.prune_from_path(
-            "layers.:.test.positions.:", tpath, inplace=False
-        )
-
-        # Two nested lists of length 2
-        yml_input = """
+                    """,
+            "2d": """
                     layers:
                       - dummy1: 0.1 
                         dummy2: dummy_value
@@ -878,36 +864,74 @@ class TestTree(unittest.TestCase):
                           positions: 
                             - 3
                             - 4
-                    """
-        input_data = yaml.load(yml_input, Loader=yaml.FullLoader)
+                    """,
+        }
 
-        # Point to all elements
-        tree = shared.LengthTree.from_data(path, input_data)
-        result = tree.none_like()
-        print(tree)
-        print("2D list: ok")
-        print(result)
+        test_items = [
+            (
+                HubitModelPath("layers[:@IDX_LAY].test.positions[:@IDX_POS]"),
+                None,
+                {"1d": [[None]], "2d": [[None, None], [None, None]]},
+            ),
+            (
+                HubitModelPath("layers[0@IDX_LAY].test.positions[0@IDX_POS]"),
+                None,
+                {"1d": None, "2d": None},
+            ),
+            (
+                HubitModelPath("layers[0@IDX_LAY].test.positions[:@IDX_POS]"),
+                None,
+                {"1d": [None], "2d": [None, None]},
+            ),
+            (
+                HubitModelPath("layers[:@IDX_LAY].test.positions[0@IDX_POS]"),
+                None,
+                {"1d": [None], "2d": [None, None]},
+            ),
+            (
+                HubitModelPath("layers[:@IDX_LAY].test.positions[:@IDX_POS]"),
+                HubitQueryPath("layers[:].test.positions[:]"),
+                {"1d": [[None]], "2d": [[None, None], [None, None]]},
+            ),
+            (
+                HubitModelPath("layers[:@IDX_LAY].test.positions[:@IDX_POS]"),
+                HubitQueryPath("layers[0].test.positions[0]"),
+                {"1d": None, "2d": None},
+            ),
+            (
+                HubitModelPath("layers[:@IDX_LAY].test.positions[:@IDX_POS]"),
+                HubitQueryPath("layers[:].test.positions[0]"),
+                {"1d": [None], "2d": [None, None]},
+            ),
+            (
+                HubitModelPath("layers[:@IDX_LAY].test.positions[:@IDX_POS]"),
+                HubitQueryPath("layers[0].test.positions[:]"),
+                {"1d": [None], "2d": [None, None]},
+            ),
+        ]
 
-        path = "layers.:.test.positions.:"
-        pruned_tree = tree.prune_from_path(path, tpath, inplace=False)
-        print(pruned_tree)
-        result = pruned_tree.none_like()
-        print("2D list: ok")
-        print(result)
+        for input_id, yml_input in yml_inputs.items():
+            input_data = yaml.load(yml_input, Loader=yaml.FullLoader)
 
-        path = "layers.0.test.positions.:"
-        pruned_tree = tree.prune_from_path(path, tpath, inplace=False)
-        print(pruned_tree)
-        result = pruned_tree.none_like()
-        print("1D list: ok")
-        print(result)
-
-        path = "layers.0.test.positions.0"
-        pruned_tree = tree.prune_from_path(path, tpath, inplace=False)
-        print(pruned_tree)
-        result = pruned_tree.none_like()
-        print("1D list: WHY?!?!? I would expect a single object like None")
-        print(result)
+            for test_item in test_items:
+                mpath, qpath, expected_result = test_item
+                expected_result = expected_result[input_id]
+                tree = shared.LengthTree.from_data(mpath, input_data, prune=True)
+                if qpath is not None:
+                    tree.prune_from_path(qpath)
+                print("Test:", input_id, mpath, qpath)
+                result = tree.none_like()
+                with self.subTest(
+                    result=result,
+                    expected_result=expected_result,
+                    mapth=mpath,
+                    qpath=qpath,
+                    input_id=input_id,
+                ):
+                    if expected_result is None:
+                        self.assertEqual(result, expected_result)
+                    else:
+                        self.assertListEqual(result, expected_result)
 
 
 class TestQueryExpansion(unittest.TestCase):

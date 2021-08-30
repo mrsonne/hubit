@@ -5,7 +5,7 @@ import yaml
 from hubit.model import HubitModel
 from hubit.qrun import _QueryRunner
 from hubit.errors import HubitModelQueryError
-from hubit.config import FlatData, HubitModelConfig
+from hubit.config import FlatData, HubitModelConfig, HubitQueryPath
 
 THIS_FILE = os.path.realpath(__file__)
 THIS_DIR = os.path.dirname(THIS_FILE)
@@ -52,12 +52,12 @@ def subscriptions_for_component_idx(model_cfg, comp_idx, iloc, idxid):
         pass
 
     # Replace ilocstr with actual iloc
-    consumes = [path.replace(idxid, ilocstr) for path in consumes]
+    consumes = [path.replace(idxid, f"{ilocstr}@{idxid}") for path in consumes]
 
     provides = [
         binding.path for binding in model_cfg.components[comp_idx].provides_results
     ]
-    provides = [path.replace(idxid, ilocstr) for path in provides]
+    provides = [path.replace(idxid, f"{ilocstr}@{idxid}") for path in provides]
 
     return consumes, provides
 
@@ -79,14 +79,16 @@ class TestRunner(unittest.TestCase):
 
         # Query which does not consume results
         self.idx = 1
-        self.querystr_level0 = "list[{}].some_attr.two_x_numbers".format(self.idx)
-        self.querystr_level1 = "list[{}].some_attr.two_x_numbers_x_factor".format(
-            self.idx
+        self.querystr_level0 = HubitQueryPath(
+            "list[{}].some_attr.two_x_numbers".format(self.idx)
+        )
+        self.querystr_level1 = HubitQueryPath(
+            "list[{}].some_attr.two_x_numbers_x_factor".format(self.idx)
         )
 
     def test_worker_comp1(self):
         """ """
-        # Component index in model (TODO: brittle)
+        # Component index in model (TODO: brittle)'
         comp_idx = 1
         qstr = self.querystr_level0
 
@@ -100,7 +102,6 @@ class TestRunner(unittest.TestCase):
 
         test_consumes = set(worker_consumes) == set(worker_consumes_expected)
         self.assertTrue(test_consumes)
-
         test_provides = set(worker_provides) == set(worker_provides_expected)
         self.assertTrue(test_provides)
 
@@ -131,10 +132,9 @@ class TestRunner(unittest.TestCase):
         """
         manager = None
         with self.assertRaises(HubitModelQueryError):
-            self.qr._worker_for_query(manager, "i.dont.exist")
+            self.qr._worker_for_query(manager, HubitQueryPath("i.dont.exist"))
 
     def get_worker_counts(self, queries):
-        # queries = dot-queries
         flat_results = FlatData()
         flat_input = FlatData.from_dict(
             self.input,
@@ -143,9 +143,9 @@ class TestRunner(unittest.TestCase):
         )
         worker_counts = []
         manager = None
-        for q in queries:
+        for qpaths in queries:
             self.qr.spawn_workers(
-                manager, q, flat_input, flat_results, flat_input, dryrun=True
+                manager, qpaths, flat_input, flat_results, flat_input, dryrun=True
             )
             worker_counts.append(len(self.qr.workers))
 
@@ -155,13 +155,10 @@ class TestRunner(unittest.TestCase):
         """Test number of workers on level 0 quries ie queries
         that have no dependencies
         """
-        queries = [
-            (self.querystr_level0,),
-        ]
+        queries = [[self.querystr_level0]]
 
-        expected_worker_counts = [
-            1,  # Level 0 worker on specific index yields 1 worker
-        ]
+        # Level 0 worker on specific index yields 1 worker
+        expected_worker_counts = [1]
         worker_counts = self.get_worker_counts(queries)
         self.assertListEqual(worker_counts, expected_worker_counts)
 
@@ -169,38 +166,27 @@ class TestRunner(unittest.TestCase):
         """Test number of workers on level 1 queries i.e. queries
         that have one dependency
         """
-        queries = [
-            (self.querystr_level1,),
-        ]
-        expected_worker_counts = [
-            2,  # Level 1 worker on specific index yields 2 workers - one for level 0 and one for level 1
-        ]
+        queries = [(self.querystr_level1,)]
+
+        # Level 1 worker on specific index yields 2 workers - one for level 0 and one for level 1
+        expected_worker_counts = [2]
         worker_counts = self.get_worker_counts(queries)
         self.assertListEqual(worker_counts, expected_worker_counts)
 
     def test_number_of_workers_composite(self):
         """Test composite queries"""
-        queries = [
-            (
-                self.querystr_level0,
-                self.querystr_level1,
-            )
-        ]
-        expected_worker_counts = [
-            2,  # Level 1 query requires the level 0 attr so self.querystr_level0 is superfluous
-        ]
+        queries = [(self.querystr_level0, self.querystr_level1)]
+
+        # Level 1 query requires the level 0 attr so self.querystr_level0 is superfluous
+        expected_worker_counts = [2]
         worker_counts = self.get_worker_counts(queries)
         self.assertListEqual(worker_counts, expected_worker_counts)
 
     def test_number_of_workers_slicing(self):
         """[summary]"""
-        queries = [
-            ("factors",),
-        ]
+        queries = [(HubitQueryPath("factors"),)]
         worker_counts = self.get_worker_counts(queries)
-        expected_worker_counts = [
-            1,
-        ]
+        expected_worker_counts = [1]
         self.assertListEqual(worker_counts, expected_worker_counts)
 
     def test_number_of_workers_multiple_levels(self):
@@ -209,33 +195,27 @@ class TestRunner(unittest.TestCase):
         """
         queries = [
             (
-                "list.0.some_attr.two_x_numbers_x_factor",
-                "list.1.some_attr.two_x_numbers_x_factor",
+                HubitQueryPath("list[0].some_attr.two_x_numbers_x_factor"),
+                HubitQueryPath("list[1].some_attr.two_x_numbers_x_factor"),
             )
         ]
         worker_counts = self.get_worker_counts(queries)
-        expected_worker_counts = [
-            4,
-        ]
+        expected_worker_counts = [4]
         self.assertListEqual(worker_counts, expected_worker_counts)
 
     def test_number_of_workers_case6(self):
         """Query multiple attributes that are actually supplied by the
         same component. Therefore, only one worker should be deployed.
         """
-
-        # _deploy take internal paths
         queries = [
-            (
-                "list.0.some_attr.inner_list.0.yval",
-                "list.0.some_attr.inner_list.1.yval",
-            )
+            [
+                HubitQueryPath("list[0].some_attr.inner_list[0].yval"),
+                HubitQueryPath("list[0].some_attr.inner_list[1].yval"),
+            ]
         ]
 
         worker_counts = self.get_worker_counts(queries)
-        expected_worker_counts = [
-            1,
-        ]
+        expected_worker_counts = [1]
         self.assertListEqual(worker_counts, expected_worker_counts)
 
     if __name__ == "__main__":

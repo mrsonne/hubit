@@ -2,6 +2,7 @@ import unittest
 import re
 from hubit.config import (
     HubitModelComponent,
+    _HubitPath,
     HubitModelPath,
     HubitQueryPath,
     FlatData,
@@ -22,6 +23,18 @@ class TestHubitComponent(unittest.TestCase):
         }
         with self.assertRaises(HubitModelComponentError):
             HubitModelComponent.from_cfg(cfg, 0)
+
+
+class TestHubitPath(unittest.TestCase):
+    def test_from_dotted(self):
+        """Convert dotted path to path object and back"""
+        dotted_path_string = "hi.how.12.are.you.34"
+        result = _HubitPath.from_dotted(dotted_path_string)
+        expected_result = "hi.how[12].are.you[34]"
+        self.assertEqual(result, expected_result)
+
+        result = _HubitPath.as_internal(result)
+        self.assertEqual(result, dotted_path_string)
 
 
 class TestHubitQueryPath(unittest.TestCase):
@@ -117,10 +130,20 @@ class TestHubitModelPath(unittest.TestCase):
             "segments[IDX_SEG].layers[IDX_LAY].test.positions[IDX_POS]"
         )
         idxids = path.get_index_specifiers()
-        internal_paths = path.paths_between_idxids(idxids)
+        paths = path.paths_between_idxids(idxids)
         # Last element is empty since there are no attribute after IDX_POS
-        expected_internal_paths = ["segments", "layers", "test.positions", ""]
-        self.assertSequenceEqual(expected_internal_paths, internal_paths)
+        expected_paths = ["segments", "layers", "test.positions", ""]
+        self.assertSequenceEqual(expected_paths, paths)
+
+    def test_paths_between_idxids_tailed(self):
+        path = HubitModelPath(
+            "segments[IDX_SEG].layers[IDX_LAY].test.positions[IDX_POS].attr"
+        )
+        idxids = path.get_index_specifiers()
+        paths = path.paths_between_idxids(idxids)
+        # Last element is empty since there are no attribute after IDX_POS
+        expected_paths = ["segments", "layers", "test.positions", "attr"]
+        self.assertSequenceEqual(expected_paths, paths)
 
     def test_validate_idxids(self):
         # Valid
@@ -154,6 +177,7 @@ class TestHubitModelPath(unittest.TestCase):
         assert path.as_query_depth_path() == "segments[*].layers[*]"
 
 
+# TODO: relative-spatial-refs. test key type == HobitModelPath
 class TestFlatData(unittest.TestCase):
     def test_from_dict(self):
         """
@@ -164,8 +188,8 @@ class TestFlatData(unittest.TestCase):
             data, include_patterns=["level1.level2.attr1", "level1.level2.attr2"]
         )
         expected_result = {
-            "level1.level2.0.attr1": 1,
-            "level1.level2.1.attr2": 2,
+            "level1.level2[0].attr1": 1,
+            "level1.level2[1].attr2": 2,
         }
 
         assert result == expected_result
@@ -177,12 +201,12 @@ class TestFlatData(unittest.TestCase):
         data = {"list": [1, 2, 3], "level0": {"list": [1, 2, 3]}}
         result = FlatData.from_dict(data, include_patterns=["list", "level0.list"])
         expected_result = {
-            "list.0": 1,
-            "list.1": 2,
-            "list.2": 3,
-            "level0.list.0": 1,
-            "level0.list.1": 2,
-            "level0.list.2": 3,
+            "list[0]": 1,
+            "list[1]": 2,
+            "list[2]": 3,
+            "level0.list[0]": 1,
+            "level0.list[1]": 2,
+            "level0.list[2]": 3,
         }
         assert result == expected_result
 
@@ -247,10 +271,10 @@ class TestFlatData(unittest.TestCase):
         )
         print(result)
         expected_result = {
-            "level0.0.level1": [1, 2, 3, 4],
-            "level0.0.ff": 4,
-            "level0.1.level1": [2, 5],
-            "level0.1.gg": 5,
+            "level0[0].level1": [1, 2, 3, 4],
+            "level0[0].ff": 4,
+            "level0[1].level1": [2, 5],
+            "level0[1].gg": 5,
             "number": 3,
         }
 

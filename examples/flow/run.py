@@ -27,7 +27,7 @@ pprint(response)
 print(hmodel.log())
 hmodel.clean_log()
 
-# # Should result in a number
+# Should result in a number
 print(f"\nQuery")
 query = ["sites[0].lines[0].tanks[2].vol_outlet_flow"]
 pprint(query)
@@ -38,7 +38,7 @@ pprint(response)
 print(hmodel.log())
 hmodel.clean_log()
 
-# Should result in three numbers
+# # Should result in three numbers
 query = [
     "sites[0].lines[0].tanks[0].vol_outlet_flow",
     "sites[0].lines[0].tanks[1].vol_outlet_flow",
@@ -60,20 +60,23 @@ response = hmodel.get(query, use_multi_processing=False)
 print("Response (One path with list as value):")
 print(response)
 print(hmodel.log())
+hmodel.clean_log()
 
 # Should result in double nested list
-# query = ["sites[0].lines[:].tanks[:].vol_outlet_flow"]
-# print(f"\nSpawns 3 workers: {query}")
-# response = hmodel.get(query, use_multi_processing=False)
-# print("Response (One path with double nested list as value):")
-# print(response)
-# print(hmodel.log())
+query = ["sites[0].lines[:].tanks[:].vol_outlet_flow"]
+print(f"\nSpawns 3 workers: {query}")
+response = hmodel.get(query, use_multi_processing=False)
+print("Response (One path with double nested list as value):")
+print(response)
+print(hmodel.log())
+hmodel.clean_log()
 
 
 # Should result in triple nested list
-# query = ["sites[:].lines[:].tanks[:].vol_outlet_flow"]
-# print(f"\nSpawns 3 workers: {query}")
-# response = hmodel.get(query, use_multi_processing=False)
-# print("Response (One path with triple nested list as value):")
-# print(response)
-# print(hmodel.log())
+query = ["sites[:].lines[:].tanks[:].vol_outlet_flow"]
+print(f"\nSpawns 3 workers: {query}")
+response = hmodel.get(query, use_multi_processing=False)
+print("Response (One path with triple nested list as value):")
+print(response)
+print(hmodel.log())
+hmodel.clean_log()

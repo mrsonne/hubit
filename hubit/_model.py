@@ -841,8 +841,11 @@ class _HubitModel:
                 idxids = qexp.path.get_index_specifiers()
                 tree = self._tree_for_qpath[qexp.path]
                 # TODO: relative-spatial-refs. Can we prune earlier on?
-                tree.prune_from_path(qexp.path)
-                values_decomp = tree.none_like()
+                # inplace = False to leave the model state unchanged.
+                # This is important for successive get requests
+                values_decomp = tree.prune_from_path(
+                    qexp.path, inplace=False
+                ).none_like()
                 # Extract iloc indices for each query in the expanded query
                 for expanded_paths in qexp.expanded_paths_for_decomposed_path.values():
                     for path in expanded_paths:

@@ -177,7 +177,6 @@ class TestHubitModelPath(unittest.TestCase):
         assert path.as_query_depth_path() == "segments[*].layers[*]"
 
 
-# TODO: relative-spatial-refs. test key type == HobitModelPath
 class TestFlatData(unittest.TestCase):
     def test_from_dict(self):
         """
@@ -191,6 +190,8 @@ class TestFlatData(unittest.TestCase):
             "level1.level2[0].attr1": 1,
             "level1.level2[1].attr2": 2,
         }
+
+        self.assertTrue(all([isinstance(key, HubitQueryPath) for key in result.keys()]))
 
         assert result == expected_result
 

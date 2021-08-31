@@ -9,6 +9,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 import pathlib
 import uuid
+from abc import ABC, abstractmethod
 from collections import abc
 import yaml
 import re
@@ -31,6 +32,12 @@ SEP = "."
 
 
 class _HubitPath(str):
+    # https://stackoverflow.com/questions/37398966/python-abstractmethod-with-another-baseclass-breaks-abstract-functionality
+
+    char_wildcard = ":"
+    regex_idx_spec = r"\[(.*?)\]"
+    regex_braces = r"\[([^\.]+)]"
+
     # TODO relative-spatial-refs as metaclass & implement shared functionality
     @staticmethod
     def as_internal(path: Any) -> str:
@@ -66,43 +73,6 @@ class _HubitPath(str):
                 return False
         return len(stack) == 0
 
-
-# or inherit from collections import UserString
-class HubitQueryPath(_HubitPath):
-    """
-    Reference a field in the results data. The syntax follows general
-    Python syntax for nested objects. Only square
-    brackets are allowed. The content of the brackets is called an index specifier.
-    Currently, index specifiers should be either a positive integer or
-    the character `:`. General slicing and negative indices is not supported.
-
-    To query, for example, the attribute `weight` in the 4*th* element of the list
-    `wheels`, which is stored on the object `car` use the path
-    `car.wheels[3].weight`. The query path `car.wheels[:].weight`
-    represents a list with elements being the `weight` for all
-    wheels of the car.
-
-    If there are multiple cars stored in a list of cars, the
-    query path `cars[:].wheels[3].weight` represents a list where the elements
-    would be the weights for the 4*th* wheel for all cars. The
-    query path `cars[:].wheels[:].weight` represents a nested list where
-    each outer list item represents a car and the corresponding inner list elements
-    represent the weights for all wheels for that car.
-    """
-
-    char_wildcard = ":"
-    regex_idx_spec = r"\[(.*?)\]"
-    regex_allowed_idx_spec = "^[:0-9]+$"
-
-    def _validate_index_specifiers(self):
-        idx_specs = self.get_index_specifiers()
-        assert all(
-            [
-                idx_spec.isdigit() or idx_spec == HubitQueryPath.char_wildcard
-                for idx_spec in idx_specs
-            ]
-        ), ""
-
     def _validate_brackets(self):
         # ] should always be followed by a . unless the ] is the last character
         assert all(
@@ -114,47 +84,9 @@ class HubitQueryPath(_HubitPath):
         ), f"Close brace not folloed by a . in path {self}"
 
         # Check that braces are balanced
-        assert HubitQueryPath.balanced(self), f"Brackets not balanced for path {self}"
+        assert _HubitPath.balanced(self), f"Brackets not balanced for path {self}"
 
-    def validate(self):
-        self._validate_brackets()
-        self._validate_index_specifiers()
-
-    def get_index_specifiers(self) -> List[str]:
-        """Get the index specifiers from the path i.e. the
-        full content of the square braces.
-
-        Returns:
-            List: Index specification strings from path
-        """
-        # return re.findall(r"\[(\w+)\]", path) # Only word charaters i.e. [a-zA-Z0-9_]+
-        return re.findall(
-            HubitQueryPath.regex_idx_spec, self
-        )  # Any character in square brackets
-
-    def get_slices(self) -> List[str]:
-        """Get the slices from the path i.e. the full content of the braces
-
-        Returns:
-            List[str]: Indexes from path
-        """
-        return self.get_index_specifiers()
-
-    # def set_slice(self, indices: List[str]) -> HubitQueryPath:
-    #     _path = str(self)
-    #     # Get all specifiers. Later the specifiers containing a wildcard are skipped
-    #     index_specifiers = self.get_index_specifiers()
-    #     assert len(indices) == len(
-    #         index_specifiers
-    #     ), "The number of indices provided and number of index specifiers found are not the same"
-    #     for index, idx_spec in zip(indices, index_specifiers):
-    #         # Don't replace if there is an index wildcard
-    #         if self.char_wildcard in idx_spec:
-    #             continue
-    #         _path = _path.replace(idx_spec, index, 1)
-    #     return self.__class__(_path)
-
-    def set_indices(self, indices: List[str], mode: int = 0) -> HubitQueryPath:
+    def set_indices(self, indices: List[str], mode: int = 0) -> _HubitPath:
         """Replace the index identifiers on the path with location indices
 
         Args:
@@ -196,6 +128,91 @@ class HubitQueryPath(_HubitPath):
             )
             start += 1
         return self.__class__(_path)
+
+    def get_index_specifiers(self) -> List[str]:
+        """Get the index specifiers from the path i.e. the
+        full content of the square braces.
+
+        Returns:
+            List: Index specification strings from path
+        """
+        # return re.findall(r"\[(\w+)\]", path) # Only word charaters i.e. [a-zA-Z0-9_]+
+        return re.findall(
+            _HubitPath.regex_idx_spec, self
+        )  # Any character in square brackets
+
+    def remove_braces(self) -> str:
+        """Remove braces and the enclosed content from the path
+
+        Returns:
+            str: path-like string with braces and content removed
+        """
+        return re.sub(_HubitPath.regex_braces, "", self)
+
+
+# or inherit from collections import UserString
+class HubitQueryPath(_HubitPath):
+    """
+    Reference a field in the results data. The syntax follows general
+    Python syntax for nested objects. Only square
+    brackets are allowed. The content of the brackets is called an index specifier.
+    Currently, index specifiers should be either a positive integer or
+    the character `:`. General slicing and negative indices is not supported.
+
+    To query, for example, the attribute `weight` in the 4*th* element of the list
+    `wheels`, which is stored on the object `car` use the path
+    `car.wheels[3].weight`. The query path `car.wheels[:].weight`
+    represents a list with elements being the `weight` for all
+    wheels of the car.
+
+    If there are multiple cars stored in a list of cars, the
+    query path `cars[:].wheels[3].weight` represents a list where the elements
+    would be the weights for the 4*th* wheel for all cars. The
+    query path `cars[:].wheels[:].weight` represents a nested list where
+    each outer list item represents a car and the corresponding inner list elements
+    represent the weights for all wheels for that car.
+    """
+
+    regex_allowed_idx_spec = "^[:0-9]+$"
+
+    def _validate_index_specifiers(self):
+        idx_specs = self.get_index_specifiers()
+        assert all(
+            [
+                is_digit(idx_spec) or idx_spec == HubitQueryPath.char_wildcard
+                for idx_spec in idx_specs
+            ]
+        ), ""
+
+    def validate(self):
+        self._validate_brackets()
+        self._validate_index_specifiers()
+
+    def get_slices(self) -> List[str]:
+        """Get the slices from the path i.e. the full content of the braces
+
+        Returns:
+            List[str]: Indexes from path
+        """
+        return self.get_index_specifiers()
+
+    def set_indices(self, indices: List[str], mode: int = 0) -> HubitQueryPath:
+        """Change the return type compared to the super class"""
+        return super().set_indices(indices, mode)
+
+    # def set_slice(self, indices: List[str]) -> HubitQueryPath:
+    #     _path = str(self)
+    #     # Get all specifiers. Later the specifiers containing a wildcard are skipped
+    #     index_specifiers = self.get_index_specifiers()
+    #     assert len(indices) == len(
+    #         index_specifiers
+    #     ), "The number of indices provided and number of index specifiers found are not the same"
+    #     for index, idx_spec in zip(indices, index_specifiers):
+    #         # Don't replace if there is an index wildcard
+    #         if self.char_wildcard in idx_spec:
+    #             continue
+    #         _path = _path.replace(idx_spec, index, 1)
+    #     return self.__class__(_path)
 
 
 class _HubitQueryDepthPath(HubitQueryPath):
@@ -240,7 +257,7 @@ class _HubitQueryDepthPath(HubitQueryPath):
         )
 
 
-class HubitModelPath(HubitQueryPath):
+class HubitModelPath(_HubitPath):
     """
     References a field in the input or results data. Compared to a
     [`HubitQueryPath`][hubit.config.HubitQueryPath],
@@ -338,6 +355,7 @@ class HubitModelPath(HubitQueryPath):
     """
 
     regex_allowed_idx_ids = r"^[a-zA-Z_\-0-9]+$"
+    regex_braces = r"\[.*?\]"
 
     def _validate_index_specifiers(self):
         idx_specs = self.get_index_specifiers()
@@ -370,14 +388,6 @@ class HubitModelPath(HubitQueryPath):
         self._validate_index_specifiers()
         self._validate_index_identifiers()
 
-    def remove_braces(self) -> str:
-        """Remove braces and the enclosed content from the path
-
-        Returns:
-            str: path-like string with braces and content removed
-        """
-        return re.sub(r"\[([^\.]+)]", "", self)
-
     def get_index_identifiers(self) -> List[str]:
         """Get the index identifiers from the path i.e. the
         part of all square braces after the @ (if any) else the
@@ -407,7 +417,7 @@ class HubitModelPath(HubitQueryPath):
         ]
 
     def as_query_depth_path(self):
-        return _HubitQueryDepthPath(re.sub(r"\[.*?\]", "[*]", self))
+        return _HubitQueryDepthPath(re.sub(HubitModelPath.regex_braces, "[*]", self))
 
     def as_include_pattern(self):
         return self.remove_braces()

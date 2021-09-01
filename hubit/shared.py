@@ -964,11 +964,13 @@ def check_path_match(
 
 
 def idxs_for_matches(
-    qpath: str, mpaths: List[str], accept_idx_wildcard: bool = True
+    qpath: HubitQueryPath,
+    mpaths: List[HubitModelPath],
+    accept_idx_wildcard: bool = True,
 ) -> List[int]:
     """
     Returns indices in the sequence of provider strings that match the
-    strucure of the query string
+    structure of the query string
     """
     return [
         idx

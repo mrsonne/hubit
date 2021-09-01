@@ -32,13 +32,13 @@ SEP = "."
 
 
 class _HubitPath(str):
-    # https://stackoverflow.com/questions/37398966/python-abstractmethod-with-another-baseclass-breaks-abstract-functionality
+    # TODO metaclass with abstract methods
+    # abc and multiple inheritance... https://stackoverflow.com/questions/37398966/python-abstractmethod-with-another-baseclass-breaks-abstract-functionality
 
     char_wildcard = ":"
     regex_idx_spec = r"\[(.*?)\]"
     regex_braces = r"\[([^\.]+)]"
 
-    # TODO relative-spatial-refs as metaclass & implement shared functionality
     @staticmethod
     def as_internal(path: Any) -> str:
         """Convert path using braces [IDX] to internal
@@ -52,6 +52,7 @@ class _HubitPath(str):
     @classmethod
     def from_dotted(cls, dotted_string: str) -> Any:
         # replace .DIGIT with [DIGIT] using "look behind"
+        # TODO: relative-spatial-refs. why not r"\.(\d+).", r"[\1]."
         return cls(re.sub(r"\.(\d+)", r"[\1]", dotted_string))
 
     @staticmethod

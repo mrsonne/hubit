@@ -52,7 +52,6 @@ class _HubitPath(str):
     @classmethod
     def from_dotted(cls, dotted_string: str) -> Any:
         # replace .DIGIT with [DIGIT] using "look behind"
-        # TODO: relative-spatial-refs. why not r"\.(\d+).", r"[\1]."
         return cls(re.sub(r"\.(\d+)", r"[\1]", dotted_string))
 
     @staticmethod

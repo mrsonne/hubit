@@ -7,7 +7,7 @@ import logging
 import multiprocessing
 from multiprocessing.managers import SyncManager
 import copy
-from typing import Callable, Dict, Set, TYPE_CHECKING, List, Optional
+from typing import Any, Callable, Dict, Set, TYPE_CHECKING, List, Optional, Union
 from .config import HubitBinding, HubitQueryPath
 from .shared import (
     LengthTree,
@@ -158,20 +158,23 @@ class _Worker:
             self.workfun = self.work
 
         # Paths for values that are consumed but not ready
-        self.pending_input_paths = []
-        self.pending_results_paths = []
+        self.pending_input_paths: List[HubitQueryPath] = []
+        self.pending_results_paths: List[HubitQueryPath] = []
 
         # Stores required values using internal names as keys
-        self.inputval_for_name = {}
-        self.resultval_for_name = {}
+        self.inputval_for_name: Dict[str, Any] = {}
+        self.resultval_for_name: Dict[str, Any] = {}
 
         # Stores required values using internal names as keys
-        self.inputval_for_path = {}
-        self.resultval_for_path = {}
+        self.inputval_for_path: Dict[HubitQueryPath, Any] = {}
+        self.resultval_for_path: Dict[HubitQueryPath, Any] = {}
 
         # Which indices are specified for each index ID
         self.idxval_for_idxid = {}
 
+        # To store provided results. Values stores with the internal
+        # name specified in the model as the key
+        self.results: Dict[str, Any]
         if manager is None:
             self.results = {}
             self.use_multiprocessing = False

@@ -732,7 +732,7 @@ class FlatData(Dict):
         we can, however, represent element 57 without adding empty
         elements for the remaining list elements.
         """
-        items: Dict[str, Any] = dict()
+        items: Dict[Any, Any] = dict()
         for k, v in self.items():
             # path components are strings
             _k = _HubitPath.as_internal(k)

@@ -198,7 +198,7 @@ class HubitQueryPath(_HubitPath):
 
     def set_indices(self, indices: List[str], mode: int = 0) -> HubitQueryPath:
         """Change the return type compared to the super class"""
-        return super().set_indices(indices, mode)
+        return self.__class__(super().set_indices(indices, mode))
 
     # def set_slice(self, indices: List[str]) -> HubitQueryPath:
     #     _path = str(self)
@@ -403,7 +403,7 @@ class HubitModelPath(_HubitPath):
 
     def set_indices(self, indices: List[str], mode: int = 0) -> HubitModelPath:
         """Change the return type compared to the super class"""
-        return super().set_indices(indices, mode)
+        return self.__class__(super().set_indices(indices, mode))
 
     def get_slices(self) -> List[str]:
         """Get the slices from the path i.e. the part of all square braces preceding the @.

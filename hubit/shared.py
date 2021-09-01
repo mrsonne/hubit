@@ -647,7 +647,7 @@ class _QueryExpansion:
         self.expanded_paths_for_decomposed_path[decomposed_path] = expanded_paths
 
     def flat_expanded_paths(self):
-        """ Returns flat list of expanded paths"""
+        """Returns flat list of expanded paths"""
         return [
             path
             for paths in self.expanded_paths_for_decomposed_path.values()

@@ -692,7 +692,7 @@ class _QueryExpansion:
                 ]
                 assert (
                     len(digits) == 1
-                ), f"Only 1 index slice may be specified for each model path. For model path '{mpath}', '{idxs}' were found."
+                ), f"Only 1 index slice may be specified for each model path. For model path '{mpath}', '{slices}' were found."
                 q_idx_specs[digits[0][0]] = digits[0][1]
                 decomposed_qpaths.append(qpath.set_indices(q_idx_specs))
                 index_identifiers.append(mpath.get_index_identifiers()[digits[0][0]])

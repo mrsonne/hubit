@@ -5,8 +5,9 @@ import pickle
 import hashlib
 import logging
 import multiprocessing
+from multiprocessing.managers import SyncManager
 import copy
-from typing import Callable, Dict, Set, TYPE_CHECKING, List
+from typing import Callable, Dict, Set, TYPE_CHECKING, List, Union
 from .config import HubitBinding, HubitQueryPath
 from .shared import (
     LengthTree,
@@ -48,6 +49,7 @@ class _Worker:
                 for idxid, idx in zip(
                     binding.path.get_index_identifiers(), binding.path.get_slices()
                 ):
+                    index: Union[str, None]
                     if is_digit(idx):
                         # already an index so no transformation required
                         index = str(idx)
@@ -80,8 +82,10 @@ class _Worker:
         """
         binding_paths = [binding.path for binding in bindings]
         # Get indices in binding_paths list that match the query
-        idxs = idxs_for_matches(query_path, binding_paths, accept_idx_wildcard=False)
-        if len(idxs) == 0:
+        idxs_match = idxs_for_matches(
+            query_path, binding_paths, accept_idx_wildcard=False
+        )
+        if len(idxs_match) == 0:
             fstr = 'Query "{}" did not match attributes provided by worker ({}).'
             raise HubitWorkerError(fstr.format(query_path, ", ".join(binding_paths)))
 
@@ -110,7 +114,7 @@ class _Worker:
 
     def __init__(
         self,
-        manager: multiprocessing.Manager,
+        manager: Union[None, SyncManager],
         qrun: _QueryRunner,
         component: HubitModelComponent,
         query: HubitQueryPath,
@@ -141,7 +145,7 @@ class _Worker:
         self._consumed_input_ready = False
         self._consumed_results_ready = False
         self._consumes_input_only = False
-        self._results_id = None
+        self._results_id: Union[str, None] = None
         self.caching = caching
 
         # Store information on how results were created (calculation or cache)

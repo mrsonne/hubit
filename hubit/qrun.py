@@ -2,10 +2,11 @@ from __future__ import annotations
 import copy
 import importlib
 import logging
+from multiprocessing.managers import SyncManager
 import os
 import sys
 import time
-from typing import Any, Callable, Dict, List, Set, Tuple
+from typing import Any, Callable, Dict, List, Set, Tuple, Union
 import yaml
 
 from typing import TYPE_CHECKING
@@ -109,12 +110,16 @@ class _QueryRunner:
         return func, version, components
 
     def _worker_for_query(
-        self, manager, path: HubitQueryPath, dryrun: bool = False
-    ) -> Any:
+        self,
+        manager: Union[None, SyncManager],
+        path: HubitQueryPath,
+        dryrun: bool = False,
+    ) -> Union[None, _Worker]:
         """Creates instance of the worker class that can respond to the query
 
         Args:
-            query_path: Explicit path
+            manager: A multiprocessing SyncManager,
+            path: Explicit query path
             dryrun (bool, optional): Dryrun flag for the worker. Defaults to False.
 
         Raises:
@@ -122,7 +127,7 @@ class _QueryRunner:
             HubitModelQueryError: No providers for the query
 
         Returns:
-            Any: _Worker or None
+            _Worker instance or None
         """
         component_id = self.model._cmpname_for_query(path)
         component = self.model.component_for_id(component_id)
@@ -164,7 +169,7 @@ class _QueryRunner:
 
     def spawn_workers(
         self,
-        manager,
+        manager: Union[None, SyncManager],
         qpaths: List[HubitQueryPath],
         extracted_input,
         flat_results: FlatData,

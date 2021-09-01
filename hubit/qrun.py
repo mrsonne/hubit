@@ -64,7 +64,7 @@ class _QueryRunner:
     def _get_func(
         base_path,
         component_cfg: HubitModelComponent,
-        components: Dict[str : Tuple(Callable, str)],
+        components: Dict[str, Tuple(Callable, str)],
     ):
         """[summary]
 

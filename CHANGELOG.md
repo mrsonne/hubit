@@ -12,16 +12,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 The example code below converts the cache file `old.yml` to `new.yml`. The file name `old.yml` will, more realistically, be named something like `a70300027991e56db5e3b91acf8b68a5.yml`.
 
-```
+
+```python
 import re
+import yaml
+
 with open("old.yml", "r") as stream:
-    old_cache_data = stream.read()
+    old_cache_data = yaml.load(stream, Loader=yaml.FullLoader)
 
-# Replace .DIGIT. with [DIGIT].
-new_cache_data = re.sub(r"\.(\d+).", r"[\1].", old_cache_data)
-
+# Replace ".DIGIT" with "[DIGIT]" in all keys (paths)
 with open("new.yml", "w") as handle:
-    handle.write(new_cache_data)
+    yaml.dump(
+        {
+            re.sub(r"\.(\d+)", r"[\1]", path): val
+            for path, val in old_cache_data.items()
+        },
+        handle,
+    )
 ```
 All files in the hubit cache folder `.hubit_cache` should be converted.
 

@@ -746,8 +746,6 @@ class FlatData(Dict):
                     sub_items[_ki] = dict()
                     sub_items = sub_items[_ki]
 
-            k_last = keys[-1]
-            k_last = int(k_last) if is_digit(k_last) else k_last
             sub_items[keys[-1]] = v
 
         return items

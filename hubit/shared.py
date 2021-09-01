@@ -39,7 +39,7 @@ class LengthNode:
         self.level = 0
         # Assume bottom level
         self.children = [LeafNode(idx) for idx in range(nchildren)]
-        self._child_for_idx = {child.index: child for child in self.children}
+        self._set_child_for_idx()
 
         # Assume top level (children = None)
         self.parent = None
@@ -51,6 +51,9 @@ class LengthNode:
         # Is node constrained by pruning
         self.is_constrained = False
 
+    def _set_child_for_idx(self):
+        self._child_for_idx = {child.index: child for child in self.children}
+
     def nchildren(self) -> int:
         return len(self.children)
 
@@ -60,7 +63,7 @@ class LengthNode:
             child.parent = self
             child.level = self.level + 1
             child.index = idx
-        self._child_for_idx = {child.index: child for child in self.children}
+        self._set_child_for_idx()
 
     def remove(self):
         """remove node"""
@@ -77,9 +80,7 @@ class LengthNode:
         #     node.is_constrained = False
 
     def pop_child_for_idx(self, idx):
-        # TODO. relative-spatial-refs to allow pruning multiple times
-        child = self.children[idx]
-        # child = self._child_for_idx[idx]
+        child = self._child_for_idx[idx]
         child.remove_decendants()
         if not isinstance(child, LeafNode):
             # Not the bottom-most level so safe to access self.level + 1
@@ -96,6 +97,7 @@ class LengthNode:
             child.tree.nodes_for_level[child.level].remove(child)
             child.remove_decendants()
         self.children = [LeafNode(idx) for idx in range(len(self.children))]
+        self._set_child_for_idx()
 
     def __str__(self):
         return f'LengthNode(nchildren={self.nchildren()}, index={self.index}, has parent={"Yes" if self.parent else "No"}, is_constrained={self.is_constrained})'
@@ -443,9 +445,9 @@ class LengthTree:
         if len(idxs) == 0:
             node = self.nodes_for_level[0][0]
         else:
-            node = self.nodes_for_level[0][0].children[idxs[0]]
+            node = self.nodes_for_level[0][0]._child_for_idx[idxs[0]]
             for node_idx in idxs[1:]:
-                node = node.children[node_idx]
+                node = node._child_for_idx[node_idx]
         return node
 
     def normalize_path(self, qpath: str):

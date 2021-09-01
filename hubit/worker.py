@@ -7,7 +7,7 @@ import logging
 import multiprocessing
 from multiprocessing.managers import SyncManager
 import copy
-from typing import Callable, Dict, Set, TYPE_CHECKING, List, Union
+from typing import Callable, Dict, Set, TYPE_CHECKING, List, Optional
 from .config import HubitBinding, HubitQueryPath
 from .shared import (
     LengthTree,
@@ -49,7 +49,7 @@ class _Worker:
                 for idxid, idx in zip(
                     binding.path.get_index_identifiers(), binding.path.get_slices()
                 ):
-                    index: Union[str, None]
+                    index: Optional[str]
                     if is_digit(idx):
                         # already an index so no transformation required
                         index = str(idx)
@@ -114,7 +114,7 @@ class _Worker:
 
     def __init__(
         self,
-        manager: Union[None, SyncManager],
+        manager: Optional[SyncManager],
         qrun: _QueryRunner,
         component: HubitModelComponent,
         query: HubitQueryPath,
@@ -145,7 +145,7 @@ class _Worker:
         self._consumed_input_ready = False
         self._consumed_results_ready = False
         self._consumes_input_only = False
-        self._results_id: Union[str, None] = None
+        self._results_id: Optional[str] = None
         self.caching = caching
 
         # Store information on how results were created (calculation or cache)

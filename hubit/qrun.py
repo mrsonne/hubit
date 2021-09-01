@@ -6,7 +6,7 @@ from multiprocessing.managers import SyncManager
 import os
 import sys
 import time
-from typing import Any, Callable, Dict, List, Set, Tuple, Union
+from typing import Any, Callable, Dict, List, Set, Tuple, Optional
 import yaml
 
 from typing import TYPE_CHECKING
@@ -111,10 +111,10 @@ class _QueryRunner:
 
     def _worker_for_query(
         self,
-        manager: Union[None, SyncManager],
+        manager: Optional[SyncManager],
         path: HubitQueryPath,
         dryrun: bool = False,
-    ) -> Union[None, _Worker]:
+    ) -> Optional[_Worker]:
         """Creates instance of the worker class that can respond to the query
 
         Args:
@@ -169,7 +169,7 @@ class _QueryRunner:
 
     def spawn_workers(
         self,
-        manager: Union[None, SyncManager],
+        manager: Optional[SyncManager],
         qpaths: List[HubitQueryPath],
         extracted_input,
         flat_results: FlatData,

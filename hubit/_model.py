@@ -748,7 +748,7 @@ class _HubitModel:
         cmp_ids = self._cmpids_for_query(path)
 
         if len(cmp_ids) > 1:
-            msg = f"Fatal error. Multiple providers for query '{path}': {cmp_ids}"
+            msg = f"Fatal error. Multiple providers for query path '{path}': {cmp_ids}. Note that query path might originate from an expansion of the original query."
             raise HubitModelQueryError(msg)
 
         if len(cmp_ids) == 0:

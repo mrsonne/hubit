@@ -1,5 +1,6 @@
 from __future__ import annotations
 import re
+import logging
 import copy
 import itertools
 from functools import reduce
@@ -683,7 +684,7 @@ class _QueryExpansion:
         """
         If a single component can provide results for `path`, `decomposed_paths`
         has one element of type [`HubitQueryPath`][hubit.config.HubitQueryPath]. If multiple
-        components are required their individual path contributions are the items in the list.
+        components match required their individual path contributions are the items in the list.
         """
         if len(mpaths) > 1:
             # More than one provide requires to match query. Split query into queries
@@ -698,12 +699,21 @@ class _QueryExpansion:
                 digits = [
                     (idx, slice) for idx, slice in enumerate(slices) if is_digit(slice)
                 ]
-                assert (
-                    len(digits) == 1
-                ), f"Only 1 index slice may be specified for each model path. For model path '{mpath}', '{slices}' were found."
-                q_idx_specs[digits[0][0]] = digits[0][1]
-                decomposed_qpaths.append(qpath.set_indices(q_idx_specs))
-                index_identifiers.append(mpath.get_index_identifiers()[digits[0][0]])
+                if len(digits) == 1:
+                    q_idx_specs[digits[0][0]] = digits[0][1]
+                    decomposed_qpaths.append(qpath.set_indices(q_idx_specs))
+                    index_identifiers.append(
+                        mpath.get_index_identifiers()[digits[0][0]]
+                    )
+                elif len(digits) >= 1:
+                    raise HubitModelQueryError(
+                        f"Only one index slice may be specified as digit for each model path. For model path '{mpath}', '{slices}' were found."
+                    )
+                else:
+                    logging.warning(
+                        f"No digits found for decomposed model path {mpath}"
+                    )
+
         else:
             decomposed_qpaths = [qpath]
             index_identifiers = None

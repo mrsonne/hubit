@@ -840,7 +840,7 @@ class _HubitModel:
                 # Get the index IDs from the original query
                 idxids = qexp.path.get_index_specifiers()
                 tree = self._tree_for_qpath[qexp.path]
-                # TODO: relative-spatial-refs. Can we prune earlier on?
+                # TODO: Can we prune earlier on?
                 # inplace = False to leave the model state unchanged.
                 # This is important for successive get requests
                 values_decomp = tree.prune_from_path(

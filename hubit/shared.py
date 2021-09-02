@@ -599,7 +599,7 @@ class _QueryExpansion:
         path: A [`HubitQueryPath`][hubit.config.HubitQueryPath] representing the original query.
         decomposed_paths: If a single component can provide results for `path`, `decomposed_paths`
             has one element of type [`HubitQueryPath`][hubit.config.HubitQueryPath]. If multiple
-            components are required their individual path contributions are the items in the list.
+            components match the query individual path contributions are the items in the list.
         expanded_paths_for_decomposed_path: For each element in `decomposed_paths`
             these are the expanded paths i.e. dotted paths with real indices not
             wildcards.
@@ -611,6 +611,12 @@ class _QueryExpansion:
         mpaths: the model paths that match the query
         """
         self.path = path
+
+        if len(mpaths) > 1 and not path.has_slice_range():
+            raise HubitModelQueryError(
+                f"More than one component match the query {path}. Matching components provide: {mpaths}."
+            )
+
         self.decomposed_paths, index_identifiers = _QueryExpansion.decompose_query(
             path, mpaths
         )

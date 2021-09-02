@@ -149,6 +149,10 @@ class _HubitPath(str):
         """
         return re.sub(_HubitPath.regex_braces, "", self)
 
+    def has_slice_range(self):
+        """Check if path has a slice that is a range"""
+        return self.char_wildcard in self.get_slices()
+
 
 # or inherit from collections import UserString
 class HubitQueryPath(_HubitPath):

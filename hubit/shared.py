@@ -615,7 +615,7 @@ class _QueryExpansion:
 
         if len(mpaths) > 1 and not path.has_slice_range():
             raise HubitModelQueryError(
-                f"More than one component match the query {path}. Matching components provide: {mpaths}."
+                f"More than one component match the query '{path}'. Matching components provide: {mpaths}."
             )
 
         self.decomposed_paths, index_identifiers = _QueryExpansion.decompose_query(

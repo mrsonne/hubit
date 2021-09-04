@@ -23,12 +23,50 @@ if TYPE_CHECKING:
 
 SEP = "."
 
-# TODO: Create IndexSpecifier class
-# slice @ index_identifier offset
-# slice = positive integer or :
-# @ = required separation character
-# index_identifier = string where letters, numbers and _ are allowed# +/- = direction of o
-# offset = signed integer (sign required). Offset is optional and defaults to +0.
+
+class ModelIndexSpecifier(str):
+    """
+    slice @ index_identifier offset
+    slice = positive integer or :
+    @ = required separation character
+    index_identifier = string where letters, numbers and _ are allowed# +/- = direction of o
+    offset = signed integer (sign required). Offset is optional and defaults to +0.
+    """
+
+    ref_chr = "@"
+    wildcard_chr = ":"
+    regex_allowed_idx_ids = r"^[a-zA-Z_0-9]+$"
+
+    def validate(self):
+        assert (
+            self.count(self.ref_chr) < 2
+        ), f"Maximum one '{self.ref_chr}' allowed in index specifier '{self}'"
+
+        # check that if X in [X] contains : then it should be followed by @
+        if self.wildcard_chr in self:
+            idx_wc = self.index(self.wildcard_chr)
+            assert (
+                self[idx_wc + 1] == self.ref_chr
+            ), f"{self.wildcard_chr} should be followed by an '{self.ref_chr}'"
+
+        assert (
+            self._validate_identifier()
+        ), f"Index identifier must be letters or '_' for index specifier {self}"
+
+    def _validate_identifier(self):
+        return re.search(self.regex_allowed_idx_ids, self.identifier)
+
+    @property
+    def idx_range(self) -> str:
+        return self.split(self.ref_chr)[0] if self.ref_chr in self else ""
+
+    @property
+    def identifier(self) -> str:
+        return self.split(self.ref_chr)[1] if self.ref_chr in self else self
+
+    @property
+    def offset(self) -> int:
+        return 0
 
 
 class _HubitPath(str):
@@ -358,31 +396,11 @@ class HubitModelPath(_HubitPath):
 
     """
 
-    regex_allowed_idx_ids = r"^[a-zA-Z_\-0-9]+$"
     regex_braces = r"\[.*?\]"
 
     def _validate_index_specifiers(self):
-        idx_specs = self.get_index_specifiers()
-        assert all(
-            [idx_spec.count("@") < 2 for idx_spec in idx_specs]
-        ), "Maximum one @ allowed in path"
-
-        # check that if X in [X] contains : then it should be followed by @
-        for idx_spec in idx_specs:
-            if not HubitModelPath.char_wildcard in idx_spec:
-                continue
-            idx_wc = idx_spec.index(HubitModelPath.char_wildcard)
-            assert idx_spec[idx_wc + 1] == "@", "':' should be followed by an '@'"
-
-    def _validate_index_identifiers(self):
-        idx_ids = self.get_index_identifiers()
-        # idx_ids can only contain certain characters
-        assert all(
-            [
-                re.search(HubitModelPath.regex_allowed_idx_ids, idx_id)
-                for idx_id in idx_ids
-            ]
-        ), f"Index identifier must be letters or '_' or '-' for path {self}"
+        for idx_spec in self.get_index_specifiers():
+            ModelIndexSpecifier(idx_spec).validate()
 
     def validate(self):
         """
@@ -390,7 +408,6 @@ class HubitModelPath(_HubitPath):
         """
         self._validate_brackets()
         self._validate_index_specifiers()
-        self._validate_index_identifiers()
 
     def get_index_identifiers(self) -> List[str]:
         """Get the index identifiers from the path i.e. the
@@ -401,8 +418,8 @@ class HubitModelPath(_HubitPath):
             List[str]: Index identifiers from path
         """
         return [
-            index_specifier.split("@")[1] if "@" in index_specifier else index_specifier
-            for index_specifier in self.get_index_specifiers()
+            ModelIndexSpecifier(idx_spec).identifier
+            for idx_spec in self.get_index_specifiers()
         ]
 
     def set_indices(self, indices: List[str], mode: int = 0) -> HubitModelPath:
@@ -424,8 +441,8 @@ class HubitModelPath(_HubitPath):
             List[str]: Indexes from path
         """
         return [
-            index_specifier.split("@")[0] if "@" in index_specifier else ""
-            for index_specifier in self.get_index_specifiers()
+            ModelIndexSpecifier(idx_spec).idx_range
+            for idx_spec in self.get_index_specifiers()
         ]
 
     def as_query_depth_path(self):

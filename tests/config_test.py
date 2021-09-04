@@ -5,6 +5,7 @@ from hubit.config import (
     _HubitPath,
     HubitModelPath,
     HubitQueryPath,
+    ModelIndexSpecifier,
     FlatData,
     _HubitQueryDepthPath,
 )
@@ -147,22 +148,32 @@ class TestHubitModelPath(unittest.TestCase):
 
     def test_validate_idxids(self):
         # Valid
-        path = HubitModelPath("segments[IDX_SEG].layers[IDX-LAY]")
+        path = HubitModelPath("segments[IDX_SEG].layers[IDX_LAY]")
         path.validate()
 
         # Valid
-        path = HubitModelPath("segments[IDX_SEG].layers[:@IDX-LAY]")
+        path = HubitModelPath("segments[IDX_SEG].layers[:@IDX_LAY]")
         path.validate()
 
         # Only one @ allowed in index specifier
-        path = HubitModelPath("segments[IDX_SEG].layers[:@@IDX-LAY]")
+        path = HubitModelPath("segments[IDX_SEG].layers[:@@IDX_LAY]")
         with self.assertRaises(AssertionError):
             path._validate_index_specifiers()
+
+        # Invalid character - in index identifier
+        path = HubitModelPath("segments[IDX_SEG].layers[IDX-LAY]")
+        with self.assertRaises(AssertionError):
+            path.validate()
+
+        # Invalid character - in index identifier
+        path = HubitModelPath("segments[IDX_SEG].layers[:@IDX-LAY]")
+        with self.assertRaises(AssertionError):
+            path.validate()
 
         # Invalid character \ in index identifier
         path = HubitModelPath("segments[IDX_SEG].layers[:@IDX/LAY]")
         with self.assertRaises(AssertionError):
-            path._validate_index_identifiers()
+            path.validate()
 
         # Numbers allowed
         path = HubitModelPath("segments[IDX_SEG].layers[:@IDX1LAY113]")
@@ -170,11 +181,18 @@ class TestHubitModelPath(unittest.TestCase):
 
         path = HubitModelPath("segments[IDX_SEG].layers[@]")
         with self.assertRaises(AssertionError):
-            path._validate_index_identifiers()
+            path.validate()
 
     def test_as_query_depth_path(self):
         path = HubitModelPath("segments[IDX_SEG].layers[:@IDX1LAY113]")
         assert path.as_query_depth_path() == "segments[*].layers[*]"
+
+
+class TestModelIndexSpecifier(unittest.TestCase):
+    def test_stuff(self):
+        mis = ModelIndexSpecifier(":@IDX1LAY113")
+        print(mis.offset)
+        print(mis.identifier)
 
 
 class TestFlatData(unittest.TestCase):

@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Tuple
 import pickle
 import hashlib
 from multiprocessing import Manager
@@ -13,6 +13,8 @@ from .qrun import _QueryRunner
 from .config import (
     FlatData,
     HubitBinding,
+    HubitModelComponent,
+    HubitModelPath,
     _HubitPath,
     HubitQueryPath,
     Query,
@@ -714,25 +716,29 @@ class _HubitModel:
                 else:
                     raise HubitModelValidationError(binding.path, fname, fname_for_path)
 
-    def _cmpids_for_query(self, qpath: HubitQueryPath):
+    def _cmpids_for_query(self, qpath: HubitQueryPath) -> List[str]:
         """
         Find IDs of components that can respond to the "query".
         """
         # TODO: Next two lines should only be executed once in init (speed)
         itempairs = [
-            (cmp.id, binding.path)
+            (cmp.id, binding.path, cmp.context)
             for cmp in self.model_cfg.components
             for binding in cmp.provides_results
         ]
-        cmp_ids, providerstrings = zip(*itempairs)
-        return [cmp_ids[idx] for idx in idxs_for_matches(qpath, providerstrings)]
+        cmp_ids, paths_provided, contexts = zip(*itempairs)
+        _paths_provided = [
+            path.set_value_for_idxid(context)
+            for path, context in zip(paths_provided, contexts)
+        ]
+        idxs = idxs_for_matches(qpath, _paths_provided)
+        return [cmp_ids[idx] for idx in idxs]
 
-    def component_for_id(self, compid: str):
+    def component_for_id(self, compid: str) -> HubitModelComponent:
         return self.model_cfg.component_for_id[compid]
 
-    def _cmpname_for_query(self, path: HubitQueryPath):
+    def _cmpid_for_query(self, path: HubitQueryPath) -> str:
         """Find ID of component that can respond to the "query".
-        TODO: bad name... it's the IDs that are returned (ie plural and IDs not name)
 
         Args:
             path: Query path
@@ -754,15 +760,17 @@ class _HubitModel:
         if len(cmp_ids) == 0:
             msg = f"Fatal error. No provider for query path '{path}'."
             raise HubitModelQueryError(msg)
-
-        # Get the provider function for the query
         return cmp_ids[0]
 
-    def mpath_for_qpath(self, qpath: HubitQueryPath) -> str:
+    def component_for_qpath(self, path: HubitQueryPath) -> HubitModelComponent:
+        return self.component_for_id(self._cmpid_for_query(path))
+
+    def mpaths_for_qpath(self, qpath: HubitQueryPath) -> List[HubitModelPath]:
         # Find component that provides queried result
         cmp_ids = self._cmpids_for_query(qpath)
         # Find component
         paths = []
+        contexts = []
         for cmp_id in cmp_ids:
             cmp = self.model_cfg.component_for_id[cmp_id]
             # Find index in list of binding paths that match query path
@@ -770,6 +778,19 @@ class _HubitModel:
                 qpath, [binding.path for binding in cmp.provides_results]
             )
             paths.append(cmp.provides_results[idxs[0]].path)
+            contexts.append(cmp.context)
+
+        # Set the context to check if mpaths are actually unique
+        _mpaths = [
+            mpath.set_value_for_idxid(context)
+            for mpath, context in zip(paths, contexts)
+        ]
+
+        # Model path are unique when context is considered but can be represented
+        # as one for now
+        if len(set(paths)) == 1 and len(set(_mpaths)) == len(paths):
+            return [paths[0]]
+
         return paths
 
     def _expand_query(
@@ -790,7 +811,7 @@ class _HubitModel:
         # TODO: save component so we dont have to find top level components again
         """
         # Get all model paths that match the query
-        mpaths = self.mpath_for_qpath(qpath)
+        mpaths = self.mpaths_for_qpath(qpath)
 
         # Prepare query expansion object
         qexp = _QueryExpansion(qpath, mpaths)

@@ -129,8 +129,7 @@ class _QueryRunner:
         Returns:
             _Worker instance or None
         """
-        component_id = self.model._cmpname_for_query(path)
-        component = self.model.component_for_id(component_id)
+        component = self.model.component_for_qpath(path)
         (func, version, self._components) = _QueryRunner._get_func(
             self.model.base_path, component, self._components
         )

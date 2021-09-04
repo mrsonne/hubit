@@ -934,6 +934,7 @@ class TestTree(unittest.TestCase):
                         self.assertListEqual(result, expected_result)
 
 
+# TODO: test if len(mpaths) > 1 and not path.has_slice_range():
 class TestQueryExpansion(unittest.TestCase):
     def test_decompose_query(self):
 

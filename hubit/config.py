@@ -10,11 +10,11 @@ from dataclasses import dataclass, field
 import pathlib
 import uuid
 from abc import ABC, abstractmethod
-from collections import abc
+from collections import abc, Counter
 import yaml
 import re
-from typing import Dict, List, Any, TYPE_CHECKING
-from .errors import HubitModelComponentError
+from typing import Dict, List, Any, Union, TYPE_CHECKING
+from .errors import HubitError, HubitModelComponentError
 from .utils import is_digit
 
 
@@ -657,6 +657,16 @@ class HubitModelConfig:
         Validate the object
         """
         # [query_depth.validate() for query_depth in self.query_depths]
+        paths = [
+            binding.path
+            for component in self.components
+            for binding in component.provides_results
+        ]
+
+        duplicates = [item for item, count in Counter(paths).items() if count > 1]
+        if len(duplicates) > 0:
+            msg = f"Fatal error. Multiple providers for model paths: {set(duplicates)}"
+            raise HubitError(msg)
         return self
 
     @classmethod

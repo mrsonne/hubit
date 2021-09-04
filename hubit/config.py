@@ -409,6 +409,14 @@ class HubitModelPath(_HubitPath):
         """Change the return type compared to the super class"""
         return self.__class__(super().set_indices(indices, mode))
 
+    def set_value_for_idxid(self, value_for_idxid: Dict[str, Any]) -> HubitModelPath:
+        idx_specs = self.get_index_specifiers()
+        idx_ids = self.get_index_identifiers()
+        for idxid, value in value_for_idxid.items():
+            idx = idx_ids.index(idxid)
+            idx_specs[idx] = value
+        return self.set_indices(idx_specs)
+
     def get_slices(self) -> List[str]:
         """Get the slices from the path i.e. the part of all square braces preceding the @.
 
@@ -515,6 +523,7 @@ class HubitModelComponent:
     consumes_results: List[HubitBinding] = field(default_factory=list)
     func_name: str = "main"
     is_dotted_path: bool = False
+    contexts: Union[List[Dict[str, str]], None] = field(default_factory=list)
 
     def __post_init__(self):
 
@@ -525,12 +534,17 @@ class HubitModelComponent:
             self._name = f"{self.path.replace('.py', '')}.{self.func_name}"
 
         self._id = f"cmp{self._index}@" + self._name
+        self._has_contexts = len(self.contexts) > 0
 
     def validate(self, cfg):
         """
         Validate the object
         """
         return self
+
+    @property
+    def context(self):
+        return self.contexts[0] if self._has_contexts else {}
 
     @property
     def id(self):
@@ -658,14 +672,13 @@ class HubitModelConfig:
         """
         # [query_depth.validate() for query_depth in self.query_depths]
         paths = [
-            binding.path
+            binding.path.set_value_for_idxid(component.context)
             for component in self.components
             for binding in component.provides_results
         ]
-
         duplicates = [item for item, count in Counter(paths).items() if count > 1]
         if len(duplicates) > 0:
-            msg = f"Fatal error. Multiple providers for model paths: {set(duplicates)}"
+            msg = f"Fatal error. Multiple providers for model paths: {set(duplicates)}. Paths provided in the model files may be unintentionally identical or missing a unique contexts."
             raise HubitError(msg)
         return self
 

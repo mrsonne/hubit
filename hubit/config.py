@@ -512,6 +512,7 @@ class HubitModelComponent:
         provides_results (List[HubitBinding]): [`HubitBinding`][hubit.config.HubitBinding] sequence specifying the results provided by the component.
         consumes_input (List[HubitBinding], optional): [`HubitBinding`][hubit.config.HubitBinding] sequence specifying the input consumed by the input consumed.
         consumes_results (List[HubitBinding]): [`HubitBinding`][hubit.config.HubitBinding] sequence specifying the input consumed by the results consumed.
+        context (dict, optional): A map from the index identifiers to an index. Used to limit the scope of the component. If, for example, the context is `{IDX_TANK: 0}` the component is only used when the value of the index identifier IDX_TANK is 0.
         is_dotted_path (bool, optional): Set to True if the specified `path` is a dotted path (typically for a package module in site-packages).
         _index (int): Component index in model file
     """
@@ -523,7 +524,7 @@ class HubitModelComponent:
     consumes_results: List[HubitBinding] = field(default_factory=list)
     func_name: str = "main"
     is_dotted_path: bool = False
-    contexts: Union[List[Dict[str, str]], None] = field(default_factory=list)
+    context: Dict[str, str] = field(default_factory=dict)
 
     def __post_init__(self):
 
@@ -534,7 +535,6 @@ class HubitModelComponent:
             self._name = f"{self.path.replace('.py', '')}.{self.func_name}"
 
         self._id = f"cmp{self._index}@" + self._name
-        self._has_contexts = len(self.contexts) > 0
 
     def validate(self, cfg):
         """
@@ -548,10 +548,6 @@ class HubitModelComponent:
             len(circ_refs) == 0
         ), f"Component at index {self._index} has circular reference(s): {', '.join(circ_refs)}"
         return self
-
-    @property
-    def context(self):
-        return self.contexts[0] if self._has_contexts else {}
 
     @property
     def id(self):

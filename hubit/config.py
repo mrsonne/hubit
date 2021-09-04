@@ -540,6 +540,13 @@ class HubitModelComponent:
         """
         Validate the object
         """
+        consumes_results = set(binding.path for binding in self.consumes_results)
+        circ_refs = consumes_results.intersection(
+            binding.path for binding in self.provides_results
+        )
+        assert (
+            len(circ_refs) == 0
+        ), f"Component at index {self._index} has circular reference(s): {', '.join(circ_refs)}"
         return self
 
     @property
@@ -670,7 +677,7 @@ class HubitModelConfig:
         """
         Validate the object
         """
-        # [query_depth.validate() for query_depth in self.query_depths]
+        # Check that there are not multiple components that provide the same data
         paths = [
             binding.path.set_value_for_idxid(component.context)
             for component in self.components

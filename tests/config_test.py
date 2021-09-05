@@ -174,6 +174,11 @@ class TestHubitModelPath(unittest.TestCase):
         path = HubitModelPath("segments[IDX_SEG].layers[:@IDX_LAY]")
         path.validate()
 
+        # Invalid due to negative index range
+        path = HubitModelPath("segments[-1@IDX_SEG].layers[IDX_LAY]")
+        with self.assertRaises(AssertionError):
+            path.validate()
+
         # Only one @ allowed in index specifier
         path = HubitModelPath("segments[IDX_SEG].layers[:@@IDX_LAY]")
         with self.assertRaises(AssertionError):

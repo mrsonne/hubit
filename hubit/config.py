@@ -29,7 +29,10 @@ class ModelIndexSpecifier(str):
 
     ref_chr = "@"
     wildcard_chr = ":"
-    regex_allowed_idx_ids = r"^[a-zA-Z_0-9]+$"
+    # Characters a-z, A-Z, _ and digits are allowed
+    regex_allowed_identifier = r"^[a-zA-Z_0-9]+$"
+    # Any positive digit is allowed
+    regex_allowed_idx_range = r"^[0-9]+$"
 
     def validate(self):
         assert (
@@ -45,10 +48,29 @@ class ModelIndexSpecifier(str):
 
         assert (
             self._validate_identifier()
-        ), f"Index identifier must be letters or '_' for index specifier {self}"
+        ), f"Invalid index identifier '{self.identifier}' for index specifier {self}. Must be letters or '_'."
+
+        assert (
+            self._validate_offset()
+        ), f"Invalid offset '{self.offset}' for index specifier {self}."
+
+        assert (
+            self._validate_idx_range()
+        ), f"Invalid index range '{self.idx_range}' for index specifier {self}."
 
     def _validate_identifier(self):
-        return re.search(self.regex_allowed_idx_ids, self.identifier)
+        return re.search(self.regex_allowed_identifier, self.identifier)
+
+    def _validate_offset(self):
+        return self.offset == 0
+
+    def _validate_idx_range(self):
+        idx_range = self.idx_range
+        return (
+            idx_range == self.wildcard_chr
+            or idx_range == ""
+            or re.search(self.regex_allowed_idx_range, idx_range)
+        )
 
     @property
     def idx_range(self) -> str:

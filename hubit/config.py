@@ -20,11 +20,30 @@ SEP = "."
 
 class ModelIndexSpecifier(str):
     """
-    slice @ index_identifier offset
-    slice = positive integer or :
-    @ = required separation character
-    index_identifier = string where letters, numbers and _ are allowed# +/- = direction of o
-    offset = signed integer (sign required). Offset is optional and defaults to +0.
+    Index specifiers for [`HubitModelPath`][hubit.config.HubitModelPath].
+    The model path index specifier is composed of three parts namely the
+    _range_, the _identifier_ and the _offset_. The first and last are
+    optional. A non-empty _range_ requires an empty (i.e. zero) _offset_
+    and vice versa. An _identifier_ is used internally map an index in input lists to
+    the equivalent index in the results. The _range_
+    may be used to control the scope of an _identifier_ while the _offset_ may
+    be used to offset the affected indices.
+
+    Consider the HubitModelPath instance `cars[IDX_CAR].parts[:@IDX_PART].name`.
+    The strings in square brackets are index specifiers.
+    The _index specifier_ `:@IDX_PART` refers to all elements of the parts list
+    (using the _range_ `:`) and defines the _identifier_ (`IDX_PART`) to represent
+    elements of the parts list.
+    So in this case, the index specifier contains both a range and an
+    identifier, but no offset.
+    The left-most index specifier `IDX_CAR` only contains an
+    _identifier_ that represents elements of the cars list. Since no _range_
+    is specified the _identifier_ refers to a specific car determined by
+    the query. `cars[IDX_CAR].parts[:@IDX_PART].name` therefore references the names of
+    all parts of a specific car which depend on the query specified by the user.
+    A component that consumes this path would have access to these names in a list.
+    The index specifier `0@IDX_PART` would always reference element 0 of the
+    parts list irrespective of the query.
     """
 
     ref_chr = "@"
@@ -47,6 +66,10 @@ class ModelIndexSpecifier(str):
             ), f"{self.wildcard_chr} should be followed by an '{self.ref_chr}'"
 
         assert (
+            self._validate_cross()
+        ), f"Invalid index specifier '{self}'. A non-empty range requires an empty (i.e. zero) offset and vice versa."
+
+        assert (
             self._validate_identifier()
         ), f"Invalid index identifier '{self.identifier}' for index specifier {self}. Must be letters or '_'."
 
@@ -57,6 +80,10 @@ class ModelIndexSpecifier(str):
         assert (
             self._validate_idx_range()
         ), f"Invalid index range '{self.idx_range}' for index specifier {self}."
+
+    def _validate_cross(self):
+        """A non-empty range requires an empty (i.e. zero) offset and vice versa"""
+        return not (self.offset != 0 and self.idx_range != "")
 
     def _validate_identifier(self):
         return re.search(self.regex_allowed_identifier, self.identifier)
@@ -392,26 +419,14 @@ class HubitModelPath(_HubitPath):
     """
     References a field in the input or results data. Compared to a
     [`HubitQueryPath`][hubit.config.HubitQueryPath],
-    a `HubitModelPath` instance has different rules for index specifiers. Most
-    importantly an index specifier must contain an index identifier.
-    Index identifiers are used to create index mapping and to infer
-    list lengths. Index mapping is the mapping indices from lists in
-    the input data to equivalent indices in the results data.
-
-    Consider the HubitModelPath instance `cars[IDX_CAR].parts[:@IDX_PART].name`. As for
-    query paths, the strings in square brackets are called index specifiers.
-    The index specifier `:@IDX_PART` points to all elements (`:`) of the parts list
-    and defines an identifier (`IDX_PART`) for elements of the parts list.
-    So in this case, the index specifier contains both a slice and an index
-    identifier. The left-most index specifier `IDX_CAR` is actually only an index
-    identifier and refers to a specific car (no `:@`).
-    `cars[IDX_CAR].parts[:@IDX_PART].name` therefore references the names of
-    all parts of a specific car. A component that consumes this path
-    would have access to these names in a list.
+    a `HubitModelPath` instance has different rules for index
+    specifiers (see [`ModelIndexSpecifier`][hubit.config.ModelIndexSpecifier]).
 
     To illustrate the use of the index identifiers for index mapping
-    consider a `Hubit` model component that consumes the path discussed
-    above. The component could use the parts names for a database
+    in a model path consider a `Hubit` model component that consumes
+    the path `cars[IDX_CAR].parts[:@IDX_PART].name` (as discussed
+    [`here`][hubit.config.ModelIndexSpecifier])).
+    The component could use the parts names for a database
     lookup to get the prices for each component. If we want `Hubit` to store
     these prices in the results, one option would be to store them in a
     data structure similar to the input. To achieve this behavior the

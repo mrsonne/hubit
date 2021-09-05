@@ -498,7 +498,7 @@ class _HubitModel:
             idxids = path.get_index_identifiers()
 
             # Path components with braces and index specifiers
-            pathcmps_old = _HubitPath.as_internal(path).split(".")
+            pathcmps_old = path.components()
 
             # Path components with node names only
             pathcmps = path.remove_braces().split(".")

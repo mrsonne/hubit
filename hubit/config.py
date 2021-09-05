@@ -550,7 +550,10 @@ class HubitModelComponent:
         provides_results (List[HubitBinding]): [`HubitBinding`][hubit.config.HubitBinding] sequence specifying the results provided by the component.
         consumes_input (List[HubitBinding], optional): [`HubitBinding`][hubit.config.HubitBinding] sequence specifying the input consumed by the input consumed.
         consumes_results (List[HubitBinding]): [`HubitBinding`][hubit.config.HubitBinding] sequence specifying the input consumed by the results consumed.
-        context (dict, optional): A map from the index identifiers to an index. Used to limit the scope of the component. If, for example, the context is `{IDX_TANK: 0}` the component is only used when the value of the index identifier IDX_TANK is 0.
+        context (dict, optional): A map from the index identifiers to an index. Used to
+            limit the scope of the component. If, for example, the context
+            is `{IDX_TANK: 0}` the component is only used when the value of the
+            index identifier IDX_TANK is 0. The context can only have one element.
         is_dotted_path (bool, optional): Set to True if the specified `path` is a dotted path (typically for a package module in site-packages).
         _index (int): Component index in model file
     """

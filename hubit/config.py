@@ -8,18 +8,12 @@ in a model config file or the required structure of a query path.
 from __future__ import annotations
 from dataclasses import dataclass, field
 import pathlib
-import uuid
-from abc import ABC, abstractmethod
 from collections import abc, Counter
 import yaml
 import re
-from typing import Dict, List, Any, Union, TYPE_CHECKING
+from typing import Dict, List, Any
 from .errors import HubitError, HubitModelComponentError
 from .utils import is_digit
-
-
-if TYPE_CHECKING:
-    from .shared import LengthTree
 
 SEP = "."
 
@@ -314,8 +308,8 @@ class HubitQueryPath(_HubitPath):
                     return False
         return True
 
-
-    def idxs_for_matches(self,
+    def idxs_for_matches(
+        self,
         mpaths: List[HubitModelPath],
         accept_idx_wildcard: bool = True,
     ) -> List[int]:

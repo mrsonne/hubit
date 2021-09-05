@@ -19,7 +19,7 @@ from .config import (
     HubitQueryPath,
     Query,
 )
-from .shared import _QueryExpansion, tree_for_idxcontext
+from .tree import _QueryExpansion, tree_for_idxcontext
 from .utils import set_element
 
 from .errors import (

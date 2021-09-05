@@ -3,7 +3,7 @@ from .shared import get_model
 
 # logging.basicConfig(level=logging.INFO)
 # For hard refs
-hmodel = get_model("model1.yml")
+hmodel = get_model("model2.yml")
 
 # Should result in a number
 query = ["sites[0].lines[0].tanks[0].vol_outlet_flow"]

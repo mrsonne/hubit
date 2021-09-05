@@ -20,8 +20,8 @@ from multiprocessing import Pool
 
 from .qrun import _QueryRunner
 from ._model import _HubitModel, _get, _default_skipfun
-from .shared import LengthTree
-from .config import FlatData, HubitModelConfig, HubitModelPath, Query
+from .tree import LengthTree
+from .config import FlatData, HubitModelConfig, Query
 
 from .errors import (
     HubitError,

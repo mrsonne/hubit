@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import Mock
 import yaml
-from hubit import shared
+from hubit.tree import DummyLengthTree, tree_for_idxcontext, LengthNode, LengthTree
 from hubit.worker import _Worker
 from hubit.config import (
     HubitModelComponent,
@@ -35,7 +35,7 @@ class TestWorker(unittest.TestCase):
         component = HubitModelComponent.from_cfg(cfg, 0)
 
         # No index IDs in model
-        tree = shared.DummyLengthTree()
+        tree = DummyLengthTree()
 
         querystring = HubitQueryPath("shared.attr.path")
         with self.assertRaises(HubitWorkerError) as context:
@@ -69,7 +69,7 @@ class TestWorker(unittest.TestCase):
         component = HubitModelComponent.from_cfg(cfg, 0)
 
         # No index IDs in model
-        tree_for_idxcontext = {"": shared.DummyLengthTree()}
+        tree_for_idxcontext = {"": DummyLengthTree()}
 
         # Query something known to exist
         querystring = HubitQueryPath(component.provides_results[0].path)
@@ -131,7 +131,7 @@ class TestWorker(unittest.TestCase):
         }
 
         querystring = HubitQueryPath("items_outer.1.attr.items_inner.0.path1")
-        tree_for_idxcontext = shared.tree_for_idxcontext([component], inputdata)
+        _tree_for_idxcontext = tree_for_idxcontext([component], inputdata)
 
         w = _Worker(
             self.manager,
@@ -140,7 +140,7 @@ class TestWorker(unittest.TestCase):
             querystring,
             func,
             version,
-            tree_for_idxcontext,
+            _tree_for_idxcontext,
             dryrun=True,  # Use dryrun to easily predict the result
         )
 
@@ -256,14 +256,14 @@ class TestWorker(unittest.TestCase):
         # Query something known to exist
         querystr = HubitQueryPath("segments[0].layers[0].k_therm")
 
-        seg_node = shared.LengthNode(2)
-        lay_nodes = shared.LengthNode(2), shared.LengthNode(2)
+        seg_node = LengthNode(2)
+        lay_nodes = LengthNode(2), LengthNode(2)
         seg_node.set_children(lay_nodes)
         nodes = [seg_node]
         nodes.extend(lay_nodes)
         level_names = "IDX_SEG", "IDX_LAY"
-        tree = shared.LengthTree(nodes, level_names)
-        tree_for_idxcontext = {tree.get_idx_context(): tree}
+        tree = LengthTree(nodes, level_names)
+        _tree_for_idxcontext = {tree.get_idx_context(): tree}
 
         querystr = HubitQueryPath(querystr)
         w = _Worker(
@@ -273,7 +273,7 @@ class TestWorker(unittest.TestCase):
             querystr,
             func,
             version,
-            tree_for_idxcontext,
+            _tree_for_idxcontext,
             dryrun=True,
         )
 
@@ -373,13 +373,13 @@ class TestWorker(unittest.TestCase):
 
         # Query something known to exist
         querystr = "factors"
-        idx1_node = shared.LengthNode(2)
+        idx1_node = LengthNode(2)
         nodes = [idx1_node]
         level_names = ("IDX1",)
-        tree = shared.LengthTree(nodes, level_names)
-        dummy_tree = shared.DummyLengthTree()
+        tree = LengthTree(nodes, level_names)
+        dummy_tree = DummyLengthTree()
 
-        tree_for_idxcontext = {"": dummy_tree, tree.get_idx_context(): tree}
+        _tree_for_idxcontext = {"": dummy_tree, tree.get_idx_context(): tree}
 
         querystr = HubitQueryPath(querystr)
         w = _Worker(
@@ -389,7 +389,7 @@ class TestWorker(unittest.TestCase):
             querystr,
             func,
             version,
-            tree_for_idxcontext,
+            _tree_for_idxcontext,
             dryrun=True,
         )
 

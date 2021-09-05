@@ -9,14 +9,14 @@ from multiprocessing.managers import SyncManager
 import copy
 from typing import Any, Callable, Dict, Set, TYPE_CHECKING, List, Optional, Union
 from .config import HubitBinding, HubitQueryPath
-from .shared import LengthTree
+from .tree import LengthTree
 from .utils import traverse, reshape
 
 from .errors import HubitWorkerError
 
 if TYPE_CHECKING:
     from .qrun import _QueryRunner
-    from .shared import HubitModelComponent
+    from .config import HubitModelComponent
 
 
 class _Worker:

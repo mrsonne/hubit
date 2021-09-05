@@ -1,9 +1,16 @@
-from hubit.config import HubitModelPath, HubitQueryPath
 import unittest
 import yaml
 import pprint
 
-from hubit import shared
+from hubit.tree import (
+    LengthTree,
+    LengthNode,
+    DummyLengthTree,
+    _QueryExpansion,
+    LeafNode,
+)
+from hubit.config import HubitModelPath, HubitQueryPath
+from hubit.errors import HubitIndexError
 
 
 class TestTree(unittest.TestCase):
@@ -12,18 +19,18 @@ class TestTree(unittest.TestCase):
         #            ['IDX_LAY', [3, 4]],
         #            ['IDX_POS', [[1, 3, 2], [5, 1, 2, 4]]]]
 
-        seg_nodes = shared.LengthNode(2)
-        lay_nodes = shared.LengthNode(3), shared.LengthNode(4)
+        seg_nodes = LengthNode(2)
+        lay_nodes = LengthNode(3), LengthNode(4)
         pos_lay0_nodes = (
-            shared.LengthNode(1),
-            shared.LengthNode(3),
-            shared.LengthNode(2),
+            LengthNode(1),
+            LengthNode(3),
+            LengthNode(2),
         )
         pos_lay1_nodes = (
-            shared.LengthNode(5),
-            shared.LengthNode(1),
-            shared.LengthNode(2),
-            shared.LengthNode(4),
+            LengthNode(5),
+            LengthNode(1),
+            LengthNode(2),
+            LengthNode(4),
         )
 
         seg_nodes.set_children(lay_nodes)
@@ -35,7 +42,7 @@ class TestTree(unittest.TestCase):
         nodes.extend(pos_lay0_nodes)
         nodes.extend(pos_lay1_nodes)
         level_names = "IDX_SEG", "IDX_LAY", "IDX_POS"
-        self.tree = shared.LengthTree(nodes, level_names)
+        self.tree = LengthTree(nodes, level_names)
         self.template_path = HubitModelPath(
             "segments[:@IDX_SEG].layers[:@IDX_LAY].test.positions[:@IDX_POS]"
         )
@@ -89,7 +96,7 @@ class TestTree(unittest.TestCase):
             "segments[IDX_SEG].layers[:@IDX_LAY].test.positions[:@IDX_POS]"
         )
 
-        tree = shared.LengthTree.from_data(path, input_data)
+        tree = LengthTree.from_data(path, input_data)
         tree_as_list = tree.to_list()
         # print(tree_as_list)
         # TODO test paths in this case
@@ -100,8 +107,8 @@ class TestTree(unittest.TestCase):
     def test_from_data2(self):
         """No lengths since there are no index IDs in path"""
         path = HubitModelPath("segments.layers.positions")
-        calculated_tree = shared.LengthTree.from_data(path, {})
-        self.assertIsInstance(calculated_tree, shared.DummyLengthTree)
+        calculated_tree = LengthTree.from_data(path, {})
+        self.assertIsInstance(calculated_tree, DummyLengthTree)
 
     def test_0(self):
         """path is identical to template_path so the tree remains unchanged"""
@@ -145,11 +152,11 @@ class TestTree(unittest.TestCase):
         path = HubitModelPath(
             "segments[2@IDX_SEG].layers[:@IDX_LAY].test.positions[:@IDX_POS]"
         )
-        with self.assertRaises(shared.HubitIndexError) as context:
+        with self.assertRaises(HubitIndexError) as context:
             self.tree.prune_from_path(path)
 
         path = HubitQueryPath("segments[2].layers[:].test.positions[:]")
-        with self.assertRaises(shared.HubitIndexError) as context:
+        with self.assertRaises(HubitIndexError) as context:
             self.tree.prune_from_path(path)
 
     def test_3(self):
@@ -222,11 +229,11 @@ class TestTree(unittest.TestCase):
         path = HubitModelPath(
             "segments[:@IDX_SEG].layers[:@IDX_LAY].test.positions1[7@IDX_POS]"
         )
-        with self.assertRaises(shared.HubitIndexError) as context:
+        with self.assertRaises(HubitIndexError) as context:
             self.tree.prune_from_path(path, inplace=False)
 
         path = HubitQueryPath("segments[:].layers[:].test.positions1[7]")
-        with self.assertRaises(shared.HubitIndexError) as context:
+        with self.assertRaises(HubitIndexError) as context:
             self.tree.prune_from_path(path, inplace=False)
 
     def test_prune(self):
@@ -237,13 +244,13 @@ class TestTree(unittest.TestCase):
                 for child in node.children:
                     print("child", child)
 
-        idx_car_node = shared.LengthNode(2)
-        idx_parts_nodes = shared.LengthNode(5), shared.LengthNode(4)
+        idx_car_node = LengthNode(2)
+        idx_parts_nodes = LengthNode(5), LengthNode(4)
         idx_car_node.set_children(idx_parts_nodes)
         nodes = [idx_car_node]
         nodes.extend(idx_parts_nodes)
         level_names = "IDX_CAR", "IDX_CAR"
-        tree = shared.LengthTree(nodes, level_names)
+        tree = LengthTree(nodes, level_names)
         clipped_tree = tree.clip_at_level("IDX_CAR", inplace=False)
 
         # nodes or bottom level
@@ -251,7 +258,7 @@ class TestTree(unittest.TestCase):
 
         # all children should be None at bottom level
         children_are_leaves = [
-            all([isinstance(child, shared.LeafNode) for child in node.children])
+            all([isinstance(child, LeafNode) for child in node.children])
             for node in nodes
         ]
 
@@ -266,18 +273,18 @@ class TestTree(unittest.TestCase):
 
     def test_7(self):
         """4-level tree"""
-        x1_nodes = shared.LengthNode(2)
-        x2_nodes = shared.LengthNode(1), shared.LengthNode(3)
-        x3_0_nodes = [shared.LengthNode(2)]
-        x3_1_nodes = shared.LengthNode(1), shared.LengthNode(2), shared.LengthNode(4)
-        x4_0_0_nodes = shared.LengthNode(1), shared.LengthNode(3)
-        x4_1_0_nodes = [shared.LengthNode(1)]
-        x4_1_1_nodes = shared.LengthNode(2), shared.LengthNode(2)
+        x1_nodes = LengthNode(2)
+        x2_nodes = LengthNode(1), LengthNode(3)
+        x3_0_nodes = [LengthNode(2)]
+        x3_1_nodes = LengthNode(1), LengthNode(2), LengthNode(4)
+        x4_0_0_nodes = LengthNode(1), LengthNode(3)
+        x4_1_0_nodes = [LengthNode(1)]
+        x4_1_1_nodes = LengthNode(2), LengthNode(2)
         x4_1_2_nodes = (
-            shared.LengthNode(1),
-            shared.LengthNode(1),
-            shared.LengthNode(1),
-            shared.LengthNode(2),
+            LengthNode(1),
+            LengthNode(1),
+            LengthNode(1),
+            LengthNode(2),
         )
 
         x1_nodes.set_children(x2_nodes)
@@ -302,7 +309,7 @@ class TestTree(unittest.TestCase):
             "IDX_X3",
             "IDX_X4",
         )
-        tree = shared.LengthTree(nodes, level_names)
+        tree = LengthTree(nodes, level_names)
         expected_lengths = [
             2,
             [1, 3],
@@ -402,14 +409,14 @@ class TestTree(unittest.TestCase):
         )
 
         # path = "segments.:@IDX_SEG.layers.:@IDX_LAY.test"
-        seg_node = shared.LengthNode(2)
-        lay_nodes = shared.LengthNode(2), shared.LengthNode(2)
+        seg_node = LengthNode(2)
+        lay_nodes = LengthNode(2), LengthNode(2)
         seg_node.set_children(lay_nodes)
 
         nodes = [seg_node]
         nodes.extend(lay_nodes)
         level_names = "IDX_SEG", "IDX_LAY"
-        tree = shared.LengthTree(nodes, level_names)
+        tree = LengthTree(nodes, level_names)
         # 2  values for segment 0 and 2 values for segment 1
         expected_paths = [
             ["segments[0].layers[0].test", "segments[0].layers[1].test"],
@@ -498,7 +505,7 @@ class TestTree(unittest.TestCase):
             "number": ["some_number"],
         }
         tree_for_name = {
-            name: shared.LengthTree.from_data(path, input_data)
+            name: LengthTree.from_data(path, input_data)
             for name, path in path_consumed_for_name.items()
         }
 
@@ -533,7 +540,7 @@ class TestTree(unittest.TestCase):
         }
 
         tree_for_name = {
-            name: shared.LengthTree.from_data(path, input_data, prune=True)
+            name: LengthTree.from_data(path, input_data, prune=True)
             for name, path in path_consumed_for_name.items()
         }
 
@@ -584,7 +591,7 @@ class TestTree(unittest.TestCase):
         path = HubitModelPath(
             "segments[:@IDX_SEG].layers[:@IDX_LAY].test.positions[:@IDX_POS]"
         )
-        tree = shared.LengthTree.from_data(path, input_data)
+        tree = LengthTree.from_data(path, input_data)
         # print(tree)
         # print(tree.to_list())
         result = tree.none_like()
@@ -595,7 +602,7 @@ class TestTree(unittest.TestCase):
         path = HubitModelPath(
             "segments[:@IDX_SEG].layers[:@IDX_LAY].test.positions[IDX_POS]"
         )
-        tree = shared.LengthTree.from_data(path, input_data)
+        tree = LengthTree.from_data(path, input_data)
         # print(tree)
         # print(tree.to_list())
         result = tree.none_like()
@@ -624,7 +631,7 @@ class TestTree(unittest.TestCase):
         path = HubitModelPath(
             "segments[:@IDX_SEG].layers[:@IDX_LAY].test.positions[:@IDX_POS]"
         )
-        tree = shared.LengthTree.from_data(path, input_data)
+        tree = LengthTree.from_data(path, input_data)
         # print(tree)
         # print(tree.to_list())
         result = tree.none_like()
@@ -635,7 +642,7 @@ class TestTree(unittest.TestCase):
         path = HubitModelPath(
             "segments[:@IDX_SEG].layers[:@IDX_LAY].test.positions[IDX_POS]"
         )
-        tree = shared.LengthTree.from_data(path, input_data)
+        tree = LengthTree.from_data(path, input_data)
         # print(tree)
         # print(tree.to_list())
         result = tree.none_like()
@@ -666,7 +673,7 @@ class TestTree(unittest.TestCase):
 
         # Point to all elements
         path = HubitModelPath("layers[:@IDX_LAY].test.positions[:@IDX_POS]")
-        tree = shared.LengthTree.from_data(path, input_data)
+        tree = LengthTree.from_data(path, input_data)
         # print(tree)
         # print(tree.to_list())
         result = tree.none_like()
@@ -675,7 +682,7 @@ class TestTree(unittest.TestCase):
         # self.assertListEqual(result, expected_result)
 
         path = HubitModelPath("layers[:@IDX_LAY].test.positions[IDX_POS]")
-        tree = shared.LengthTree.from_data(path, input_data)
+        tree = LengthTree.from_data(path, input_data)
         # print(tree)
         # print(tree.to_list())
         result = tree.none_like()
@@ -763,7 +770,7 @@ class TestTree(unittest.TestCase):
             for test_item in test_items:
                 mpath, qpath, expected_result = test_item
                 expected_result = expected_result[input_id]
-                tree = shared.LengthTree.from_data(mpath, input_data, prune=True)
+                tree = LengthTree.from_data(mpath, input_data, prune=True)
                 if qpath is not None:
                     tree.prune_from_path(qpath)
                 print("Test:", input_id, mpath, qpath)
@@ -785,16 +792,14 @@ class TestTree(unittest.TestCase):
 class TestQueryExpansion(unittest.TestCase):
     def test_decompose_query(self):
 
-        qpath = shared.HubitQueryPath("lines[:].tanks[:].vol_outlet_flow")
+        qpath = HubitQueryPath("lines[:].tanks[:].vol_outlet_flow")
         mpaths = [
             "lines[IDX_LINE].tanks[0@IDX_TANK].vol_outlet_flow",
             "lines[IDX_LINE].tanks[1@IDX_TANK].vol_outlet_flow",
             "lines[IDX_LINE].tanks[2@IDX_TANK].vol_outlet_flow",
         ]
         mpaths = [HubitModelPath(mpath) for mpath in mpaths]
-        result, index_identifiers = shared._QueryExpansion.decompose_query(
-            qpath, mpaths
-        )
+        result, index_identifiers = _QueryExpansion.decompose_query(qpath, mpaths)
         index_identifiers = set(index_identifiers)
         self.assertTrue(len(index_identifiers) == 1)
         self.assertIn("IDX_TANK", index_identifiers)

@@ -7,7 +7,7 @@ from functools import reduce
 from operator import getitem
 from typing import Any, List, Dict, Tuple, TYPE_CHECKING
 from .errors import HubitIndexError, HubitError, HubitModelQueryError
-from .config import _HubitPath, HubitModelPath, HubitQueryPath
+from .config import ModelIndexSpecifier, _HubitPath, HubitModelPath, HubitQueryPath
 from .utils import is_digit
 
 if TYPE_CHECKING:
@@ -948,23 +948,23 @@ def check_path_match(
         bool: True if the query matches the model path
     """
     idxids = model_path.get_index_specifiers()
-    query_path_cmps = HubitModelPath.as_internal(query_path).split(".")
-    model_path_cmps = HubitModelPath.as_internal(model_path).split(".")
+    query_path_cmps = query_path.components()
+    model_path_cmps = model_path.components()
     # Should have same number of path components
     if not len(query_path_cmps) == len(model_path_cmps):
         return False
     for qcmp, mcmp in zip(query_path_cmps, model_path_cmps):
         if is_digit(qcmp):
 
-            # Get index part of specifier (digit or wildcard)
-            # TODO: centralized index specifier in a class
-            midx = mcmp.split("@")[0]
+            # Get index part of specifier (digit, wildcard, or empty)
+            midx = ModelIndexSpecifier(mcmp).idx_range
 
             # When a digit is found in the query either an ilocstr,
             # a wildcard or a digit should be found in the model path
             if not (mcmp in idxids or IDX_WILDCARD == midx or is_digit(midx)):
                 return False
 
+            # If model index range is a digit the query need the same digit
             if is_digit(midx) and not (qcmp == midx):
                 return False
 

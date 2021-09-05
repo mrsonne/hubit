@@ -557,6 +557,7 @@ class HubitModelComponent:
         """
         Validate the object
         """
+        # Check for circular refs
         consumes_results = set(binding.path for binding in self.consumes_results)
         circ_refs = consumes_results.intersection(
             binding.path for binding in self.provides_results
@@ -564,6 +565,9 @@ class HubitModelComponent:
         assert (
             len(circ_refs) == 0
         ), f"Component at index {self._index} has circular reference(s): {', '.join(circ_refs)}"
+
+        assert len(self.context) < 2, "Maximum one context allowed"
+
         return self
 
     @property

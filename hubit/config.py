@@ -370,7 +370,8 @@ class HubitModelPath(_HubitPath):
 
     # VALID: Assign a 'price' attribute each part object in the car object.
     - name: parts_price
-        path: cars[IDX_CAR].parts[:@IDX_PART].price # index specifier for parts is equal to consumes.input.path
+        path: cars[IDX_CAR].parts[:@IDX_PART].price # index specifier for parts
+            is equal to consumes.input.path
     consumes_input:
     - name: part_name
         path: cars[IDX_CAR].parts[:@IDX_PART].name
@@ -485,7 +486,8 @@ class HubitModelPath(_HubitPath):
             idxids (List[str]): Sequence of index identification strings in 'path'
 
         Returns:
-            List[str]: Sequence of index identification strings between index IDs. Includes path after last index ID
+            List[str]: Sequence of index identification strings between index
+            IDs. Includes path after last index ID
         """
         # Remove [] and replace with ..
         p2 = HubitModelPath.as_internal(self)
@@ -506,7 +508,8 @@ class HubitBinding:
     at `path` in the shared data model
 
     Args:
-        path (HubitModelPath): [`HubitModelPath`][hubit.config.HubitModelPath] pointing to the relevant field in the shared data.
+        path (HubitModelPath): [`HubitModelPath`][hubit.config.HubitModelPath]
+            pointing to the relevant field in the shared data.
         name (str): Attribute name as it will be exposed in the component.
     """
 
@@ -547,14 +550,18 @@ class HubitModelComponent:
             is false the `path` attribute is relative to the `base_path`
             which is the parent path for the model file.
         func_name (str): The function name (entrypoint) that wraps the task.
-        provides_results (List[HubitBinding]): [`HubitBinding`][hubit.config.HubitBinding] sequence specifying the results provided by the component.
-        consumes_input (List[HubitBinding], optional): [`HubitBinding`][hubit.config.HubitBinding] sequence specifying the input consumed by the input consumed.
-        consumes_results (List[HubitBinding]): [`HubitBinding`][hubit.config.HubitBinding] sequence specifying the input consumed by the results consumed.
+        provides_results (List[HubitBinding]): [`HubitBinding`][hubit.config.HubitBinding]
+            sequence specifying the results provided by the component.
+        consumes_input (List[HubitBinding], optional): [`HubitBinding`][hubit.config.HubitBinding]
+            sequence specifying the input consumed by the input consumed.
+        consumes_results (List[HubitBinding]): [`HubitBinding`][hubit.config.HubitBinding]
+            sequence specifying the input consumed by the results consumed.
         context (dict, optional): A map from the index identifiers to an index. Used to
             limit the scope of the component. If, for example, the context
             is `{IDX_TANK: 0}` the component is only used when the value of the
             index identifier IDX_TANK is 0. The context can only have one element.
-        is_dotted_path (bool, optional): Set to True if the specified `path` is a dotted path (typically for a package module in site-packages).
+        is_dotted_path (bool, optional): Set to True if the specified `path` is a
+            dotted path (typically for a package module in site-packages).
         _index (int): Component index in model file
     """
 

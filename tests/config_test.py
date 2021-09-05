@@ -213,10 +213,35 @@ class TestHubitModelPath(unittest.TestCase):
 
 
 class TestModelIndexSpecifier(unittest.TestCase):
-    def test_stuff(self):
-        mis = ModelIndexSpecifier(":@IDX1LAY113")
-        print(mis.offset)
-        print(mis.identifier)
+    def test_mis(self):
+        mis = ModelIndexSpecifier(":@IDX_LAY")
+        assert mis.offset == 0
+        assert mis.identifier == "IDX_LAY"
+        assert mis.idx_range == ":"
+
+        mis = ModelIndexSpecifier("IDX_LAY+1")
+        assert mis.offset == 1
+        assert mis.identifier == "IDX_LAY"
+        assert mis.idx_range == ""
+
+        mis = ModelIndexSpecifier("IDX_LAY-12")
+        assert mis.offset == -12
+        assert mis.identifier == "IDX_LAY"
+        assert mis.idx_range == ""
+
+        # cannot specify both range and offset
+        mis = ModelIndexSpecifier("2@IDX_LAY-12")
+        assert mis._validate_cross() == False
+
+        # cannot specify both range and offset
+        mis = ModelIndexSpecifier(":@IDX_LAY-12")
+        assert mis._validate_cross() == False
+
+        # incomplete range specification
+        mis = ModelIndexSpecifier("@IDX_LAY-12")
+        with self.assertRaises(AssertionError) as cm:
+            mis.validate()
+        print(cm.exception)
 
 
 class TestFlatData(unittest.TestCase):

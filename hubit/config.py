@@ -65,6 +65,12 @@ class ModelIndexSpecifier(str):
                 self[idx_wc + 1] == self.ref_chr
             ), f"{self.wildcard_chr} should be followed by an '{self.ref_chr}'"
 
+        # check that if @ is present the idx_range is non-empty
+        if self.ref_chr in self:
+            assert (
+                self.idx_range != ""
+            ), f"Found '{self.ref_chr}' but no range was specified in '{self}'."
+
         assert (
             self._validate_cross()
         ), f"Invalid index specifier '{self}'. A non-empty range requires an empty (i.e. zero) offset and vice versa."
@@ -89,7 +95,7 @@ class ModelIndexSpecifier(str):
         return re.search(self.regex_allowed_identifier, self.identifier)
 
     def _validate_offset(self):
-        return self.offset == 0
+        return is_digit(self.offset)
 
     def _validate_idx_range(self):
         idx_range = self.idx_range
@@ -105,11 +111,21 @@ class ModelIndexSpecifier(str):
 
     @property
     def identifier(self) -> str:
-        return self.split(self.ref_chr)[1] if self.ref_chr in self else self
+        # remove the (signed) offset
+        idx_spec = self.replace("{0:+d}".format(self.offset), "")
+        return idx_spec.split(self.ref_chr)[1] if self.ref_chr in idx_spec else idx_spec
 
     @property
     def offset(self) -> int:
-        return 0
+        try:
+            return int(self[self.index("+") :])
+        except ValueError:
+            pass
+
+        try:
+            return int(self[self.index("-") :])
+        except ValueError:
+            return 0
 
     @classmethod
     def from_components(cls, identifier, idx_range: str = "", offset: int = 0):

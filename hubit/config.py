@@ -87,7 +87,6 @@ class _HubitPath(str):
         """
         return path.replace("[", ".").replace("]", "")
 
-
     @classmethod
     def from_dotted(cls, dotted_string: str) -> Any:
         # replace .DIGIT with [DIGIT] using "look behind"
@@ -124,7 +123,6 @@ class _HubitPath(str):
 
         # Check that braces are balanced
         assert _HubitPath.balanced(self), f"Brackets not balanced for path {self}"
-
 
     def components(self):
         return self.as_internal(self).split(".")
@@ -431,12 +429,15 @@ class HubitModelPath(_HubitPath):
         """Change the return type compared to the super class"""
         return self.__class__(super().set_indices(indices, mode))
 
-    def set_value_for_idxid(self, value_for_idxid: Dict[str, Any]) -> HubitModelPath:
+    def set_value_for_idxid(
+        self, value_for_idxid: Dict[str, Any], values_are_id_range: bool = True
+    ) -> HubitModelPath:
         idx_specs = self.get_index_specifiers()
         idx_ids = self.get_index_identifiers()
         for idxid, value in value_for_idxid.items():
             idx = idx_ids.index(idxid)
-            idx_specs[idx] = value
+            _value = f"{value}@{idxid}" if values_are_id_range else value
+            idx_specs[idx] = _value
         return self.set_indices(idx_specs)
 
     def get_slices(self) -> List[str]:

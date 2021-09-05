@@ -12,7 +12,6 @@ if TYPE_CHECKING:
     from .config import HubitModelComponent
 
 IDX_WILDCARD = ModelIndexSpecifier.wildcard_chr
-# REGEX_IDXID = r"\[(.*?)\]"
 
 
 class LeafNode:
@@ -795,19 +794,3 @@ def tree_for_idxcontext(
             out[idx_context] = new_tree
 
     return out
-
-
-# def is_digit(s: str) -> bool:
-#     """Alternative to s.isdigit() that handles negative integers
-
-#     Args:
-#         s (str): A string
-
-#     Returns:
-#         bool: Flag indicating if the input string is a signed int
-#     """
-#     try:
-#         int(s)
-#         return True
-#     except ValueError:
-#         return False

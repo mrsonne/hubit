@@ -727,6 +727,8 @@ class _HubitModel:
             for binding in cmp.provides_results
         ]
         cmp_ids, paths_provided, contexts = zip(*itempairs)
+
+        # Set the context to check if provided paths are unique
         _paths_provided = [
             path.set_value_for_idxid(context)
             for path, context in zip(paths_provided, contexts)

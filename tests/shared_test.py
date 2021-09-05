@@ -42,7 +42,7 @@ class TestShared(unittest.TestCase):
         }
 
         self.providerstring = HubitModelPath("segs[IDXSEG].walls[IDXWALL].temps")
-        self.querystring = HubitModelPath("segs[42].walls[3].temps")
+        self.querystring = HubitQueryPath("segs[42].walls[3].temps")
         self.idxids = self.providerstring.get_index_specifiers()
 
     def test_get_matches(self):
@@ -53,7 +53,7 @@ class TestShared(unittest.TestCase):
             HubitModelPath("price"),
             self.providerstring,
             HubitModelPath("segs[IDXSEG].walls.thicknesses"),
-            self.querystring,
+            HubitModelPath(self.querystring),
             HubitModelPath("segs[IDXSEG].walls[IDXWALL].thicknesses"),
             HubitModelPath("segs[IDXSEG].walls[IDXWALL]"),
         )

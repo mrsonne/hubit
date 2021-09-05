@@ -87,6 +87,7 @@ class _HubitPath(str):
         """
         return path.replace("[", ".").replace("]", "")
 
+
     @classmethod
     def from_dotted(cls, dotted_string: str) -> Any:
         # replace .DIGIT with [DIGIT] using "look behind"
@@ -123,6 +124,10 @@ class _HubitPath(str):
 
         # Check that braces are balanced
         assert _HubitPath.balanced(self), f"Brackets not balanced for path {self}"
+
+
+    def components(self):
+        return self.as_internal(self).split(".")
 
     def set_indices(self, indices: List[str], mode: int = 0) -> _HubitPath:
         """Replace the index identifiers on the path with location indices

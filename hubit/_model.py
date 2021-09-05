@@ -19,12 +19,8 @@ from .config import (
     HubitQueryPath,
     Query,
 )
-from .shared import (
-    _QueryExpansion,
-    idxs_for_matches,
-    set_element,
-    tree_for_idxcontext,
-)
+from .shared import _QueryExpansion, tree_for_idxcontext
+from .utils import set_element
 
 from .errors import (
     HubitModelNoInputError,
@@ -734,7 +730,7 @@ class _HubitModel:
             path.set_value_for_idxid(context)
             for path, context in zip(paths_provided, contexts)
         ]
-        idxs = idxs_for_matches(qpath, _paths_provided)
+        idxs = qpath.idxs_for_matches(_paths_provided)
         return [cmp_ids[idx] for idx in idxs]
 
     def component_for_id(self, compid: str) -> HubitModelComponent:
@@ -777,8 +773,8 @@ class _HubitModel:
         for cmp_id in cmp_ids:
             cmp = self.model_cfg.component_for_id[cmp_id]
             # Find index in list of binding paths that match query path
-            idxs = idxs_for_matches(
-                qpath, [binding.path for binding in cmp.provides_results]
+            idxs = qpath.idxs_for_matches(
+                [binding.path for binding in cmp.provides_results]
             )
             paths.append(cmp.provides_results[idxs[0]].path)
             contexts.append(cmp.context)

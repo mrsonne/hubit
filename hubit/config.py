@@ -315,6 +315,21 @@ class HubitQueryPath(_HubitPath):
         return True
 
 
+    def idxs_for_matches(self,
+        mpaths: List[HubitModelPath],
+        accept_idx_wildcard: bool = True,
+    ) -> List[int]:
+        """
+        Returns indices in the sequence of provider strings that match the
+        structure of the query string
+        """
+        return [
+            idx
+            for idx, mpath in enumerate(mpaths)
+            if self.check_path_match(mpath, accept_idx_wildcard)
+        ]
+
+
 class _HubitQueryDepthPath(HubitQueryPath):
     """
     A `_HubitQueryDepthPath` specifies the maximum depth that can

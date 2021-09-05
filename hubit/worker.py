@@ -9,12 +9,9 @@ from multiprocessing.managers import SyncManager
 import copy
 from typing import Any, Callable, Dict, Set, TYPE_CHECKING, List, Optional, Union
 from .config import HubitBinding, HubitQueryPath
-from .shared import (
-    LengthTree,
-    idxs_for_matches,
-    traverse,
-    reshape,
-)
+from .shared import LengthTree
+from .utils import traverse, reshape
+
 from .errors import HubitWorkerError
 
 if TYPE_CHECKING:
@@ -81,8 +78,8 @@ class _Worker:
         """
         binding_paths = [binding.path for binding in bindings]
         # Get indices in binding_paths list that match the query
-        idxs_match = idxs_for_matches(
-            query_path, binding_paths, accept_idx_wildcard=False
+        idxs_match = query_path.idxs_for_matches(
+            binding_paths, accept_idx_wildcard=False
         )
         if len(idxs_match) == 0:
             fstr = 'Query "{}" did not match attributes provided by worker ({}).'

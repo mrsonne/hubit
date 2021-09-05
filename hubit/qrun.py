@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from hubit.model import HubitModel
 
 from .worker import _Worker
-from .shared import count
+from .utils import count
 from .config import FlatData, HubitModelComponent, HubitModelPath, HubitQueryPath
 
 POLLTIME = 0.1

@@ -64,6 +64,25 @@ class TestHubitQueryPath(unittest.TestCase):
         with self.assertRaises(AssertionError):
             path._validate_index_specifiers()
 
+    def test_get_matches(self):
+        """Test that we can find the provider strings
+        that match the query
+        """
+        qpath = HubitQueryPath("segs[42].walls[3].temps")
+        provides = HubitModelPath("segs[IDXSEG].walls[IDXWALL].temps")
+        mpaths = (
+            HubitModelPath("price"),
+            provides,
+            HubitModelPath("segs[IDXSEG].walls.thicknesses"),
+            HubitModelPath(qpath),
+            HubitModelPath("segs[IDXSEG].walls[IDXWALL].thicknesses"),
+            HubitModelPath("segs[IDXSEG].walls[IDXWALL]"),
+        )
+
+        idxs_match_expected = (1, 3)
+        idxs_match = qpath.idxs_for_matches(mpaths)
+        self.assertSequenceEqual(idxs_match, idxs_match_expected)
+
 
 class TestHubitModelPath(unittest.TestCase):
     def test_remove_braces(self):

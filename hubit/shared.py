@@ -13,7 +13,7 @@ from .utils import is_digit
 if TYPE_CHECKING:
     from .config import HubitModelComponent
 
-IDX_WILDCARD = ":"
+IDX_WILDCARD = ModelIndexSpecifier.wildcard_chr
 # REGEX_IDXID = r"\[(.*?)\]"
 
 

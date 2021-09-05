@@ -15,13 +15,12 @@ from .config import (
     HubitBinding,
     HubitModelComponent,
     HubitModelPath,
-    _HubitPath,
+    ModelIndexSpecifier,
     HubitQueryPath,
     Query,
 )
 from .shared import (
     _QueryExpansion,
-    IDX_WILDCARD,
     idxs_for_matches,
     set_element,
     tree_for_idxcontext,
@@ -32,6 +31,8 @@ from .errors import (
     HubitModelValidationError,
     HubitModelQueryError,
 )
+
+IDX_WILDCARD = ModelIndexSpecifier.wildcard_chr
 
 
 def _default_skipfun(flat_input: FlatData) -> bool:

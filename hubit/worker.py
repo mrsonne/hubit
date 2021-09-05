@@ -12,7 +12,6 @@ from .config import HubitBinding, HubitQueryPath
 from .shared import (
     LengthTree,
     idxs_for_matches,
-    check_path_match,
     traverse,
     reshape,
 )
@@ -93,7 +92,7 @@ class _Worker:
         # matched the query suffice
         idxval_for_idxid = {}
         for binding in bindings:
-            if check_path_match(query_path, binding.path, accept_idx_wildcard=False):
+            if query_path.check_path_match(binding.path, accept_idx_wildcard=False):
                 idxids = binding.path.get_index_identifiers()
                 idxs = query_path.get_slices()
                 idxval_for_idxid.update(dict(zip(idxids, idxs)))

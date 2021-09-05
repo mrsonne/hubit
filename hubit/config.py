@@ -270,6 +270,50 @@ class HubitQueryPath(_HubitPath):
     #         _path = _path.replace(idx_spec, index, 1)
     #     return self.__class__(_path)
 
+    def check_path_match(
+        self, model_path: HubitModelPath, accept_idx_wildcard: bool = True
+    ) -> bool:
+        """Check if the query matches the model path from the
+        model bindings
+
+        Args:
+            model_path (HubitModelPath): Model path
+            accept_idx_wildcard (bool): Should idx wildcard in the query path be accepted. Default True.
+
+        Returns:
+            bool: True if the query matches the model path
+        """
+        idxids = model_path.get_index_specifiers()
+        query_path_cmps = self.components()
+        model_path_cmps = model_path.components()
+        # Should have same number of path components
+        if not len(query_path_cmps) == len(model_path_cmps):
+            return False
+        for qcmp, mcmp in zip(query_path_cmps, model_path_cmps):
+            if is_digit(qcmp):
+
+                # Get index part of specifier (digit, wildcard, or empty)
+                midx = ModelIndexSpecifier(mcmp).idx_range
+
+                # When a digit is found in the query either an ilocstr,
+                # a wildcard or a digit should be found in the model path
+                if not (mcmp in idxids or self.char_wildcard == midx or is_digit(midx)):
+                    return False
+
+                # If model index range is a digit the query need the same digit
+                if is_digit(midx) and not (qcmp == midx):
+                    return False
+
+            elif accept_idx_wildcard and qcmp == self.char_wildcard:
+                # When a wildcard is found in the query an index ID must be in the model
+                if not mcmp in idxids:
+                    return False
+            else:
+                # If not a digit the path components should be identical
+                if not qcmp == mcmp:
+                    return False
+        return True
+
 
 class _HubitQueryDepthPath(HubitQueryPath):
     """

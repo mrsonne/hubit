@@ -68,6 +68,17 @@ class ModelIndexSpecifier(str):
     def offset(self) -> int:
         return 0
 
+    @classmethod
+    def from_components(cls, identifier, idx_range: str = "", offset: int = 0):
+        """Create index specifier from from components. Only identifier is required"""
+        if offset == 0:
+            _offset = ""
+
+        if not idx_range == "":
+            _idx_range = f"{idx_range}{cls.ref_chr}"
+
+        return cls(f"{_idx_range}{identifier}{_offset}")
+
 
 class _HubitPath(str):
     # TODO metaclass with abstract methods
@@ -436,7 +447,11 @@ class HubitModelPath(_HubitPath):
         idx_ids = self.get_index_identifiers()
         for idxid, value in value_for_idxid.items():
             idx = idx_ids.index(idxid)
-            _value = f"{value}@{idxid}" if values_are_id_range else value
+            _value = (
+                ModelIndexSpecifier.from_components(idxid, str(value))
+                if values_are_id_range
+                else value
+            )
             idx_specs[idx] = _value
         return self.set_indices(idx_specs)
 

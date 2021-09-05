@@ -2,10 +2,7 @@ from __future__ import annotations
 from functools import reduce
 import itertools
 from operator import getitem
-from typing import TYPE_CHECKING, List, Dict, Tuple
-
-if TYPE_CHECKING:
-    from config import HubitQueryPath, HubitModelPath
+from typing import List, Dict, Tuple
 
 
 def is_digit(s: str) -> bool:

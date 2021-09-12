@@ -152,7 +152,7 @@ class _QueryRunner:
 
     @staticmethod
     def _transfer_input(
-        input_paths: List[HubitModelPath],
+        input_paths: List[HubitQueryPath],
         worker: _Worker,
         extracted_input: Dict,
         all_input: FlatData,

@@ -267,10 +267,8 @@ class _HubitModel:
                 (func, version, _) = _QueryRunner._get_func(
                     self.base_path, component, components={}
                 )
-                manager = None
                 workers.append(
                     _Worker(
-                        manager,
                         self,
                         component,
                         dummy_query,

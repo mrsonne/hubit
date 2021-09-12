@@ -53,8 +53,9 @@ class _Worker:
                         # Map index ID to the value
                         index = idxval_for_idxid[idxid]
                     elif idx == ModelIndexSpecifier.wildcard_chr:
-                        # leave for subsequent expansion
-                        pass
+                        # leave for subsequent expansion.
+                        # From the expansion method's perspective 'index' could be any character.
+                        index = ModelIndexSpecifier.wildcard_chr
                     else:
                         raise HubitError(f"Unknown range '{idx}'")
                     indices.append(ModelIndexSpecifier.from_components(idxid, index))

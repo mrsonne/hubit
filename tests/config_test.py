@@ -8,6 +8,7 @@ from hubit.config import (
     ModelIndexSpecifier,
     FlatData,
     _HubitQueryDepthPath,
+    Range,
 )
 from hubit.errors import HubitModelComponentError
 
@@ -242,6 +243,61 @@ class TestModelIndexSpecifier(unittest.TestCase):
         with self.assertRaises(AssertionError) as cm:
             mis.validate()
         print(cm.exception)
+
+
+class TestRange(unittest.TestCase):
+    def test_range_type(self):
+        range = Range("2")
+        assert range.is_digit
+        assert not range.is_limited_range
+        assert not range.is_full_range
+
+        range = Range("2:")
+        assert not range.is_digit
+        assert range.is_limited_range
+        assert not range.is_full_range
+
+        range = Range(":2")
+        assert not range.is_digit
+        assert range.is_limited_range
+        assert not range.is_full_range
+
+        range = Range("2:4")
+        assert not range.is_digit
+        assert range.is_limited_range
+        assert not range.is_full_range
+
+        range = Range(":")
+        assert not range.is_digit
+        assert not range.is_limited_range
+        assert range.is_full_range
+
+    def test_range_contains(self):
+        range = Range("2")
+        assert not range.contains_index(1)
+        assert range.contains_index(2)
+        assert not range.contains_index(3)
+
+        range = Range("2:")
+        assert not range.contains_index(1)
+        assert range.contains_index(2)
+        assert range.contains_index(3)
+
+        range = Range(":2")
+        assert range.contains_index(1)
+        assert not range.contains_index(2)
+        assert not range.contains_index(3)
+
+        range = Range("2:4")
+        assert not range.contains_index(1)
+        assert range.contains_index(2)
+        assert range.contains_index(3)
+        assert not range.contains_index(4)
+
+        range = Range(":")
+        assert range.contains_index(1)
+        assert range.contains_index(2)
+        assert range.contains_index(3)
 
 
 class TestFlatData(unittest.TestCase):

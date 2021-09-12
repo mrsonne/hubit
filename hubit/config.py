@@ -20,10 +20,56 @@ SEP = "."
 # TODO: Block context and slice
 
 
-class Range(str):
-    """digit, wildcard_chr, digit:"""
+class Range:
+    """
+    Supported ranges: digit, wildcard_chr, digit:, digit1:digit2, :digit
+    where digit is a positive int and digit1 < digit2
+    """
 
     wildcard_chr = ":"
+
+    def __init__(self, value: str):
+        self.value = value
+        Range._validate(value)
+
+        self.is_digit = is_digit(value)
+        self.is_full_range = False
+        self.is_limited_range = False
+        if not self.is_digit:
+            self.is_full_range = value == self.wildcard_chr
+
+        if (not self.is_digit) and (not self.is_full_range):
+            self.is_limited_range = True
+
+    @staticmethod
+    def _validate(value: str):
+        return True
+
+    def contains_index(self, idx: int) -> bool:
+        """integer contained in range"""
+        if self.is_digit:
+            return str(idx) == self.value
+        elif self.is_full_range:
+            return True
+        elif self.is_limited_range:
+            start, end = self.value.split(self.wildcard_chr)
+
+            if start == "":
+                is_in_lower = True
+            else:
+                is_in_lower = idx >= int(start)
+
+            if end == "":
+                is_in_upper = True
+            else:
+                is_in_upper = idx < int(end)
+
+            return is_in_lower and is_in_upper
+        else:
+            raise HubitError(f"Unknown range {self}")
+
+    def __str__(self) -> str:
+        return self.value
 
 
 class ModelIndexSpecifier(str):

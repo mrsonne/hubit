@@ -8,7 +8,7 @@ import multiprocessing
 from multiprocessing.managers import SyncManager
 import copy
 from typing import Any, Callable, Dict, Set, TYPE_CHECKING, List, Optional, Union
-from .config import HubitBinding, HubitQueryPath
+from .config import HubitBinding, HubitQueryPath, ModelIndexSpecifier
 from .tree import LengthTree
 from .utils import traverse, reshape
 
@@ -54,8 +54,7 @@ class _Worker:
                         index = idxval_for_idxid[idxid]
                     else:
                         index = None
-                    # Insert artificial @ to comply with model path structure
-                    indices.append(f"{index}@{idxid}")
+                    indices.append(ModelIndexSpecifier.from_components(idxid, index))
 
                 result[binding.name] = binding.path.set_indices(indices, mode=1)
             return result

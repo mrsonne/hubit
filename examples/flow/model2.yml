@@ -28,12 +28,11 @@ components:
     consumes_input:
       - name: tank_parameters
         path: sites[IDX_SITE].lines[IDX_LINE].tanks[IDX_TANK]
-    # consumes_results:
-      # use outlet flow from previous tank as inlet flow
-      # - name: vol_inlet_flow
-      #   path: sites[IDX_SITE].lines[IDX_LINE].tanks[IDX_TANK].vol_outlet_flow
+    consumes_results:
+      # use offset to subscribe to the outlet flow from previous tank 
+      # as the inlet flow to the current tank
       - name: vol_inlet_flow
-        path: vol_inlet_flow
+        path: sites[IDX_SITE].lines[IDX_LINE].tanks[IDX_TANK-1].vol_outlet_flow
 
   # Third tank
   - path: ./components/mod1.py
@@ -44,12 +43,11 @@ components:
         path: sites[IDX_SITE].lines[IDX_LINE].tanks[IDX_TANK].vol_outlet_flow
       - name: vol_over_flow
         path: sites[IDX_SITE].lines[IDX_LINE].tanks[IDX_TANK].vol_over_flow
-    # consumes_results:
-    #   # use outlet flow from previous tank as inlet flow
-    #   - name: vol_inlet_flow
-    #     path: sites[IDX_SITE].lines[IDX_LINE].tanks[IDX_TANK].vol_outlet_flow
     consumes_input:
       - name: tank_parameters
         path: sites[IDX_SITE].lines[IDX_LINE].tanks[IDX_TANK]
+    consumes_results:
+      # use offset to subscribe to the outlet flow from previous tank 
+      # as the inlet flow to the current tank
       - name: vol_inlet_flow
-        path: vol_inlet_flow
+        path: sites[IDX_SITE].lines[IDX_LINE].tanks[IDX_TANK-1].vol_outlet_flow

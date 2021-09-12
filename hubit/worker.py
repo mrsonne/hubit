@@ -12,7 +12,7 @@ from .config import HubitBinding, HubitQueryPath, ModelIndexSpecifier
 from .tree import LengthTree
 from .utils import traverse, reshape
 
-from .errors import HubitWorkerError
+from .errors import HubitError, HubitWorkerError
 
 if TYPE_CHECKING:
     from .qrun import _QueryRunner
@@ -52,8 +52,11 @@ class _Worker:
                     elif idxid in idxval_for_idxid:
                         # Map index ID to the value
                         index = idxval_for_idxid[idxid]
+                    elif idx == ModelIndexSpecifier.wildcard_chr:
+                        # leave for subsequent expansion
+                        pass
                     else:
-                        index = None
+                        raise HubitError(f"Unknown range '{idx}'")
                     indices.append(ModelIndexSpecifier.from_components(idxid, index))
 
                 result[binding.name] = binding.path.set_indices(indices, mode=1)

@@ -111,8 +111,8 @@ class _QueryRunner:
 
     def _worker_for_query(
         self,
-        manager: Optional[SyncManager],
         path: HubitQueryPath,
+        manager: Optional[SyncManager] = None,
         dryrun: bool = False,
     ) -> Optional[_Worker]:
         """Creates instance of the worker class that can respond to the query
@@ -168,11 +168,11 @@ class _QueryRunner:
 
     def spawn_workers(
         self,
-        manager: Optional[SyncManager],
         qpaths: List[HubitQueryPath],
         extracted_input,
         flat_results: FlatData,
         all_input,
+        manager: Optional[SyncManager] = None,
         skip_paths=[],
         dryrun=False,
     ) -> Set[str]:
@@ -197,7 +197,7 @@ class _QueryRunner:
 
             # Figure out which component can provide a response to the query
             # and get the corresponding worker
-            worker = self._worker_for_query(manager, qpath, dryrun=dryrun)
+            worker = self._worker_for_query(qpath, manager, dryrun=dryrun)
             # if worker is None: return False
 
             # Skip if the queried data will be provided
@@ -241,11 +241,11 @@ class _QueryRunner:
 
             # Spawn workers for the dependencies
             results_ids_sub_workers = self.spawn_workers(
-                manager,
                 queries_next,
                 extracted_input,
                 flat_results,
                 all_input,
+                manager,
                 skip_paths=_skip_paths,
                 dryrun=dryrun,
             )

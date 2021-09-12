@@ -21,8 +21,7 @@ def setUpModule():
 
 def subscriptions_for_query(query, query_runner):
     """Get subscriptions from worker"""
-    manager = None
-    w = query_runner._worker_for_query(manager, query)
+    w = query_runner._worker_for_query(query)
     consumes = list(w.ipath_consumed_for_name.values())
     consumes += list(w.rpath_consumed_for_name.values())
     provides = list(w.rpath_provided_for_name.values())
@@ -130,9 +129,8 @@ class TestRunner(unittest.TestCase):
         """
         No provider for query since the query has not provider.
         """
-        manager = None
         with self.assertRaises(HubitModelQueryError):
-            self.qr._worker_for_query(manager, HubitQueryPath("i.dont.exist"))
+            self.qr._worker_for_query(HubitQueryPath("i.dont.exist"))
 
     def get_worker_counts(self, queries):
         flat_results = FlatData()
@@ -142,10 +140,9 @@ class TestRunner(unittest.TestCase):
             include_patterns=self.model_cfg.include_patterns,
         )
         worker_counts = []
-        manager = None
         for qpaths in queries:
             self.qr.spawn_workers(
-                manager, qpaths, flat_input, flat_results, flat_input, dryrun=True
+                qpaths, flat_input, flat_results, flat_input, dryrun=True
             )
             worker_counts.append(len(self.qr.workers))
 

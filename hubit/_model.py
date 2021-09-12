@@ -88,18 +88,16 @@ def _get(
         if queryrunner.use_multi_processing:
             with Manager() as manager:
                 queryrunner.spawn_workers(
-                    manager,
                     _queries,
                     extracted_input,
                     flat_results,
                     flat_input,
+                    manager,
                     dryrun=dryrun,
                 )
                 watcher.join()
         else:
-            manager = None
             queryrunner.spawn_workers(
-                manager,
                 _queries,
                 extracted_input,
                 flat_results,

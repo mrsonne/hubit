@@ -661,7 +661,7 @@ class HubitModelPath(_HubitPath):
         return "-".join(self.get_index_identifiers())
 
     def paths_between_idxids(self, idxids: List[str]) -> List[str]:
-        """Find list of path components inbetween index IDs
+        """Find list of path components in between index IDs
 
         Args:
             idxids (List[str]): Sequence of index identification strings in 'path'

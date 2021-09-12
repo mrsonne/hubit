@@ -314,6 +314,15 @@ class _HubitPath(str):
         """
         return re.sub(_HubitPath.regex_braces, "", self)
 
+    def field_names(self) -> List[str]:
+        """Find list of path components in between index specifiers
+        i.e. the field names
+
+        Returns:
+            List[str]: Sequence of field names
+        """
+        return self.remove_braces().split(SEP)
+
     def has_slice_range(self):
         """Check if path has a slice that is a range"""
         return self.wildcard_chr in self.get_slices()

@@ -20,6 +20,12 @@ SEP = "."
 # TODO: Block context and slice
 
 
+class Range(str):
+    """digit, wildcard_chr, digit:"""
+
+    wildcard_chr = ":"
+
+
 class ModelIndexSpecifier(str):
     """
     Index specifiers for [`HubitModelPath`][hubit.config.HubitModelPath].
@@ -49,7 +55,7 @@ class ModelIndexSpecifier(str):
     """
 
     ref_chr = "@"
-    wildcard_chr = ":"
+    wildcard_chr = Range.wildcard_chr
     # Characters a-z, A-Z, _ and digits are allowed
     regex_allowed_identifier = r"^[a-zA-Z_0-9]+$"
     # Any positive digit is allowed
@@ -145,7 +151,7 @@ class _HubitPath(str):
     # TODO metaclass with abstract methods
     # abc and multiple inheritance... https://stackoverflow.com/questions/37398966/python-abstractmethod-with-another-baseclass-breaks-abstract-functionality
 
-    wildcard_chr = ModelIndexSpecifier.wildcard_chr
+    wildcard_chr = Range.wildcard_chr
     regex_idx_spec = r"\[(.*?)\]"
     regex_braces = r"\[([^\.]+)]"
 

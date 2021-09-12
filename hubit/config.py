@@ -71,15 +71,6 @@ class Range:
     def __str__(self) -> str:
         return self.value
 
-    def __eq__(self, other):
-        if isinstance(other, Range):
-            if other.value == self.value:
-                return True
-        elif isinstance(other, str):
-            if other == self.value:
-                return True
-        return False
-
 
 class ModelIndexSpecifier(str):
     """
@@ -661,7 +652,7 @@ class HubitModelPath(_HubitPath):
         return "-".join(self.get_index_identifiers())
 
     def paths_between_idxids(self, idxids: List[str]) -> List[str]:
-        """Find list of path components inbetween index IDs
+        """Find list of path components in between index IDs
 
         Args:
             idxids (List[str]): Sequence of index identification strings in 'path'

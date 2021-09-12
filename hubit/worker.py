@@ -187,8 +187,11 @@ class _Worker:
         # 1) Prune tree corresponding to query
         # 2) Prune remaining trees based idxval_for_idxid (method does no exist yet on LengthTree)
 
-        # TODO: assumes provider has the all ilocs defined.
-        # Model path for input provisions with ilocs from query
+        # Creating self.idxval_for_idxid from "provides_results" assumes that
+        # the providers have all index identifiers from "consumes_input" and
+        # "consumes_results" defined excluding the ones that have a range = ":".
+        # This is reasonable since this assures that there is a well-defined place to
+        # store the results.
         if self.component.does_provide_results():
             self.rpath_provided_for_name, self.idxval_for_idxid = _Worker.get_bindings(
                 self.component.provides_results, query

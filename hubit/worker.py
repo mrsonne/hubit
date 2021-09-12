@@ -71,9 +71,8 @@ class _Worker:
         with actual indices based on query
 
         Args:
-            bindings (List[str]): List of bindings
-            query_path (str): Query path
-            idxids: TODO
+            bindings: List of bindings
+            query_path: Query path
 
         Raises:
             HubitWorkerError: Raised if query does not match any of the bindings

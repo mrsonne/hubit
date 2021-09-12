@@ -42,16 +42,18 @@ class _Worker:
             result = {}
             for binding in bindings:
                 indices = []
-                for idxid, range in zip(
-                    binding.path.get_index_identifiers(), binding.path.get_slices()
-                ):
+                for model_index_spec in binding.path.get_index_specifiers():
+                    idxid = model_index_spec.identifier
+                    range = model_index_spec.idx_range
+                    offset = model_index_spec.offset
+
                     index: Optional[str]
                     if is_digit(range):
                         # already an index so no transformation required
                         index = str(range)
                     elif range == "":
                         # Map index ID to the value
-                        index = idxval_for_idxid[idxid]
+                        index = str(int(idxval_for_idxid[idxid]) + offset)
                     elif range == ModelIndexSpecifier.wildcard_chr:
                         # leave for subsequent expansion.
                         # From the expansion method's perspective 'index' could be any character.

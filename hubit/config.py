@@ -532,6 +532,9 @@ class HubitModelPath(_HubitPath):
         self._validate_brackets()
         self._validate_index_specifiers()
 
+    def get_index_specifiers(self) -> List[ModelIndexSpecifier]:
+        return [ModelIndexSpecifier(item) for item in super().get_index_specifiers()]
+
     def get_index_identifiers(self) -> List[str]:
         """Get the index identifiers from the path i.e. the
         part of all square braces after the @ (if any) else the

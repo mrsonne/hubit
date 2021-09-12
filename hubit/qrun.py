@@ -137,13 +137,13 @@ class _QueryRunner:
         # Create and return worker
         try:
             return _Worker(
-                manager,
                 self,
                 component,
                 path,
                 func,
                 version,
                 self.model.tree_for_idxcontext,
+                manager,
                 dryrun=dryrun,
                 caching=self.component_caching,
             )

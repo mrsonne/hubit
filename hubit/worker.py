@@ -110,13 +110,13 @@ class _Worker:
 
     def __init__(
         self,
-        manager: Optional[SyncManager],
         qrun: _QueryRunner,
         component: HubitModelComponent,
         query: HubitQueryPath,
         func: Callable,
         version: str,
         tree_for_idxcontext: Dict[str, LengthTree],
+        manager: Optional[SyncManager] = None,
         dryrun: bool = False,
         caching: bool = False,
     ):

@@ -14,7 +14,7 @@ from hubit.errors import HubitWorkerError
 
 class TestWorker(unittest.TestCase):
     def setUp(self):
-        self.manager = None
+        pass
 
     def test_1(self):
         """
@@ -40,7 +40,6 @@ class TestWorker(unittest.TestCase):
         querystring = HubitQueryPath("shared.attr.path")
         with self.assertRaises(HubitWorkerError) as context:
             w = _Worker(
-                self.manager,
                 qrunner,
                 component,
                 querystring,
@@ -74,7 +73,6 @@ class TestWorker(unittest.TestCase):
         # Query something known to exist
         querystring = HubitQueryPath(component.provides_results[0].path)
         w = _Worker(
-            self.manager,
             qrunner,
             component,
             querystring,
@@ -134,7 +132,6 @@ class TestWorker(unittest.TestCase):
         _tree_for_idxcontext = tree_for_idxcontext([component], inputdata)
 
         w = _Worker(
-            self.manager,
             qrunner,
             component,
             querystring,
@@ -267,7 +264,6 @@ class TestWorker(unittest.TestCase):
 
         querystr = HubitQueryPath(querystr)
         w = _Worker(
-            self.manager,
             qrunner,
             component,
             querystr,
@@ -383,7 +379,6 @@ class TestWorker(unittest.TestCase):
 
         querystr = HubitQueryPath(querystr)
         w = _Worker(
-            self.manager,
             qrunner,
             component,
             querystr,

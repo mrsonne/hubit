@@ -17,6 +17,8 @@ from .utils import is_digit
 
 SEP = "."
 
+# TODO: Block context and slice
+
 
 class ModelIndexSpecifier(str):
     """
@@ -143,7 +145,7 @@ class _HubitPath(str):
     # TODO metaclass with abstract methods
     # abc and multiple inheritance... https://stackoverflow.com/questions/37398966/python-abstractmethod-with-another-baseclass-breaks-abstract-functionality
 
-    char_wildcard = ":"
+    wildcard_chr = ModelIndexSpecifier.wildcard_chr
     regex_idx_spec = r"\[(.*?)\]"
     regex_braces = r"\[([^\.]+)]"
 
@@ -224,9 +226,9 @@ class _HubitPath(str):
         for index, idx_spec in zip(indices, index_specifiers):
             # Don't replace if there is an index wildcard
             if mode > 0:
-                if mode == 1 and self.char_wildcard in idx_spec:
+                if mode == 1 and self.wildcard_chr in idx_spec:
                     continue
-                elif mode == 2 and self.char_wildcard not in idx_spec:
+                elif mode == 2 and self.wildcard_chr not in idx_spec:
                     continue
 
             # replace starting from index 0 in the string. Always move forward i.e.
@@ -262,7 +264,7 @@ class _HubitPath(str):
 
     def has_slice_range(self):
         """Check if path has a slice that is a range"""
-        return self.char_wildcard in self.get_slices()
+        return self.wildcard_chr in self.get_slices()
 
 
 # or inherit from collections import UserString
@@ -294,7 +296,7 @@ class HubitQueryPath(_HubitPath):
         idx_specs = self.get_index_specifiers()
         assert all(
             [
-                is_digit(idx_spec) or idx_spec == HubitQueryPath.char_wildcard
+                is_digit(idx_spec) or idx_spec == HubitQueryPath.wildcard_chr
                 for idx_spec in idx_specs
             ]
         ), ""
@@ -324,7 +326,7 @@ class HubitQueryPath(_HubitPath):
     #     ), "The number of indices provided and number of index specifiers found are not the same"
     #     for index, idx_spec in zip(indices, index_specifiers):
     #         # Don't replace if there is an index wildcard
-    #         if self.char_wildcard in idx_spec:
+    #         if self.wildcard_chr in idx_spec:
     #             continue
     #         _path = _path.replace(idx_spec, index, 1)
     #     return self.__class__(_path)
@@ -356,14 +358,14 @@ class HubitQueryPath(_HubitPath):
 
                 # When a digit is found in the query either an ilocstr,
                 # a wildcard or a digit should be found in the model path
-                if not (mcmp in idxids or self.char_wildcard == midx or is_digit(midx)):
+                if not (mcmp in idxids or self.wildcard_chr == midx or is_digit(midx)):
                     return False
 
                 # If model index range is a digit the query need the same digit
                 if is_digit(midx) and not (qcmp == midx):
                     return False
 
-            elif accept_idx_wildcard and qcmp == self.char_wildcard:
+            elif accept_idx_wildcard and qcmp == self.wildcard_chr:
                 # When a wildcard is found in the query an index ID must be in the model
                 if not mcmp in idxids:
                     return False

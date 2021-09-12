@@ -49,7 +49,7 @@ class _Worker:
                     if is_digit(range):
                         # already an index so no transformation required
                         index = str(range)
-                    elif idxid in idxval_for_idxid:
+                    elif range == "":
                         # Map index ID to the value
                         index = idxval_for_idxid[idxid]
                     elif range == ModelIndexSpecifier.wildcard_chr:

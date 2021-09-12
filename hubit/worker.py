@@ -42,22 +42,22 @@ class _Worker:
             result = {}
             for binding in bindings:
                 indices = []
-                for idxid, idx in zip(
+                for idxid, range in zip(
                     binding.path.get_index_identifiers(), binding.path.get_slices()
                 ):
                     index: Optional[str]
-                    if is_digit(idx):
+                    if is_digit(range):
                         # already an index so no transformation required
-                        index = str(idx)
+                        index = str(range)
                     elif idxid in idxval_for_idxid:
                         # Map index ID to the value
                         index = idxval_for_idxid[idxid]
-                    elif idx == ModelIndexSpecifier.wildcard_chr:
+                    elif range == ModelIndexSpecifier.wildcard_chr:
                         # leave for subsequent expansion.
                         # From the expansion method's perspective 'index' could be any character.
                         index = ModelIndexSpecifier.wildcard_chr
                     else:
-                        raise HubitError(f"Unknown range '{idx}'")
+                        raise HubitError(f"Unknown range '{range}'")
                     indices.append(ModelIndexSpecifier.from_components(idxid, index))
 
                 result[binding.name] = binding.path.set_indices(indices, mode=1)

@@ -95,9 +95,9 @@ class _Worker:
         idxval_for_idxid = {}
         for binding in bindings:
             if query_path.check_path_match(binding.path, accept_idx_wildcard=False):
-                idxids = binding.path.get_index_identifiers()
-                idxs = query_path.get_slices()
-                idxval_for_idxid.update(dict(zip(idxids, idxs)))
+                identifiers = binding.path.get_index_identifiers()
+                ranges = query_path.get_slices()
+                idxval_for_idxid.update(dict(zip(identifiers, ranges)))
                 break
 
         path_for_name = _Worker.bindings_from_idxs(bindings, idxval_for_idxid)

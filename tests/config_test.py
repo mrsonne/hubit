@@ -90,6 +90,10 @@ class TestHubitModelPath(unittest.TestCase):
         path = HubitModelPath("segs[:@IDX_SEG].walls[IDX_WALL].heat_flow")
         result = path.remove_braces()
         expected_result = "segs.walls.heat_flow"
+        self.assertEqual(result, expected_result)
+
+        result = path.field_names()
+        expected_result = ["segs", "walls", "heat_flow"]
         self.assertSequenceEqual(result, expected_result)
 
     def test_get_idx_context(self):

@@ -260,7 +260,7 @@ class _HubitModel:
             for component in self.model_cfg.components:
                 path = component.provides_results[0].path
                 dummy_query = HubitQueryPath(
-                    path.set_indices(["0" for _ in path.get_index_specifiers()], mode=1)
+                    path.set_indices(["0" for _ in path.get_index_specifiers()])
                 )
 
                 # Get function and version to init the worker

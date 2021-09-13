@@ -5,7 +5,7 @@ in a model config file or the required structure of a query path.
 """
 # https://github.com/mkdocstrings/pytkdocs/issues/69
 
-from __future__ import annotations
+from __future__ import annotations, with_statement
 from dataclasses import dataclass, field
 import pathlib
 from collections import abc, Counter
@@ -408,41 +408,41 @@ class HubitQueryPath(_HubitPath):
         model bindings
 
         Args:
-            model_path (HubitModelPath): Model path
+            model_path: A model path (provider)
             accept_idx_wildcard (bool): Should idx wildcard in the query path be accepted. Default True.
 
         Returns:
             bool: True if the query matches the model path
         """
-        idxids = model_path.get_index_specifiers()
-        query_path_cmps = self.components()
-        model_path_cmps = model_path.components()
-        # Should have same number of path components
-        if not len(query_path_cmps) == len(model_path_cmps):
+        # TODO what to do with accept_idx_wildcard ?!?!??!
+
+        q_fields = self.remove_braces()
+        m_fields = model_path.remove_braces()
+        if q_fields != m_fields:
             return False
-        for qcmp, mcmp in zip(query_path_cmps, model_path_cmps):
-            if is_digit(qcmp):
 
-                # Get index part of specifier (digit, wildcard, or empty)
-                midx = ModelIndexSpecifier(mcmp).idx_range
+        q_specifiers = self.get_index_specifiers()
+        m_specifiers = model_path.get_index_specifiers()
+        if len(q_specifiers) != len(m_specifiers):
+            return False
 
-                # When a digit is found in the query either an ilocstr,
-                # a wildcard or a digit should be found in the model path
-                if not (mcmp in idxids or self.wildcard_chr == midx or is_digit(midx)):
-                    return False
+        for qspec, mspec in zip(q_specifiers, m_specifiers):
+            # If qspec is full range any mpath where
+            # the above tests pass could contribute
+            if is_digit(qspec):
 
-                # If model index range is a digit the query need the same digit
-                if is_digit(midx) and not (qcmp == midx):
+                # Get range (digit, wildcard, or empty)
+                mrange = Range(ModelIndexSpecifier(mspec).idx_range)
+                if mrange.is_digit and not qspec == mrange:
                     return False
+            # elif accept_idx_wildcard and qspec == self.wildcard_chr:
+            #     pass
+            # else:
+            #     # This should never happen?!?!? but it does in model_test
+            #     print("YYY", qspec, mspec)
+            #     if not qspec == mspec:
+            #         return False
 
-            elif accept_idx_wildcard and qcmp == self.wildcard_chr:
-                # When a wildcard is found in the query an index ID must be in the model
-                if not mcmp in idxids:
-                    return False
-            else:
-                # If not a digit the path components should be identical
-                if not qcmp == mcmp:
-                    return False
         return True
 
     def idxs_for_matches(

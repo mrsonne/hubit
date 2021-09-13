@@ -84,16 +84,30 @@ class Range:
 class ModelIndexSpecifier(str):
     """
     Index specifiers for [`HubitModelPath`][hubit.config.HubitModelPath].
-    The model path index specifier is composed of three parts namely the
-    _range_, the _identifier_ and the _offset_. The first and last are
-    optional. A non-empty _range_ requires an empty (i.e. zero) _offset_
-    and vice versa. An _identifier_ is used internally map an index in input lists to
-    the equivalent index in the results. The _range_
-    may be used to control the scope of an _identifier_ while the _offset_ may
-    be used to offset the affected indices.
+    A model path index specifier is composed of three parts namely the
+    _range_, the _identifier_ and the _offset_, in that order. The
+    structure of an model index specifier is `range @ identifier offset` with
+    spaces added to increase clarity.
 
-    Consider the HubitModelPath instance `cars[IDX_CAR].parts[:@IDX_PART].name`.
-    The strings in square brackets are index specifiers.
+    - The _identifier_ is used internally map an index in input lists to
+    the equivalent index in the results. Can be any string of characters in
+    a-z, A-Z, digits as well as _ (underscore). An example could be `MYIDX`, which
+    would refer to one index in a list.
+    - The _range_ must conform with [`Range`][hubit.config.Range] and may be used
+    to control the scope of an _identifier_. An example could be `0` or `:`.
+    - The _offset_ is a signed integer that may be used to offset the affected
+    index. An example could be `-1`.
+
+    Using the examples above the model index specifier would be `:@MYIDX-1`.
+    The _range_ and last are optional. A non-empty _range_ requires an empty
+    (i.e. zero) _offset_ and vice versa.
+
+    To put index specifiers into some context
+    consider a Hubit component that provides `cars[IDX_CAR].parts[:@IDX_PART].name`.
+    This path tells Hubit that the names of all parts of a specific car can
+    be provided.
+    Let us break down the path and take a closer look at the index specifers in
+    square brackets.
     The _index specifier_ `:@IDX_PART` refers to all elements of the parts list
     (using the _range_ `:`) and defines the _identifier_ (`IDX_PART`) to represent
     elements of the parts list.
@@ -102,7 +116,8 @@ class ModelIndexSpecifier(str):
     The left-most index specifier `IDX_CAR` only contains an
     _identifier_ that represents elements of the cars list. Since no _range_
     is specified the _identifier_ refers to a specific car determined by
-    the query. `cars[IDX_CAR].parts[:@IDX_PART].name` therefore references the names of
+    the query (e.g. `cars[6].parts[:].name`).
+    `cars[IDX_CAR].parts[:@IDX_PART].name` therefore references the names of
     all parts of a specific car which depend on the query specified by the user.
     A component that consumes this path would have access to these names in a list.
     The index specifier `0@IDX_PART` would always reference element 0 of the
@@ -741,6 +756,7 @@ class HubitModelComponent:
             limit the scope of the component. If, for example, the context
             is `{IDX_TANK: 0}` the component is only used when the value of the
             index identifier IDX_TANK is 0. The context can only have one element.
+            Must comply with [`Range`][hubit.config.Range].
         is_dotted_path (bool, optional): Set to True if the specified `path` is a
             dotted path (typically for a package module in site-packages).
         _index (int): Component index in model file

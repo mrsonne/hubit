@@ -261,7 +261,7 @@ class _HubitPath(str):
         return self.as_internal(self).split(".")
 
     def set_indices(self, indices: List[str], mode: int = 0) -> _HubitPath:
-        """Replace the index identifiers on the path with location indices
+        """Replace the index specifiers on the path with location indices
 
         Args:
             indices (List[str]): Index locations to be inserted into the path.

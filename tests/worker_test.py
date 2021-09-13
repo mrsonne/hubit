@@ -128,7 +128,7 @@ class TestWorker(unittest.TestCase):
             "some_number": 33,
         }
 
-        querystring = HubitQueryPath("items_outer.1.attr.items_inner.0.path1")
+        querystring = HubitQueryPath("items_outer[1].attr.items_inner[0].path1")
         _tree_for_idxcontext = tree_for_idxcontext([component], inputdata)
 
         w = _Worker(
@@ -344,7 +344,8 @@ class TestWorker(unittest.TestCase):
         ]
         querystring = HubitQueryPath("segments[0].layers[:].k_therm")
         with self.assertRaises(HubitWorkerError):
-            _Worker.get_bindings(provides_results, querystring)
+            p = _Worker.get_bindings(provides_results, querystring)
+            print(p)
 
     def test_8(self):
         """

@@ -126,7 +126,7 @@ class TestModel(unittest.TestCase):
         """
         Render the query, but not input.
         """
-        query = ["list.1.some_attr.two_x_numbers"]
+        query = ["list[1].some_attr.two_x_numbers"]
 
         # ModuleNotFoundError raised if graphviz is not installed
         with self.assertRaises(HubitModelNoInputError) as context:

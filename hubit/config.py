@@ -20,17 +20,63 @@ SEP = "."
 # TODO: Block context and slice
 
 
-class Range:
+class ModelIndexRange:
     """
-    Supported ranges: digit, wildcard_chr, digit:, digit1:digit2, :digit
-    where digit is a positive int and digit1 < digit2
+    Range object used in [`ModelIndexSpecifier`][hubit.config.ModelIndexSpecifier].
+
+    Supported ranges are
+    - Positive integer e.g. 0, 17
+    - All-index character ":"
     """
 
     wildcard_chr = ":"
 
     def __init__(self, value: str):
         self.value = value
-        Range._validate(value)
+
+        self.is_digit = is_digit(value)
+        self.is_full_range = False
+        self.is_limited_range = False
+        if not self.is_digit:
+            self.is_full_range = value == self.wildcard_chr
+
+        assert self._is_valid(), f"Invalid '{self.__class__.__name__}' '{self.value}'"
+
+    def _is_valid(self):
+        test1 = (
+            is_digit(self.value) or self.value == self.wildcard_chr or self.value == ""
+        )
+        test2 = int(self.value) >= 0 if self.is_digit else True
+        return test1 and test2
+
+    def contains_index(self, idx: int) -> bool:
+        """integer contained in range"""
+        if self.is_digit:
+            return str(idx) == self.value
+        elif self.is_full_range:
+            return True
+        else:
+            raise HubitError(f"Unknown range {self}")
+
+    def __str__(self) -> str:
+        return self.value
+
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            if other.value == self.value:
+                return True
+        elif isinstance(other, str):
+            if other == self.value:
+                return True
+        return False
+
+
+class ContextIndexRange(ModelIndexRange):
+    # - digit:, digit1:digit2, :digit
+    # where digit is a positive int and digit1 < digit2
+
+    def __init__(self, value: str):
+        self.value = value
 
         self.is_digit = is_digit(value)
         self.is_full_range = False
@@ -41,8 +87,9 @@ class Range:
         if (not self.is_digit) and (not self.is_full_range):
             self.is_limited_range = True
 
-    @staticmethod
-    def _validate(value: str):
+        self._validate()
+
+    def _validate(self):
         return True
 
     def contains_index(self, idx: int) -> bool:
@@ -68,18 +115,6 @@ class Range:
         else:
             raise HubitError(f"Unknown range {self}")
 
-    def __str__(self) -> str:
-        return self.value
-
-    def __eq__(self, other):
-        if isinstance(other, Range):
-            if other.value == self.value:
-                return True
-        elif isinstance(other, str):
-            if other == self.value:
-                return True
-        return False
-
 
 class ModelIndexSpecifier(str):
     """
@@ -93,7 +128,8 @@ class ModelIndexSpecifier(str):
     the equivalent index in the results. Can be any string of characters in
     a-z, A-Z, digits as well as _ (underscore). An example could be `MYIDX`, which
     would refer to one index in a list.
-    - The _range_ must conform with [`Range`][hubit.config.Range] and may be used
+    - The _range_ must conform with [`ModelIndexRange`][hubit.config.ModelIndexRange]
+    and may be used
     to control the scope of an _identifier_. An example could be `0` or `:`.
     - The _offset_ is a signed integer that may be used to offset the affected
     index. An example could be `-1`.
@@ -125,7 +161,7 @@ class ModelIndexSpecifier(str):
     """
 
     ref_chr = "@"
-    wildcard_chr = Range.wildcard_chr
+    wildcard_chr = ModelIndexRange.wildcard_chr
     # Characters a-z, A-Z, _ and digits are allowed
     regex_allowed_identifier = r"^[a-zA-Z_0-9]+$"
     # Any positive digit is allowed
@@ -221,7 +257,7 @@ class _HubitPath(str):
     # TODO metaclass with abstract methods
     # abc and multiple inheritance... https://stackoverflow.com/questions/37398966/python-abstractmethod-with-another-baseclass-breaks-abstract-functionality
 
-    wildcard_chr = Range.wildcard_chr
+    wildcard_chr = ModelIndexRange.wildcard_chr
     regex_idx_spec = r"\[(.*?)\]"
     regex_braces = r"\[([^\.]+)]"
 
@@ -447,7 +483,7 @@ class HubitQueryPath(_HubitPath):
             if is_digit(qspec):
 
                 # Get range (digit, wildcard, or empty)
-                mrange = Range(ModelIndexSpecifier(mspec).idx_range)
+                mrange = ModelIndexRange(ModelIndexSpecifier(mspec).idx_range)
                 if mrange.is_digit and not qspec == mrange:
                     return False
             # elif accept_idx_wildcard and qspec == self.wildcard_chr:
@@ -756,7 +792,7 @@ class HubitModelComponent:
             limit the scope of the component. If, for example, the context
             is `{IDX_TANK: 0}` the component is only used when the value of the
             index identifier IDX_TANK is 0. The context can only have one element.
-            Must comply with [`Range`][hubit.config.Range].
+            Must comply with [`ModelIndexRange`][hubit.config.ModelIndexRange].
         is_dotted_path (bool, optional): Set to True if the specified `path` is a
             dotted path (typically for a package module in site-packages).
         _index (int): Component index in model file

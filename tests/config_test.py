@@ -8,7 +8,8 @@ from hubit.config import (
     ModelIndexSpecifier,
     FlatData,
     _HubitQueryDepthPath,
-    Range,
+    ModelIndexRange,
+    ContextIndexRange,
 )
 from hubit.errors import HubitModelComponentError
 
@@ -249,56 +250,96 @@ class TestModelIndexSpecifier(unittest.TestCase):
         print(cm.exception)
 
 
-class TestRange(unittest.TestCase):
+class TestModelIndexRange(unittest.TestCase):
     def test_range_type(self):
-        range = Range("2")
+        range = ModelIndexRange("2")
         assert range.is_digit
         assert not range.is_limited_range
         assert not range.is_full_range
 
-        range = Range("2:")
-        assert not range.is_digit
-        assert range.is_limited_range
-        assert not range.is_full_range
-
-        range = Range(":2")
-        assert not range.is_digit
-        assert range.is_limited_range
-        assert not range.is_full_range
-
-        range = Range("2:4")
-        assert not range.is_digit
-        assert range.is_limited_range
-        assert not range.is_full_range
-
-        range = Range(":")
+        range = ModelIndexRange(":")
         assert not range.is_digit
         assert not range.is_limited_range
         assert range.is_full_range
 
     def test_range_contains(self):
-        range = Range("2")
+        range = ModelIndexRange("2")
         assert not range.contains_index(1)
         assert range.contains_index(2)
         assert not range.contains_index(3)
 
-        range = Range("2:")
+        range = ModelIndexRange(":")
+        assert range.contains_index(1)
+        assert range.contains_index(2)
+        assert range.contains_index(3)
+
+    def test_invalid(self):
+        with self.assertRaises(AssertionError):
+            ModelIndexRange("-1")
+
+        with self.assertRaises(AssertionError):
+            ModelIndexRange("k")
+
+        with self.assertRaises(AssertionError):
+            ModelIndexRange("0:")
+
+        with self.assertRaises(AssertionError):
+            ModelIndexRange(":7")
+
+        with self.assertRaises(AssertionError):
+            ModelIndexRange("0:7")
+
+
+class TestContextIndexRange(unittest.TestCase):
+    def test_range_type(self):
+        range = ContextIndexRange("2")
+        assert range.is_digit
+        assert not range.is_limited_range
+        assert not range.is_full_range
+
+        range = ContextIndexRange("2:")
+        assert not range.is_digit
+        assert range.is_limited_range
+        assert not range.is_full_range
+
+        range = ContextIndexRange(":2")
+        assert not range.is_digit
+        assert range.is_limited_range
+        assert not range.is_full_range
+
+        range = ContextIndexRange("2:4")
+        assert not range.is_digit
+        assert range.is_limited_range
+        assert not range.is_full_range
+
+        range = ContextIndexRange(":")
+        assert not range.is_digit
+        assert not range.is_limited_range
+        assert range.is_full_range
+
+    def test_range_contains(self):
+        range = ContextIndexRange("2")
+        assert not range.contains_index(1)
+        assert range.contains_index(2)
+        assert not range.contains_index(3)
+
+        range = ContextIndexRange("2:")
         assert not range.contains_index(1)
         assert range.contains_index(2)
         assert range.contains_index(3)
 
-        range = Range(":2")
+        range = ContextIndexRange(":2")
         assert range.contains_index(1)
         assert not range.contains_index(2)
         assert not range.contains_index(3)
 
-        range = Range("2:4")
+        range = ContextIndexRange("2:4")
         assert not range.contains_index(1)
         assert range.contains_index(2)
         assert range.contains_index(3)
         assert not range.contains_index(4)
 
-        range = Range(":")
+        range = ContextIndexRange(":")
         assert range.contains_index(1)
         assert range.contains_index(2)
         assert range.contains_index(3)

@@ -76,10 +76,16 @@ class _Worker:
 
         Raises:
             HubitWorkerError: Raised if query does not match any of the bindings
+            or if query is not expanded
 
         Returns:
             [type]: TODO [description]
         """
+        if query_path.wildcard_chr in query_path:
+            raise HubitWorkerError(
+                f"Query path '{query_path}' contains illegal character '{query_path.wildcard_chr}'. Should already have been expanded."
+            )
+
         binding_paths = [binding.path for binding in bindings]
         # Get indices in binding_paths list that match the query
         idxs_match = query_path.idxs_for_matches(

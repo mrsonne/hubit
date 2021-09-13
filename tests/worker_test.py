@@ -344,8 +344,7 @@ class TestWorker(unittest.TestCase):
         ]
         querystring = HubitQueryPath("segments[0].layers[:].k_therm")
         with self.assertRaises(HubitWorkerError):
-            p = _Worker.get_bindings(provides_results, querystring)
-            print(p)
+            _Worker.get_bindings(provides_results, querystring)
 
     def test_8(self):
         """

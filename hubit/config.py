@@ -72,8 +72,16 @@ class ModelIndexRange:
 
 
 class ContextIndexRange(ModelIndexRange):
-    # - digit:, digit1:digit2, :digit
-    # where digit is a positive int and digit1 < digit2
+    """
+    Range object used in [`HubitModelComponent`][hubit.config.HubitModelComponent].
+
+    Supported ranges are
+    - Positive integer e.g. 0, 17
+    - All-index character ":"
+    - `D:` where `D` is a positive integer e.g. `3:`
+    - `:D` where `D` is a positive integer e.g. `:3`
+    - `D1:D2` where `D1` and `D2` are positive integers and `D1` < `D2`.  E.g. `2:5`
+    """
 
     def __init__(self, value: str):
         self.value = value
@@ -792,7 +800,7 @@ class HubitModelComponent:
             limit the scope of the component. If, for example, the context
             is `{IDX_TANK: 0}` the component is only used when the value of the
             index identifier IDX_TANK is 0. The context can only have one element.
-            Must comply with [`ModelIndexRange`][hubit.config.ModelIndexRange].
+            Values must comply with [`ContextIndexRange`][hubit.config.ContextIndexRange].
         is_dotted_path (bool, optional): Set to True if the specified `path` is a
             dotted path (typically for a package module in site-packages).
         _index (int): Component index in model file

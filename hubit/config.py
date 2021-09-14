@@ -460,21 +460,16 @@ class HubitQueryPath(_HubitPath):
     #         _path = _path.replace(idx_spec, index, 1)
     #     return self.__class__(_path)
 
-    def check_path_match(
-        self, model_path: HubitModelPath, accept_idx_wildcard: bool = True
-    ) -> bool:
+    def check_path_match(self, model_path: HubitModelPath) -> bool:
         """Check if the query matches the model path from the
         model bindings
 
         Args:
             model_path: A model path (provider)
-            accept_idx_wildcard (bool): Should idx wildcard in the query path be accepted. Default True.
 
         Returns:
             bool: True if the query matches the model path
         """
-        # TODO what to do with accept_idx_wildcard ?!?!??!
-
         q_fields = self.remove_braces()
         m_fields = model_path.remove_braces()
         if q_fields != m_fields:
@@ -494,30 +489,17 @@ class HubitQueryPath(_HubitPath):
                 mrange = ModelIndexRange(ModelIndexSpecifier(mspec).idx_range)
                 if mrange.is_digit and not qspec == mrange:
                     return False
-            # elif accept_idx_wildcard and qspec == self.wildcard_chr:
-            #     pass
-            # else:
-            #     # This should never happen?!?!? but it does in model_test
-            #     print("YYY", qspec, mspec)
-            #     if not qspec == mspec:
-            #         return False
-
         return True
 
     def idxs_for_matches(
         self,
         mpaths: List[HubitModelPath],
-        accept_idx_wildcard: bool = True,
     ) -> List[int]:
         """
         Returns indices in the sequence of provider strings that match the
         structure of the query string
         """
-        return [
-            idx
-            for idx, mpath in enumerate(mpaths)
-            if self.check_path_match(mpath, accept_idx_wildcard)
-        ]
+        return [idx for idx, mpath in enumerate(mpaths) if self.check_path_match(mpath)]
 
 
 class _HubitQueryDepthPath(HubitQueryPath):

@@ -88,9 +88,7 @@ class _Worker:
 
         binding_paths = [binding.path for binding in bindings]
         # Get indices in binding_paths list that match the query
-        idxs_match = query_path.idxs_for_matches(
-            binding_paths, accept_idx_wildcard=False
-        )
+        idxs_match = query_path.idxs_for_matches(binding_paths)
         if len(idxs_match) == 0:
             fstr = 'Query "{}" did not match attributes provided by worker ({}).'
             raise HubitWorkerError(fstr.format(query_path, ", ".join(binding_paths)))
@@ -99,7 +97,7 @@ class _Worker:
         # matched the query suffice
         idxval_for_idxid = {}
         for binding in bindings:
-            if query_path.check_path_match(binding.path, accept_idx_wildcard=False):
+            if query_path.check_path_match(binding.path):
                 identifiers = binding.path.get_index_identifiers()
                 ranges = query_path.get_slices()
                 idxval_for_idxid.update(dict(zip(identifiers, ranges)))

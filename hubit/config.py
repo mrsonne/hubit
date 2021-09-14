@@ -76,10 +76,10 @@ class ContextIndexRange(ModelIndexRange):
     Range object used in [`HubitModelComponent`][hubit.config.HubitModelComponent].
 
     Supported ranges are
-    - Positive integer e.g. 0, 17
-    - All-index character ":"
-    - `D:` where `D` is a positive integer e.g. `3:`
-    - `:D` where `D` is a positive integer e.g. `:3`
+    - Positive integer e.g. `0`, `17`.
+    - The all-index character `:`.
+    - `D:` where `D` is a positive integer e.g. `3:`.
+    - `:D` where `D` is a positive integer e.g. `:3`.
     - `D1:D2` where `D1` and `D2` are positive integers and `D1` < `D2`.  E.g. `2:5`
     """
 

@@ -223,17 +223,17 @@ class TestModelIndexSpecifier(unittest.TestCase):
         mis = ModelIndexSpecifier(":@IDX_LAY")
         assert mis.offset == 0
         assert mis.identifier == "IDX_LAY"
-        assert mis.idx_range == ":"
+        assert mis.range == ":"
 
         mis = ModelIndexSpecifier("IDX_LAY+1")
         assert mis.offset == 1
         assert mis.identifier == "IDX_LAY"
-        assert mis.idx_range == ""
+        assert mis.range == ""
 
         mis = ModelIndexSpecifier("IDX_LAY-12")
         assert mis.offset == -12
         assert mis.identifier == "IDX_LAY"
-        assert mis.idx_range == ""
+        assert mis.range == ""
 
         # cannot specify both range and offset
         mis = ModelIndexSpecifier("2@IDX_LAY-12")

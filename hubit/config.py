@@ -120,7 +120,7 @@ class ContextIndexRange(PathIndexRange):
 
 class QueryIndexSpecifier(str):
     @property
-    def idx_range(self) -> PathIndexRange:
+    def range(self) -> PathIndexRange:
         return PathIndexRange(self)
 
     @property
@@ -196,7 +196,7 @@ class ModelIndexSpecifier(str):
         # check that if @ is present the idx_range is non-empty
         if self.ref_chr in self:
             assert (
-                self.idx_range != ""
+                self.range != ""
             ), f"Found '{self.ref_chr}' but no range was specified in '{self}'."
 
         assert (
@@ -213,7 +213,7 @@ class ModelIndexSpecifier(str):
 
     def _validate_cross(self):
         """A non-empty range requires an empty (i.e. zero) offset and vice versa"""
-        return not (self.offset != 0 and self.idx_range != "")
+        return not (self.offset != 0 and self.range != "")
 
     def _validate_identifier(self):
         return re.search(self.regex_allowed_identifier, self.identifier)
@@ -222,7 +222,7 @@ class ModelIndexSpecifier(str):
         return is_digit(self.offset)
 
     @property
-    def idx_range(self) -> PathIndexRange:
+    def range(self) -> PathIndexRange:
         return (
             PathIndexRange(self.split(self.ref_chr)[0])
             if self.ref_chr in self
@@ -477,7 +477,7 @@ class HubitQueryPath(_HubitPath):
             return False
 
         for qspec, mspec in zip(q_specifiers, m_specifiers):
-            qrange = qspec.idx_range
+            qrange = qspec.range
 
             if qrange.is_full_range:
                 # If qspec is full range any mpath where the above tests
@@ -485,7 +485,7 @@ class HubitQueryPath(_HubitPath):
                 continue
 
             # Get range (digit, wildcard, or empty)
-            mrange = mspec.idx_range
+            mrange = mspec.range
             if mrange.is_empty:
                 # if the model path range is empty it could contrubute to any query
                 continue
@@ -689,7 +689,7 @@ class HubitModelPath(_HubitPath):
         Returns:
             List[str]: Indexes from path
         """
-        return [idx_spec.idx_range for idx_spec in self.get_index_specifiers()]
+        return [idx_spec.range for idx_spec in self.get_index_specifiers()]
 
     def as_query_depth_path(self):
         return _HubitQueryDepthPath(re.sub(HubitModelPath.regex_braces, "[*]", self))

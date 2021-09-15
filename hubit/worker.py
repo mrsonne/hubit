@@ -44,7 +44,7 @@ class _Worker:
                 indices = []
                 for model_index_spec in binding.path.get_index_specifiers():
                     idxid = model_index_spec.identifier
-                    range = model_index_spec.idx_range
+                    range = model_index_spec.range
                     offset = model_index_spec.offset
 
                     index: Optional[str]

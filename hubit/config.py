@@ -196,7 +196,7 @@ class ModelIndexSpecifier(str):
         # check that if @ is present the idx_range is non-empty
         if self.ref_chr in self:
             assert (
-                self.range != ""
+                not self.range.is_empty
             ), f"Found '{self.ref_chr}' but no range was specified in '{self}'."
 
         assert (
@@ -213,7 +213,7 @@ class ModelIndexSpecifier(str):
 
     def _validate_cross(self):
         """A non-empty range requires an empty (i.e. zero) offset and vice versa"""
-        return not (self.offset != 0 and self.range != "")
+        return not (self.offset != 0 and not self.range.is_empty)
 
     def _validate_identifier(self):
         return re.search(self.regex_allowed_identifier, self.identifier)

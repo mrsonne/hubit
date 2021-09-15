@@ -35,19 +35,25 @@ class PathIndexRange(str):
     def __init__(self, value):
         super().__init__()
 
-        self.is_digit = is_digit(value)
-        self.is_empty = value == ""
+        # Determine the range type
+        self.is_digit = False
+        self.is_empty = False
         self.is_full_range = False
         self.is_limited_range = False
-        if not self.is_digit and not self.is_empty:
-            self.is_full_range = value == self.wildcard_chr
+        if is_digit(value):
+            self.is_digit = True
+        elif value == "":
+            self.is_empty = True
+        elif value == self.wildcard_chr:
+            self.is_full_range = True
+        else:
+            raise HubitError(f"Unknown range format {self}")
 
-        assert self._is_valid(), f"Invalid '{self.__class__.__name__}' '{self}'"
+        if not self._is_valid():
+            raise HubitError(f"Invalid range '{self}'")
 
     def _is_valid(self):
-        test1 = is_digit(self) or self == self.wildcard_chr or self == ""
-        test2 = int(self) >= 0 if self.is_digit else True
-        return test1 and test2
+        return int(self) >= 0 if self.is_digit else True
 
     def contains_index(self, idx: int) -> bool:
         """integer contained in range"""

@@ -166,8 +166,6 @@ class ModelIndexSpecifier(str):
     wildcard_chr = PathIndexRange.wildcard_chr
     # Characters a-z, A-Z, _ and digits are allowed
     regex_allowed_identifier = r"^[a-zA-Z_0-9]+$"
-    # Any positive digit is allowed
-    regex_allowed_idx_range = r"^[0-9]+$"
 
     def validate(self):
         assert (
@@ -199,10 +197,6 @@ class ModelIndexSpecifier(str):
             self._validate_offset()
         ), f"Invalid offset '{self.offset}' for index specifier {self}."
 
-        assert (
-            self._validate_idx_range()
-        ), f"Invalid index range '{self.idx_range}' for index specifier {self}."
-
     def _validate_cross(self):
         """A non-empty range requires an empty (i.e. zero) offset and vice versa"""
         return not (self.offset != 0 and self.idx_range != "")
@@ -213,17 +207,13 @@ class ModelIndexSpecifier(str):
     def _validate_offset(self):
         return is_digit(self.offset)
 
-    def _validate_idx_range(self):
-        idx_range = self.idx_range
-        return (
-            idx_range == self.wildcard_chr
-            or idx_range == ""
-            or re.search(self.regex_allowed_idx_range, idx_range)
-        )
-
     @property
-    def idx_range(self) -> str:
-        return self.split(self.ref_chr)[0] if self.ref_chr in self else ""
+    def idx_range(self) -> PathIndexRange:
+        return (
+            PathIndexRange(self.split(self.ref_chr)[0])
+            if self.ref_chr in self
+            else PathIndexRange("")
+        )
 
     @property
     def identifier(self) -> str:
@@ -481,7 +471,7 @@ class HubitQueryPath(_HubitPath):
             if qrange.is_digit:
 
                 # Get range (digit, wildcard, or empty)
-                mrange = PathIndexRange(ModelIndexSpecifier(mspec).idx_range)
+                mrange = ModelIndexSpecifier(mspec).idx_range
                 if mrange.is_empty:
                     continue
 

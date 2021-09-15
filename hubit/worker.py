@@ -48,16 +48,16 @@ class _Worker:
                     offset = model_index_spec.offset
 
                     index: Optional[str]
-                    if is_digit(range):
+                    if range.is_digit:
                         # already an index so no transformation required
                         index = str(range)
-                    elif range == "":
+                    elif range.is_empty:
                         # Map index ID to the value
                         index = str(int(idxval_for_idxid[idxid]) + offset)
-                    elif range == ModelIndexSpecifier.wildcard_chr:
+                    elif range.is_full_range:
                         # leave for subsequent expansion.
                         # From the expansion method's perspective 'index' could be any character.
-                        index = ModelIndexSpecifier.wildcard_chr
+                        index = range
                     else:
                         raise HubitError(f"Unknown range '{range}'")
                     indices.append(ModelIndexSpecifier.from_components(idxid, index))

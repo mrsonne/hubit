@@ -11,7 +11,7 @@ from hubit.config import (
     PathIndexRange,
     ContextIndexRange,
 )
-from hubit.errors import HubitModelComponentError
+from hubit.errors import HubitModelComponentError, HubitError
 
 
 class TestHubitComponent(unittest.TestCase):
@@ -182,7 +182,7 @@ class TestHubitModelPath(unittest.TestCase):
 
         # Invalid due to negative index range
         path = HubitModelPath("segments[-1@IDX_SEG].layers[IDX_LAY]")
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(HubitError):
             path.validate()
 
         # Only one @ allowed in index specifier
@@ -274,19 +274,19 @@ class TestPathIndexRange(unittest.TestCase):
         assert range.contains_index(3)
 
     def test_invalid(self):
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(HubitError):
             PathIndexRange("-1")
 
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(HubitError):
             PathIndexRange("k")
 
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(HubitError):
             PathIndexRange("0:")
 
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(HubitError):
             PathIndexRange(":7")
 
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(HubitError):
             PathIndexRange("0:7")
 
 

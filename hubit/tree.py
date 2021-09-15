@@ -4,13 +4,18 @@ import copy
 import itertools
 from typing import Any, List, Dict, Tuple, TYPE_CHECKING
 from .errors import HubitIndexError, HubitError, HubitModelQueryError
-from .config import ModelIndexSpecifier, _HubitPath, HubitModelPath, HubitQueryPath
+from .config import (
+    _HubitPath,
+    HubitModelPath,
+    HubitQueryPath,
+    PathIndexRange,
+)
 from .utils import is_digit, get_from_datadict, split_items, traverse
 
 if TYPE_CHECKING:
     from .config import HubitModelComponent
 
-IDX_WILDCARD = ModelIndexSpecifier.wildcard_chr
+IDX_WILDCARD = PathIndexRange.wildcard_chr
 
 
 class LeafNode:

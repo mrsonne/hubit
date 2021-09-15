@@ -17,6 +17,7 @@ from .config import (
     HubitModelPath,
     ModelIndexSpecifier,
     HubitQueryPath,
+    PathIndexRange,
     Query,
 )
 from .tree import _QueryExpansion, tree_for_idxcontext
@@ -28,7 +29,7 @@ from .errors import (
     HubitModelQueryError,
 )
 
-IDX_WILDCARD = ModelIndexSpecifier.wildcard_chr
+IDX_WILDCARD = PathIndexRange.wildcard_chr
 
 
 def _default_skipfun(flat_input: FlatData) -> bool:

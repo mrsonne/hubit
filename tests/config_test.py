@@ -8,7 +8,7 @@ from hubit.config import (
     ModelIndexSpecifier,
     FlatData,
     _HubitQueryDepthPath,
-    ModelIndexRange,
+    PathIndexRange,
     ContextIndexRange,
 )
 from hubit.errors import HubitModelComponentError
@@ -250,44 +250,44 @@ class TestModelIndexSpecifier(unittest.TestCase):
         print(cm.exception)
 
 
-class TestModelIndexRange(unittest.TestCase):
+class TestPathIndexRange(unittest.TestCase):
     def test_range_type(self):
-        range = ModelIndexRange("2")
+        range = PathIndexRange("2")
         assert range.is_digit
         assert not range.is_limited_range
         assert not range.is_full_range
 
-        range = ModelIndexRange(":")
+        range = PathIndexRange(":")
         assert not range.is_digit
         assert not range.is_limited_range
         assert range.is_full_range
 
     def test_range_contains(self):
-        range = ModelIndexRange("2")
+        range = PathIndexRange("2")
         assert not range.contains_index(1)
         assert range.contains_index(2)
         assert not range.contains_index(3)
 
-        range = ModelIndexRange(":")
+        range = PathIndexRange(":")
         assert range.contains_index(1)
         assert range.contains_index(2)
         assert range.contains_index(3)
 
     def test_invalid(self):
         with self.assertRaises(AssertionError):
-            ModelIndexRange("-1")
+            PathIndexRange("-1")
 
         with self.assertRaises(AssertionError):
-            ModelIndexRange("k")
+            PathIndexRange("k")
 
         with self.assertRaises(AssertionError):
-            ModelIndexRange("0:")
+            PathIndexRange("0:")
 
         with self.assertRaises(AssertionError):
-            ModelIndexRange(":7")
+            PathIndexRange(":7")
 
         with self.assertRaises(AssertionError):
-            ModelIndexRange("0:7")
+            PathIndexRange("0:7")
 
 
 class TestContextIndexRange(unittest.TestCase):

@@ -20,9 +20,10 @@ SEP = "."
 # TODO: Block context and slice
 
 
-class ModelIndexRange:
+class PathIndexRange(str):
     """
-    Range object used in [`ModelIndexSpecifier`][hubit.config.ModelIndexSpecifier].
+    Range object used in [`ModelIndexSpecifier`][hubit.config.ModelIndexSpecifier]
+    and [`HubitQueryPath`][hubit.config.HubitQueryPath].
 
     Supported ranges are
     - Positive integer e.g. 0, 17
@@ -31,47 +32,34 @@ class ModelIndexRange:
 
     wildcard_chr = ":"
 
-    def __init__(self, value: str):
-        self.value = value
+    def __init__(self, value):
+        super().__init__()
 
         self.is_digit = is_digit(value)
+        self.is_empty = value == ""
         self.is_full_range = False
         self.is_limited_range = False
-        if not self.is_digit:
+        if not self.is_digit and not self.is_empty:
             self.is_full_range = value == self.wildcard_chr
 
-        assert self._is_valid(), f"Invalid '{self.__class__.__name__}' '{self.value}'"
+        assert self._is_valid(), f"Invalid '{self.__class__.__name__}' '{self}'"
 
     def _is_valid(self):
-        test1 = (
-            is_digit(self.value) or self.value == self.wildcard_chr or self.value == ""
-        )
-        test2 = int(self.value) >= 0 if self.is_digit else True
+        test1 = is_digit(self) or self == self.wildcard_chr or self == ""
+        test2 = int(self) >= 0 if self.is_digit else True
         return test1 and test2
 
     def contains_index(self, idx: int) -> bool:
         """integer contained in range"""
         if self.is_digit:
-            return str(idx) == self.value
+            return str(idx) == self
         elif self.is_full_range:
             return True
         else:
-            raise HubitError(f"Unknown range {self}")
-
-    def __str__(self) -> str:
-        return self.value
-
-    def __eq__(self, other):
-        if isinstance(other, self.__class__):
-            if other.value == self.value:
-                return True
-        elif isinstance(other, str):
-            if other == self.value:
-                return True
-        return False
+            raise HubitError(f"Unknown range '{self}'")
 
 
-class ContextIndexRange(ModelIndexRange):
+class ContextIndexRange(PathIndexRange):
     """
     Range object used in [`HubitModelComponent`][hubit.config.HubitModelComponent].
 
@@ -136,7 +124,7 @@ class ModelIndexSpecifier(str):
     the equivalent index in the results. Can be any string of characters in
     a-z, A-Z, digits as well as _ (underscore). An example could be `MYIDX`, which
     would refer to one index in a list.
-    - The _range_ must conform with [`ModelIndexRange`][hubit.config.ModelIndexRange]
+    - The _range_ must conform with [`PathIndexRange`][hubit.config.PathIndexRange]
     and may be used
     to control the scope of an _identifier_. An example could be `0` or `:`.
     - The _offset_ is a signed integer that may be used to offset the affected
@@ -169,7 +157,7 @@ class ModelIndexSpecifier(str):
     """
 
     ref_chr = "@"
-    wildcard_chr = ModelIndexRange.wildcard_chr
+    wildcard_chr = PathIndexRange.wildcard_chr
     # Characters a-z, A-Z, _ and digits are allowed
     regex_allowed_identifier = r"^[a-zA-Z_0-9]+$"
     # Any positive digit is allowed
@@ -265,7 +253,7 @@ class _HubitPath(str):
     # TODO metaclass with abstract methods
     # abc and multiple inheritance... https://stackoverflow.com/questions/37398966/python-abstractmethod-with-another-baseclass-breaks-abstract-functionality
 
-    wildcard_chr = ModelIndexRange.wildcard_chr
+    wildcard_chr = PathIndexRange.wildcard_chr
     regex_idx_spec = r"\[(.*?)\]"
     regex_braces = r"\[([^\.]+)]"
 
@@ -483,11 +471,15 @@ class HubitQueryPath(_HubitPath):
         for qspec, mspec in zip(q_specifiers, m_specifiers):
             # If qspec is full range any mpath where
             # the above tests pass could contribute
-            if is_digit(qspec):
+            qrange = PathIndexRange(qspec)
+            if qrange.is_digit:
 
                 # Get range (digit, wildcard, or empty)
-                mrange = ModelIndexRange(ModelIndexSpecifier(mspec).idx_range)
-                if mrange.is_digit and not qspec == mrange:
+                mrange = PathIndexRange(ModelIndexSpecifier(mspec).idx_range)
+                if mrange.is_empty:
+                    continue
+
+                if not mrange.contains_index(qrange):
                     return False
         return True
 

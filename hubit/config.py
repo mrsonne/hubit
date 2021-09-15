@@ -490,7 +490,7 @@ class HubitQueryPath(_HubitPath):
                 # if the model path range is empty it could contrubute to any query
                 continue
 
-            # Here the qrange must be an index
+            # Here the qrange must be a digit
             if not mrange.contains_index(qrange):
                 return False
 

@@ -264,9 +264,12 @@ class _HubitPath(str):
     # abc and multiple inheritance... https://stackoverflow.com/questions/37398966/python-abstractmethod-with-another-baseclass-breaks-abstract-functionality
 
     wildcard_chr = PathIndexRange.wildcard_chr
+
+    # TODO: relative-spatial-refs. explain regexs better
     # Characters in square brackets
     regex_idx_spec = r"\[(.*?)\]"
     regex_braces = r"\[([^\.]+)]"
+    regex_braces_any = r"\[.*?\]"
 
     @staticmethod
     def as_internal(path: Any) -> str:
@@ -398,6 +401,17 @@ class _HubitPath(str):
             Ranges from path
         """
         return [idx_spec.range for idx_spec in self.get_index_specifiers()]
+
+    def paths_between_specifiers(self) -> List[str]:
+        """Find list of path components in between index specifiers
+
+        Returns:
+            Sequence of path strings between index
+            specifers. Includes path after last index specifier
+        """
+        return re.split(
+            f"{_HubitPath.regex_braces_any}.|{_HubitPath.regex_braces_any}", self
+        )
 
 
 # or inherit from collections import UserString
@@ -636,8 +650,6 @@ class HubitModelPath(_HubitPath):
 
     """
 
-    regex_braces = r"\[.*?\]"
-
     def _validate_index_specifiers(self):
         for idx_spec in self.get_index_specifiers():
             idx_spec.validate()
@@ -682,7 +694,7 @@ class HubitModelPath(_HubitPath):
         return self.set_indices(idx_specs)
 
     def as_query_depth_path(self):
-        return _HubitQueryDepthPath(re.sub(HubitModelPath.regex_braces, "[*]", self))
+        return _HubitQueryDepthPath(re.sub(HubitModelPath.regex_idx_spec, "[*]", self))
 
     def as_include_pattern(self):
         return self.remove_braces()
@@ -692,15 +704,6 @@ class HubitModelPath(_HubitPath):
         Get the index context of a path
         """
         return "-".join(self.get_index_identifiers())
-
-    def paths_between_idxids(self) -> List[str]:
-        """Find list of path components in between index IDs
-
-        Returns:
-            List[str]: Sequence of index identification strings between index
-            IDs. Includes path after last index specifier
-        """
-        return re.split(f"{self.regex_braces}.|{self.regex_braces}", self)
 
 
 @dataclass

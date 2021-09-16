@@ -369,7 +369,7 @@ class LengthTree:
         if all([range.is_digit for range in path.ranges()]):
             return DummyLengthTree()
 
-        connecting_paths = path.paths_between_idxids()
+        connecting_paths = path.paths_between_specifiers()
         # Exclude leaf attribute (empty string or path following last index specifier)
         connecting_paths = connecting_paths[:-1]
         nodes, _ = LengthTree._nodes_for_iterpaths(connecting_paths, data)

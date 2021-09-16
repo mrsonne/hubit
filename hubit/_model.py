@@ -866,7 +866,7 @@ class _HubitModel:
                 # Extract iloc indices for each query in the expanded query
                 for expanded_paths in qexp.expanded_paths_for_decomposed_path.values():
                     for path in expanded_paths:
-                        slices = path.get_slices()
+                        slices = path.ranges()
                         # Only keep ilocs that come from an expansion... otherwise
                         # the dimensions of "values" do no match
                         ilocs = [

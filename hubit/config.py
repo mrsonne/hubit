@@ -693,28 +693,14 @@ class HubitModelPath(_HubitPath):
         """
         return "-".join(self.get_index_identifiers())
 
-    def paths_between_idxids(self, idxids: List[str]) -> List[str]:
+    def paths_between_idxids(self) -> List[str]:
         """Find list of path components in between index IDs
-
-        TODO relative-spatial-refs: rename and consider reimplementing? Just plit at idxids (= index specifiers)
-
-        Args:
-            idxids (List[str]): Sequence of index identification strings in 'path'
 
         Returns:
             List[str]: Sequence of index identification strings between index
-            IDs. Includes path after last index ID
+            IDs. Includes path after last index specifier
         """
-        # Remove [] and replace with ..
-        p2 = HubitModelPath.as_internal(self)
-        paths = []
-        for idxid in idxids:
-            # Split at current index ID
-            p1, p2 = p2.split(idxid, 1)
-            # Remove leading and trailing
-            paths.append(p1.rstrip(".").lstrip("."))
-        paths.append(p2.rstrip(".").lstrip("."))
-        return paths
+        return re.split(f"{self.regex_braces}.|{self.regex_braces}", self)
 
 
 @dataclass

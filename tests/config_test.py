@@ -155,8 +155,7 @@ class TestHubitModelPath(unittest.TestCase):
         path = HubitModelPath(
             "segments[IDX_SEG].layers[IDX_LAY].test.positions[IDX_POS]"
         )
-        idxids = path.get_index_specifiers()
-        paths = path.paths_between_idxids(idxids)
+        paths = path.paths_between_idxids()
         # Last element is empty since there are no attribute after IDX_POS
         expected_paths = ["segments", "layers", "test.positions", ""]
         self.assertSequenceEqual(expected_paths, paths)
@@ -165,8 +164,7 @@ class TestHubitModelPath(unittest.TestCase):
         path = HubitModelPath(
             "segments[IDX_SEG].layers[IDX_LAY].test.positions[IDX_POS].attr"
         )
-        idxids = path.get_index_specifiers()
-        paths = path.paths_between_idxids(idxids)
+        paths = path.paths_between_idxids()
         # Last element is empty since there are no attribute after IDX_POS
         expected_paths = ["segments", "layers", "test.positions", "attr"]
         self.assertSequenceEqual(expected_paths, paths)

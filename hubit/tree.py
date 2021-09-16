@@ -361,17 +361,15 @@ class LengthTree:
             LengthTree: Element 0 is DummyLengthTree if no index IDs found in 'path'
             otherwise a LengthTree.
         """
-        index_specifiers = path.get_index_specifiers()
-
         # Handle no index IDs
-        if len(index_specifiers) == 0:
+        if len(path.get_index_specifiers()) == 0:
             return DummyLengthTree()
 
         # Handle all IDs are digits
         if all([range.is_digit for range in path.ranges()]):
             return DummyLengthTree()
 
-        connecting_paths = path.paths_between_idxids(index_specifiers)
+        connecting_paths = path.paths_between_idxids()
         # Exclude leaf attribute (empty string or path following last index specifier)
         connecting_paths = connecting_paths[:-1]
         nodes, _ = LengthTree._nodes_for_iterpaths(connecting_paths, data)

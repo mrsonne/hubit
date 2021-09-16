@@ -189,23 +189,23 @@ class LengthTree:
             LengthTree: Pruned tree. If inplace=True the instance itself is also pruned.
         """
         obj = self if inplace else copy.deepcopy(self)
-        _slices = path.ranges()
-        if all([_slice == IDX_WILDCARD for _slice in _slices]):
+        ranges = path.ranges()
+        if all([range.is_full_range for range in ranges]):
             return obj
 
         # Loop over the index ID levels
-        assert len(_slices) == len(
+        assert len(ranges) == len(
             obj.level_names
         ), f"Path {path} does not math tree with levels {obj.level_names}"
 
-        for level_idx, _slice in enumerate(_slices):
+        for level_idx, range in enumerate(ranges):
 
-            if _slice == IDX_WILDCARD:
+            if range.is_full_range:
                 # No pruning required since all elements are in scope
                 continue
 
-            if is_digit(_slice):
-                obj.fix_idx_at_level(int(_slice), level_idx)
+            if range.is_digit:
+                obj.fix_idx_at_level(int(range), level_idx)
 
         return obj
 
@@ -362,21 +362,21 @@ class LengthTree:
             otherwise a LengthTree.
         """
         index_specifiers = path.get_index_specifiers()
-        index_identifiers = path.get_index_identifiers()
-        slices = path.ranges()
 
         # Handle no index IDs
         if len(index_specifiers) == 0:
             return DummyLengthTree()
 
         # Handle all IDs are digits
-        if all([is_digit(_slice) for _slice in slices]):
+        if all([range.is_digit for range in path.ranges()]):
             return DummyLengthTree()
 
         connecting_paths = path.paths_between_idxids(index_specifiers)
         # Exclude leaf attribute (empty string or path following last index specifier)
         connecting_paths = connecting_paths[:-1]
         nodes, _ = LengthTree._nodes_for_iterpaths(connecting_paths, data)
+
+        index_identifiers = path.get_index_identifiers()
         tree = cls(nodes, index_identifiers)
 
         # Some path indices may have specific locations so prune the tree
@@ -494,11 +494,11 @@ class LengthTree:
         """
         # Get the content of the braces
         idxspecs = path.get_index_specifiers()
-        slices = path.ranges()
+        ranges = path.ranges()
 
         paths = [path]
         for idx_level, (idxspec, _slice, level_name) in enumerate(
-            zip(idxspecs, slices, self.level_names)
+            zip(idxspecs, ranges, self.level_names)
         ):
             nodes = self.nodes_for_level[idx_level]
             paths_current_level = []
@@ -696,9 +696,10 @@ class _QueryExpansion:
             index_identifiers = []
             for mpath in mpaths:
                 q_idx_specs = qpath.get_index_specifiers()
-                slices = mpath.ranges()
                 digits = [
-                    (idx, slice) for idx, slice in enumerate(slices) if is_digit(slice)
+                    (idx, range)
+                    for idx, range in enumerate(mpath.ranges())
+                    if range.is_digit
                 ]
                 if len(digits) == 1:
                     q_idx_specs[digits[0][0]] = digits[0][1]
@@ -708,7 +709,7 @@ class _QueryExpansion:
                     )
                 elif len(digits) >= 1:
                     raise HubitModelQueryError(
-                        f"Only one index slice may be specified as digit for each model path. For model path '{mpath}', '{slices}' were found."
+                        f"Only one index range may be specified as digit for each model path. For model path '{mpath}', '{slices}' were found."
                     )
                 else:
                     logging.warning(

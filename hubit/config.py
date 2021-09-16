@@ -391,6 +391,14 @@ class _HubitPath(str):
         """Check if path has a slice that is a range"""
         return self.wildcard_chr in self.ranges()
 
+    def ranges(self) -> List[PathIndexRange]:
+        """Get the ranges from the path i.e. the part of all square braces preceding the @.
+
+        Returns:
+            Ranges from path
+        """
+        return [idx_spec.range for idx_spec in self.get_index_specifiers()]
+
 
 # or inherit from collections import UserString
 class HubitQueryPath(_HubitPath):
@@ -429,14 +437,6 @@ class HubitQueryPath(_HubitPath):
     def validate(self):
         self._validate_brackets()
         self._validate_index_specifiers()
-
-    def ranges(self) -> List[PathIndexRange]:
-        """Get the slices from the path i.e. the full content of the braces
-
-        Returns:
-            Indexes from path
-        """
-        return self.get_index_specifiers()
 
     def set_indices(self, indices: List[str], mode: int = 0) -> HubitQueryPath:
         """Change the return type compared to the super class"""
@@ -682,14 +682,6 @@ class HubitModelPath(_HubitPath):
             idx_specs[idx] = _value
         return self.set_indices(idx_specs)
 
-    def ranges(self) -> List[PathIndexRange]:
-        """Get the ranges from the path i.e. the part of all square braces preceding the @.
-
-        Returns:
-            Ranges from path
-        """
-        return [idx_spec.range for idx_spec in self.get_index_specifiers()]
-
     def as_query_depth_path(self):
         return _HubitQueryDepthPath(re.sub(HubitModelPath.regex_braces, "[*]", self))
 
@@ -704,6 +696,8 @@ class HubitModelPath(_HubitPath):
 
     def paths_between_idxids(self, idxids: List[str]) -> List[str]:
         """Find list of path components in between index IDs
+
+        TODO relative-spatial-refs: rename and consider reimplementing? Just plit at idxids (= index specifiers)
 
         Args:
             idxids (List[str]): Sequence of index identification strings in 'path'

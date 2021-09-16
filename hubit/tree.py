@@ -189,7 +189,7 @@ class LengthTree:
             LengthTree: Pruned tree. If inplace=True the instance itself is also pruned.
         """
         obj = self if inplace else copy.deepcopy(self)
-        _slices = path.get_slices()
+        _slices = path.ranges()
         if all([_slice == IDX_WILDCARD for _slice in _slices]):
             return obj
 
@@ -363,7 +363,7 @@ class LengthTree:
         """
         index_specifiers = path.get_index_specifiers()
         index_identifiers = path.get_index_identifiers()
-        slices = path.get_slices()
+        slices = path.ranges()
 
         # Handle no index IDs
         if len(index_specifiers) == 0:
@@ -494,7 +494,7 @@ class LengthTree:
         """
         # Get the content of the braces
         idxspecs = path.get_index_specifiers()
-        slices = path.get_slices()
+        slices = path.ranges()
 
         paths = [path]
         for idx_level, (idxspec, _slice, level_name) in enumerate(
@@ -696,7 +696,7 @@ class _QueryExpansion:
             index_identifiers = []
             for mpath in mpaths:
                 q_idx_specs = qpath.get_index_specifiers()
-                slices = mpath.get_slices()
+                slices = mpath.ranges()
                 digits = [
                     (idx, slice) for idx, slice in enumerate(slices) if is_digit(slice)
                 ]

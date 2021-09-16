@@ -389,7 +389,7 @@ class _HubitPath(str):
 
     def has_slice_range(self):
         """Check if path has a slice that is a range"""
-        return self.wildcard_chr in self.get_slices()
+        return self.wildcard_chr in self.ranges()
 
 
 # or inherit from collections import UserString
@@ -430,11 +430,11 @@ class HubitQueryPath(_HubitPath):
         self._validate_brackets()
         self._validate_index_specifiers()
 
-    def get_slices(self) -> List[str]:
+    def ranges(self) -> List[PathIndexRange]:
         """Get the slices from the path i.e. the full content of the braces
 
         Returns:
-            List[str]: Indexes from path
+            Indexes from path
         """
         return self.get_index_specifiers()
 
@@ -490,7 +490,6 @@ class HubitQueryPath(_HubitPath):
                 # if the model path range is empty it could contrubute to any query
                 continue
 
-            # Here the qrange must be a digit
             if not mrange.contains_index(qrange):
                 return False
 
@@ -683,11 +682,11 @@ class HubitModelPath(_HubitPath):
             idx_specs[idx] = _value
         return self.set_indices(idx_specs)
 
-    def get_slices(self) -> List[str]:
-        """Get the slices from the path i.e. the part of all square braces preceding the @.
+    def ranges(self) -> List[PathIndexRange]:
+        """Get the ranges from the path i.e. the part of all square braces preceding the @.
 
         Returns:
-            List[str]: Indexes from path
+            Ranges from path
         """
         return [idx_spec.range for idx_spec in self.get_index_specifiers()]
 

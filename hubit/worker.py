@@ -99,7 +99,7 @@ class _Worker:
         for binding in bindings:
             if query_path.check_path_match(binding.path):
                 identifiers = binding.path.get_index_identifiers()
-                ranges = query_path.get_slices()
+                ranges = query_path.ranges()
                 idxval_for_idxid.update(dict(zip(identifiers, ranges)))
                 break
 

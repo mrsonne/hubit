@@ -426,13 +426,12 @@ class HubitQueryPath(_HubitPath):
     regex_allowed_idx_spec = "^[:0-9]+$"
 
     def _validate_index_specifiers(self):
-        idx_specs = self.get_index_specifiers()
         assert all(
             [
                 is_digit(idx_spec) or idx_spec == HubitQueryPath.wildcard_chr
-                for idx_spec in idx_specs
+                for idx_spec in self.get_index_specifiers()
             ]
-        ), ""
+        )
 
     def validate(self):
         self._validate_brackets()

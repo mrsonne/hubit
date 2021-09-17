@@ -1051,8 +1051,8 @@ class FlatData(Dict):
         """
         Check if the path is in the list of patterns to be included
         """
-        # Remove digits from path
-        _path = re.sub(r"\.(\d+)", "", path)
+        # Replace .DIGITS with empty string
+        _path = re.sub(r"\.\d+", "", path)
         return any(include.startswith(_path) for include in include_patterns)
 
     @classmethod

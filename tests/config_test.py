@@ -448,7 +448,7 @@ class TestFlatData(unittest.TestCase):
         assert result == expected_result
 
     def test_include(self):
-        key = "list1.1.list2.3"
+        key = "list1.1.list2.32"
         includes = "list1.list2", "ok"
         result = FlatData._include(key, includes)
         expected_result = True

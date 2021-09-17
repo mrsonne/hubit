@@ -265,11 +265,10 @@ class _HubitPath(str):
 
     wildcard_chr = PathIndexRange.wildcard_chr
 
-    # TODO: relative-spatial-refs. explain regexs better
-    # Characters in square brackets
+    # Any sequence of characters in square brackets excluding the brackets
     regex_idx_spec = r"\[(.*?)\]"
-    regex_braces = r"\[([^\.]+)]"
-    regex_braces_any = r"\[.*?\]"
+    # Any sequence of characters in square braces including the braces
+    regex_braces = r"\[.*?\]"
 
     @staticmethod
     def as_internal(path: Any) -> str:
@@ -409,9 +408,7 @@ class _HubitPath(str):
             Sequence of path strings between index
             specifers. Includes path after last index specifier
         """
-        return re.split(
-            f"{_HubitPath.regex_braces_any}.|{_HubitPath.regex_braces_any}", self
-        )
+        return re.split(f"{_HubitPath.regex_braces}.|{_HubitPath.regex_braces}", self)
 
 
 # or inherit from collections import UserString
@@ -694,7 +691,7 @@ class HubitModelPath(_HubitPath):
         return self.set_indices(idx_specs)
 
     def as_query_depth_path(self):
-        return _HubitQueryDepthPath(re.sub(HubitModelPath.regex_idx_spec, "[*]", self))
+        return _HubitQueryDepthPath(re.sub(HubitModelPath.regex_braces, "[*]", self))
 
     def as_include_pattern(self):
         return self.remove_braces()

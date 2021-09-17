@@ -283,6 +283,8 @@ class _HubitPath(str):
     @classmethod
     def from_dotted(cls, dotted_string: str) -> Any:
         # replace .DIGIT with [DIGIT] using "look behind"
+        # Match is source string is .DIGIT but the capturing group is
+        # DIGIT which is used in the target string as [DIGIT]
         return cls(re.sub(r"\.(\d+)", r"[\1]", dotted_string))
 
     @staticmethod

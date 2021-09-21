@@ -22,15 +22,28 @@ SEP = "."
 
 class PathIndexRange(str):
     """
-    Range object used in [`ModelIndexSpecifier`][hubit.config.ModelIndexSpecifier]
-    and [`HubitQueryPath`][hubit.config.HubitQueryPath].
+    Range object used in [`HubitModelComponent`][hubit.config.HubitModelComponent].
 
     Supported ranges are
-    - Positive integer e.g. 0, 17
-    - All-index character ":"
+    - Positive integer e.g. `0`, `17`.
+    - The all-index character `:`.
+    - `D:` where `D` is a positive integer e.g. `3:`.
+    - `:D` where `D` is a positive integer e.g. `:3`.
+    - `D1:D2` where `D1` and `D2` are positive integers and `D1` < `D2`.  E.g. `2:5`
     """
 
     wildcard_chr = ":"
+
+    def _is_limited_range(value: str) -> bool:
+
+        # Must contain wildcard_chr
+        if not PathIndexRange.wildcard_chr in value:
+            return False
+
+        # At least start or end should be a digit (one could be empty)
+        start, end = value.split(PathIndexRange.wildcard_chr)
+        if is_digit(start) or is_digit(end):
+            return True
 
     def __init__(self, value):
         super().__init__()
@@ -46,62 +59,7 @@ class PathIndexRange(str):
             self.is_empty = True
         elif value == self.wildcard_chr:
             self.is_full_range = True
-        else:
-            raise HubitError(f"Unknown range format {self}")
-
-        if not self._is_valid():
-            raise HubitError(f"Invalid range '{self}'")
-
-    def _is_valid(self):
-        return int(self) >= 0 if self.is_digit else True
-
-    def contains_index(self, idx: int) -> bool:
-        """integer contained in range"""
-        if self.is_digit:
-            return str(idx) == self
-        elif self.is_full_range:
-            return True
-        else:
-            raise HubitError(f"Unknown range '{self}'")
-
-
-class ContextIndexRange(PathIndexRange):
-    """
-    Range object used in [`HubitModelComponent`][hubit.config.HubitModelComponent].
-
-    Supported ranges are
-    - Positive integer e.g. `0`, `17`.
-    - The all-index character `:`.
-    - `D:` where `D` is a positive integer e.g. `3:`.
-    - `:D` where `D` is a positive integer e.g. `:3`.
-    - `D1:D2` where `D1` and `D2` are positive integers and `D1` < `D2`.  E.g. `2:5`
-    """
-
-    def _is_limited_range(value: str) -> bool:
-
-        # Must contain wildcard_chr
-        if not PathIndexRange.wildcard_chr in value:
-            return False
-
-        # At least start or end should be a digit (one could be empty)
-        start, end = value.split(PathIndexRange.wildcard_chr)
-        if is_digit(start) or is_digit(end):
-            return True
-
-    def __init__(self, value: str):
-
-        # Determine the range type
-        self.is_digit = False
-        self.is_empty = False
-        self.is_full_range = False
-        self.is_limited_range = False
-        if is_digit(value):
-            self.is_digit = True
-        elif value == "":
-            self.is_empty = True
-        elif value == self.wildcard_chr:
-            self.is_full_range = True
-        elif ContextIndexRange._is_limited_range(value):
+        elif PathIndexRange._is_limited_range(value):
             self.is_limited_range = True
         else:
             raise HubitError(f"Unknown range format '{self}'")
@@ -109,7 +67,37 @@ class ContextIndexRange(PathIndexRange):
         self._validate()
 
     def _validate(self):
-        return True
+
+        if self.is_digit:
+            if int(self) < 0:
+                raise HubitError(f"Index '{self}' should be positive")
+        elif self.is_limited_range:
+            start, end = self.split(self.wildcard_chr)
+
+            if not (start == "" or is_digit(start)):
+                raise HubitError(
+                    f"Invalid range '{self}'. Range start '{start}' should be digit or empty"
+                )
+
+            if not (end == "" or is_digit(end)):
+                raise HubitError(
+                    f"Invalid range '{self}'. Range end '{end}' should be digit or empty"
+                )
+
+            if is_digit(start) and int(start) < 0:
+                raise HubitError(
+                    f"Invalid range '{self}'. Range start '{start}' should be positive"
+                )
+
+            if is_digit(end) and int(end) < 0:
+                raise HubitError(
+                    f"Invalid range '{self}'. Range end '{end}' should be positive"
+                )
+
+            if is_digit(start) and is_digit(end) and int(start) > int(end):
+                raise HubitError(
+                    f"Invalid range '{self}'. Range start '{start}' greater that range end '{end}'"
+                )
 
     def _lrange_intersects_digit(self, idx: int) -> bool:
         """Must be one limited range and digit.Not validated."""
@@ -184,24 +172,24 @@ class ContextIndexRange(PathIndexRange):
         else:
             return True
 
-    def contains_index(self, idx: int) -> bool:
-        """integer contained in range"""
-        if self.is_digit:
-            return str(idx) == self
-        elif self.is_full_range:
-            return True
-        elif self.is_limited_range:
-            return self._lrange_intersects_digit(idx)
-        else:
-            raise HubitError(f"Unknown range {self}")
+    # def contains_index(self, idx: int) -> bool:
+    #     """integer contained in range"""
+    #     if self.is_digit:
+    #         return str(idx) == self
+    #     elif self.is_full_range:
+    #         return True
+    #     elif self.is_limited_range:
+    #         return self._lrange_intersects_digit(idx)
+    #     else:
+    #         raise HubitError(f"Unknown range {self}")
 
-    def intersects(self, other: ContextIndexRange) -> bool:
+    def intersects(self, other: PathIndexRange, allow_self_empty: bool = False) -> bool:
         """The intersection between the two ranges
-             self               D  L  F
+             self               D  L  F  E
         other
-                  Digit (D)     2  4  1
-                  Limited (L)   3  5  1
-                  Full (F)      1  1  1
+                  Digit (D)     2  4  1  6
+                  Limited (L)   3  5  1  6
+                  Full (F)      1  1  1  6
         """
 
         if self.is_full_range or other.is_full_range:
@@ -214,13 +202,17 @@ class ContextIndexRange(PathIndexRange):
             return self == other
         elif self.is_digit and other.is_limited_range:
             # Scenario 3: self is digit, other is limited
-            return other._lrange_intersects_digit(self)
+            return other._lrange_intersects_digit(int(self))
         elif other.is_digit and self.is_limited_range:
             # Scenario 4: self is limited, other is digit
-            return self._lrange_intersects_digit(other)
+            return self._lrange_intersects_digit(int(other))
         elif other.is_limited_range and self.is_limited_range:
             # Scenario 5:
             self._lrange_intersects_lrange(other)
+        elif allow_self_empty and self.is_empty:
+            # Scenario 6: If a model path has an empty range e.g. list[IDX]
+            # it will always intersect list[DIGIT], list[DIGIT1:DIGIT2] and list[:]
+            return True
         else:
             raise HubitError(
                 f"Cannot find intersection for unknown range combination `{self}` and `{other}`"
@@ -598,22 +590,8 @@ class HubitQueryPath(_HubitPath):
             return False
 
         for qspec, mspec in zip(q_specifiers, m_specifiers):
-            qrange = qspec.range
-
-            if qrange.is_full_range:
-                # If qspec is full range any mpath where the above tests
-                # pass could contribute so keep looking
-                continue
-
-            # Get range (digit, wildcard, or empty)
-            mrange = mspec.range
-            if mrange.is_empty:
-                # if the model path range is empty it could contrubute to any query
-                continue
-
-            if not mrange.contains_index(qrange):
+            if not mspec.range.intersects(qspec.range, allow_self_empty=True):
                 return False
-
         return True
 
     def idxs_for_matches(
@@ -873,7 +851,7 @@ class HubitModelComponent:
             limit the scope of the component. If, for example, the context
             is `{IDX_TANK: 0}` the component is only used when the value of the
             index identifier IDX_TANK is 0. The context can only have one element.
-            Values must comply with [`ContextIndexRange`][hubit.config.ContextIndexRange].
+            Values must comply with [`PathIndexRange`][hubit.config.PathIndexRange].
         is_dotted_path (bool, optional): Set to True if the specified `path` is a
             dotted path (typically for a package module in site-packages).
         _index (int): Component index in model file

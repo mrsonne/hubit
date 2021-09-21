@@ -9,7 +9,7 @@ from hubit.config import (
     FlatData,
     _HubitQueryDepthPath,
     PathIndexRange,
-    ContextIndexRange,
+    PathIndexRange,
 )
 from hubit.errors import HubitModelComponentError, HubitError
 
@@ -262,14 +262,14 @@ class TestPathIndexRange(unittest.TestCase):
 
     def test_range_contains(self):
         range = PathIndexRange("2")
-        assert not range.contains_index(1)
-        assert range.contains_index(2)
-        assert not range.contains_index(3)
+        assert not range.intersects(PathIndexRange("1"))
+        assert range.intersects(PathIndexRange("2"))
+        assert not range.intersects(PathIndexRange("3"))
 
         range = PathIndexRange(":")
-        assert range.contains_index(1)
-        assert range.contains_index(2)
-        assert range.contains_index(3)
+        assert range.intersects(PathIndexRange("1"))
+        assert range.intersects(PathIndexRange("2"))
+        assert range.intersects(PathIndexRange("3"))
 
     def test_invalid(self):
         with self.assertRaises(HubitError):
@@ -288,100 +288,100 @@ class TestPathIndexRange(unittest.TestCase):
             PathIndexRange("0:7")
 
 
-class TestContextIndexRange(unittest.TestCase):
+class TestPathIndexRange(unittest.TestCase):
     def test_range_type(self):
-        range = ContextIndexRange("2")
+        range = PathIndexRange("2")
         assert range.is_digit
         assert not range.is_limited_range
         assert not range.is_full_range
 
-        range = ContextIndexRange("2:")
+        range = PathIndexRange("2:")
         assert not range.is_digit
         assert range.is_limited_range
         assert not range.is_full_range
 
-        range = ContextIndexRange(":2")
+        range = PathIndexRange(":2")
         assert not range.is_digit
         assert range.is_limited_range
         assert not range.is_full_range
 
-        range = ContextIndexRange("2:4")
+        range = PathIndexRange("2:4")
         assert not range.is_digit
         assert range.is_limited_range
         assert not range.is_full_range
 
-        range = ContextIndexRange(":")
+        range = PathIndexRange(":")
         assert not range.is_digit
         assert not range.is_limited_range
         assert range.is_full_range
 
-    def test_range_contains(self):
-        range = ContextIndexRange("2")
-        assert not range.contains_index(1)
-        assert range.contains_index(2)
-        assert not range.contains_index(3)
+    def test_range_intersects(self):
+        range = PathIndexRange("2")
+        assert not range.intersects(PathIndexRange("1"))
+        assert range.intersects(PathIndexRange("2"))
+        assert not range.intersects(PathIndexRange("3"))
 
-        range = ContextIndexRange("2:")
-        assert not range.contains_index(1)
-        assert range.contains_index(2)
-        assert range.contains_index(3)
+        range = PathIndexRange("2:")
+        assert not range.intersects(PathIndexRange("1"))
+        assert range.intersects(PathIndexRange("2"))
+        assert range.intersects(PathIndexRange("3"))
 
-        range = ContextIndexRange(":2")
-        assert range.contains_index(1)
-        assert not range.contains_index(2)
-        assert not range.contains_index(3)
+        range = PathIndexRange(":2")
+        assert range.intersects(PathIndexRange("1"))
+        assert not range.intersects(PathIndexRange("2"))
+        assert not range.intersects(PathIndexRange("3"))
 
-        range = ContextIndexRange("2:14")
-        assert not range.contains_index(1)
-        assert range.contains_index(2)
-        assert range.contains_index(3)
-        assert not range.contains_index(14)
+        range = PathIndexRange("2:14")
+        assert not range.intersects(PathIndexRange("1"))
+        assert range.intersects(PathIndexRange("2"))
+        assert range.intersects(PathIndexRange("3"))
+        assert not range.intersects(PathIndexRange("14"))
 
-        range = ContextIndexRange(":")
-        assert range.contains_index(1)
-        assert range.contains_index(2)
-        assert range.contains_index(3)
+        range = PathIndexRange(":")
+        assert range.intersects(PathIndexRange("1"))
+        assert range.intersects(PathIndexRange("2"))
+        assert range.intersects(PathIndexRange("3"))
 
     def test_lrange_intersects_lrange(self):
         # Intersection with one self should return True
-        range1 = ContextIndexRange("2:4")
+        range1 = PathIndexRange("2:4")
         self.assertTrue(range1._lrange_intersects_lrange(range1))
 
         # Edge case that behave like standard Python e.g.
         # set(range(2,4)).intersection(set(range(4,17))) gives an empty set
-        range1 = ContextIndexRange("2:4")
-        range2 = ContextIndexRange("4:17")
+        range1 = PathIndexRange("2:4")
+        range2 = PathIndexRange("4:17")
         self.assertFalse(range1._lrange_intersects_lrange(range2))
         self.assertFalse(range2._lrange_intersects_lrange(range1))
 
         # Range 2 inside range 1
-        range1 = ContextIndexRange("2:14")
-        range2 = ContextIndexRange("4:7")
+        range1 = PathIndexRange("2:14")
+        range2 = PathIndexRange("4:7")
         self.assertTrue(range1._lrange_intersects_lrange(range2))
 
         # Overlap
-        range1 = ContextIndexRange("2:14")
-        range2 = ContextIndexRange("10:24")
+        range1 = PathIndexRange("2:14")
+        range2 = PathIndexRange("10:24")
         self.assertTrue(range1._lrange_intersects_lrange(range2))
 
         # Implicit start
-        range1 = ContextIndexRange(":14")
-        range2 = ContextIndexRange(":24")
+        range1 = PathIndexRange(":14")
+        range2 = PathIndexRange(":24")
         self.assertTrue(range1._lrange_intersects_lrange(range2))
 
         # Implicit end
-        range1 = ContextIndexRange("4:")
-        range2 = ContextIndexRange("2:")
+        range1 = PathIndexRange("4:")
+        range2 = PathIndexRange("2:")
         self.assertTrue(range1._lrange_intersects_lrange(range2))
 
         # Implicit start & end
-        range1 = ContextIndexRange(":6")
-        range2 = ContextIndexRange("2:")
+        range1 = PathIndexRange(":6")
+        range2 = PathIndexRange("2:")
         self.assertTrue(range1._lrange_intersects_lrange(range2))
 
         # Implicit start & end
-        range1 = ContextIndexRange(":6")
-        range2 = ContextIndexRange("6:")
+        range1 = PathIndexRange(":6")
+        range2 = PathIndexRange("6:")
         self.assertFalse(range1._lrange_intersects_lrange(range2))
 
 

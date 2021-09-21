@@ -331,16 +331,58 @@ class TestContextIndexRange(unittest.TestCase):
         assert not range.contains_index(2)
         assert not range.contains_index(3)
 
-        range = ContextIndexRange("2:4")
+        range = ContextIndexRange("2:14")
         assert not range.contains_index(1)
         assert range.contains_index(2)
         assert range.contains_index(3)
-        assert not range.contains_index(4)
+        assert not range.contains_index(14)
 
         range = ContextIndexRange(":")
         assert range.contains_index(1)
         assert range.contains_index(2)
         assert range.contains_index(3)
+
+    def test_lrange_intersects_lrange(self):
+        # Intersection with one self should return True
+        range1 = ContextIndexRange("2:4")
+        self.assertTrue(range1._lrange_intersects_lrange(range1))
+
+        # Edge case that behave like standard Python e.g.
+        # set(range(2,4)).intersection(set(range(4,17))) gives an empty set
+        range1 = ContextIndexRange("2:4")
+        range2 = ContextIndexRange("4:17")
+        self.assertFalse(range1._lrange_intersects_lrange(range2))
+        self.assertFalse(range2._lrange_intersects_lrange(range1))
+
+        # Range 2 inside range 1
+        range1 = ContextIndexRange("2:14")
+        range2 = ContextIndexRange("4:7")
+        self.assertTrue(range1._lrange_intersects_lrange(range2))
+
+        # Overlap
+        range1 = ContextIndexRange("2:14")
+        range2 = ContextIndexRange("10:24")
+        self.assertTrue(range1._lrange_intersects_lrange(range2))
+
+        # Implicit start
+        range1 = ContextIndexRange(":14")
+        range2 = ContextIndexRange(":24")
+        self.assertTrue(range1._lrange_intersects_lrange(range2))
+
+        # Implicit end
+        range1 = ContextIndexRange("4:")
+        range2 = ContextIndexRange("2:")
+        self.assertTrue(range1._lrange_intersects_lrange(range2))
+
+        # Implicit start & end
+        range1 = ContextIndexRange(":6")
+        range2 = ContextIndexRange("2:")
+        self.assertTrue(range1._lrange_intersects_lrange(range2))
+
+        # Implicit start & end
+        range1 = ContextIndexRange(":6")
+        range2 = ContextIndexRange("6:")
+        self.assertFalse(range1._lrange_intersects_lrange(range2))
 
 
 class TestFlatData(unittest.TestCase):

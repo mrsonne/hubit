@@ -77,45 +77,154 @@ class ContextIndexRange(PathIndexRange):
     - `D1:D2` where `D1` and `D2` are positive integers and `D1` < `D2`.  E.g. `2:5`
     """
 
-    def __init__(self, value: str):
-        self.value = value
+    def _is_limited_range(value: str) -> bool:
 
-        self.is_digit = is_digit(value)
+        # Must contain wildcard_chr
+        if not PathIndexRange.wildcard_chr in value:
+            return False
+
+        # At least start or end should be a digit (one could be empty)
+        start, end = value.split(PathIndexRange.wildcard_chr)
+        if is_digit(start) or is_digit(end):
+            return True
+
+    def __init__(self, value: str):
+
+        # Determine the range type
+        self.is_digit = False
+        self.is_empty = False
         self.is_full_range = False
         self.is_limited_range = False
-        if not self.is_digit:
-            self.is_full_range = value == self.wildcard_chr
-
-        if (not self.is_digit) and (not self.is_full_range):
+        if is_digit(value):
+            self.is_digit = True
+        elif value == "":
+            self.is_empty = True
+        elif value == self.wildcard_chr:
+            self.is_full_range = True
+        elif ContextIndexRange._is_limited_range(value):
             self.is_limited_range = True
+        else:
+            raise HubitError(f"Unknown range format '{self}'")
 
         self._validate()
 
     def _validate(self):
         return True
 
+    def _lrange_intersects_digit(self, idx: int) -> bool:
+        """Must be one limited range and digit.Not validated."""
+        # postpone casting from string to int until we know it can be done
+        start, end = self.split(self.wildcard_chr)
+
+        if start == "":
+            is_in_lower = True
+        else:
+            is_in_lower = idx >= int(start)
+
+        if end == "":
+            is_in_upper = True
+        else:
+            is_in_upper = idx < int(end)
+
+        return is_in_lower and is_in_upper
+
+    def _lrange_intersects_lrange(self, other: PathIndexRange) -> bool:
+        """Must be two limited ranges. This assumption
+        must be validated outside this method.
+        """
+        start1, end1 = self.split(self.wildcard_chr)
+        start2, end2 = other.split(self.wildcard_chr)
+
+        # Replace 'no limit' (from the start) with 0
+        if start1 == "":
+            start1 = 0
+        if start2 == "":
+            start2 = 0
+
+        start1 = int(start1)
+        start2 = int(start2)
+
+        if end1 == "":
+            if end2 == "":
+                # ooooo|---------->
+                # oo|------------->
+                return True
+            elif start1 < int(end2):
+                # ooooooo|-------->
+                # oo|-------|oooooo
+                return True
+            else:
+                # ooooooo|-------->
+                # o|--|oooooooooooo
+                return False
+
+        if end2 == "":
+            if start2 < int(end1):
+                # oo|-------|oooooo
+                # ooooooo|-------->
+                return True
+            else:
+                # o|--|oooooooooooo
+                # ooooooo|-------->
+                return False
+
+        # Ends can safely be cast as int
+        end1 = int(end1)
+        end2 = int(end2)
+
+        # The >= (instead of just >) behaves as standard Python
+        if start1 >= end2:
+            # oooooooo|--|oo
+            # oo|-----|ooooo
+            return False
+        elif start2 >= end1:
+            # oo|-----|ooooo
+            # oooooooo|--|oo
+            return False
+        else:
+            return True
+
     def contains_index(self, idx: int) -> bool:
         """integer contained in range"""
         if self.is_digit:
-            return str(idx) == self.value
+            return str(idx) == self
         elif self.is_full_range:
             return True
         elif self.is_limited_range:
-            start, end = self.value.split(self.wildcard_chr)
-
-            if start == "":
-                is_in_lower = True
-            else:
-                is_in_lower = idx >= int(start)
-
-            if end == "":
-                is_in_upper = True
-            else:
-                is_in_upper = idx < int(end)
-
-            return is_in_lower and is_in_upper
+            return self._lrange_intersects_digit(idx)
         else:
             raise HubitError(f"Unknown range {self}")
+
+    def intersects(self, other: ContextIndexRange) -> bool:
+        """The intersection between the two ranges
+             self               D  L  F
+        other
+                  Digit (D)     2  4  1
+                  Limited (L)   3  5  1
+                  Full (F)      1  1  1
+        """
+
+        if self.is_full_range or other.is_full_range:
+            # Scenario 1: At least one range covers all indices so
+            # there must be an an intersection
+            return True
+        elif self.is_digit and other.is_digit:
+            # Scenario 2: Both range are indices so they must be
+            # equal for a non-empty intersection
+            return self == other
+        elif self.is_digit and other.is_limited_range:
+            # Scenario 3: self is digit, other is limited
+            return other._lrange_intersects_digit(self)
+        elif other.is_digit and self.is_limited_range:
+            # Scenario 4: self is limited, other is digit
+            return self._lrange_intersects_digit(other)
+        elif other.is_limited_range and self.is_limited_range:
+            # Scenario 5:
+            self._lrange_intersects_lrange(other)
+        else:
+            raise HubitError(
+                f"Cannot find intersection for unknown range combination `{self}` and `{other}`"
+            )
 
 
 class QueryIndexSpecifier(str):

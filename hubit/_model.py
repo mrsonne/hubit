@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import List, Dict, Any, Tuple
+from typing import List, Dict, Any, Tuple, Optional
 import pickle
 import hashlib
 from multiprocessing import Manager
@@ -41,10 +41,10 @@ def _default_skipfun(flat_input: FlatData) -> bool:
 
 
 def _get(
-    queryrunner,
+    queryrunner: _QueryRunner,
     query: Query,
     flat_input,
-    flat_results: FlatData = FlatData(),
+    flat_results: Optional[FlatData] = None,
     dryrun: bool = False,
     expand_iloc: bool = False,
 ):
@@ -57,6 +57,10 @@ def _get(
     If dryrun=True the workers will generate dummy results. Usefull
     to validate s query.
     """
+    if flat_results is None:
+        _flat_results = FlatData()
+    else:
+        _flat_results = flat_results
     # Reset book keeping data
     queryrunner.workers = []
     queryrunner.workers_working = []
@@ -77,7 +81,7 @@ def _get(
     # Start thread that periodically checks whether we are finished or not
     shutdown_event = Event()
     watcher = Thread(
-        target=queryrunner._watcher, args=(_queries, flat_results, shutdown_event)
+        target=queryrunner._watcher, args=(_queries, _flat_results, shutdown_event)
     )
     watcher.daemon = True
 
@@ -91,7 +95,7 @@ def _get(
                 queryrunner.spawn_workers(
                     _queries,
                     extracted_input,
-                    flat_results,
+                    _flat_results,
                     flat_input,
                     manager,
                     dryrun=dryrun,
@@ -101,7 +105,7 @@ def _get(
             queryrunner.spawn_workers(
                 _queries,
                 extracted_input,
-                flat_results,
+                _flat_results,
                 flat_input,
                 dryrun=dryrun,
             )
@@ -115,14 +119,13 @@ def _get(
     queryrunner._join_workers()
 
     if the_err is None:
-        # print(flat_results)
-        response = {query: flat_results[query] for query in _queries}
+        response = {query: _flat_results[query] for query in _queries}
 
         if not expand_iloc:
             # TODO: compression call belongs on model (like expand)
             response = queryrunner.model._compress_response(response, queries_exp)
 
-        return response, flat_results
+        return response, _flat_results
     else:
         # Re-raise if failed
         raise the_err

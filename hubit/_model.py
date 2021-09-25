@@ -349,7 +349,7 @@ class _HubitModel:
 
         for w in workers:
             with dot.subgraph(
-                name="cluster_input", node_attr={"shape": "box"}
+                name=prefix_input, node_attr={"shape": "box"}
             ) as subgraph:
                 subgraph.attr(
                     label="Input data",
@@ -361,7 +361,7 @@ class _HubitModel:
                 self._render_objects(
                     w.name,
                     w.binding_map("consumes_input"),
-                    "cluster_input",
+                    prefix_input,
                     prefix_input,
                     input_object_ids[0],
                     subgraph,
@@ -373,7 +373,7 @@ class _HubitModel:
                 )
 
             with dot.subgraph(
-                name="cluster_results", node_attr={"shape": "box"}
+                name=prefix_results, node_attr={"shape": "box"}
             ) as subgraph:
 
                 subgraph.attr(
@@ -388,7 +388,7 @@ class _HubitModel:
                 self._render_objects(
                     w.name,
                     w.binding_map("provides_results"),
-                    "cluster_results",
+                    prefix_results,
                     prefix_results,
                     results_object_ids[0],
                     subgraph,
@@ -399,12 +399,12 @@ class _HubitModel:
                     direction=direction,
                 )
 
-                # Not all components cosume results
+                # Not all components consume results
                 try:
                     self._render_objects(
                         w.name,
                         w.binding_map("consumes_results"),
-                        "cluster_results",
+                        prefix_results,
                         prefix_results,
                         results_object_ids[0],
                         subgraph,

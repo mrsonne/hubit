@@ -34,8 +34,11 @@ with open("new.yml", "w") as handle:
 All files in the hubit cache folder `.hubit_cache` should be converted.
 
 ### Added
-- Multiple component may share the same entrypoint function. 
-- Components may consume specific elements in lists from the input. 
+- Support for subscriptions to neiboring compartments (cells, elements). This allows for a sequence of connected and dependent compartments to be calculated based on an initial value e.g. for the first compartment. This feature is illustrated in the example with connected tanks where a liquid flows from one tank to the next before reaching the outlet. 
+    - Multiple component may share the same entrypoint function.
+    - Components that share the same entrypoint function can be scoped using the new field `component.context`.
+    - Components may consume specific elements in lists from the input.
+    - Allow index offsets in index specifiers. This allows a compartment to refer to e.g. the previous compartment. 
 - Fix broken example (`examples/wall/run_precompute.py`)
 - Improved performance for input data where only some branches in the input are consumed and where branches are not consumed all the way to the leaves.
 

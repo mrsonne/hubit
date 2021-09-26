@@ -118,7 +118,11 @@ def split_items(items: List, sizes: List[int]) -> List:
 
 
 def count(items: List, key_from: str, increment_fun=(lambda x: 1)):
-    counts = dict()
+    """
+    Aggregate objects from a list by the attribute `key_from`.
+    By default each item increments the counter by 1.
+    """
+    counts: Dict[str, int] = {}
     for item in items:
         key = getattr(item, key_from)
         increment = increment_fun(item)

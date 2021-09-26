@@ -2,7 +2,7 @@ from __future__ import annotations
 import logging
 import copy
 import itertools
-from typing import Any, List, Dict, Tuple, TYPE_CHECKING
+from typing import Any, List, Dict, Sequence, Tuple, Union, Optional, TYPE_CHECKING
 from .errors import HubitIndexError, HubitError, HubitModelQueryError
 from .config import (
     _HubitPath,
@@ -25,6 +25,10 @@ class LeafNode:
         # Stores index in parent's list of children
         self.index = idx
 
+        # Not used but mypy likes it
+        self.level = 0
+        self.parent = None
+
     def remove_decendants(self):
         pass
 
@@ -40,18 +44,20 @@ class LengthNode:
         """
         self.level = 0
         # Assume bottom level
-        self.children = [LeafNode(idx) for idx in range(nchildren)]
+        self.children: Sequence[Union[LengthNode, LeafNode]] = [
+            LeafNode(idx) for idx in range(nchildren)
+        ]
         self._set_child_for_idx()
 
-        # Assume top level (children = None)
-        self.parent = None
-        self.tree = None
+        # Assume top level (parent = None)
+        self.parent: Optional[LengthNode] = None
+        self.tree: LengthTree
 
         # Stores index in parent's list of children
-        self.index = None
+        self.index: int
 
         # Is node constrained by pruning
-        self.is_constrained = False
+        self.is_constrained: bool = False
 
     def _set_child_for_idx(self):
         self._child_for_idx = {child.index: child for child in self.children}
@@ -59,7 +65,7 @@ class LengthNode:
     def nchildren(self) -> int:
         return len(self.children)
 
-    def set_children(self, children: List[LengthNode]):
+    def set_children(self, children: Sequence[Union[LengthNode, LeafNode]]):
         self.children = list(children)
         for idx, child in enumerate(self.children):
             child.parent = self
@@ -140,7 +146,7 @@ class LengthTree:
     data.
     """
 
-    def __init__(self, nodes: List[LengthNode], level_names: List[str]):
+    def __init__(self, nodes: List[LengthNode], level_names: Sequence[str]):
         """A data structure that allows manipulations of connected
         LengthNodes
 
@@ -149,9 +155,11 @@ class LengthTree:
             level_names (List[str]): Name of the levels specified on the nodes
         """
         self.nlevels = len(level_names)
-        self.level_names = level_names
+        self.level_names: Sequence[str] = level_names
 
-        self.nodes_for_level = [[] for idx in range(self.nlevels)]
+        self.nodes_for_level: Sequence[List[LengthNode]] = [
+            [] for _ in range(self.nlevels)
+        ]
         for node in nodes:
             node.tree = self
             self.nodes_for_level[node.level].append(node)
@@ -307,7 +315,7 @@ class LengthTree:
         paths_previous = paths_previous or [connecting_paths[0]]
         nodes = nodes or []
 
-        # Get node list for paths prepared at the previous recusion level
+        # Get node list for paths prepared at the previous recursion level
         child_nodes = [
             LengthNode(len(get_from_datadict(data, path.split(sep))))
             for path in paths_previous
@@ -322,7 +330,7 @@ class LengthTree:
         if len(connecting_paths) > 1:
             # Prepare paths for next recursive call by appending the
             # indices (from out_current_level) and the connecting path
-            # to the previosly found paths
+            # to the previously found paths
             for node, path_previous in zip(child_nodes, paths_previous):
                 paths_next = [
                     "{}.{}.{}".format(path_previous, curidx, connecting_paths[1])
@@ -450,7 +458,7 @@ class LengthTree:
                 node = node._child_for_idx[node_idx]
         return node
 
-    def normalize_path(self, qpath: str):
+    def normalize_path(self, qpath: HubitQueryPath) -> HubitQueryPath:
         """Handle negative indices
         As stated in "test_normalize_path2" the normalization in general depends
         on the context
@@ -466,7 +474,9 @@ class LengthTree:
                     int(idx) for idx in _path.get_index_specifiers()[:idx_level]
                 ]
                 node = self._node_for_idxs(_idx_context)
-                _path = _path.replace(idxid, str(node.nchildren() + int(idxid)), 1)
+                _path = HubitQueryPath(
+                    _path.replace(idxid, str(node.nchildren() + int(idxid)), 1)
+                )
         return _path
 
     def expand_path(
@@ -494,7 +504,8 @@ class LengthTree:
         idxspecs = path.get_index_specifiers()
         ranges = path.ranges()
 
-        paths = [path]
+        # Manipulate as strings
+        paths = [str(path)]
         for idx_level, (idxspec, _slice, level_name) in enumerate(
             zip(idxspecs, ranges, self.level_names)
         ):
@@ -522,11 +533,12 @@ class LengthTree:
                     )
             paths = copy.deepcopy(paths_current_level)
 
-        paths = [HubitQueryPath(_path) for _path in paths]
+        # Cast strings as paths
+        _paths = [HubitQueryPath(_path) for _path in paths]
         if flat:
-            return paths
+            return _paths
         else:
-            return self.reshape(paths)
+            return self.reshape(_paths)
 
     def _all_nodes_constrained(self):
         return all(

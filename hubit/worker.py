@@ -124,7 +124,7 @@ class _Worker:
         func: Callable,
         version: str,
         tree_for_idxcontext: Dict[str, LengthTree],
-        manager: Optional[BaseManager] = None,
+        manager: Optional[SyncManager] = None,
         dryrun: bool = False,
         caching: bool = False,
     ):

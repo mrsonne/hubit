@@ -68,7 +68,7 @@ def _get(
     queryrunner.worker_for_id = {}
     queryrunner.observers_for_query = {}
 
-    extracted_input = {}
+    extracted_input: Dict[str, Any] = {}
 
     # Expand the query for each path
     queries_exp = [queryrunner.model._expand_query(qpath) for qpath in query.paths]

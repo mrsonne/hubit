@@ -2,7 +2,7 @@ from __future__ import annotations
 import copy
 import importlib
 import logging
-from multiprocessing.managers import SyncManager
+from multiprocessing.managers import BaseManager, SyncManager
 import os
 import sys
 import time
@@ -112,7 +112,7 @@ class _QueryRunner:
     def _worker_for_query(
         self,
         path: HubitQueryPath,
-        manager: Optional[SyncManager] = None,
+        manager: Optional[BaseManager] = None,
         dryrun: bool = False,
     ) -> Optional[_Worker]:
         """Creates instance of the worker class that can respond to the query
@@ -172,7 +172,7 @@ class _QueryRunner:
         extracted_input,
         flat_results: FlatData,
         all_input,
-        manager: Optional[SyncManager] = None,
+        manager: Optional[BaseManager] = None,
         skip_paths=[],
         dryrun=False,
     ) -> Set[str]:

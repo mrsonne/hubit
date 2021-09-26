@@ -5,7 +5,7 @@ import pickle
 import hashlib
 import logging
 import multiprocessing
-from multiprocessing.managers import SyncManager
+from multiprocessing.managers import SyncManager, BaseManager
 import copy
 from typing import Any, Callable, Dict, Set, TYPE_CHECKING, List, Optional, Union
 from .config import HubitBinding, HubitQueryPath, ModelIndexSpecifier
@@ -124,7 +124,7 @@ class _Worker:
         func: Callable,
         version: str,
         tree_for_idxcontext: Dict[str, LengthTree],
-        manager: Optional[SyncManager] = None,
+        manager: Optional[BaseManager] = None,
         dryrun: bool = False,
         caching: bool = False,
     ):

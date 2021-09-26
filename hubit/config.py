@@ -6,12 +6,13 @@ in a model config file or the required structure of a query path.
 # https://github.com/mkdocstrings/pytkdocs/issues/69
 
 from __future__ import annotations, with_statement
+from abc import ABC, abstractproperty
 from dataclasses import dataclass, field
 import pathlib
 from collections import abc, Counter
 import yaml
 import re
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Sequence, Union, Optional, TypeVar, Generic
 from .errors import HubitError, HubitModelComponentError
 from .utils import is_digit
 
@@ -37,13 +38,15 @@ class PathIndexRange(str):
     def _is_limited_range(value: str) -> bool:
 
         # Must contain wildcard_chr
-        if not PathIndexRange.wildcard_chr in value:
+        if PathIndexRange.wildcard_chr in value:
+            # At least start or end should be a digit (one could be empty)
+            start, end = value.split(PathIndexRange.wildcard_chr)
+            if is_digit(start) or is_digit(end):
+                return True
+            else:
+                return False
+        else:
             return False
-
-        # At least start or end should be a digit (one could be empty)
-        start, end = value.split(PathIndexRange.wildcard_chr)
-        if is_digit(start) or is_digit(end):
-            return True
 
     def __init__(self, value):
         super().__init__()
@@ -120,6 +123,10 @@ class PathIndexRange(str):
         """Must be two limited ranges. This assumption
         must be validated outside this method.
         """
+        start1: Union[str, int]
+        start2: Union[str, int]
+        end1: Union[str, int]
+        end2: Union[str, int]
         start1, end1 = self.split(self.wildcard_chr)
         start2, end2 = other.split(self.wildcard_chr)
 
@@ -183,7 +190,9 @@ class PathIndexRange(str):
     #     else:
     #         raise HubitError(f"Unknown range {self}")
 
-    def intersects(self, other: PathIndexRange, allow_self_empty: bool = False) -> bool:
+    def intersects(
+        self, other: PathIndexRange, allow_self_empty: bool = False
+    ) -> Optional[bool]:
         """The intersection between the two ranges
              self               D  L  F  E
         other
@@ -217,9 +226,27 @@ class PathIndexRange(str):
             raise HubitError(
                 f"Cannot find intersection for unknown range combination `{self}` and `{other}`"
             )
+        return None
 
 
-class QueryIndexSpecifier(str):
+class _IndexSpecifier(ABC, str):
+    # TODO: Warning metaclass with abstract methods
+    # abc and multiple inheritance... https://stackoverflow.com/questions/37398966/python-abstractmethod-with-another-baseclass-breaks-abstract-functionality
+
+    @abstractproperty
+    def range(self) -> PathIndexRange:
+        pass
+
+    @abstractproperty
+    def identifier(self) -> str:
+        pass
+
+    @abstractproperty
+    def offset(self) -> int:
+        pass
+
+
+class QueryIndexSpecifier(_IndexSpecifier):
     @property
     def range(self) -> PathIndexRange:
         return PathIndexRange(self)
@@ -361,9 +388,6 @@ class ModelIndexSpecifier(str):
 
 
 class _HubitPath(str):
-    # TODO metaclass with abstract methods
-    # abc and multiple inheritance... https://stackoverflow.com/questions/37398966/python-abstractmethod-with-another-baseclass-breaks-abstract-functionality
-
     wildcard_chr = PathIndexRange.wildcard_chr
 
     # Any sequence of characters in square brackets excluding the brackets
@@ -423,7 +447,7 @@ class _HubitPath(str):
     def components(self):
         return self.as_internal(self).split(".")
 
-    def set_indices(self, indices: List[str], mode: int = 0) -> _HubitPath:
+    def set_indices(self, indices: Sequence[str], mode: int = 0) -> _HubitPath:
         """Replace the index specifiers on the path with location indices
 
         Args:
@@ -466,14 +490,14 @@ class _HubitPath(str):
             start += 1
         return self.__class__(_path)
 
-    def get_index_specifiers(self) -> List[str]:
+    def get_index_specifiers(self) -> List[Any]:
         """Get the index specifiers from the path i.e. the
         full content of the square braces.
 
         Returns:
             List: Index specification strings from path
         """
-        return re.findall(_HubitPath.regex_idx_spec, self)
+        pass
 
     def remove_braces(self) -> str:
         """Remove braces and the enclosed content from the path
@@ -551,7 +575,7 @@ class HubitQueryPath(_HubitPath):
         self._validate_brackets()
         self._validate_index_specifiers()
 
-    def set_indices(self, indices: List[str], mode: int = 0) -> HubitQueryPath:
+    def set_indices(self, indices: Sequence[str], mode: int = 0) -> HubitQueryPath:
         """Change the return type compared to the super class"""
         return self.__class__(super().set_indices(indices, mode))
 
@@ -605,7 +629,8 @@ class HubitQueryPath(_HubitPath):
         return [idx for idx, mpath in enumerate(mpaths) if self.check_path_match(mpath)]
 
     def get_index_specifiers(self) -> List[QueryIndexSpecifier]:
-        return [QueryIndexSpecifier(item) for item in super().get_index_specifiers()]
+        items = re.findall(_HubitPath.regex_idx_spec, self)
+        return [QueryIndexSpecifier(item) for item in items]
 
 
 class _HubitQueryDepthPath(HubitQueryPath):
@@ -748,7 +773,8 @@ class HubitModelPath(_HubitPath):
         self._validate_index_specifiers()
 
     def get_index_specifiers(self) -> List[ModelIndexSpecifier]:
-        return [ModelIndexSpecifier(item) for item in super().get_index_specifiers()]
+        items = re.findall(_HubitPath.regex_idx_spec, self)
+        return [ModelIndexSpecifier(item) for item in items]
 
     def get_index_identifiers(self) -> List[str]:
         """Get the index identifiers from the path i.e. the
@@ -760,7 +786,7 @@ class HubitModelPath(_HubitPath):
         """
         return [idx_spec.identifier for idx_spec in self.get_index_specifiers()]
 
-    def set_indices(self, indices: List[str], mode: int = 0) -> HubitModelPath:
+    def set_indices(self, indices: Sequence[str], mode: int = 0) -> HubitModelPath:
         """Change the return type compared to the super class"""
         return self.__class__(super().set_indices(indices, mode))
 

@@ -2,7 +2,17 @@ from __future__ import annotations
 import logging
 import copy
 import itertools
-from typing import Any, List, Dict, Sequence, Tuple, Union, Optional, TYPE_CHECKING
+from typing import (
+    Any,
+    List,
+    Dict,
+    Mapping,
+    Sequence,
+    Tuple,
+    Union,
+    Optional,
+    TYPE_CHECKING,
+)
 from .errors import HubitIndexError, HubitError, HubitModelQueryError
 from .config import (
     _HubitPath,
@@ -699,6 +709,7 @@ class _QueryExpansion:
         has one element of type [`HubitQueryPath`][hubit.config.HubitQueryPath]. If multiple
         components match required their individual path contributions are the items in the list.
         """
+        index_identifiers: Union[List, None]
         if len(mpaths) > 1:
             # More than one provide requires to match query. Split query into queries
             # each having a unique provider
@@ -786,7 +797,7 @@ class _QueryExpansion:
 
 def tree_for_idxcontext(
     components: List[HubitModelComponent], data: Dict
-) -> Dict[str, LengthTree]:
+) -> Mapping[str, Union[LengthTree, DummyLengthTree]]:
     """Compute LengthTree for relevant index contexts.
 
     Args:

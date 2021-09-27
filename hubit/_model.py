@@ -1,5 +1,6 @@
 from __future__ import annotations
-from typing import List, Dict, Any, Tuple, Optional
+from multiprocessing.managers import SyncManager
+from typing import List, Dict, Any, Tuple, Optional, cast
 import pickle
 import hashlib
 from multiprocessing import Manager
@@ -92,6 +93,8 @@ def _get(
         watcher.start()
         if queryrunner.use_multi_processing:
             with Manager() as manager:
+                # mypy complains although the type seems to be SyncManager as expected
+                manager = cast(SyncManager, manager)
                 queryrunner.spawn_workers(
                     _queries,
                     extracted_input,

@@ -8,7 +8,8 @@ from multiprocessing.managers import SyncManager
 import os
 import sys
 import time
-from typing import Any, Callable, Dict, List, Set, Tuple, Optional, Union
+from types import ModuleType
+from typing import Any, Callable, Dict, List, Set, Tuple, Optional, Union, cast
 import yaml
 
 from typing import TYPE_CHECKING
@@ -22,6 +23,26 @@ from .config import FlatData, HubitModelComponent, HubitModelPath, HubitQueryPat
 
 POLLTIME = 0.1
 POLLTIME_LONG = 0.25
+
+
+class ModuleInterface(ModuleType):
+    @staticmethod
+    def version() -> str:
+        ...
+
+
+def module_from_path(module_name: str, file_path: str) -> ModuleInterface:
+    spec = spec_from_file_location(module_name, file_path)
+    # https://github.com/python/typeshed/issues/2793
+    assert isinstance(spec.loader, Loader)
+    module = module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return cast(ModuleInterface, module)
+
+
+def module_from_dotted_path(dotted_path: str) -> ModuleInterface:
+    return cast(ModuleInterface, importlib.import_module(dotted_path))
 
 
 class _QueryRunner:
@@ -96,14 +117,9 @@ class _QueryRunner:
                 return func, version, components
 
             sys.path.insert(0, path)
-            spec = spec_from_file_location(module_name, file_path)
-            # https://github.com/python/typeshed/issues/2793
-            assert isinstance(spec.loader, Loader)
-            module = module_from_spec(spec)
-            sys.modules[spec.name] = module
-            spec.loader.exec_module(module)
+            module = module_from_path(module_name, file_path)
         else:
-            module = importlib.import_module(component_cfg.path)
+            module = module_from_dotted_path(component_cfg.path)
             component_id = component_cfg.id
             if component_id in components.keys():
                 func, version = components[component_id]

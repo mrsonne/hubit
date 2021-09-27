@@ -5,7 +5,7 @@ import pickle
 import hashlib
 import logging
 import multiprocessing
-from multiprocessing.managers import SyncManager, BaseManager
+from multiprocessing.managers import SyncManager
 import copy
 from typing import Any, Callable, Dict, Set, TYPE_CHECKING, List, Optional, Union
 from .config import HubitBinding, HubitQueryPath, ModelIndexSpecifier
@@ -204,12 +204,7 @@ class _Worker:
             )
         else:
             self.provided_mpath_for_name = None
-            raise HubitWorkerError(
-                'No provider for Hubit \
-                                     model component "{}"'.format(
-                    self.id
-                )
-            )
+            raise HubitWorkerError("No provider for Hubit model component '{self.id}'")
 
         # Model path for input dependencies with ilocs from query
         if self.component.does_consume_input():

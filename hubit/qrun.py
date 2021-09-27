@@ -39,20 +39,23 @@ class _QueryRunner:
         """
         self.model = model
         self.use_multi_processing = use_multi_processing
-        self.workers = []
-        self.workers_working = []
-        self.workers_completed = []
-        self.worker_for_id = {}
-        self.observers_for_query = {}
-        self.component_caching = component_caching
+        self.workers: List[_Worker] = []
+        self.workers_working: List[_Worker] = []
+        self.workers_completed: List[_Worker] = []
+        self.worker_for_id: Dict[str, _Worker] = {}
+        self.observers_for_query: Dict[HubitQueryPath, _Worker] = {}
+        self.component_caching: bool = component_caching
 
         # For book-keeping what has already been imported
-        self._components = {}
+        # {component_id: (func, version)}
+        self._components: Dict[str, Tuple[Callable, str]] = {}
 
-        # For book-keeping which calculations have already been calculated
-        self.results_for_results_id = {}
-        # self.provider_for_results_id: Dict[str, _Worker] = {}
-        self.provided_results_id = set()
+        # For book-keeping which results have already been calculated
+        # {checksum: worker.results}
+        self.results_for_results_id: Dict[str, Dict[str, Any]] = {}
+
+        # To track if there is already a provider for the results. Elements are checksums
+        self.provided_results_id: Set[str] = set()
         self.subscribers_for_results_id: Dict[str, List[_Worker]] = {}
 
     def _join_workers(self):
@@ -65,7 +68,7 @@ class _QueryRunner:
     def _get_func(
         base_path,
         component_cfg: HubitModelComponent,
-        components: Dict[str, Tuple(Callable, str)],
+        components: Dict[str, Tuple[Callable, str]],
     ):
         """[summary]
 

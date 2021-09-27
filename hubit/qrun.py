@@ -1,12 +1,14 @@
 from __future__ import annotations
 import copy
+from importlib.util import spec_from_file_location, module_from_spec
+from importlib.abc import Loader
 import importlib
 import logging
-from multiprocessing.managers import BaseManager, SyncManager
+from multiprocessing.managers import SyncManager
 import os
 import sys
 import time
-from typing import Any, Callable, Dict, List, Set, Tuple, Optional
+from typing import Any, Callable, Dict, List, Set, Tuple, Optional, Union
 import yaml
 
 from typing import TYPE_CHECKING
@@ -43,7 +45,7 @@ class _QueryRunner:
         self.workers_working: List[_Worker] = []
         self.workers_completed: List[_Worker] = []
         self.worker_for_id: Dict[str, _Worker] = {}
-        self.observers_for_query: Dict[HubitQueryPath, _Worker] = {}
+        self.observers_for_query: Dict[HubitQueryPath, List[_Worker]] = {}
         self.component_caching: bool = component_caching
 
         # For book-keeping what has already been imported
@@ -80,6 +82,7 @@ class _QueryRunner:
         Returns:
             tuple: function handle, function version, and component dict
         """
+        version: str
         func_name = component_cfg.func_name
         if not component_cfg.is_dotted_path:
             path, file_name = os.path.split(component_cfg.path)
@@ -93,8 +96,10 @@ class _QueryRunner:
                 return func, version, components
 
             sys.path.insert(0, path)
-            spec = importlib.util.spec_from_file_location(module_name, file_path)
-            module = importlib.util.module_from_spec(spec)
+            spec = spec_from_file_location(module_name, file_path)
+            # https://github.com/python/typeshed/issues/2793
+            assert isinstance(spec.loader, Loader)
+            module = module_from_spec(spec)
             sys.modules[spec.name] = module
             spec.loader.exec_module(module)
         else:
@@ -108,16 +113,16 @@ class _QueryRunner:
         try:
             version = module.version()
         except AttributeError:
-            version = None
+            version = "None"
         components[component_id] = func, version
         return func, version, components
 
     def _worker_for_query(
         self,
         path: HubitQueryPath,
-        manager: Optional[BaseManager] = None,
+        manager: Optional[SyncManager] = None,
         dryrun: bool = False,
-    ) -> Optional[_Worker]:
+    ) -> _Worker:
         """Creates instance of the worker class that can respond to the query
 
         Args:
@@ -138,20 +143,17 @@ class _QueryRunner:
         )
 
         # Create and return worker
-        try:
-            return _Worker(
-                self,
-                component,
-                path,
-                func,
-                version,
-                self.model.tree_for_idxcontext,
-                manager,
-                dryrun=dryrun,
-                caching=self.component_caching,
-            )
-        except RuntimeError:
-            return None
+        return _Worker(
+            self,
+            component,
+            path,
+            func,
+            version,
+            self.model.tree_for_idxcontext,
+            manager,
+            dryrun=dryrun,
+            caching=self.component_caching,
+        )
 
     @staticmethod
     def _transfer_input(
@@ -175,7 +177,7 @@ class _QueryRunner:
         extracted_input,
         flat_results: FlatData,
         all_input,
-        manager: Optional[BaseManager] = None,
+        manager: Optional[SyncManager] = None,
         skip_paths=[],
         dryrun=False,
     ) -> Set[str]:
@@ -201,7 +203,6 @@ class _QueryRunner:
             # Figure out which component can provide a response to the query
             # and get the corresponding worker
             worker = self._worker_for_query(qpath, manager, dryrun=dryrun)
-            # if worker is None: return False
 
             # Skip if the queried data will be provided
             _skip_paths.extend(worker.paths_provided())
@@ -259,7 +260,9 @@ class _QueryRunner:
         return results_ids
 
     def _submit_worker(
-        self, worker: _Worker, results_ids_sub_workers: List[str]
+        self,
+        worker: _Worker,
+        results_ids_sub_workers: Set[str],
     ) -> str:
         """
         Start worker or add it to the list of workers waiting for a provider

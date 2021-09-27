@@ -63,10 +63,10 @@ class HubitModel(_HubitModel):
         self.model_cfg = model_cfg
 
         # Stores length tree. Filled when set_input() is called
-        self.tree_for_idxcontext: Dict[LengthTree, str] = {}
+        self.tree_for_idxcontext: Dict[str, LengthTree] = {}
 
         # Stores trees for query
-        self._tree_for_qpath: Dict[LengthTree, str] = {}
+        self._tree_for_qpath: Dict[str, LengthTree] = {}
 
         # Stores normalized query paths
         self._normqpath_for_qpath: Dict[str, str] = {}

@@ -149,7 +149,7 @@ class _HubitModel:
     def _add_log_items(
         self,
         worker_counts: Dict[str, int],
-        elapsed_time: List[float],
+        elapsed_time: float,
         cache_counts: Dict[str, int],
     ):
         self._log._add_items(worker_counts, elapsed_time, cache_counts)

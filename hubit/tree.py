@@ -632,7 +632,9 @@ class _QueryExpansion:
         self.decomposed_paths, index_identifiers = _QueryExpansion.decompose_query(
             path, mpaths
         )
-        self.expanded_paths_for_decomposed_path = {}
+        self.expanded_paths_for_decomposed_path: Dict[
+            HubitQueryPath, List[HubitQueryPath]
+        ] = {}
         # Get the index contexts for doing some tests
         _idx_contexts = {mpath.get_idx_context() for mpath in mpaths}
 
@@ -691,7 +693,7 @@ class _QueryExpansion:
     @staticmethod
     def decompose_query(
         qpath: HubitQueryPath, mpaths: List[HubitModelPath]
-    ) -> Tuple(List[HubitQueryPath], Any):
+    ) -> Tuple[List[HubitQueryPath], Union[List[str], None]]:
         """
         If a single component can provide results for `path`, `decomposed_paths`
         has one element of type [`HubitQueryPath`][hubit.config.HubitQueryPath]. If multiple
@@ -706,20 +708,24 @@ class _QueryExpansion:
             index_identifiers = []
             for mpath in mpaths:
                 q_idx_specs = qpath.get_index_specifiers()
-                digits = [
-                    (idx, range)
-                    for idx, range in enumerate(mpath.ranges())
-                    if range.is_digit
-                ]
+                idxs, digits = zip(
+                    *[
+                        (idx, range)
+                        for idx, range in enumerate(mpath.ranges())
+                        if range.is_digit
+                    ]
+                )
                 if len(digits) == 1:
-                    q_idx_specs[digits[0][0]] = digits[0][1]
+                    q_idx_specs[idxs[0]] = digits[0]
                     decomposed_qpaths.append(qpath.set_indices(q_idx_specs))
-                    index_identifiers.append(
-                        mpath.get_index_identifiers()[digits[0][0]]
-                    )
+                    index_identifiers.append(mpath.get_index_identifiers()[idxs[0]])
                 elif len(digits) >= 1:
                     raise HubitModelQueryError(
-                        f"Only one index range may be specified as digit for each model path. For model path '{mpath}', '{slices}' were found."
+                        (
+                            f"Only one index range may be specified as digit for each",
+                            f"model path. For model path '{mpath}', '{mpath.ranges()}'",
+                            f"were found.",
+                        )
                     )
                 else:
                     logging.warning(

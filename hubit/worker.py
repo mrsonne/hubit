@@ -26,96 +26,6 @@ class _Worker:
     RESULTS_FROM_CALCULATION_ID = "calculation"
     RESULTS_FROM_UNKNOWN = "unknown"
 
-    @staticmethod
-    def bindings_from_idxs(bindings: List[HubitBinding], idxval_for_idxid) -> Dict:
-        """
-        replace index IDs with the actual indices
-        if idxid from binding path not found in idxval_for_idxid it
-        must correspond to a IDX_WILDCARD in the binding path.
-        IDX_WILDCARD ignored in set_ilocs_on_path. Dealt with in expansion
-
-        Returns path for name
-        """
-        if len(idxval_for_idxid) == 0:
-            return {binding.name: binding.path for binding in bindings}
-        else:
-            result = {}
-            for binding in bindings:
-                indices = []
-                for model_index_spec in binding.path.get_index_specifiers():
-                    idxid = model_index_spec.identifier
-                    range = model_index_spec.range
-                    offset = model_index_spec.offset
-
-                    index: Optional[str]
-                    if range.is_digit:
-                        # already an index so no transformation required
-                        index = str(range)
-                    elif range.is_empty:
-                        # Map index ID to the value
-                        index = str(int(idxval_for_idxid[idxid]) + offset)
-                    elif range.is_full_range:
-                        # leave for subsequent expansion.
-                        # From the expansion method's perspective 'index' could be any character.
-                        index = range
-                    else:
-                        raise HubitError(f"Unknown range '{range}'")
-                    indices.append(ModelIndexSpecifier.from_components(idxid, index))
-
-                result[binding.name] = binding.path.set_indices(indices, mode=1)
-            return result
-
-    @staticmethod
-    def get_bindings(bindings: List[HubitBinding], query_path: HubitQueryPath):
-        """Make symbolic binding specific i.e. replace index IDs
-        with actual indices based on query
-
-        Args:
-            bindings: List of bindings
-            query_path: Query path
-
-        Raises:
-            HubitWorkerError: Raised if query does not match any of the bindings
-            or if query is not expanded
-
-        Returns:
-            [type]: TODO [description]
-        """
-        if query_path.wildcard_chr in query_path:
-            raise HubitWorkerError(
-                f"Query path '{query_path}' contains illegal character '{query_path.wildcard_chr}'. Should already have been expanded."
-            )
-
-        binding_paths = [binding.path for binding in bindings]
-        # Get indices in binding_paths list that match the query
-        idxs_match = query_path.idxs_for_matches(binding_paths)
-        if len(idxs_match) == 0:
-            fstr = 'Query "{}" did not match attributes provided by worker ({}).'
-            raise HubitWorkerError(fstr.format(query_path, ", ".join(binding_paths)))
-
-        # Get the location indices from query. Using the first binding path that
-        # matched the query suffice
-        idxval_for_idxid = {}
-        for binding in bindings:
-            if query_path.check_path_match(binding.path):
-                identifiers = binding.path.get_index_identifiers()
-                ranges = query_path.ranges()
-                idxval_for_idxid.update(dict(zip(identifiers, ranges)))
-                break
-
-        path_for_name = _Worker.bindings_from_idxs(bindings, idxval_for_idxid)
-
-        return path_for_name, idxval_for_idxid
-
-    @staticmethod
-    def expand(path_for_name, tree_for_idxcontext, model_path_for_name):
-        paths_for_name = {}
-        for name, path in path_for_name.items():
-            tree = tree_for_idxcontext[model_path_for_name[name].get_idx_context()]
-            pruned_tree = tree.prune_from_path(path, inplace=False)
-            paths_for_name[name] = pruned_tree.expand_path(path)
-        return paths_for_name
-
     def __init__(
         self,
         qrun: _QueryRunner,
@@ -264,6 +174,96 @@ class _Worker:
             }
 
         logging.info(f'Worker "{self.id}" was deployed for query "{self.query}"')
+
+    @staticmethod
+    def bindings_from_idxs(bindings: List[HubitBinding], idxval_for_idxid) -> Dict:
+        """
+        replace index IDs with the actual indices
+        if idxid from binding path not found in idxval_for_idxid it
+        must correspond to a IDX_WILDCARD in the binding path.
+        IDX_WILDCARD ignored in set_ilocs_on_path. Dealt with in expansion
+
+        Returns path for name
+        """
+        if len(idxval_for_idxid) == 0:
+            return {binding.name: binding.path for binding in bindings}
+        else:
+            result = {}
+            for binding in bindings:
+                indices = []
+                for model_index_spec in binding.path.get_index_specifiers():
+                    idxid = model_index_spec.identifier
+                    range = model_index_spec.range
+                    offset = model_index_spec.offset
+
+                    index: Optional[str]
+                    if range.is_digit:
+                        # already an index so no transformation required
+                        index = str(range)
+                    elif range.is_empty:
+                        # Map index ID to the value
+                        index = str(int(idxval_for_idxid[idxid]) + offset)
+                    elif range.is_full_range:
+                        # leave for subsequent expansion.
+                        # From the expansion method's perspective 'index' could be any character.
+                        index = range
+                    else:
+                        raise HubitError(f"Unknown range '{range}'")
+                    indices.append(ModelIndexSpecifier.from_components(idxid, index))
+
+                result[binding.name] = binding.path.set_indices(indices, mode=1)
+            return result
+
+    @staticmethod
+    def get_bindings(bindings: List[HubitBinding], query_path: HubitQueryPath):
+        """Make symbolic binding specific i.e. replace index IDs
+        with actual indices based on query
+
+        Args:
+            bindings: List of bindings
+            query_path: Query path
+
+        Raises:
+            HubitWorkerError: Raised if query does not match any of the bindings
+            or if query is not expanded
+
+        Returns:
+            [type]: TODO [description]
+        """
+        if query_path.wildcard_chr in query_path:
+            raise HubitWorkerError(
+                f"Query path '{query_path}' contains illegal character '{query_path.wildcard_chr}'. Should already have been expanded."
+            )
+
+        binding_paths = [binding.path for binding in bindings]
+        # Get indices in binding_paths list that match the query
+        idxs_match = query_path.idxs_for_matches(binding_paths)
+        if len(idxs_match) == 0:
+            fstr = 'Query "{}" did not match attributes provided by worker ({}).'
+            raise HubitWorkerError(fstr.format(query_path, ", ".join(binding_paths)))
+
+        # Get the location indices from query. Using the first binding path that
+        # matched the query suffice
+        idxval_for_idxid = {}
+        for binding in bindings:
+            if query_path.check_path_match(binding.path):
+                identifiers = binding.path.get_index_identifiers()
+                ranges = query_path.ranges()
+                idxval_for_idxid.update(dict(zip(identifiers, ranges)))
+                break
+
+        path_for_name = _Worker.bindings_from_idxs(bindings, idxval_for_idxid)
+
+        return path_for_name, idxval_for_idxid
+
+    @staticmethod
+    def expand(path_for_name, tree_for_idxcontext, model_path_for_name):
+        paths_for_name = {}
+        for name, path in path_for_name.items():
+            tree = tree_for_idxcontext[model_path_for_name[name].get_idx_context()]
+            pruned_tree = tree.prune_from_path(path, inplace=False)
+            paths_for_name[name] = pruned_tree.expand_path(path)
+        return paths_for_name
 
     def consumes_input_only(self):
         return self._consumes_input_only

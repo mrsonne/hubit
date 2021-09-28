@@ -12,7 +12,17 @@ import datetime
 import hashlib
 import pickle
 from dataclasses import dataclass, field, fields
-from typing import Any, Callable, List, Tuple, Dict, Optional, cast, TYPE_CHECKING
+from typing import (
+    Any,
+    Callable,
+    List,
+    Sequence,
+    Tuple,
+    Dict,
+    Optional,
+    cast,
+    TYPE_CHECKING,
+)
 from multiprocessing.managers import SyncManager
 from multiprocessing import Manager
 import logging
@@ -628,7 +638,7 @@ class HubitModel:
         input_object_ids = list(input_object_ids)
         return input_object_ids, results_object_ids
 
-    def _get_path_cmps(self, bindings: HubitBinding):
+    def _get_path_cmps(self, bindings: Sequence[HubitBinding]):
         """
         Get path components from bindings
         """

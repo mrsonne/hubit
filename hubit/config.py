@@ -538,7 +538,10 @@ class _HubitPath(str):
         return re.split(f"{_HubitPath.regex_braces}.|{_HubitPath.regex_braces}", self)
 
 
-# or inherit from collections import UserString
+# upper bound type
+Path = TypeVar("Path", bound=_HubitPath)
+
+
 class HubitQueryPath(_HubitPath):
     """
     Reference a field in the results data. The syntax follows general

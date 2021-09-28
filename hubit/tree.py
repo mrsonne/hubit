@@ -14,12 +14,7 @@ from typing import (
     TYPE_CHECKING,
 )
 from .errors import HubitIndexError, HubitError, HubitModelQueryError
-from .config import (
-    _HubitPath,
-    HubitModelPath,
-    HubitQueryPath,
-    PathIndexRange,
-)
+from .config import _HubitPath, HubitModelPath, HubitQueryPath, PathIndexRange, Path
 from .utils import is_digit, get_from_datadict, split_items, traverse
 
 if TYPE_CHECKING:
@@ -491,7 +486,7 @@ class LengthTree:
 
     def expand_path(
         self,
-        path: HubitModelPath,
+        path: Path,
         flat: bool = False,
     ) -> List[HubitQueryPath]:
         """Expand model path with wildcard based on tree
@@ -502,7 +497,7 @@ class LengthTree:
 
 
         Args:
-            path (HubitModelPath): Model path with wildcards and index IDs
+            path (Path): Any path with wildcards and index IDs
             flat (bool): Return expansion result as a flat list.
 
         Returns:

@@ -23,14 +23,17 @@ SEP = "."
 
 class PathIndexRange(str):
     """
-    Range object used in [`HubitModelComponent`][hubit.config.HubitModelComponent].
+    Range object used in the context attribute of
+    [`HubitModelComponent`][hubit.config.HubitModelComponent] as well as
+    in [`ModelIndexSpecifier`][hubit.config.ModelIndexSpecifier].
 
-    Supported ranges are
+    Supported ranges comprise
+
     - Positive integer e.g. `0`, `17`.
     - The all-index character `:`.
-    - `D:` where `D` is a positive integer e.g. `3:`.
-    - `:D` where `D` is a positive integer e.g. `:3`.
-    - `D1:D2` where `D1` and `D2` are positive integers and `D1` < `D2`.  E.g. `2:5`
+    - `d:` where `d` is a positive integer e.g. `3:`.
+    - `:d` where `d` is a positive integer e.g. `:3`.
+    - `d1:d2` where `d1` and `d2` are positive integers and `d1` < `d2` e.g. `2:5`
     """
 
     wildcard_chr = ":"
@@ -265,7 +268,7 @@ class ModelIndexSpecifier(str):
     Index specifiers for [`HubitModelPath`][hubit.config.HubitModelPath].
     A model path index specifier is composed of three parts namely the
     _range_, the _identifier_ and the _offset_, in that order. The
-    structure of an model index specifier is `range @ identifier offset` with
+    structure of an model index specifier is "`range @ identifier offset`" with
     spaces added to increase clarity.
 
     - The _identifier_ is used internally map an index in input lists to
@@ -883,8 +886,9 @@ class HubitModelComponent:
             Values must comply with [`PathIndexRange`][hubit.config.PathIndexRange].
         is_dotted_path (bool, optional): Set to True if the specified `path` is a
             dotted path (typically for a package module in site-packages).
-        _index (int): Component index in model file
     """
+
+    # _index (int): Component index in model file
 
     path: str
     provides_results: List[HubitBinding]

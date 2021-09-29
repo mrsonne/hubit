@@ -11,5 +11,4 @@ hmodel1.render()
 hmodel1.render(query)
 
 hmodel2.render()
-# TODO: relative-spatial-refs. Warning: cluster named cluster_results not found
 hmodel2.render(query)

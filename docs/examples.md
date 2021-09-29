@@ -35,7 +35,7 @@ From the bindings `Hubit` can check that all required input data and results dat
 Below you can see some pseudo code for the calculation for the car price calculation. The example is available in [`mod1_cmp1.py`](https://github.com/mrsonne/hubit/tree/master/examples/car/components/mod1_cmp1.py)
 
 ```python
-def price(_input_consumed, _results_consumed, results_provided):
+def price(_input_consumed, results_provided):
     # Extract required input data here
     counts = _input_consumed['part_counts'] 
     names = _input_consumed['part_names'] 
@@ -50,7 +50,7 @@ def price(_input_consumed, _results_consumed, results_provided):
     results_provided['car_price'] = result
 ```
 
-The entrypoint function in a component (`price` in the example above) should expect the arguments `_input_consumed`, `_results_consumed` and `results_provided` in that order. Results data calculated in the components should only be added to the latter. The values stored in the keys `part_counts` and `part_names` in `_input_consumed` are controlled by the bindings in the model file. 
+The entrypoint function in a component (`price` in the example above) should expect the arguments `_input_consumed` and `results_provided` in that order. Results data calculated in the components should only be added to the latter. The values stored in the keys `part_counts` and `part_names` in `_input_consumed` are controlled by the bindings in the model file. 
 
 ### Model file & component bindings
 Before we look at the bindings let us look at the input data. The input can, like in the example below, be defined in a yml file. In the car example the input data is a list containing two cars each with a number of parts
@@ -191,7 +191,7 @@ In this version of the model the parts price lookup and the car price calculatio
 Notice that the first component consumes a specific part index (`IDX_PART`) for a specific car index (`IDX_CAR`). This allows the component to store results data on a specific part index for a specific car index. The entrypoint function for the first component (price for one part) could look something like this
 
 ```python
-def part_price(_input_consumed, _results_consumed, results_provided):
+def part_price(_input_consumed, results_provided):
     count = _input_consumed['part_count'] 
     name = _input_consumed['part_name'] 
     results_provided['part_price'] = count*my_lookup_function(name)
@@ -200,8 +200,8 @@ def part_price(_input_consumed, _results_consumed, results_provided):
 The entrypoint function for the second component (car price) could look like this
 
 ```python
-def car_price(_input_consumed, _results_consumed, results_provided):
-    results_provided['car_price'] = sum( _results_consumed['prices'] )
+def car_price(_input_consumed, results_provided):
+    results_provided['car_price'] = sum( _input_consumed['prices'] )
 ```
 
 In this refactored model `Hubit` will, when submitting a query for the car price using the multi-processor flag, execute each part price calculation in a separate asynchronous worker process. If the part price lookup is fast, the overhead introduced by multi-processing may be render model 2 less attractive. In such cases performing all the lookups in a single component, but still keeping the lookup separate from the car price calculation, could be a good solution. 
@@ -224,7 +224,7 @@ provides_results:
 Notice that the component consumes all part indices (`:@IDX_PART`) for a specific car index (`IDX_CAR`). This allows the component to store results data on all part indices for a specific car index. The entrypoint for the first component (price for all parts) could look something like this
 
 ```python
-def part_price(_input_consumed, _results_consumed, results_provided):
+def part_price(_input_consumed, results_provided):
     counts = _input_consumed['parts_count'] 
     names = _input_consumed['parts_name'] 
     results_provided['parts_price'] = [count*my_lookup_function(name)

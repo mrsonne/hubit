@@ -252,11 +252,9 @@ class _IndexSpecifier(ABC, str):
 class QueryIndexSpecifier(_IndexSpecifier):
     """
     Index specifiers for [`HubitQueryPath`][hubit.config.HubitQueryPath].
-    A query path index specifier is composed of
-
     Currently, index specifiers should be either a positive integer or
-    the character `:`. General slicing and negative indices is not supported.
-
+    the character `:`. General slicing and negative indices is not
+    supported.
     """
 
     @property
@@ -883,11 +881,16 @@ class HubitModelComponent:
             which is the parent path for the model file.
         func_name (str): The function name (entrypoint) that wraps the task.
         provides_results (List[HubitBinding]): [`HubitBinding`][hubit.config.HubitBinding]
-            sequence specifying the results provided by the component.
+            sequence specifying the results provided by the component. The names
+            in the bindings must be unique within `provides_results` for the component.
         consumes_input (List[HubitBinding], optional): [`HubitBinding`][hubit.config.HubitBinding]
-            sequence specifying the input consumed by the input consumed.
+            sequence specifying the input consumed by the component. The names
+            in the bindings must be unique within `consumes_input` and `consumes_results`
+            for the component.
         consumes_results (List[HubitBinding]): [`HubitBinding`][hubit.config.HubitBinding]
-            sequence specifying the input consumed by the results consumed.
+            sequence specifying the input consumed by the component. The names
+            in the bindings must be unique within `consumes_input` and `consumes_results`
+            for the component.
         context (dict, optional): A map from the index identifiers to an index. Used to
             limit the scope of the component. If, for example, the context
             is `{IDX_TANK: 0}` the component is only used when the value of the

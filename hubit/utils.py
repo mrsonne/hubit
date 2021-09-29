@@ -3,6 +3,33 @@ from functools import reduce
 import itertools
 from operator import getitem
 from typing import List, Dict, Tuple
+import collections
+
+
+class ReadOnlyDict(collections.Mapping):
+    def __init__(self, data):
+        self._data = data
+
+    def __getitem__(self, key):
+        return self._data[key]
+
+    def __len__(self):
+        return len(self._data)
+
+    def __iter__(self):
+        return iter(self._data)
+
+    def keys(self):
+        return self._data.keys()
+
+    def values(self):
+        return self._data.values()
+
+    def items(self):
+        return self._data.items()
+
+    def __str__(self):
+        return self._data.__str__()
 
 
 def is_digit(s: str) -> bool:

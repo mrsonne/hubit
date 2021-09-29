@@ -10,7 +10,7 @@ import copy
 from typing import Any, Callable, Dict, Set, TYPE_CHECKING, List, Optional, Union
 from .config import HubitBinding, HubitQueryPath, ModelIndexSpecifier
 from .tree import LengthTree
-from .utils import traverse, reshape
+from .utils import traverse, reshape, ReadOnlyDict
 
 from .errors import HubitError, HubitWorkerError
 
@@ -371,10 +371,12 @@ class _Worker:
         # Notify the hubit model that we are about to start the work
         self.qrun._set_worker_working(self)
         # create single input
-        inputval_for_name = {
-            **self.inputval_for_name,
-            **self.resultval_for_name,
-        }
+        inputval_for_name = ReadOnlyDict(
+            {
+                **self.inputval_for_name,
+                **self.resultval_for_name,
+            }
+        )
         if self.use_multiprocessing:
             self.job = multiprocessing.Process(
                 target=self.func,

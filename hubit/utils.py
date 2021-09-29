@@ -3,10 +3,10 @@ from functools import reduce
 import itertools
 from operator import getitem
 from typing import List, Dict, Tuple
-import collections
+from collections.abc import Mapping
 
 
-class ReadOnlyDict(collections.Mapping):
+class ReadOnlyDict(Mapping):
     def __init__(self, data):
         self._data = data
 

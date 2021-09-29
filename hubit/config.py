@@ -934,6 +934,15 @@ class HubitModelComponent:
             len(circ_refs) == 0
         ), f"Component at index {self._index} has circular reference(s): {', '.join(circ_refs)}"
 
+        # Check if consumes_results and consumes_input have same names
+        consumes_results_names = set(binding.name for binding in self.consumes_results)
+        consumes_input_names = set(binding.name for binding in self.consumes_input)
+        names_reused = consumes_results_names.intersection(consumes_input_names)
+        print(names_reused)
+        assert (
+            len(names_reused) == 0
+        ), f"Component at index {self._index} has names: '{', '.join(names_reused)}' in both 'consumes_results' and 'consumes_input'"
+
         assert len(self.context) < 2, "Maximum one context allowed"
 
         return self

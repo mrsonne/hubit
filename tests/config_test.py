@@ -27,6 +27,20 @@ class TestHubitComponent(unittest.TestCase):
         with self.assertRaises(HubitModelComponentError):
             HubitModelComponent.from_cfg(cfg, 0)
 
+    def test_names_reused(self):
+        """
+        Names shared between
+        """
+        cfg = {
+            "path": "dummy",
+            "func_name": "dummy",
+            "provides_results": [{"name": "attr", "path": "shared.input.attr.path3"}],
+            "consumes_input": [{"name": "attr", "path": "shared.input.attr.path1"}],
+            "consumes_results": [{"name": "attr", "path": "shared.input.attr.path2"}],
+        }
+        with self.assertRaises(AssertionError):
+            HubitModelComponent.from_cfg(cfg, 0)
+
 
 class TestHubitPath(unittest.TestCase):
     def test_from_dotted(self):

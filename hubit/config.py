@@ -250,6 +250,15 @@ class _IndexSpecifier(ABC, str):
 
 
 class QueryIndexSpecifier(_IndexSpecifier):
+    """
+    Index specifiers for [`HubitQueryPath`][hubit.config.HubitQueryPath].
+    A query path index specifier is composed of
+
+    Currently, index specifiers should be either a positive integer or
+    the character `:`. General slicing and negative indices is not supported.
+
+    """
+
     @property
     def range(self) -> PathIndexRange:
         return PathIndexRange(self)
@@ -549,9 +558,9 @@ class HubitQueryPath(_HubitPath):
     """
     Reference a field in the results data. The syntax follows general
     Python syntax for nested objects. Only square
-    brackets are allowed. The content of the brackets is called an index specifier.
-    Currently, index specifiers should be either a positive integer or
-    the character `:`. General slicing and negative indices is not supported.
+    brackets are allowed. The content of the brackets is called an
+    index specifier and must comply with
+    [`QueryIndexSpecifier`][hubit.config.QueryIndexSpecifier].
 
     To query, for example, the attribute `weight` in the 4*th* element of the list
     `wheels`, which is stored on the object `car` use the path

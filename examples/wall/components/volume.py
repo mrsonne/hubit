@@ -1,4 +1,4 @@
-def volume(_input_consumed, _results_consumed, results_provided):
+def volume(_input_consumed, results_provided):
     """Calculate volume"""
     results_provided["volume"] = (
         _input_consumed["thickness"]

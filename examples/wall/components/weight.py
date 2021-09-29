@@ -10,8 +10,8 @@ densities = {
 }
 
 
-def weight(_input_consumed, _results_consumed, results_provided):
+def weight(_input_consumed, results_provided):
     """Calculate weight"""
     results_provided["weight"] = (
-        _results_consumed["volume"] * densities[_input_consumed["material"]]
+        _input_consumed["volume"] * densities[_input_consumed["material"]]
     )

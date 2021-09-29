@@ -12,7 +12,7 @@ ks = {
 }
 
 
-def thermal_conductivity(_input_consumed, _results_consumed, results_provided):
+def thermal_conductivity(_input_consumed, results_provided):
     """Use 'material' in the input to compute the corresponding thermal
     conductivity. Use sleep to simulate some latency
     """

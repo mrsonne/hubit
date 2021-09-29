@@ -2,7 +2,7 @@ from time import sleep
 from shared import PRICE_FOR_NAME
 
 
-def main(_input_consumed, _results_consumed, results_provided):
+def main(_input_consumed, results_provided):
     counts, names = list(
         zip(
             *[(part["count"], part["name"]) for part in _input_consumed["car"]["parts"]]

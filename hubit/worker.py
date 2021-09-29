@@ -370,15 +370,20 @@ class _Worker:
 
         # Notify the hubit model that we are about to start the work
         self.qrun._set_worker_working(self)
+        # create single input
+        inputval_for_name = {
+            **self.inputval_for_name,
+            **self.resultval_for_name,
+        }
         if self.use_multiprocessing:
             self.job = multiprocessing.Process(
                 target=self.func,
-                args=(self.inputval_for_name, self.resultval_for_name, self.results),
+                args=(inputval_for_name, self.results),
             )
             self.job.daemon = False
             self.job.start()
         else:
-            self.func(self.inputval_for_name, self.resultval_for_name, self.results)
+            self.func(inputval_for_name, self.results)
         self._results_from = self.RESULTS_FROM_CALCULATION_ID
 
         logging.debug("\n**STOP WORKING**\n{}".format(self.__str__()))

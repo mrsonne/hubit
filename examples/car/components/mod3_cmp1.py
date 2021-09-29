@@ -1,7 +1,7 @@
 import shared
 
 
-def part_price(_input_consumed, _results_consumed, results_provided):
+def part_price(_input_consumed, results_provided):
     counts = _input_consumed["parts_count"]
     names = _input_consumed["parts_name"]
     results_provided["parts_price"] = [

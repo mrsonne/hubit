@@ -51,7 +51,6 @@
     rendering:
         show_root_heading: true
 
-
 ::: hubit.config.FlatData
     selection:
         members:
@@ -60,3 +59,23 @@
     rendering:
         show_root_heading: true
 
+::: hubit.config.QueryIndexSpecifier
+    selection:
+        members:
+            - dummy
+    rendering:
+        show_root_heading: true
+
+::: hubit.config.ModelIndexSpecifier
+    selection:
+        members:
+            - dummy
+    rendering:
+        show_root_heading: true
+
+::: hubit.config.PathIndexRange
+    selection:
+        members:
+            - dummy
+    rendering:
+        show_root_heading: true

@@ -303,46 +303,6 @@ class TestPathIndexRange(unittest.TestCase):
         assert not range.is_limited_range
         assert not range.is_full_range
 
-        range = PathIndexRange(":")
-        assert not range.is_digit
-        assert not range.is_limited_range
-        assert range.is_full_range
-
-    def test_range_contains(self):
-        range = PathIndexRange("2")
-        assert not range.intersects(PathIndexRange("1"))
-        assert range.intersects(PathIndexRange("2"))
-        assert not range.intersects(PathIndexRange("3"))
-
-        range = PathIndexRange(":")
-        assert range.intersects(PathIndexRange("1"))
-        assert range.intersects(PathIndexRange("2"))
-        assert range.intersects(PathIndexRange("3"))
-
-    def test_invalid(self):
-        with self.assertRaises(HubitError):
-            PathIndexRange("-1")
-
-        with self.assertRaises(HubitError):
-            PathIndexRange("k")
-
-        with self.assertRaises(HubitError):
-            PathIndexRange("0:")
-
-        with self.assertRaises(HubitError):
-            PathIndexRange(":7")
-
-        with self.assertRaises(HubitError):
-            PathIndexRange("0:7")
-
-
-class TestPathIndexRange(unittest.TestCase):
-    def test_range_type(self):
-        range = PathIndexRange("2")
-        assert range.is_digit
-        assert not range.is_limited_range
-        assert not range.is_full_range
-
         range = PathIndexRange("2:")
         assert not range.is_digit
         assert range.is_limited_range
@@ -431,6 +391,13 @@ class TestPathIndexRange(unittest.TestCase):
         range1 = PathIndexRange(":6")
         range2 = PathIndexRange("6:")
         self.assertFalse(range1._lrange_intersects_lrange(range2))
+
+    def test_invalid(self):
+        with self.assertRaises(HubitError):
+            PathIndexRange("-1")
+
+        with self.assertRaises(HubitError):
+            PathIndexRange("k")
 
 
 class TestFlatData(unittest.TestCase):

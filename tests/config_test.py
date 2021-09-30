@@ -140,6 +140,11 @@ class TestHubitQueryPath(unittest.TestCase):
         with self.assertRaises(AssertionError):
             path._validate_index_specifiers()
 
+        # limited ranges not allowed
+        path = HubitQueryPath("segments[12:44].layers[76]")
+        with self.assertRaises(AssertionError):
+            path._validate_index_specifiers()
+
     def test_get_matches(self):
         """Test that we can find the provider strings
         that match the query

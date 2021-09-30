@@ -23,10 +23,11 @@ SEP = "."
 
 class PathIndexRange(str):
     """
-    In [`ModelIndexSpecifier`][hubit.config.ModelIndexSpecifier] the
+    In [`HubitModelPath`][hubit.config.HubitModelPath] and
+    [`HubitQueryPath`][hubit.config.HubitQueryPath]  the
     supported ranges comprise
 
-    - Positive integer e.g. `0`, `17`.
+    - Positive integers e.g. `0`, `17`.
     - The all-index character `:`.
 
     Further, in the `context` attribute of

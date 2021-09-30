@@ -1,6 +1,7 @@
 import unittest
 import re
 from hubit.config import (
+    HubitBinding,
     HubitModelComponent,
     _HubitPath,
     HubitModelPath,
@@ -12,6 +13,31 @@ from hubit.config import (
     PathIndexRange,
 )
 from hubit.errors import HubitModelComponentError, HubitError
+
+
+class TestHubitBinding(unittest.TestCase):
+    def test_from_cfg(self):
+        # Index range is full range
+        cfg = {
+            "name": "attr",
+            "path": "segments[IDX_SEG].layers[:@IDX_LAY]",
+        }
+        HubitBinding.from_cfg(cfg)
+
+        # Index range is digit
+        cfg = {
+            "name": "attr",
+            "path": "segments[IDX_SEG].layers[0@IDX_LAY]",
+        }
+        HubitBinding.from_cfg(cfg)
+
+        # Index range is limited
+        cfg = {
+            "name": "attr",
+            "path": "segments[IDX_SEG].layers[0:12@IDX_LAY]",
+        }
+        with self.assertRaises(HubitError):
+            HubitBinding.from_cfg(cfg)
 
 
 class TestHubitComponent(unittest.TestCase):

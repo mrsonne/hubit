@@ -23,14 +23,16 @@ SEP = "."
 
 class PathIndexRange(str):
     """
-    Range object used in the context attribute of
-    [`HubitModelComponent`][hubit.config.HubitModelComponent] as well as
-    in [`ModelIndexSpecifier`][hubit.config.ModelIndexSpecifier].
-
-    Supported ranges comprise
+    In [`ModelIndexSpecifier`][hubit.config.ModelIndexSpecifier] the
+    supported ranges comprise
 
     - Positive integer e.g. `0`, `17`.
     - The all-index character `:`.
+
+    Further, in the `context` attribute of
+    [`HubitModelComponent`][hubit.config.HubitModelComponent] the following
+    ranges are also allowed
+
     - `d:` where `d` is a positive integer e.g. `3:`.
     - `:d` where `d` is a positive integer e.g. `:3`.
     - `d1:d2` where `d1` and `d2` are positive integers and `d1` < `d2` e.g. `2:5`
@@ -51,8 +53,12 @@ class PathIndexRange(str):
         else:
             return False
 
-    def __init__(self, value):
+    def __new__(self, value, allow_limited_range: bool = True):
+        return super().__new__(self, value)
+
+    def __init__(self, value, allow_limited_range: bool = True):
         super().__init__()
+        self.allow_limited_range = allow_limited_range
 
         # Determine the range type
         self.is_digit = False
@@ -73,6 +79,11 @@ class PathIndexRange(str):
         self._validate()
 
     def _validate(self):
+
+        if self.is_limited_range and not self.allow_limited_range:
+            raise HubitError(
+                f"Limited range is not allowed here. Found range '{self}'."
+            )
 
         if self.is_digit:
             if int(self) < 0:
@@ -319,6 +330,13 @@ class ModelIndexSpecifier(str):
     # Characters a-z, A-Z, _ and digits are allowed
     regex_allowed_identifier = r"^[a-zA-Z_0-9]+$"
 
+    def __new__(self, value, allow_limited_range: bool = True):
+        return super().__new__(self, value)
+
+    def __init__(self, value, allow_limited_range: bool = True):
+        super().__init__()
+        self.allow_limited_range = allow_limited_range
+
     def validate(self):
         assert (
             self.count(self.ref_chr) < 2
@@ -358,7 +376,10 @@ class ModelIndexSpecifier(str):
     @property
     def range(self) -> PathIndexRange:
         return (
-            PathIndexRange(self.split(self.ref_chr)[0])
+            PathIndexRange(
+                self.split(self.ref_chr)[0],
+                allow_limited_range=self.allow_limited_range,
+            )
             if self.ref_chr in self
             else PathIndexRange("")
         )
@@ -770,6 +791,13 @@ class HubitModelPath(_HubitPath):
 
     """
 
+    def __new__(self, value, allow_limited_range: bool = True):
+        return super().__new__(self, value)
+
+    def __init__(self, value, allow_limited_range: bool = True):
+        super().__init__()
+        self.allow_limited_range = allow_limited_range
+
     def _validate_index_specifiers(self):
         for idx_spec in self.get_index_specifiers():
             idx_spec.validate()
@@ -783,7 +811,7 @@ class HubitModelPath(_HubitPath):
 
     def get_index_specifiers(self) -> List[ModelIndexSpecifier]:
         items = re.findall(_HubitPath.regex_idx_spec, self)
-        return [ModelIndexSpecifier(item) for item in items]
+        return [ModelIndexSpecifier(item, self.allow_limited_range) for item in items]
 
     def get_index_identifiers(self) -> List[str]:
         """Get the index identifiers from the path i.e. the
@@ -858,9 +886,17 @@ class HubitBinding:
             cfg (Dict): Configuration
 
         Returns:
-            HubitBinding: Object corresponsing to the configuration data
+            HubitBinding: Object corresponding to the configuration data
         """
-        return cls(name=cfg["name"], path=HubitModelPath(cfg["path"])).validate()
+
+        # Do not allow limited index ranges in binding paths
+        return cls(
+            name=cfg["name"],
+            path=HubitModelPath(
+                cfg["path"],
+                allow_limited_range=False,
+            ),
+        ).validate()
 
 
 @dataclass

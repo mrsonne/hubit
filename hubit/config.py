@@ -599,7 +599,7 @@ class HubitQueryPath(_HubitPath):
                 is_digit(idx_spec) or idx_spec == HubitQueryPath.wildcard_chr
                 for idx_spec in self.get_index_specifiers()
             ]
-        )
+        ), f"Invalid index specifier found in: {', '.join(idx_spec for idx_spec in self.get_index_specifiers())}"
 
     def validate(self):
         self._validate_brackets()

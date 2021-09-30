@@ -324,12 +324,8 @@ class ModelIndexSpecifier(str):
             self.count(self.ref_chr) < 2
         ), f"Maximum one '{self.ref_chr}' allowed in index specifier '{self}'"
 
-        # check that if X in [X] contains : then it should be followed by @
-        if self.wildcard_chr in self:
-            idx_wc = self.index(self.wildcard_chr)
-            assert (
-                self[idx_wc + 1] == self.ref_chr
-            ), f"{self.wildcard_chr} should be followed by an '{self.ref_chr}'"
+        # Getting the range will trigger validation
+        self.range
 
         # check that if @ is present the idx_range is non-empty
         if self.ref_chr in self:

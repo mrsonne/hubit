@@ -217,13 +217,21 @@ class TestHubitModelPath(unittest.TestCase):
         expected_paths = ["segments", "layers", "test.positions", "attr"]
         self.assertSequenceEqual(expected_paths, paths)
 
-    def test_validate_idxids(self):
-        # Valid
+    def test_validate_index_specifiers(self):
+        # Valid (empty index range)
         path = HubitModelPath("segments[IDX_SEG].layers[IDX_LAY]")
         path.validate()
 
-        # Valid
+        # Valid (full index range)
         path = HubitModelPath("segments[IDX_SEG].layers[:@IDX_LAY]")
+        path.validate()
+
+        # Valid (digit index range)
+        path = HubitModelPath("segments[17@IDX_SEG].layers[0@IDX_LAY]")
+        path.validate()
+
+        # Valid (limited index range)
+        path = HubitModelPath("segments[17:34@IDX_SEG].layers[IDX_LAY]")
         path.validate()
 
         # Invalid due to negative index range

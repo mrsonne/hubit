@@ -35,7 +35,7 @@ with open("new.yml", "w") as handle:
 All files in the hubit cache folder `.hubit_cache` should be converted.
 
 ### Added
-- Support for subscriptions to neiboring compartments (cells, elements). This allows for a sequence of connected and coupled compartments to be calculated based on an initial value e.g. for the first compartment. In other word 0-dimensional and 1-dimensional forward XXX models can be solved. This feature is illustrated in the example with connected tanks where a liquid flows from one tank to the next before reaching the outlet. 
+- Support for subscriptions to neighboring compartments (cells, elements). This allows for a sequence of connected and coupled compartments to be calculated based on an initial value e.g. for the first compartment. In other word 0-dimensional and 1-dimensional forward XXX models can be solved. This feature is illustrated in the example with connected tanks where a liquid flows from one tank to the next before reaching the outlet. 
     - Multiple component may share the same entrypoint function.
     - Components that share the same entrypoint function can be scoped using the new field `component.context`.
     - Components may consume specific elements in lists from the input.

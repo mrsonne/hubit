@@ -7,8 +7,10 @@ In the examples all calculation are, for simplicity, carried out directly in the
 `Hubit` component, but the component could just as well wrap a C library, request 
 data from a web server or use an installed Python package. The examples are summarized below.
 
-* [`examples/car`](https://github.com/mrsonne/hubit/tree/master/examples/car). This example encompass the four similar car models. The examples illustrate how the `Hubit` model file can be used to interface with cars models that carry out the same task, but have quite different levels of modularity. Further, the use of model-level caching and component-level caching is illustrated.
+* [`examples/car`](https://github.com/mrsonne/hubit/tree/master/examples/car). This example encompass four similar car models. The examples illustrate how the `Hubit` model file can be used to interface with cars models that carry out the same task, but have quite different levels of modularity. Further, the use of model-level caching and component-level caching is illustrated.
 * [`examples/wall`](https://github.com/mrsonne/hubit/tree/master/examples/wall). This example illustrates heat flow calculations and cost calculations for a wall with two segments. Each wall segment has multiple wall layers that consist of different materials. The example demonstrates model rendering (`run_render.py`), simple queries (`run_queries.py`) with model level caching, reusing previously calculated results `run_precompute.py`, setting results manually (`run_set_results.py`) and input parameter sweeps (`run_sweep.py`). Most of the wall examples run with or without multi-processing.
+* [`examples/tanks`](https://github.com/mrsonne/hubit/tree/master/examples/tanks). This example shows how to set up models where one compartment (cell, element) consumes the result of a neighboring compartment. In the example, a liquid flows from one tank to the next in  sequence. The example encompass the three similar tanks models `model1`, `model2` and `model3` that progress from an explicit linking of the tanks (`model1`) to a more automatic linking pattern (`model3`).
+
 
 To run, for example, the car example clone the repository and execute the command below from the project root 
 

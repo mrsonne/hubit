@@ -98,7 +98,7 @@ Notice that the path to the entrypoint function is the same for both tanks i.e i
 
 The third tank is quite similar to the second only all indices are bumped by one. 
 
-SHOW EXAMPLE QUERY & RESPONSE HERE. MENTION THAT ALL THREE TANKS ARE EXECUTED.
+SHOW EXAMPLE QUERY & RESPONSE HERE. MENTION THAT ALL THREE TANKS ARE EXECUTED. No explicit looping and bookkeeping only `Hubit` configuration. Allow developers of the tank model, which is quite simple here, to work isolated on the tank model and not the entire context in which it will be used.
 
 While it is nice to refer to neighboring tanks it is tiresome if we have many tanks. 
 Further, the model presented above would need to be changed when the number of tanks change which is not attractive.

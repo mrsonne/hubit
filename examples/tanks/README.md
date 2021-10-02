@@ -1,87 +1,107 @@
 # Cascading tanks
 
-Bird Steward and Lightfoot probably has this example as well
-https://www.lmnoeng.com/Tank/TankTime.php
+This example shows how to set up models where one compartment (cell, element) consumes the result of a neighboring compartment (cell, element). In the example, a liquid flows from one tank to the next in a cascading fashion. The example encompass two similar tanks models `model1` and `model2` that illustrate explicit linking of the tanks and a more generic linking pattern, respectively.
 
-** Activate expand endpoints? **
-
-*N* cascading tanks with overflow.
-
-Tank parameters
-
-- Inlet flows, Q_in
-- Outlet flows, Q_out
-- Outlet levels, h_o
-- Water level, h_w
-- Tank diameter, d
-- Discharge coefficient, C  
-- Orifice area, A
-
-```math
-IN + PRODUCED = CONSUMED + OUT + ACCUMULATED
-```
-
-With no accumulation and no chemical reactions the mass balance for each tank reads
-
-```math
-IN = OUT
-```
-
-The volumetric inlet flow for tank <i>i</i> <i>Q</i><sub>in,<i>i</i></sub> is specified and constant for all tanks. The volumetric outlet flow for tank <i>i</i> <i>Q</i><sub>out,<i>i</i></sub> depends on the water level <i>h</i><sub>w,<i>i</i></sub> and various tank design parameters namely the tank diameter <i>d</i>, the discharge coefficient <i>C</i> and the orifice area <i>A</i>. 
-
-Out flow given by 
-
-XXXXX
-
-Further, each tank is fitted with an overflow outlet at height <i>h</i><sub>o,<i>i</i></sub>. This assures that the water level cannot rise higher than this level. Thus, in the case where the overflow outlet is reached, the water level is fixed and known, but the the overflow volumetric flow is unknown. In the case where the overflow outlet is not reached, the water is unknown and the overflow volumetric flow is zero.
+The two models have three tanks connected as schematically illustrated below.
 
 ---------------------
 
 
 ```
-                                       
-                    ║  Q_in,1          ║ Q_in,2 
-                 ┌──║───────┐          ║ 
-                 │  ˅       │          ║   
-       h_o,1  ╔══│  h_w,1   │          ║
-              ║  │~~~~~~~~~~│ Q_out,1  ║
-              ˅  │  Tank 1  │══════╗   ║                
-                 └──────────┘      ║   ║ 
-                                 ┌─║───║─┐
-                                 | ˅   ˅ | 
-                    h_o,2  ╔═════| h_w,2 |
-                           ║     |~~~~~~~|
-                           ˅     |       |
-                                 |       |  Q_out,2
-                                 |Tank 2 |════╗
-                                 └───────┘    ˅
+           ║  Q_in,1                          
+           ║              
+        ┌──║───────┐           
+        │  ˅       │             
+        │          │          
+        │~~~~~~~~~~│          
+        │  Tank 1  │          ║ Q_in,2               
+        └───╥──────┘          ║ 
+            ║  Q_out,1  ┌─────║──┐
+          ╔═╩═══════════|═╗   ˅  | 
+Q_spill,1 ║             | ˅      |
+          ˅             |~~~~~~~~|
+                        | Tank 2 |            ║ Q_in,3
+                        └───╥────┘            ║
+                            ║  Q_out,2  ┌─────║──┐
+                Q_spill,2 ╔═╩═══════════|═╗   ˅  | 
+                          ˅             | ˅      |                                         
+                                        |~~~~~~~~|                                         
+                                        | Tank 3 |                                         
+                                        └──╥─────┘
+                                           ║  
+                               Q_spill,3 ╔═╩════╗                                     
+                                         ˅      ˅ Q_out,3
+                                                                                 
 ```
 
-The mass balance for the first tank can be solved without any data from the remaining tanks. With the outflow from the first tank the mass balance for the second tank can be solved. Thus, to get the outflow from the N'th tank the mass balances for the N-1 preceding tanks must be solved sequentially.
+Describe the model with words here. Could be after Q_out,3 i.e. the final product stream from this process.
+
+The input could look like this 
 
 ```yaml
-tanks:
-    - orifice_area: 0.2
-      discharge_coef: 0.9
-      tank_diameter: 0.8
-      overflow_height: 0.8
-    - orifice_area: 0.4
-      discharge_coef: 0.4
-      tank_diameter: 0.4
-      overflow_height: 0.6
+vol_inlet_flow: 20.
+- prod_sites:
+  - prod_lines:
+    tanks:
+      - spill_fraction: 0.5
+        Q_in: 20.
+        Q_prev: 0.
+      - spill_fraction: 0.6
+        Q_in: 0.
+      - spill_fraction: 0.25
+        Q_in: 0.
 ```
-or maybe
+
+## Explicit indexing (`model1.yml`)
 
 ```yaml
-tanks:
-    - type: A
-    - type: B
+# First tank
+- path: ./components/mod1.py 
+  provides_results:
+    - name: Q_out
+      path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[0@IDX_TANK].Q_out
+    - name: Q_spill
+      path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[0@IDX_TANK].Q_spill
+  consumes_input:
+    - name: spill_fraction
+      path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[0@IDX_TANK].spill_fraction
+    - name: Q_in
+      path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[0@IDX_TANK].Q_in
+    - name: Q_prev
+      path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[0@IDX_TANK].Q_prev
 ```
 
---------------------
-For each tank we can "precompute"
+Describe what is going on
 
-A*c \sqrt(2*g)
+```yaml
+# Second tank
+- path: ./components/mod1.py 
+  provides_results:
+    - name: Q_out
+      path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[1@IDX_TANK].Q_out
+    - name: Q_spill
+      path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[1@IDX_TANK].Q_spill
+  consumes_input:
+    - name: spill_fraction
+      path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[1@IDX_TANK].spill_fraction
+    - name: Q_in
+      path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[1@IDX_TANK].Q_in
+  consumes_results:
+    # use outlet flow from previous tank (0)
+    - name: Q_prev
+      path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[0@IDX_TANK].Q_out
+```
 
-# Ideas
-* Add components and chemical reactions
+Describe what is going on and differences wrt component 1...
+Notice that the path to the entrypoint function is the same for both tanks i.e it is the same code that does the actual calculation for each tank although the configuration differs.
+
+
+The third tank is quite similar to the second only all indices are bumped by one. 
+
+SHOW EXAMPLE QUERY & RESPONSE HERE. MENTION THAT ALL THREE TANKS ARE EXECUTED.
+
+While it is nice to refer to neighboring tanks it is tiresome if we have many tanks. 
+Further, the model presented above would need to be changed when the number of tanks change which is not attractive.
+
+## Component contexts and index offset (`model2.yml`)
+To address the issues identified in `model1.yml` we must resort to two features namely component contexts and index offset.

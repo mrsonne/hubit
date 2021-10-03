@@ -61,7 +61,7 @@ Imagine the three cascading tanks represent one production line on a production 
         Q_in: 0.
 ```
 
-Let us explore two ways of constructing the `Hubit` model.
+The field `prod_sites.prod_lines.tanks[0].Q_prev: 0` is a boundary condition that allows the implementation of the calculation code to be the same for all tanks. Let us explore two ways of constructing the `Hubit` model.
 ## Explicit indexing (`model1.yml`)
 
 In this example we will refer to upstream tanks using explicit indexing to tell `Hubit` that e.g. the flow out of tank 1 `Q_next,1` flows into tanks 2. For the first tank, the model component could look like this
@@ -106,14 +106,15 @@ For the second tank, the model component could look like this
       path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[0@IDX_TANK].Q_next
 ```
 
-The nodes `provides_results` and `consumes_input` look a lot like the equivalent nodes for tank 2 except that all index specifiers now refer to index 1 (`[1@IDX_TANK]`) instead of index 0. One other important difference is that the second tank consumes the result from the first tank. Notice that the path to the entrypoint function is the same for both tanks i.e it is the same code that does the actual calculation for each tank although the configuration differs. The third tank is quite similar to the second only all indices are bumped by one. The complete model definition can be seen in `examples/tanks/model1.yml` in the repository.
+The nodes `provides_results` and `consumes_input` look a lot like the equivalent nodes for tank 1 except that all index specifiers now refer to index 1 (`[1@IDX_TANK]`) instead of index 0. One other important difference is that the second tank consumes the outlet flow `Q_next` from the first tank. Notice that the path to the entrypoint function is the same for both tanks i.e it is the same code that does the actual calculation for each tank although the configuration differs. The third tank is quite similar to the second only all indices are bumped by one. The complete model definition can be seen in `examples/tanks/model1.yml` in the repository.
+
+With the model in place we can explore some queries and responses.
 
 SHOW EXAMPLE QUERY & RESPONSE HERE. MENTION THAT ALL THREE TANKS ARE EXECUTED. No explicit looping and bookkeeping only `Hubit` configuration. Allow developers of the tank model, which is quite simple here, to work isolated on the tank model and not the entire context in which it will be used.
 
-While it is nice to refer to neighboring tanks it is tiresome if we have many tanks. 
-Further, the model presented above would need to be changed when the number of tanks change which is not attractive.
+While it is nice to refer to neighboring tanks it is tiresome if we have many tanks. Further, the model presented above would need to be changed when the number of tanks change which is not attractive. One use case for explicit indexing would be cells (compartments/elements) connected a more irregular fashion. In such cases the `Hubit` model can be constructed programmatically based on the mesh of cells (compartments/elements). In more regular cases such as this tank example it is better to leverage the two `Hubit` features _component contexts_ and _index offsets_.
 
-## Component contexts and index offset (`model2.yml`)
+## Component contexts and index offsets (`model2.yml`)
 To address the issues identified in `model1.yml` we must resort to two features namely component contexts and index offset.
 
 Component contexts limited to to one item => 0 dim and 1 dim problems. forward bla bla 

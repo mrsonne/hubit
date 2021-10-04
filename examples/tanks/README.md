@@ -90,9 +90,40 @@ For the second tank, the model component looks like the model component for tank
 
 The nodes `provides_results` and `consumes_input` look a lot like the equivalent nodes for tanks 1 and 2 except that all index specifiers now refer to index 2 (`[2@IDX_TANK]`). One other important difference is that the second tank consumes the outlet flows `Q_yield` from tanks 1 and 2. Notice that the path to the entrypoint function is the same for both tanks i.e it is the same code that does the actual calculation for each tank although the configuration differs. The complete model definition can be seen in `examples/tanks/model1.yml` in the repository.
 
-With the model in place we can explore some queries and responses.
+With the model in place we can explore some queries and responses. The first query references the final yield (tank 3) from the first production line at the first production site.
 
-SHOW EXAMPLE QUERY & RESPONSE HERE. MENTION THAT ALL THREE TANKS ARE EXECUTED. No explicit looping and bookkeeping only `Hubit` configuration. Allow developers of the tank model, which is quite simple here, to work isolated on the tank model and not the entire context in which it will be used.
+```
+['prod_sites[0].prod_lines[0].tanks[2].Q_yield']
+```
+
+and the response is
+
+```
+{'prod_sites[0].prod_lines[0].tanks[2].Q_yield': 4.0}
+```
+
+From the `input.yml` we can reconstruct how the results 4.0 was calculated
+
+```
+Q_yield,3 = 
+yield_fraction_3 * (yield_fraction_1 * Q_in,1 + yield_fraction_2 * Q_in,2) = 
+0.25 * (0.5 * 20 + 0.6 * 10) = 
+4.0
+```
+
+The query spawns three worker i.e. one for each tank. Notice that no explicit looping over tanks is required once the subscriptions are configured in `Hubit` configuration. This allow the developers of the tank model, which is quite simple here, to work isolated on the tank model with less attention to the context in which it will be used.
+
+
+```
+['prod_sites[:].prod_lines[:].tanks[2].Q_yield']
+```
+
+```
+{'prod_sites[:].prod_lines[:].tanks[2].Q_yield': [[4.0]]}
+```
+
+
+
 
 Note that using _component contexts_ the model components for tanks 1 and two can be refactored to 
 

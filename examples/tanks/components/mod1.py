@@ -7,13 +7,10 @@ if TYPE_CHECKING:
 
 def main(_input_consumed: ReadOnlyDict, results_provided: Dict):
 
-    tank_parameters = _input_consumed["tank_parameters"]
-    vol_inlet_flow = _input_consumed["vol_inlet_flow"]
-
-    results_provided["vol_outlet_flow"] = (
-        tank_parameters["orifice_area"] * vol_inlet_flow
-    )
-    results_provided["vol_over_flow"] = 12.0
+    yield_fraction = _input_consumed["yield_fraction"]
+    Q_in = _input_consumed["Q_in"]
+    Q_transfer = [val for key, val in _input_consumed.items() if "Q_transfer" in key]
+    results_provided["Q_yield"] = yield_fraction * (sum(Q_transfer) + Q_in)
 
 
 def version() -> str:

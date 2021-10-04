@@ -5,7 +5,7 @@ from .shared import get_model
 # For hard refs
 
 
-def run(model_id, input_file):
+def run(model_id):
     ltot = 100
     ltitle = len(model_id)
     lpad = int(0.5 * (ltot - ltitle))
@@ -14,7 +14,7 @@ def run(model_id, input_file):
     print("*" * ltot)
     print("{:<}{}{:>}".format("*" * lpad, model_id, "*" * rpad))
     print("*" * ltot)
-    hmodel = get_model(model_id, input_file)
+    hmodel = get_model(model_id)
 
     # Should result in a number
     query = ["prod_sites[0].prod_lines[0].tanks[0].Q_yield"]
@@ -93,6 +93,6 @@ def run(model_id, input_file):
 
 
 if __name__ == "__main__":
-    run("model_1.yml", "input.yml")
-    # run("model_1a.yml", "input.yml")
-    # run("model2.yml")
+    run("model_1.yml")
+    # run("model_1a.yml")
+    run("model_2.yml")

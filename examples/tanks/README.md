@@ -97,7 +97,7 @@ SHOW EXAMPLE QUERY & RESPONSE HERE. MENTION THAT ALL THREE TANKS ARE EXECUTED. N
 Note that using _component contexts_ the model components for tanks 1 and two can be refactored to 
 
 ```yaml
-- path: ./components/mod4.py 
+- path: ./components/mod1.py 
   context:
     IDX_TANK: "0:2"
   provides_results:

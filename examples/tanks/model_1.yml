@@ -1,20 +1,5 @@
 components:
-  # - path: ./components/mod4.py 
-  #   context:
-  #     IDX_TANK: "0:2"
-  #   provides_results:
-  #     - name: Q_yield
-  #       path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[IDX_TANK].Q_yield
-  #   consumes_input:
-  #     - name: yield_fraction
-  #       path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[IDX_TANK].yield_fraction
-  #     - name: Q_in
-  #       path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[IDX_TANK].Q_in
-  #     - name: Q_transfer
-  #       path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[IDX_TANK].Q_transfer
-
-
-  - path: ./components/mod4.py   
+  - path: ./components/mod1.py   
     provides_results:
       - name: Q_yield
         path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[0@IDX_TANK].Q_yield
@@ -26,7 +11,7 @@ components:
       - name: Q_transfer
         path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[0@IDX_TANK].Q_transfer
 
-  - path: ./components/mod4.py 
+  - path: ./components/mod1.py 
     provides_results:
       - name: Q_yield
         path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[1@IDX_TANK].Q_yield
@@ -38,7 +23,7 @@ components:
       - name: Q_transfer
         path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[1@IDX_TANK].Q_transfer
 
-  - path: ./components/mod4.py 
+  - path: ./components/mod1.py 
     provides_results:
       - name: Q_yield
         path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[2@IDX_TANK].Q_yield

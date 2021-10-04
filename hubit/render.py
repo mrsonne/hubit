@@ -114,9 +114,16 @@ def get_dot(model: HubitModel, query: Query, file_idstr: str):
         workers = []
         for component in model.model_cfg.components:
             path = component.provides_results[0].path
-            dummy_query = HubitQueryPath(
-                path.set_indices(["0" for _ in path.get_index_specifiers()])
-            )
+            dummy_indices: str = []
+
+            # Create dummy indices. Leave indices if specified in model
+            for idxspc in path.get_index_specifiers():
+                if idxspc.range.is_digit:
+                    dummy_indices.append(idxspc.range)
+                else:
+                    dummy_indices.append("0")
+
+            dummy_query = HubitQueryPath(path.set_indices(dummy_indices))
 
             qrun_dummy = _QueryRunner(model, use_multi_processing=False)
 

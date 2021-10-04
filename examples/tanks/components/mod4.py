@@ -9,8 +9,7 @@ def main(_input_consumed: ReadOnlyDict, results_provided: Dict):
 
     yield_fraction = _input_consumed["yield_fraction"]
     Q_in = _input_consumed["Q_in"]
-    Q_transfer = _input_consumed["Q_transfer"]
-
+    Q_transfer = [val for key, val in _input_consumed.items() if "Q_transfer" in key]
     results_provided["Q_yield"] = yield_fraction * (sum(Q_transfer) + Q_in)
 
 

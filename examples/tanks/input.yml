@@ -1,19 +1,11 @@
-vol_inlet_flow: 20.
-sites:
-- lines:
-  - tanks:
-    - orifice_area: 0.5
-      discharge_coefficient: 0.4
-      tank_diameter: 0.4
-      overflow_height: 0.6
-      name: "tank0"
-    - orifice_area: 0.6
-      discharge_coefficient: 0.3
-      tank_diameter: 0.2
-      overflow_height: 0.8
-      name: "tank1"
-    - orifice_area: 0.25
-      discharge_coefficient: 0.3
-      tank_diameter: 0.2
-      overflow_height: 0.8
-      name: "tank2"
+prod_sites:
+  - prod_lines:
+    - tanks:
+       - yield_fraction: 0.5
+         Q_in: 20.
+         Q_transfer: 0.
+       - yield_fraction: 0.6
+         Q_in: 10.
+         Q_transfer: 0.
+       - yield_fraction: 0.25
+         Q_in: 0.

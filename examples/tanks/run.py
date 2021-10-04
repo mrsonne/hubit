@@ -51,6 +51,17 @@ def run(model_id):
     print(hmodel.log())
     hmodel.clean_log()
 
+    # Should result in double nested list
+    print(f"\nQuery")
+    query = ["prod_sites[:].prod_lines[:].tanks[2].Q_yield"]
+    pprint(query)
+    print(f"Spawns 3 workers")
+    response = hmodel.get(query, use_multi_processing=use_multi_processing)
+    print("Response (one path & value):")
+    pprint(response)
+    print(hmodel.log())
+    hmodel.clean_log()
+
     # # Should result in three numbers
     query = [
         "prod_sites[0].prod_lines[0].tanks[0].Q_yield",

@@ -6,6 +6,8 @@ from .shared import get_model
 
 
 def run(model_id):
+    use_multi_processing = False
+
     ltot = 100
     ltitle = len(model_id)
     lpad = int(0.5 * (ltot - ltitle))
@@ -21,7 +23,7 @@ def run(model_id):
     print(f"\nQuery")
     pprint(query)
     print(f"Spawns 1 worker")
-    response = hmodel.get(query, use_multi_processing=False)
+    response = hmodel.get(query, use_multi_processing=use_multi_processing)
     print("Response (one path & value):")
     pprint(response)
     print(hmodel.log())
@@ -32,7 +34,7 @@ def run(model_id):
     print(f"\nQuery")
     pprint(query)
     print(f"Spawns 2 workers")
-    response = hmodel.get(query, use_multi_processing=False)
+    response = hmodel.get(query, use_multi_processing=use_multi_processing)
     print("Response (one path & value):")
     pprint(response)
     print(hmodel.log())
@@ -43,7 +45,7 @@ def run(model_id):
     query = ["prod_sites[0].prod_lines[0].tanks[2].Q_yield"]
     pprint(query)
     print(f"Spawns 3 workers")
-    response = hmodel.get(query, use_multi_processing=False)
+    response = hmodel.get(query, use_multi_processing=use_multi_processing)
     print("Response (one path & value):")
     pprint(response)
     print(hmodel.log())
@@ -58,7 +60,7 @@ def run(model_id):
     print(f"\nQuery")
     pprint(query)
     print(f"Spawns 3 workers")
-    response = hmodel.get(query, use_multi_processing=False)
+    response = hmodel.get(query, use_multi_processing=use_multi_processing)
     print("Response (three paths & corresponding values)")
     pprint(response)
     print(hmodel.log())
@@ -67,7 +69,7 @@ def run(model_id):
     # Should result in 1D array
     query = ["prod_sites[0].prod_lines[0].tanks[:].Q_yield"]
     print(f"\nSpawns 3 workers: {query}")
-    response = hmodel.get(query, use_multi_processing=False)
+    response = hmodel.get(query, use_multi_processing=use_multi_processing)
     print("Response (One path with list as value):")
     print(response)
     print(hmodel.log())
@@ -76,7 +78,7 @@ def run(model_id):
     # Should result in double nested list
     query = ["prod_sites[0].prod_lines[:].tanks[:].Q_yield"]
     print(f"\nSpawns 3 workers: {query}")
-    response = hmodel.get(query, use_multi_processing=False)
+    response = hmodel.get(query, use_multi_processing=use_multi_processing)
     print("Response (One path with double nested list as value):")
     print(response)
     print(hmodel.log())
@@ -85,7 +87,7 @@ def run(model_id):
     # Should result in triple nested list
     query = ["prod_sites[:].prod_lines[:].tanks[:].Q_yield"]
     print(f"\nSpawns 3 workers: {query}")
-    response = hmodel.get(query, use_multi_processing=False)
+    response = hmodel.get(query, use_multi_processing=use_multi_processing)
     print("Response (One path with triple nested list as value):")
     print(response)
     print(hmodel.log())
@@ -95,4 +97,4 @@ def run(model_id):
 if __name__ == "__main__":
     run("model_1.yml")
     # run("model_1a.yml")
-    run("model_2.yml")
+    # run("model_2.yml")

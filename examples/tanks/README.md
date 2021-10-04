@@ -114,9 +114,10 @@ Note that using _component contexts_ the model components for tanks 1 and two ca
 
 In this case the component context `context.IDX_TANK: "0:2"` assures that the component is only applied for tank indices 0 and 1. Consequently, the explicit indices i.e. `0@IDX_TANK` and `1@IDX_TANK` are no longer required in this component. The model component for tank 2 shown above can be used as before. This version of the model is shown in `model_1a.yml`.
 
+While it provides a nice flexibility to be able to refer to neighboring tanks it is tiresome if we have many tanks. Further, the model presented above would need to be changed when the number of tanks change which is not attractive. If the model is unstructured by nature the `Hubit` model could be constructed programmatically based on the mesh of cells (compartments/elements).
 ## Structured compartments - component contexts and index offsets (`model2.yml`)
 
-While it is nice to refer to neighboring tanks it is tiresome if we have many tanks. Further, the model presented above would need to be changed when the number of tanks change which is not attractive. However, one use case for explicit indexing would be models where the cells (compartments/elements) are connected in an unstructured fashion. In such cases the `Hubit` model can be constructed programmatically based on the mesh of cells (compartments/elements). In more structured cases such as this tank example it is better to leverage the two `Hubit` features _component contexts_ and _index offsets_.
+In structured cases such as the tank example below it is better to leverage the two `Hubit` features _component contexts_ and _index offsets_.
 
 
 ```
@@ -145,21 +146,5 @@ Q_spill,1 ║             | ˅      |
                                          ˅      ˅ Q_next,3
                                                                                  
 ```
-
-Liquid enters the first tank with a rate `Q_in,1`. The liquid may either be spilled with rate `Q_spill,1` or flow downstream to the next tank with rate `Q_next,1`. Tank 2 receives liquid from tank 1 with `Q_next,1` and additionally fresh liquid is added with rate `Q_in,2`. Similarly for tank 3. For simplicity, the flow rate in the spill streams are determined as some fraction `spill_fraction` of the total flow rate into the tank. For tank 2 the calculation of the spill rate reads 
-
-```
-Q_spill,2 = spill_fraction_2 * (Q_next,1 + Q_in,2)
-```
-
-while the flow from tank 2 into tank 3 may be written
-
-```
-Q_next,2 = (1 - spill_fraction_2) * (Q_next,1 + Q_in,2)
-```
-
-
-
-To address the issues identified in `model1.yml` we must resort to two features namely component contexts and index offset.
 
 Component contexts limited to to one item => 0 dim and 1 dim problems. forward bla bla 

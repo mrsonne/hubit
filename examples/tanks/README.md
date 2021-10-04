@@ -113,19 +113,23 @@ yield_fraction_3 * (yield_fraction_1 * Q_in,1 + yield_fraction_2 * Q_in,2) =
 
 The query spawns three worker i.e. one for each tank. Notice that no explicit looping over tanks is required once the subscriptions are configured in `Hubit` configuration. This allow the developers of the tank model, which is quite simple here, to work isolated on the tank model with less attention to the context in which it will be used.
 
+If we query the yield from tank 3 from all production lines at all production sites.
 
 ```
 ['prod_sites[:].prod_lines[:].tanks[2].Q_yield']
 ```
 
+we again get 4.0 back (since there is actually only one production site and one production line), but the result is now a double nested list.
+
 ```
 {'prod_sites[:].prod_lines[:].tanks[2].Q_yield': [[4.0]]}
 ```
 
+The outer list represents the production sites while the inner list represent the production lines.
 
+### Protip
 
-
-Note that using _component contexts_ the model components for tanks 1 and two can be refactored to 
+Using _component index contexts_ the model components for tanks 1 and two can be refactored to 
 
 ```yaml
 - path: ./components/mod1.py 

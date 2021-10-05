@@ -152,7 +152,7 @@ def get_dot(model: HubitModel, query: Query, file_idstr: str):
     with dot.subgraph(name="cluster_calcs", node_attr={"shape": "box"}) as subgraph:
         subgraph.attr(
             rank="same",
-            label="Calculations",
+            label="Components",
             fontcolor=calc_dark_color,
             style="filled",
             fillcolor=calc_light_color,
@@ -160,9 +160,10 @@ def get_dot(model: HubitModel, query: Query, file_idstr: str):
         )
 
         for w in workers:
+            component = w.component
             subgraph.node(
-                name=w.name,  # Name identifier of the node
-                label=w.name + "\nv {}".format(w.version),
+                name=w.id,  # Name identifier of the node
+                label=f"Component index {component._index}\n{component.name}\nv {w.version}",
                 fontname=fontname,
                 shape=calc_shape,
                 style=calc_style,
@@ -220,7 +221,7 @@ def get_dot(model: HubitModel, query: Query, file_idstr: str):
                 style="filled",
             )
             _render_objects(
-                w.name,
+                w.id,
                 w.binding_map("consumes_input"),
                 prefix_input,
                 prefix_input,
@@ -245,7 +246,7 @@ def get_dot(model: HubitModel, query: Query, file_idstr: str):
             )
 
             _render_objects(
-                w.name,
+                w.id,
                 w.binding_map("provides_results"),
                 prefix_results,
                 prefix_results,
@@ -261,7 +262,7 @@ def get_dot(model: HubitModel, query: Query, file_idstr: str):
             # Not all components consume results
             try:
                 _render_objects(
-                    w.name,
+                    w.id,
                     w.binding_map("consumes_results"),
                     prefix_results,
                     prefix_results,

@@ -3,7 +3,7 @@ import datetime
 import logging
 import subprocess
 from .config import Query
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, List
 
 from .config import HubitQueryPath, PathIndexRange
 from .qrun import _QueryRunner
@@ -114,7 +114,7 @@ def get_dot(model: HubitModel, query: Query, file_idstr: str):
         workers = []
         for component in model.model_cfg.components:
             path = component.provides_results[0].path
-            dummy_indices: str = []
+            dummy_indices: List[str] = []
             context_idx_spec, context_start = component.context_start
 
             # Create dummy indices. Leave indices if specified in model
@@ -122,7 +122,7 @@ def get_dot(model: HubitModel, query: Query, file_idstr: str):
                 if idxspc.range.is_digit:
                     dummy_indices.append(idxspc.range)
                 elif idxspc == context_idx_spec:
-                    dummy_indices.append(context_start)
+                    dummy_indices.append(str(context_start))
                 else:
                     dummy_indices.append("0")
 

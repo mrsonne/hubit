@@ -12,7 +12,7 @@ import pathlib
 from collections import abc, Counter
 import yaml
 import re
-from typing import Dict, List, Any, Tuple, Sequence, Union, Optional, TypeVar, Generic
+from typing import Dict, List, Any, Tuple, Sequence, Union, Optional, TypeVar, cast
 from .errors import HubitError, HubitModelComponentError
 from .utils import is_digit
 
@@ -94,6 +94,7 @@ class PathIndexRange(str):
                 return 0
             elif is_digit(start):
                 return int(start)
+        return None
 
     def _validate(self):
 
@@ -1010,7 +1011,12 @@ class HubitModelComponent:
     def context_start(self) -> Union[Tuple[str, int], Tuple[None, None]]:
         context_idx_spec, context_range = self.context_range
         if context_range is not None:
-            return context_idx_spec, context_range.start
+            start = context_range.start
+            # For components contexts the pathIndexRange cannot
+            # be empty but mypy cannot know this
+            start = cast(int, start)
+            context_idx_spec = cast(str, context_idx_spec)
+            return context_idx_spec, start
         else:
             return None, None
 

@@ -170,7 +170,7 @@ All the results that were used to process the query can be accessed using `hmode
 ## Example calculations
 The purpose of the examples are summarized below. To run an example using the `hubit` source code run the example script from the project root e.g. `python3 -m examples.wall.run_queries`. In some of the examples you can toggle the multi-processing flag to see the performance difference with and without multi-processing. The performance change obtained by activating multi-processing depends on the time spent in the components. You can try to adjust the sleep time in `thermal_conductivity.py` and `thermal_profile.py`.
 
-### `run_render.py` 
+### `render.py` 
 To get a graphical overview of a `hubit` model the model can be rendered **if Graphviz is installed**. The rendition of the wall model is shown below  
 
 <img src="https://github.com/mrsonne/hubit/blob/develop/examples/wall/images/model_wall.png" width="1000">

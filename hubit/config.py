@@ -12,7 +12,7 @@ import pathlib
 from collections import abc, Counter
 import yaml
 import re
-from typing import Dict, List, Any, Sequence, Union, Optional, TypeVar, Generic
+from typing import Dict, List, Any, Tuple, Sequence, Union, Optional, TypeVar, Generic
 from .errors import HubitError, HubitModelComponentError
 from .utils import is_digit
 
@@ -78,6 +78,22 @@ class PathIndexRange(str):
             raise HubitError(f"Unknown range format '{self}'")
 
         self._validate()
+
+    @property
+    def start(self) -> Union[int, None]:
+        """First """
+        if self.is_digit:
+            return int(self)
+        elif self.is_empty:
+            None
+        elif self.is_full_range:
+            return 0
+        elif self.is_limited_range:
+            start, _ = self.split(self.wildcard_chr)
+            if start == "":
+                return 0
+            elif is_digit(start):
+                return int(start)
 
     def _validate(self):
 
@@ -942,7 +958,7 @@ class HubitModelComponent:
     consumes_results: List[HubitBinding] = field(default_factory=list)
     func_name: str = "main"
     is_dotted_path: bool = False
-    context: Dict[str, str] = field(default_factory=dict)
+    context: Dict[str, PathIndexRange] = field(default_factory=dict)
 
     def __post_init__(self):
 
@@ -953,6 +969,9 @@ class HubitModelComponent:
             self._name = f"{self.path.replace('.py', '')}.{self.func_name}"
 
         self._id = f"cmp{self._index}@" + self._name
+
+        for key, value in self.context.items():
+            self.context[key] = PathIndexRange(value)
 
     def validate(self, cfg):
         """
@@ -977,11 +996,23 @@ class HubitModelComponent:
 
         assert len(self.context) < 2, "Maximum one context allowed"
 
-        # Cast to validate
-        for item in self.context.values():
-            PathIndexRange(item)
-
         return self
+
+    @property
+    def context_range(self) -> Union[Tuple[str, PathIndexRange], Tuple[None, None]]:
+        if len(self.context) > 0:
+            idx_spec = list(self.context.keys())[0]
+            return idx_spec, self.context[idx_spec]
+        else:
+            return None, None
+
+    @property
+    def context_start(self) -> Union[Tuple[str, int], Tuple[None, None]]:
+        context_idx_spec, context_range = self.context_range
+        if context_range is not None:
+            return context_idx_spec, context_range.start
+        else:
+            return None, None
 
     @property
     def id(self):

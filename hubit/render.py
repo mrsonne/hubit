@@ -292,7 +292,7 @@ def _add_object_for_index(
     try:
         # Check if the path component after the current indicates a list
         pcmp_old = pathcmps_old[pathcmps_old.index(path_component) + 1]
-        if IDX_WILDCARD in pcmp_old or pcmp_old in idxids:
+        if IDX_WILDCARD in pcmp_old or any(idxid in pcmp_old for idxid in idxids):
             peripheries = "1"  # use multiple outlines to indicate lists
             is_list = True
     except IndexError:

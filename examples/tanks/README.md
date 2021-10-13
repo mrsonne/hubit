@@ -1,8 +1,8 @@
 # Cascading tanks
 
-This example shows how to set up models where one compartment (cell, element) consumes the result of an upstream neighboring compartment (cell, element). In the example, a liquid flows from one tank to the next in a cascading fashion. The example encompass two similar tanks models `model1` and `model2` that illustrate explicit linking of the tanks useful for unstructured problems and a linking pattern for structured problems, respectively.
+This example shows how to set up models where one compartment (cell, element) consumes the result of an upstream neighboring compartment (cell, element). In the example, a liquid flows from one tank to the next in a cascading fashion. The example encompass two similar tanks models `model1` and `model2` that illustrate explicit linking of the tanks useful for unstructured problems and a linking pattern for structured problems, respectively. Notice that in all the model components presented the entrypoint functions are the same as in even though the way it is configured to be used is different. This highlights the powerful separation of implementation and configuration in `Hubit`.
 
-## Unstructured compartments - explicit indexing (`model1.yml`)
+## Unstructured compartments - explicit indexing (`model_1.yml`)
 In this example liquid flows into tank 1 with rate `Q_in,1` where some process takes place. The yield from the process is `Q_yield,1`. Tank 2 is similar to tank 1 only the yield is `Q_yield,1`. The two yield streams are mixed in tank 3 where another process takes place with yield `Q_yield,2`. The entire process is schematically illustrated below
 
 ```                           
@@ -127,9 +127,13 @@ we again get 4.0 back (since there is actually only one production site and one 
 
 The outer list represents the production sites while the inner list represent the production lines.
 
-### Protip
 
-Using _component index contexts_ the model components for tanks 1 and two can be refactored to 
+While it provides a nice flexibility to be able to refer to neighboring tanks it may become tiresome if we have many tanks. Further, the model presented above would need to be changed when the number of tanks change which is not attractive. If the model is unstructured by nature the `Hubit` model could be constructed programmatically based on the mesh of cells (compartments/elements).
+
+
+### Protip 1 (`model_1a.yml`)
+
+Using _component index contexts_ the model components for tanks 1 and 2 can be refactored to 
 
 ```yaml
 - path: ./components/mod1.py 
@@ -147,12 +151,37 @@ Using _component index contexts_ the model components for tanks 1 and two can be
       path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[IDX_TANK].Q_transfer
 ```
 
-In this case the component context `context.IDX_TANK: "0:2"` assures that the component is only applied for tank indices 0 and 1. Consequently, the explicit indices i.e. `0@IDX_TANK` and `1@IDX_TANK` are no longer required in this component. The model component for tank 2 shown above can be used as before. This version of the model is shown in `model_1a.yml`.
+In this case the component context `context.IDX_TANK: "0:2"` assures that `IDX_TANK` equals  0 or 1 whenever this component is applied. The model component for tank 3 shown above can be used as before. This version of the model is shown in `model_1a.yml`.
 
-While it provides a nice flexibility to be able to refer to neighboring tanks it is tiresome if we have many tanks. Further, the model presented above would need to be changed when the number of tanks change which is not attractive. If the model is unstructured by nature the `Hubit` model could be constructed programmatically based on the mesh of cells (compartments/elements).
+### Protip 2 (`model_1b.yml`)
+
+Using _component index contexts_ tank 3 can alternatively be configured as 
+
+```yaml
+- path: ./components/mod1.py 
+  context:
+    IDX_TANK: 2
+  provides_results:
+    - name: Q_yield
+      path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[IDX_TANK].Q_yield
+  consumes_input:
+    - name: yield_fraction
+      path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[IDX_TANK].yield_fraction
+    - name: Q_in
+      path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[IDX_TANK].Q_in
+  consumes_results:
+    # use outlet flow from previous tank 0
+    - name: Q_transfer_1
+      path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[0@IDX_TANK].Q_yield
+    # use outlet flow from previous tank 1
+    - name: Q_transfer_2
+      path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[1@IDX_TANK].Q_yield
+```
+
+In this case the component index context `context.IDX_TANK: 2` assures that the identifier `IDX_TANK` equals 2 whenever this component is applied. The explicit indices in `consumes_results` i.e. `0@IDX_TANK` and `1@IDX_TANK` are still used as is. This version of the model is shown in `model_1b.yml`.
+
 ## Structured compartments - component contexts and index offsets (`model2.yml`)
-
-In structured cases, such as the tank example below, it is better to leverage the two `Hubit` features _component contexts_ and _index offsets_ than to explicitly define all indices.
+In structured cases, such as the tank example below, `Hubit`'s _component contexts_ and _index offsets_ come in handy.
 
 
 ```
@@ -200,7 +229,7 @@ The input is the same as in the previous section. The first component is shown b
       path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[IDX_TANK].Q_transfer
 ```
 
-At first sight the component looks as if its binding paths can refer to any combination of `IDX_SITE`, `IDX_LINE` and `IDX_TANK`. The `context` node, however, limits the scope of the component to `IDX_TANK=0`. The second component is shown below
+At first sight the component looks as if its binding paths can refer to any combination of `IDX_SITE`, `IDX_LINE` and `IDX_TANK`. The `context` node, however, limits the scope of the component to `IDX_TANK = 0`. The second component is shown below
 
 ```yaml
 - path: ./components/mod1.py
@@ -219,4 +248,4 @@ At first sight the component looks as if its binding paths can refer to any comb
       path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[IDX_TANK-1].Q_yield
 ```
 
-There are two important details to pay attention to in this component. First, the `context` node limits the scope of the component to tanks after the first. Second, it consumes the yield rate `Q_yield` from the previous tank since the index identifier `IDX_TANK` has been offset by 1 in `[IDX_TANK-1]`. For the offset to work it is important to exclude the first tank from the context as explained above. Notice that the entrypoint functions for the two components is the same as in `model_1.yml` even though the way it is configured to be used is different.
+There are two important details to pay attention to. First, the `context` node limits the scope of the component to tanks after the first. Second, the component consumes the yield rate `Q_yield` from the previous tank since the index identifier `IDX_TANK` has been offset by 1 in `[IDX_TANK-1]`. To avoid going out of bounds it is important to exclude the first tank from the context as explained above. Notice that the entrypoint functions for the two components is the same as in `model_1.yml` even though the way it is configured to be used is different.

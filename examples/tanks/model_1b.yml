@@ -13,7 +13,7 @@ components:
       - name: Q_transfer
         path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[IDX_TANK].Q_transfer
 
-# Component 2 alternative configuration relying on index scope 
+# Component 2 configuration relying on index scope 
 # in provides_results and consumes_input
   - path: ./components/mod1.py 
     context:

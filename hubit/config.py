@@ -211,16 +211,16 @@ class PathIndexRange(str):
         else:
             return True
 
-    # def contains_index(self, idx: int) -> bool:
-    #     """integer contained in range"""
-    #     if self.is_digit:
-    #         return str(idx) == self
-    #     elif self.is_full_range:
-    #         return True
-    #     elif self.is_limited_range:
-    #         return self._lrange_intersects_digit(idx)
-    #     else:
-    #         raise HubitError(f"Unknown range {self}")
+    def contains_index(self, idx: int) -> bool:
+        """integer contained in range"""
+        if self.is_limited_range:
+            return self._lrange_intersects_digit(idx)
+        elif self.is_digit:
+            return str(idx) == self
+        elif self.is_full_range:
+            return True
+        else:
+            raise HubitError(f"Unknown range {self}")
 
     def intersects(
         self, other: PathIndexRange, allow_self_empty: bool = False

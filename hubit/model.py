@@ -749,7 +749,6 @@ class HubitModel:
             mpath.set_value_for_idxid(context)
             for mpath, context in zip(paths, contexts)
         ]
-
         return _mpaths
 
     def _expand_query(

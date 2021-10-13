@@ -3,7 +3,7 @@ import datetime
 import logging
 import subprocess
 from .config import Query
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Iterable, cast
 
 from .config import HubitQueryPath, PathIndexRange
 from .qrun import _QueryRunner
@@ -166,17 +166,18 @@ def get_dot(model: HubitModel, query: Query, file_idstr: str):
             component = w.component
             context_range = component.context_range
             if None in context_range:
-                context_range = "None"
+                _context_range = "None"
             else:
                 # index identifier value is "member of" range
-                context_range = " ϵ ".join(context_range)
+                # TODO: Cast to string to make mypy happy. Should tell it that PathIndexRange is a str subclass
+                _context_range = " ϵ ".join([str(item) for item in context_range])
 
             subgraph.node(
                 name=w.id,  # Name identifier of the node
                 label=(
                     f"Component index {component._index}"
                     f"\n{component.name}"
-                    f"\nIndex scope: {context_range}"
+                    f"\nIndex scope: {_context_range}"
                     f"\nv {w.version}"
                 ),
                 fontname=fontname,

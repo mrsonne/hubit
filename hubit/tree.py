@@ -704,12 +704,13 @@ class _QueryExpansion:
     ) -> Tuple[List[HubitQueryPath], Union[List[str], None]]:
         """
         If a single component can provide results for `path`, `decomposed_paths`
-        has one element of type [`HubitQueryPath`][hubit.config.HubitQueryPath]. If multiple
-        components match required their individual path contributions are the items in the list.
+        has one element of type [`HubitQueryPath`][hubit.config.HubitQueryPath].
+        If multiple components are required to provide the query their individual
+        path contributions are the items in the list.
         """
         index_identifiers: Union[List, None]
         if len(mpaths) > 1:
-            # More than one provide requires to match query. Split query into queries
+            # More than one provider required to match query. Split query into queries
             # each having a unique provider
 
             decomposed_qpaths = []
@@ -717,18 +718,24 @@ class _QueryExpansion:
             index_identifiers = []
             for mpath in mpaths:
                 q_idx_specs = qpath.get_index_specifiers()
-                idxs, digits = zip(
+                idxs, ranges = zip(
                     *[
                         (idx, range)
                         for idx, range in enumerate(mpath.ranges())
-                        if range.is_digit
+                        if not range.is_empty
                     ]
                 )
-                if len(digits) == 1:
-                    q_idx_specs[idxs[0]] = digits[0]
+                if len(ranges) == 1:
+                    # Replace the index specifier from the query path with
+                    # the range from the model path
+                    q_idx_specs[idxs[0]] = ranges[0]
+
+                    # Set the ranges (one comes from model path) on the query path
                     decomposed_qpaths.append(qpath.set_indices(q_idx_specs))
+
+                    # Save the index identifier corresponding to the replacement
                     index_identifiers.append(mpath.get_index_identifiers()[idxs[0]])
-                elif len(digits) >= 1:
+                elif len(ranges) >= 1:
                     raise HubitModelQueryError(
                         (
                             f"Only one index range may be specified as digit for each",

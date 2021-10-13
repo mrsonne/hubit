@@ -511,17 +511,17 @@ class LengthTree:
 
         # Manipulate as strings
         paths = [str(path)]
-        for idx_level, (idxspec, _slice, level_name) in enumerate(
+        for idx_level, (idxspec, range, level_name) in enumerate(
             zip(idxspecs, ranges, self.level_names)
         ):
             nodes = self.nodes_for_level[idx_level]
             paths_current_level = []
             for _path, node in zip(paths, nodes):
-                if is_digit(_slice):
+                if range.is_digit:
                     # slice is digit so replace index specifier with that digit
-                    paths_current_level.append(_path.replace(idxspec, _slice))
-                elif _slice == IDX_WILDCARD or idxspec == level_name:
-                    # slice is wildcard so expand from node children
+                    paths_current_level.append(_path.replace(idxspec, range))
+                elif range.is_full_range or range.is_empty:
+                    # slice is wildcard or not specified so expand from node children
                     paths_current_level.extend(
                         [
                             _path.replace(idxspec, str(child.index), 1)
@@ -530,7 +530,7 @@ class LengthTree:
                     )
                 else:
                     raise HubitError(
-                        f"Unknown slice '{_slice}' for path '{path}' of type '{type(path)}'."
+                        f"Unknown index range '{range}' for path '{path}' of type '{type(path)}'."
                     )
             paths = copy.deepcopy(paths_current_level)
 

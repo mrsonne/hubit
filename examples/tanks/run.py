@@ -107,5 +107,6 @@ def run(model_id):
 
 if __name__ == "__main__":
     run("model_1.yml")
-    # run("model_1a.yml")
-    # run("model_2.yml")
+    run("model_1a.yml")
+    run("model_1b.yml")
+    run("model_2.yml")

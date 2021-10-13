@@ -81,7 +81,7 @@ class PathIndexRange(str):
 
     @property
     def start(self) -> Union[int, None]:
-        """First """
+        """First index in range"""
         if self.is_digit:
             return int(self)
         elif self.is_empty:

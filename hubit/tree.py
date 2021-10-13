@@ -511,9 +511,7 @@ class LengthTree:
 
         # Manipulate as strings
         paths = [str(path)]
-        for idx_level, (idxspec, range, level_name) in enumerate(
-            zip(idxspecs, ranges, self.level_names)
-        ):
+        for idx_level, (idxspec, range) in enumerate(zip(idxspecs, ranges)):
             nodes = self.nodes_for_level[idx_level]
             paths_current_level = []
             for _path, node in zip(paths, nodes):

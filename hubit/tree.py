@@ -524,12 +524,8 @@ class LengthTree:
                     # slice is wildcard so expand from node children
                     paths_current_level.extend(
                         [
-                            _path.replace(
-                                idxspec,
-                                str(child.index if child is not None else idx),
-                                1,
-                            )
-                            for idx, child in enumerate(node.children)
+                            _path.replace(idxspec, str(child.index), 1)
+                            for child in node.children
                         ]
                     )
                 else:

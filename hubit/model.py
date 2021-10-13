@@ -726,6 +726,10 @@ class HubitModel:
         return self.component_for_id(self._cmpid_for_query(path))
 
     def mpaths_for_qpath(self, qpath: HubitQueryPath) -> List[HubitModelPath]:
+        """
+        Returns the model paths (with the index context inserted)
+        that match the query.
+        """
         # Find component that provides queried result
         cmp_ids = self._cmpids_for_query(qpath)
         # Find component
@@ -740,18 +744,13 @@ class HubitModel:
             paths.append(cmp.provides_results[idxs[0]].path)
             contexts.append(cmp.context)
 
-        # Set the context to check if mpaths are actually unique
+        # Set the index context
         _mpaths = [
             mpath.set_value_for_idxid(context)
             for mpath, context in zip(paths, contexts)
         ]
 
-        # Model path are unique when context is considered but can be represented
-        # as one for now
-        if len(set(paths)) == 1 and len(set(_mpaths)) == len(paths):
-            return [paths[0]]
-
-        return paths
+        return _mpaths
 
     def _expand_query(
         self, qpath: HubitQueryPath, store: bool = True

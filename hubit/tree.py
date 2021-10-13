@@ -526,6 +526,15 @@ class LengthTree:
                             for child in node.children
                         ]
                     )
+                elif range.is_limited_range:
+                    # Loop over children to see who are included in the range
+                    paths_current_level.extend(
+                        [
+                            _path.replace(idxspec, str(child.index), 1)
+                            for child in node.children
+                            if range.contains_index(child.index)
+                        ]
+                    )
                 else:
                     raise HubitError(
                         f"Unknown index range '{range}' for path '{path}' of type '{type(path)}'."

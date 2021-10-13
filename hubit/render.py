@@ -164,9 +164,21 @@ def get_dot(model: HubitModel, query: Query, file_idstr: str):
 
         for w in workers:
             component = w.component
+            context_range = component.context_range
+            if None in context_range:
+                context_range = "None"
+            else:
+                # index identifier value is "member of" range
+                context_range = " ϵ ".join(context_range)
+
             subgraph.node(
                 name=w.id,  # Name identifier of the node
-                label=f"Component index {component._index}\n{component.name}\nv {w.version}",
+                label=(
+                    f"Component index {component._index}"
+                    f"\n{component.name}"
+                    f"\nIndex scope: {context_range}"
+                    f"\nv {w.version}"
+                ),
                 fontname=fontname,
                 shape=calc_shape,
                 style=calc_style,

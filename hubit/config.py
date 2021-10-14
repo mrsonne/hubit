@@ -12,7 +12,17 @@ import pathlib
 from collections import abc, Counter
 import yaml
 import re
-from typing import Dict, List, Any, Tuple, Sequence, Union, Optional, TypeVar, cast
+from typing import (
+    Dict,
+    List,
+    Any,
+    Tuple,
+    Sequence,
+    Union,
+    Optional,
+    TypeVar,
+    cast,
+)
 from .errors import HubitError, HubitModelComponentError
 from .utils import is_digit
 
@@ -211,16 +221,16 @@ class PathIndexRange(str):
         else:
             return True
 
-    def includes(self, range: PathIndexRange) -> bool:
+    def includes(self, range: PathIndexRange):
         """Is the specified range a subset of self"""
         if range.is_full_range:
             return self.is_full_range
         elif range.is_digit:
             return self.contains_index(int(range))
-        elif range.is_limited_range:
-            raise NotImplementedError("Limited ranges not allowed in paths")
         elif range.is_empty:
             return True
+        elif range.is_limited_range:
+            raise NotImplementedError("Limited ranges not allowed in paths")
 
     def contains_index(self, idx: int) -> bool:
         """integer contained in range"""

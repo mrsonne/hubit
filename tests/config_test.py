@@ -1,4 +1,5 @@
 import unittest
+import pytest
 import re
 from hubit.config import (
     HubitBinding,
@@ -361,6 +362,31 @@ class TestPathIndexRange(unittest.TestCase):
         assert not range.is_digit
         assert not range.is_limited_range
         assert range.is_full_range
+
+    def test_range_includes(self):
+        range = PathIndexRange("2")
+        assert range.includes(PathIndexRange("1")) == False
+        assert range.includes(PathIndexRange("2")) == True
+        assert range.includes(PathIndexRange("3")) == False
+        assert range.includes(PathIndexRange(":")) == False
+
+        range = PathIndexRange(":")
+        assert range.includes(PathIndexRange(":")) == True
+
+        # Limited range not supported as argument
+        range = PathIndexRange("2")
+        with pytest.raises(NotImplementedError):
+            range.includes(PathIndexRange("1:"))
+
+        range = PathIndexRange(":")
+        with pytest.raises(NotImplementedError):
+            range.includes(PathIndexRange("1:"))
+
+        # If range is empty it is always in scope
+        range = PathIndexRange("")
+        assert range.includes(PathIndexRange("2")) == True
+        assert range.includes(PathIndexRange(":")) == True
+        assert range.includes(PathIndexRange("2:")) == True
 
     def test_range_intersects(self):
         range = PathIndexRange("2")

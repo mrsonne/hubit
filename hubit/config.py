@@ -223,6 +223,9 @@ class PathIndexRange(str):
 
     def includes(self, range: PathIndexRange):
         """Is the specified range a subset of self"""
+        if self.is_empty:
+            return True
+
         if range.is_full_range:
             return self.is_full_range
         elif range.is_digit:

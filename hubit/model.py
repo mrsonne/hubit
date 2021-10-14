@@ -745,11 +745,11 @@ class HubitModel:
             contexts.append(cmp.context)
 
         # Set the index context
-        _mpaths = [
+        mpaths = [
             mpath.set_value_for_idxid(context)
             for mpath, context in zip(paths, contexts)
         ]
-        return _mpaths
+        return mpaths
 
     def _expand_query(
         self, qpath: HubitQueryPath, store: bool = True

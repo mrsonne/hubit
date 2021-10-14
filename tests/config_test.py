@@ -337,6 +337,14 @@ class TestModelIndexSpecifier(unittest.TestCase):
 
 
 class TestPathIndexRange(unittest.TestCase):
+    def test_is_limited_range(self):
+        assert PathIndexRange._is_limited_range("2") == False
+        assert PathIndexRange._is_limited_range(":") == False
+        assert PathIndexRange._is_limited_range("") == False
+        assert PathIndexRange._is_limited_range("1:") == True
+        assert PathIndexRange._is_limited_range(":3") == True
+        assert PathIndexRange._is_limited_range("1:3") == True
+
     def test_range_type(self):
         range = PathIndexRange("2")
         assert range.is_digit

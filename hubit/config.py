@@ -211,6 +211,17 @@ class PathIndexRange(str):
         else:
             return True
 
+    def includes(self, range: PathIndexRange) -> bool:
+        """Is the specified range a subset of self"""
+        if range.is_full_range:
+            return self.is_full_range
+        elif range.is_digit:
+            return self.contains_index(int(range))
+        elif range.is_limited_range:
+            raise NotImplementedError("Limited ranges not allowed in paths")
+        elif range.is_empty:
+            return True
+
     def contains_index(self, idx: int) -> bool:
         """integer contained in range"""
         if self.is_limited_range:
@@ -841,6 +852,13 @@ class HubitModelPath(_HubitPath):
         """
         return [idx_spec.identifier for idx_spec in self.get_index_specifiers()]
 
+    def range_for_identifiers(self) -> Dict[str, PathIndexRange]:
+        """Return dict with the range for each identifier in the path"""
+        return {
+            idx_spec.identifier: idx_spec.range
+            for idx_spec in self.get_index_specifiers()
+        }
+
     def set_indices(self, indices: Sequence[str], mode: int = 0) -> HubitModelPath:
         """Change the return type compared to the super class"""
         return self.__class__(super().set_indices(indices, mode))
@@ -997,7 +1015,28 @@ class HubitModelComponent:
 
         assert len(self.context) < 2, "Maximum one context allowed"
 
+        self._validate_scope()
         return self
+
+    def _validate_scope(self):
+        """
+        Check for index ranges that are not a subset of the index scope
+
+        Raises HubitModelComponentError if not successful
+        """
+        paths_provided = [binding.path for binding in self.provides_results]
+        cmp_scope_idxid, cmp_scope = self.context_range
+        if cmp_scope_idxid is not None:
+            for path in paths_provided:
+                path_range = path.range_for_identifiers()[cmp_scope_idxid]
+                if not cmp_scope.includes(path_range):
+                    raise HubitModelComponentError(
+                        (
+                            f"Path range '{path_range}' in path '{path}' "
+                            f"not included in component scope '{self.context}' "
+                            f"for component '{self.id}'."
+                        )
+                    )
 
     @property
     def context_range(self) -> Union[Tuple[str, PathIndexRange], Tuple[None, None]]:

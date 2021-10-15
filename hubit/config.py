@@ -881,19 +881,21 @@ class HubitModelPath(_HubitPath):
         """Change the return type compared to the super class"""
         return self.__class__(super().set_indices(indices, mode))
 
-    def set_value_for_idxid(
-        self, value_for_idxid: Dict[str, Any], values_are_id_range: bool = True
-    ) -> HubitModelPath:
+    def set_range_for_idxid(self, value_for_idxid: Dict[str, Any]) -> HubitModelPath:
+        # Get current values
         idx_specs = self.get_index_specifiers()
         idx_ids = self.get_index_identifiers()
-        for idxid, value in value_for_idxid.items():
+
+        # Loop over input value for index ID
+        for idxid, range in value_for_idxid.items():
+
+            # Which index of index specier are we replacing
             idx = idx_ids.index(idxid)
-            _value = (
-                ModelIndexSpecifier.from_components(idxid, str(value))
-                if values_are_id_range
-                else value
+
+            # Construct and set the index specifier
+            idx_specs[idx] = ModelIndexSpecifier.from_components(
+                idxid, idx_range=str(range)
             )
-            idx_specs[idx] = _value
         return self.set_indices(idx_specs)
 
     def as_query_depth_path(self):
@@ -1203,7 +1205,7 @@ class HubitModelConfig:
         """
         # Check that there are not multiple components that provide the same data
         paths = [
-            binding.path.set_value_for_idxid(component.context)
+            binding.path.set_range_for_idxid(component.context)
             for component in self.components
             for binding in component.provides_results
         ]

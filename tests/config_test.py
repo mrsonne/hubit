@@ -265,8 +265,11 @@ class TestHubitQueryPath(unittest.TestCase):
 
 
 class TestHubitModelPath(unittest.TestCase):
-    # set_value_for_idxid
-    # range_for_identifiers
+    def test_set_range_for_idxid(self):
+        path = HubitModelPath("segs[:@IDX_SEG].walls[IDX_WALL].heat_flow")
+        result = path.set_range_for_idxid({"IDX_SEG": "2"})
+        expected_result = HubitModelPath("segs[2@IDX_SEG].walls[IDX_WALL].heat_flow")
+        self.assertEqual(result, expected_result)
 
     def test_remove_braces(self):
         path = HubitModelPath("segs[:@IDX_SEG].walls[IDX_WALL].heat_flow")

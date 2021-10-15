@@ -688,7 +688,7 @@ class HubitModel:
 
         # Set the context to check if provided paths are unique
         _paths_provided = [
-            path.set_value_for_idxid(context)
+            path.set_range_for_idxid(context)
             for path, context in zip(paths_provided, contexts)
         ]
         idxs = qpath.idxs_for_matches(_paths_provided)
@@ -746,7 +746,7 @@ class HubitModel:
 
         # Set the index context
         mpaths = [
-            mpath.set_value_for_idxid(context)
+            mpath.set_range_for_idxid(context)
             for mpath, context in zip(paths, contexts)
         ]
         return mpaths

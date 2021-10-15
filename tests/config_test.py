@@ -371,6 +371,28 @@ class TestPathIndexRange(unittest.TestCase):
         assert PathIndexRange._is_limited_range(":3") == True
         assert PathIndexRange._is_limited_range("1:3") == True
 
+    def test_validate_limited_range(self):
+        # Valid ranges
+        PathIndexRange("1:")._validate_limited_range()
+        PathIndexRange("1:4")._validate_limited_range()
+        PathIndexRange(":4")._validate_limited_range()
+
+        # Invalid ranges
+        with pytest.raises(HubitError):
+            PathIndexRange("4:1")._validate_limited_range()
+
+        with pytest.raises(HubitError):
+            PathIndexRange(":-1")._validate_limited_range()
+
+        with pytest.raises(HubitError):
+            PathIndexRange("-1:")._validate_limited_range()
+
+        with pytest.raises(HubitError):
+            PathIndexRange("k:")._validate_limited_range()
+
+        with pytest.raises(HubitError):
+            PathIndexRange(":k")._validate_limited_range()
+
     def test_start(self):
         assert PathIndexRange("2").start == 2
         assert PathIndexRange(":").start == 0

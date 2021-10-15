@@ -106,6 +106,35 @@ class PathIndexRange(str):
                 return int(start)
         return None
 
+    def _validate_limited_range(self):
+
+        start, end = self.split(self.wildcard_chr)
+
+        if not (start == "" or is_digit(start)):
+            raise HubitError(
+                f"Invalid range '{self}'. Range start '{start}' should be digit or empty"
+            )
+
+        if not (end == "" or is_digit(end)):
+            raise HubitError(
+                f"Invalid range '{self}'. Range end '{end}' should be digit or empty"
+            )
+
+        if is_digit(start) and int(start) < 0:
+            raise HubitError(
+                f"Invalid range '{self}'. Range start '{start}' should be positive"
+            )
+
+        if is_digit(end) and int(end) < 0:
+            raise HubitError(
+                f"Invalid range '{self}'. Range end '{end}' should be positive"
+            )
+
+        if is_digit(start) and is_digit(end) and int(start) > int(end):
+            raise HubitError(
+                f"Invalid range '{self}'. Range start '{start}' greater that range end '{end}'"
+            )
+
     def _validate(self):
 
         if self.is_limited_range and not self.allow_limited_range:
@@ -117,32 +146,7 @@ class PathIndexRange(str):
             if int(self) < 0:
                 raise HubitError(f"Index '{self}' should be positive")
         elif self.is_limited_range:
-            start, end = self.split(self.wildcard_chr)
-
-            if not (start == "" or is_digit(start)):
-                raise HubitError(
-                    f"Invalid range '{self}'. Range start '{start}' should be digit or empty"
-                )
-
-            if not (end == "" or is_digit(end)):
-                raise HubitError(
-                    f"Invalid range '{self}'. Range end '{end}' should be digit or empty"
-                )
-
-            if is_digit(start) and int(start) < 0:
-                raise HubitError(
-                    f"Invalid range '{self}'. Range start '{start}' should be positive"
-                )
-
-            if is_digit(end) and int(end) < 0:
-                raise HubitError(
-                    f"Invalid range '{self}'. Range end '{end}' should be positive"
-                )
-
-            if is_digit(start) and is_digit(end) and int(start) > int(end):
-                raise HubitError(
-                    f"Invalid range '{self}'. Range start '{start}' greater that range end '{end}'"
-                )
+            self._validate_limited_range()
 
     def _lrange_intersects_digit(self, idx: int) -> bool:
         """Must be one limited range and digit.Not validated."""
@@ -1204,7 +1208,12 @@ class HubitModelConfig:
         ]
         duplicates = [item for item, count in Counter(paths).items() if count > 1]
         if len(duplicates) > 0:
-            msg = f"Fatal error. Multiple providers for model paths: {set(duplicates)}. Paths provided in the model files may be unintentionally identical or missing a unique contexts."
+            msg = (
+                f"Fatal error. Multiple providers for model paths:"
+                f"{set(duplicates)}. Paths provided in the model "
+                f"files may be unintentionally identical or missing "
+                f" a unique contexts."
+            )
             raise HubitError(msg)
         return self
 

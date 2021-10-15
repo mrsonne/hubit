@@ -128,6 +128,17 @@ class TestHubitComponent(unittest.TestCase):
         with self.assertRaises(HubitError):
             HubitModelComponent.from_cfg(cfg, 0)
 
+    def test_validate_scope(self):
+        # No scope
+        cfg = {
+            "path": "dummy",
+            "func_name": "dummy",
+            "provides_results": [{"name": "attr", "path": "shared.input.attr.path1"}],
+            "consumes_results": [{"name": "attr", "path": "shared.input.attr.path2"}],
+        }
+        cmp = HubitModelComponent.from_cfg(cfg, 0)
+        cmp._validate_scope()
+
 
 class TestHubitPath(unittest.TestCase):
     def test_from_dotted(self):

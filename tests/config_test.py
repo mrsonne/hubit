@@ -129,20 +129,72 @@ class TestHubitComponent(unittest.TestCase):
             HubitModelComponent.from_cfg(cfg, 0)
 
     def test_validate_scope(self):
-        # No scope
+        """
+        The scope is validated.
+
+        TODO: Separate validation or make it optional to mak the test more specific
+        """
         cfg = {
             "path": "dummy",
             "func_name": "dummy",
-            "provides_results": [{"name": "attr", "path": "list[IDX].attr.path1"}],
-            "consumes_results": [{"name": "attr", "path": "list[IDX].attr.path2"}],
+            "provides_results": [
+                {"name": "attr", "path": "list[IDX].attr.path1"},
+                {"name": "attr", "path": "list[IDX-1].attr.path2"},
+            ],
         }
-        cmp = HubitModelComponent.from_cfg(cfg, 0)
-        cmp._validate_scope()
 
-        # Scope
+        # No scope
+        HubitModelComponent.from_cfg(cfg, 0)
+
+        # Add various scopes
+        cfg.update({"context": {"IDX": "1"}})
+        HubitModelComponent.from_cfg(cfg, 0)
+
         cfg.update({"context": {"IDX": "1:4"}})
-        cmp = HubitModelComponent.from_cfg(cfg, 0)
-        cmp._validate_scope()
+        HubitModelComponent.from_cfg(cfg, 0)
+
+        cfg.update({"context": {"IDX": ":"}})
+        HubitModelComponent.from_cfg(cfg, 0)
+
+        # Component with explicit index reference
+        cfg = {
+            "path": "dummy",
+            "func_name": "dummy",
+            "provides_results": [
+                {"name": "attr", "path": "list[2@IDX].attr.path1"},
+            ],
+        }
+
+        # Add various scopes
+        cfg.update({"context": {"IDX": "2"}})
+        HubitModelComponent.from_cfg(cfg, 0)
+
+        cfg.update({"context": {"IDX": "1:4"}})
+        HubitModelComponent.from_cfg(cfg, 0)
+
+        cfg.update({"context": {"IDX": ":"}})
+        HubitModelComponent.from_cfg(cfg, 0)
+
+        # Component with index wildcard
+        cfg = {
+            "path": "dummy",
+            "func_name": "dummy",
+            "provides_results": [
+                {"name": "attr", "path": "list[:@IDX].attr.path2"},
+            ],
+        }
+
+        # Add various scopes
+        cfg.update({"context": {"IDX": "2"}})
+        with pytest.raises(HubitModelComponentError):
+            HubitModelComponent.from_cfg(cfg, 0)
+
+        cfg.update({"context": {"IDX": "1:4"}})
+        with pytest.raises(HubitModelComponentError):
+            HubitModelComponent.from_cfg(cfg, 0)
+
+        cfg.update({"context": {"IDX": ":"}})
+        HubitModelComponent.from_cfg(cfg, 0)
 
 
 class TestHubitPath(unittest.TestCase):

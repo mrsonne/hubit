@@ -210,6 +210,16 @@ class TestHubitPath(unittest.TestCase):
 
 
 class TestHubitQueryPath(unittest.TestCase):
+    def test_has_slice_range(self):
+        path = HubitQueryPath("hi.how.2.you")
+        assert path.has_slice_range() == False
+
+        path = HubitQueryPath("hi.how[2].are.you")
+        assert path.has_slice_range() == False
+
+        path = HubitQueryPath("hi.how[:].are.you")
+        assert path.has_slice_range() == True
+
     def test_validate_braces(self):
         path = HubitQueryPath("segments[0].layers[17]test.positions[44]")
         with self.assertRaises(AssertionError):
@@ -265,6 +275,19 @@ class TestHubitQueryPath(unittest.TestCase):
 
 
 class TestHubitModelPath(unittest.TestCase):
+    def test_has_slice_range(self):
+        path = HubitModelPath("hi.how.are.you")
+        assert path.has_slice_range() == False
+
+        path = HubitModelPath("hi.how[IDX].are.you")
+        assert path.has_slice_range() == False
+
+        path = HubitModelPath("hi.how[2@IDX].are.you")
+        assert path.has_slice_range() == False
+
+        path = HubitModelPath("hi.how[:@IDX].are.you")
+        assert path.has_slice_range() == True
+
     def test_set_range_for_idxid(self):
         path = HubitModelPath("segs[:@IDX_SEG].walls[IDX_WALL].heat_flow")
         result = path.set_range_for_idxid({"IDX_SEG": "2"})

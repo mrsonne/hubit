@@ -133,9 +133,14 @@ class TestHubitComponent(unittest.TestCase):
         cfg = {
             "path": "dummy",
             "func_name": "dummy",
-            "provides_results": [{"name": "attr", "path": "shared.input.attr.path1"}],
-            "consumes_results": [{"name": "attr", "path": "shared.input.attr.path2"}],
+            "provides_results": [{"name": "attr", "path": "list[IDX].attr.path1"}],
+            "consumes_results": [{"name": "attr", "path": "list[IDX].attr.path2"}],
         }
+        cmp = HubitModelComponent.from_cfg(cfg, 0)
+        cmp._validate_scope()
+
+        # Scope
+        cfg.update({"context": {"IDX": "1:4"}})
         cmp = HubitModelComponent.from_cfg(cfg, 0)
         cmp._validate_scope()
 
@@ -208,6 +213,9 @@ class TestHubitQueryPath(unittest.TestCase):
 
 
 class TestHubitModelPath(unittest.TestCase):
+    # set_value_for_idxid
+    # range_for_identifiers
+
     def test_remove_braces(self):
         path = HubitModelPath("segs[:@IDX_SEG].walls[IDX_WALL].heat_flow")
         result = path.remove_braces()

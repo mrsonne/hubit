@@ -1,5 +1,7 @@
 import unittest
 import pytest
+import pathlib
+import yaml
 import re
 from hubit.config import (
     HubitBinding,
@@ -8,12 +10,36 @@ from hubit.config import (
     HubitModelPath,
     HubitQueryPath,
     ModelIndexSpecifier,
+    HubitModelConfig,
     FlatData,
     _HubitQueryDepthPath,
     PathIndexRange,
     PathIndexRange,
 )
 from hubit.errors import HubitModelComponentError, HubitError
+
+THIS_DIR = pathlib.Path(__file__).parent
+
+
+class TestHubitModelConfig(unittest.TestCase):
+    def test_duplicate_providers(self):
+        model = """
+        components:
+            - func_name: move_number
+              path: ./components/comp0.py 
+              provides_results:
+                - name: number
+                  path: first_coor[IDX1].second_coor[IDX2].value 
+            - func_name: multiply_by_2
+              path: ./components/comp1.py 
+              provides_results: 
+                - name: number
+                  path: first_coor[IDX1].second_coor[IDX2].value 
+          """
+        with pytest.raises(HubitError):
+            HubitModelConfig.from_cfg(
+                yaml.load(model, Loader=yaml.FullLoader), base_path=THIS_DIR
+            )
 
 
 class TestHubitBinding(unittest.TestCase):
@@ -344,6 +370,14 @@ class TestPathIndexRange(unittest.TestCase):
         assert PathIndexRange._is_limited_range("1:") == True
         assert PathIndexRange._is_limited_range(":3") == True
         assert PathIndexRange._is_limited_range("1:3") == True
+
+    def test_start(self):
+        assert PathIndexRange("2").start == 2
+        assert PathIndexRange(":").start == 0
+        assert PathIndexRange(":5").start == 0
+        assert PathIndexRange("5:").start == 5
+        assert PathIndexRange("5:17").start == 5
+        assert PathIndexRange("").start == None
 
     def test_range_type(self):
         range = PathIndexRange("2")

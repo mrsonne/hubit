@@ -521,6 +521,15 @@ class TestPathIndexRange(unittest.TestCase):
         range2 = PathIndexRange("6:")
         self.assertFalse(range1._lrange_intersects_lrange(range2))
 
+        # Implicit end1
+        range1 = PathIndexRange("8:")
+        range2 = PathIndexRange("6:16")
+        self.assertTrue(range1._lrange_intersects_lrange(range2))
+
+        range1 = PathIndexRange("18:")
+        range2 = PathIndexRange("6:16")
+        self.assertFalse(range1._lrange_intersects_lrange(range2))
+
     def test_invalid(self):
         with self.assertRaises(HubitError):
             PathIndexRange("-1")

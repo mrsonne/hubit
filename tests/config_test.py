@@ -156,6 +156,10 @@ class TestHubitQueryPath(unittest.TestCase):
         result = HubitQueryPath.balanced(path)
         self.assertFalse(result)
 
+        path = "segments]44[.layers[76"
+        result = HubitQueryPath.balanced(path)
+        self.assertFalse(result)
+
     def test_validate_index_specifiers(self):
         path = HubitQueryPath("segments[44].layers[76]")
         path._validate_index_specifiers()

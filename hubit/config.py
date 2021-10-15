@@ -493,7 +493,7 @@ class _HubitPath(str):
         opens = "["
         closes = "]"
         pairs = dict(zip(opens, closes))
-        _braces = [c for c in path if c in opens or c in closes]
+        _braces = [c for c in path if (c in opens) or (c in closes)]
         stack = []
         for c in _braces:
             if c in opens:

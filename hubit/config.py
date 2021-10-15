@@ -6,6 +6,7 @@ in a model config file or the required structure of a query path.
 # https://github.com/mkdocstrings/pytkdocs/issues/69
 
 from __future__ import annotations, with_statement
+import copy
 from abc import ABC, abstractproperty
 from dataclasses import dataclass, field
 import pathlib
@@ -1095,36 +1096,36 @@ class HubitModelComponent:
         Returns:
             HubitModelComponent: Object corresponsing to the configuration data
         """
-
+        _cfg = copy.deepcopy(cfg)
         target_attr = "provides_results"
         try:
-            cfg[target_attr] = [
-                HubitBinding.from_cfg(binding) for binding in cfg[target_attr]
+            _cfg[target_attr] = [
+                HubitBinding.from_cfg(binding) for binding in _cfg[target_attr]
             ]
         except KeyError:
             raise HubitModelComponentError(
-                f'Component with entrypoint "{cfg["func_name"]}" should provide results'
+                f'Component with entrypoint "{_cfg["func_name"]}" should provide results'
             )
 
         target_attr = "consumes_input"
         try:
-            cfg[target_attr] = [
-                HubitBinding.from_cfg(binding) for binding in cfg[target_attr]
+            _cfg[target_attr] = [
+                HubitBinding.from_cfg(binding) for binding in _cfg[target_attr]
             ]
         except KeyError:
             pass
 
         target_attr = "consumes_results"
         try:
-            cfg[target_attr] = [
-                HubitBinding.from_cfg(binding) for binding in cfg[target_attr]
+            _cfg[target_attr] = [
+                HubitBinding.from_cfg(binding) for binding in _cfg[target_attr]
             ]
         except KeyError:
             pass
 
-        cfg["_index"] = idx
+        _cfg["_index"] = idx
 
-        return cls(**cfg).validate(cfg)
+        return cls(**_cfg).validate(_cfg)
 
     def does_provide_results(self):
         return len(self.provides_results) > 0

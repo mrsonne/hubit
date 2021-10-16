@@ -788,7 +788,9 @@ class _QueryExpansion:
             results = [n >= n_decomposed_paths for n in n_children]
             if not all(results):
                 print(
-                    f"Too few children at level {level_idx} of tree. Expected at least {n_decomposed_paths} children corresponding to the number of decomposed paths.\n"
+                    f"Too few children at level {level_idx} of tree. "
+                    f"Expected at least {n_decomposed_paths} children"
+                    "corresponding to the number of decomposed paths.\n"
                 )
                 print(tree)
                 print(self)

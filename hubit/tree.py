@@ -779,8 +779,10 @@ class _QueryExpansion:
                 # TODO handle contexts with more than one index identifier
                 level_idx = tree.level_names.index(idx_id)
             except ValueError as err:
+                print(tree)
+                print(self)
                 raise HubitError(
-                    f"Index identifier '{idx_id}' not found in tree '{tree}'"
+                    f"Index identifier '{idx_id}' not found in tree"
                 ) from err
 
             n_decomposed_paths = len(self.decomposed_paths)

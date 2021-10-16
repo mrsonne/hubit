@@ -1,5 +1,6 @@
 import unittest
 import yaml
+import pytest
 import pprint
 
 from hubit.tree import (
@@ -10,7 +11,7 @@ from hubit.tree import (
     LeafNode,
 )
 from hubit.config import HubitModelPath, HubitQueryPath
-from hubit.errors import HubitIndexError
+from hubit.errors import HubitIndexError, HubitModelQueryError
 
 
 class TestTree(unittest.TestCase):
@@ -810,6 +811,44 @@ class TestQueryExpansion(unittest.TestCase):
             "lines[:].tanks[2].vol_outlet_flow",
         ]
         self.assertListEqual(result, expected_result)
+
+    def test_init(self):
+        # Success
+        qpath = HubitQueryPath("lines[:].tanks[:].vol_outlet_flow")
+        mpaths = [
+            "lines[IDX_LINE].tanks[0@IDX_TANK].vol_outlet_flow",
+            "lines[IDX_LINE].tanks[1@IDX_TANK].vol_outlet_flow",
+            "lines[IDX_LINE].tanks[2@IDX_TANK].vol_outlet_flow",
+        ]
+        mpaths = [HubitModelPath(mpath) for mpath in mpaths]
+        _QueryExpansion(qpath, mpaths)
+
+        # Inconsistent query and mpaths
+        qpath = HubitQueryPath("lines[1].tanks[1].vol_outlet_flow")
+        mpaths = [
+            "lines[IDX_LINE].tanks[0@IDX_TANK].vol_outlet_flow",
+            "lines[IDX_LINE].tanks[1@IDX_TANK].vol_outlet_flow",
+            "lines[IDX_LINE].tanks[2@IDX_TANK].vol_outlet_flow",
+        ]
+        mpaths = [HubitModelPath(mpath) for mpath in mpaths]
+        with pytest.raises(HubitModelQueryError):
+            _QueryExpansion(qpath, mpaths)
+
+        # mpaths cannot have different index contexts
+        qpath = HubitQueryPath("lines[:].tanks[:].vol_outlet_flow")
+        mpaths = [
+            "lines[IDX_LINE].tanks[0@IDX_TANK].vol_outlet_flow",
+            "lines[IDX_LINE].tanks[1@IDX_OTHER].vol_outlet_flow",
+        ]
+        mpaths = [HubitModelPath(mpath) for mpath in mpaths]
+        with pytest.raises(HubitModelQueryError):
+            _QueryExpansion(qpath, mpaths)
+
+        # No mpaths i.e. no provider
+        qpath = HubitQueryPath("lines[:].tanks[:].vol_outlet_flow")
+        mpaths = []
+        with pytest.raises(HubitModelQueryError):
+            _QueryExpansion(qpath, mpaths)
 
 
 if __name__ == "__main__":

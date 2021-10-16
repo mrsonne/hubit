@@ -633,19 +633,16 @@ class _QueryExpansion:
         self.path = path
 
         if len(mpaths) > 1 and not path.has_slice_range():
+            # Should not be possible to have multiple providers if the query
+            # points to a specific path i.e. has no ranges.
+            # TODO: This check could be more strict e.g. the wildcard is located where
+            # the mpaths vary
             raise HubitModelQueryError(
                 f"More than one component match the query '{path}'. Matching components provide: {mpaths}."
             )
 
-        self.decomposed_paths, index_identifiers = _QueryExpansion.decompose_query(
-            path, mpaths
-        )
-        self.expanded_paths_for_decomposed_path: Dict[
-            HubitQueryPath, List[HubitQueryPath]
-        ] = {}
         # Get the index contexts for doing some tests
         _idx_contexts = {mpath.get_idx_context() for mpath in mpaths}
-
         if len(_idx_contexts) > 1:
             msg = f"Fatal error. Inconsistent providers for query '{path}': {', '.join(mpaths)}"
             raise HubitModelQueryError(msg)
@@ -653,6 +650,13 @@ class _QueryExpansion:
         if len(_idx_contexts) == 0:
             msg = f"Fatal error. No provider for query path '{path}'."
             raise HubitModelQueryError(msg)
+
+        self.decomposed_paths, index_identifiers = _QueryExpansion.decompose_query(
+            path, mpaths
+        )
+        self.expanded_paths_for_decomposed_path: Dict[
+            HubitQueryPath, List[HubitQueryPath]
+        ] = {}
 
         if index_identifiers is None:
             self.decomposed_idx_identifier = None

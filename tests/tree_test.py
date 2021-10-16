@@ -850,6 +850,21 @@ class TestQueryExpansion(unittest.TestCase):
         with pytest.raises(HubitModelQueryError):
             _QueryExpansion(qpath, mpaths)
 
+    def test_validate_tree(self):
+        qpath = HubitQueryPath("lines[:].tanks[:].vol_outlet_flow")
+        mpaths = [
+            "lines[IDX_LINE].tanks[0@IDX_TANK].vol_outlet_flow",
+            "lines[IDX_LINE].tanks[1@IDX_TANK].vol_outlet_flow",
+            "lines[IDX_LINE].tanks[2@IDX_TANK].vol_outlet_flow",
+        ]
+        mpaths = [HubitModelPath(mpath) for mpath in mpaths]
+        qexp = _QueryExpansion(qpath, mpaths)
+
+        # DummyTree passes validation
+        path = HubitModelPath("segments.layers.positions")
+        tree = LengthTree.from_data(path, {})
+        qexp.validate_tree(tree)
+
 
 if __name__ == "__main__":
     unittest.main()

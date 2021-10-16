@@ -865,6 +865,31 @@ class TestQueryExpansion(unittest.TestCase):
         tree = LengthTree.from_data(path, {})
         qexp.validate_tree(tree)
 
+        #
+        yml_input = """
+        segments:
+            - layers:
+                - thickness: 0.1 # [m]
+                  material: brick
+                - thickness: 0.02
+                  material: air
+                - thickness: 0.1
+                  material: brick
+            - layers:
+                - thickness: 0.15
+                  material: concrete
+                - thickness: 0.025
+                  material: EPS
+                - thickness: 0.1
+                  material: concrete
+        """
+        input_data = yaml.load(yml_input, Loader=yaml.FullLoader)
+        path = HubitModelPath("segments[IDX_SEG].layers[:@IDX_LAY]")
+
+        tree = LengthTree.from_data(path, input_data)
+        with pytest.raises(Exception):
+            qexp.validate_tree(tree)
+
 
 if __name__ == "__main__":
     unittest.main()

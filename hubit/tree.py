@@ -661,9 +661,10 @@ class _QueryExpansion:
         if index_identifiers is None:
             self.decomposed_idx_identifier = None
         else:
-            if len(set(index_identifiers)) > 1:
-                msg = f"Fatal error. Inconsistent decomposition for query '{path}': {', '.join(mpaths)}"
-                raise HubitModelQueryError(msg)
+            # Cannot occur since len(_idx_contexts) is 1
+            # if len(set(index_identifiers)) > 1:
+            #     msg = f"Fatal error. Inconsistent decomposition for query '{path}': {', '.join(mpaths)}"
+            #     raise HubitModelQueryError(msg)
             self.decomposed_idx_identifier = index_identifiers[0]
 
         self._idx_context = list(_idx_contexts)[0]
@@ -710,7 +711,8 @@ class _QueryExpansion:
         If a single component can provide results for `path`, `decomposed_paths`
         has one element of type [`HubitQueryPath`][hubit.config.HubitQueryPath].
         If multiple components are required to provide the query their individual
-        path contributions are the items in the list.
+        path contributions are the items in the list. index_identifiers are the
+        index identifiers corresponding to the decomposed index
         """
         index_identifiers: Union[List, None]
         if len(mpaths) > 1:

@@ -196,7 +196,7 @@ class _QueryRunner:
         manager: Optional[SyncManager] = None,
         skip_paths=[],
         dryrun=False,
-    ) -> Set[str]:
+    ) -> List[str]:
         """Create workers
 
         queries should be expanded i.e. explicit in terms of iloc
@@ -206,7 +206,7 @@ class _QueryRunner:
         paths in skip_paths are skipped
         """
         _skip_paths = copy.copy(skip_paths)
-        results_ids = set()
+        results_ids: List[str] = []
         for qpath in qpaths:
             # Skip if the queried data will be provided
             if qpath in _skip_paths:
@@ -271,14 +271,14 @@ class _QueryRunner:
             )
             # Update with IDs for sub-workers
             results_id_current = self._submit_worker(worker, results_ids_sub_workers)
-            results_ids.add(results_id_current)
+            results_ids.extend(results_id_current)
 
         return results_ids
 
     def _submit_worker(
         self,
         worker: _Worker,
-        results_ids_sub_workers: Set[str],
+        results_ids_sub_workers: List[str],
     ) -> str:
         """
         Start worker or add it to the list of workers waiting for a provider

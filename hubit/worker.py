@@ -499,13 +499,13 @@ class _Worker:
             pickle.dumps([self.inputval_for_name, id(self.func)])
         ).hexdigest()
 
-    def set_results_id(self, results_ids: Set[str]) -> str:
+    def set_results_id(self, results_ids: List[str]) -> str:
         """results_ids are the IDs of workers spawned from the
         current worker
 
         augment that with worker's own results_id
         """
-        results_ids.add(self._make_results_id())
+        results_ids.append(self._make_results_id())
         self._results_id = hashlib.md5("".join(results_ids).encode("utf-8")).hexdigest()
         return self._results_id
 

@@ -82,13 +82,7 @@ class TestWorker(unittest.TestCase):
             dryrun=True,
         )
 
-    def test_4(self):
-        """
-        Adding required data to worker stepwise to see that it
-        starts working when all expected consumptions are present
-
-        TODO: split in multiple tests
-        """
+    def _make_worker():
         qrunner = Mock()
         qrunner._set_worker
         qrunner._set_worker_working
@@ -141,6 +135,22 @@ class TestWorker(unittest.TestCase):
             dryrun=True,  # Use dryrun to easily predict the result
         )
 
+        return w
+
+    def test_set_results_id(self):
+        w = TestWorker._make_worker()
+        result = w.set_results_id(["A", "B", "C"])
+        expected_result = "5733e2da782c95b14ff6b84ee922884d"
+        assert result == expected_result
+
+    def test_4(self):
+        """
+        Adding required data to worker stepwise to see that it
+        starts working when all expected consumptions are present
+
+        TODO: split in multiple tests
+        """
+        w = TestWorker._make_worker()
         # Set current consumed input and results to nothing so we can fill manually
         w.set_values({}, {})
 

@@ -572,9 +572,6 @@ class LengthTree:
         # like all leaves in the tree
         return self.reshape([None for _ in range(self.number_of_leaves())])
 
-    def __eq__(self, other):
-        return self.to_list() == other.to_list()
-
     def __str__(self):
         lines = ["--------------------", "Tree"]
         for idx, (name, nodes) in enumerate(

@@ -115,7 +115,7 @@ class TestTree(unittest.TestCase):
         """path is identical to template_path so the tree remains unchanged"""
         path = self.template_path
         pruned_tree = self.tree.prune_from_path(path, inplace=False)
-        self.assertEqual(self.tree, pruned_tree)
+        self.assertTrue(self.tree.to_list() == pruned_tree.to_list())
 
     def test_1(self):
         """Top level index fixed to 0

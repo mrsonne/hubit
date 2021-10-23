@@ -14,6 +14,34 @@ from hubit.config import HubitModelPath, HubitQueryPath
 from hubit.errors import HubitIndexError, HubitModelQueryError
 
 
+class TestDummyTree(unittest.TestCase):
+    def setUp(self):
+        self.tree = LengthTree.from_data(
+            HubitModelPath("segments.layers.positions"), {}
+        )
+        assert isinstance(self.tree, DummyLengthTree)
+
+    def test_get_idx_context(self):
+        """Index context for dummy tree must be the empty string"""
+        result = self.tree.get_idx_context()
+        assert result == ""
+
+    def test_prune_from_path(self):
+        """Inplace pruning gives the dummy tree itself"""
+        result = self.tree.prune_from_path(inplace=True)
+        assert result == self.tree
+
+    def test_clip_at_level(self):
+        """Inplace clipping gives the dummy tree itself"""
+        result = self.tree.clip_at_level(inplace=True)
+        assert result == self.tree
+
+    def test_fix_idx_at_level(self):
+        """Inplace fix gives the dummy tree itself"""
+        result = self.tree.fix_idx_at_level()
+        assert result == self.tree
+
+
 class TestTree(unittest.TestCase):
     def setUp(self):
         # lengths = [['IDX_SEG', 2],

@@ -129,13 +129,20 @@ class DummyLengthTree:
         return "-".join(self.level_names)
 
     def prune_from_path(self, *args, **kwargs) -> DummyLengthTree:
-        return self
+        # TODO: rename to prune() and make path optional
+        inplace = kwargs["inplace"] if "inplace" in kwargs else True
+        return self if inplace else copy.deepcopy(self)
 
-    def clip_at_level(self, inplace: bool = True, *args, **kwargs) -> DummyLengthTree:
+    def clip_at_level(self, *args, **kwargs) -> DummyLengthTree:
+        # TODO: rename to clip() and make path optional
+        inplace = kwargs["inplace"] if "inplace" in kwargs else True
         return self if inplace else copy.deepcopy(self)
 
     def fix_idx_at_level(self, *args, **kwargs):
-        pass
+        """Don't change the tree"""
+        # TODO: rename make path optional
+        inplace = kwargs["inplace"] if "inplace" in kwargs else True
+        return self if inplace else copy.deepcopy(self)
 
     def expand_path(
         self, path: HubitModelPath, *args, **kwargs

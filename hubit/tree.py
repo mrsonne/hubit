@@ -142,10 +142,13 @@ class DummyLengthTree:
     ) -> DummyLengthTree:
         return self if inplace else copy.deepcopy(self)
 
-    def fix_idx_at_level(self, *args, **kwargs):
+    def fix_idx_at_level(
+        self,
+        _idx_value: int = 0,
+        _level_idx: int = 0,
+        inplace: bool = True,
+    ):
         """Don't change the tree"""
-        # TODO: rename make path optional
-        inplace = kwargs["inplace"] if "inplace" in kwargs else True
         return self if inplace else copy.deepcopy(self)
 
     def expand_path(

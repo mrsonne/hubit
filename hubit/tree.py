@@ -135,9 +135,11 @@ class DummyLengthTree:
     ) -> DummyLengthTree:
         return self if inplace else copy.deepcopy(self)
 
-    def clip_at_level(self, *args, **kwargs) -> DummyLengthTree:
-        # TODO: rename to clip() and make path optional
-        inplace = kwargs["inplace"] if "inplace" in kwargs else True
+    def clip_at_level(
+        self,
+        _level_name: str = "",
+        inplace: bool = True,
+    ) -> DummyLengthTree:
         return self if inplace else copy.deepcopy(self)
 
     def fix_idx_at_level(self, *args, **kwargs):

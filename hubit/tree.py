@@ -128,9 +128,11 @@ class DummyLengthTree:
     def get_idx_context(self):
         return "-".join(self.level_names)
 
-    def prune_from_path(self, *args, **kwargs) -> DummyLengthTree:
-        # TODO: rename to prune() and make path optional
-        inplace = kwargs["inplace"] if "inplace" in kwargs else True
+    def prune_from_path(
+        self,
+        _path: _HubitPath = _HubitPath(),
+        inplace: bool = True,
+    ) -> DummyLengthTree:
         return self if inplace else copy.deepcopy(self)
 
     def clip_at_level(self, *args, **kwargs) -> DummyLengthTree:

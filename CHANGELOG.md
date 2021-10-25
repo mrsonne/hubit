@@ -5,6 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
 ### Changed
 - Components need be specified under the `components` key in the model file. This **breaks** previous model files.
 - The calculation components should be agnostic to the origin of their input. Therefore, entrypoint functions now accept only two arguments namely `_input_consumed` and `results_provided`. Previously three arguments were expected: `_input_consumed`, `_results_consumed` and `results_provided`. Now `_results_consumed` is simply included in `_input_consumed`.
@@ -35,7 +36,12 @@ with open("new.yml", "w") as handle:
 All files in the hubit cache folder `.hubit_cache` should be converted.
 
 ### Added
-- Support for subscriptions to neighboring compartments (cells, elements). This allows for a sequence of connected and coupled compartments to be calculated based on an initial value e.g. for the first compartment. In other word 0-dimensional and 1-dimensional forward XXX models can be solved. This feature is illustrated in the example with connected tanks where a liquid flows from one tank to the next before reaching the outlet. 
+- Support for subscriptions to neighboring compartments (cells, elements). 
+This allows for a sequence of connected and coupled compartments to be 
+calculated based on an initial value e.g. for the first compartment. In 
+other words 0-dimensional and 1-dimensional forward XXX models can be solved. 
+This feature is illustrated in the example with connected tanks where a liquid 
+flows from one tank to the next before reaching the outlet.
     - Multiple component may share the same entrypoint function.
     - Components that share the same entrypoint function can be scoped using the new field `component.context`.
     - Components may consume specific elements in lists from the input.

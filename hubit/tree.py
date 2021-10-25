@@ -569,7 +569,11 @@ class LengthTree:
 
     def number_of_leaves(self):
         """Number of leaves in the tree"""
-        return sum([node.nchildren() for node in self.nodes_for_level[-1]])
+        return sum(self.number_of_children(-1))
+
+    def number_of_children(self, idx_level: int) -> List[int]:
+        """Number of children for each node at the specified level"""
+        return [node.nchildren() for node in self.nodes_for_level[idx_level]]
 
     def none_like(self) -> Any:
         """Create data structure in the shape of the tree
@@ -774,40 +778,44 @@ class _QueryExpansion:
     def validate_tree(self, tree: LengthTree):
         """Validate that we get the expected number of mpaths in the expansion
 
+        Raises if tree is invalid.
+
         TODO: If the tree was pruned I think the test could be more strict using ==
         instead of >=.
         """
+        # Don't validate if DummyLengthTree since they can never be decomposed
         if isinstance(tree, DummyLengthTree):
             return
 
-        for idx_id in self._idx_context.split("-"):
+        # Don't validate tree against expansion if path was not decomposed
+        if not self.is_decomposed():
+            return
 
-            # Only validate the relevant index identifier
-            if not idx_id == self.decomposed_idx_identifier:
-                continue
+        n_decomposed_paths = len(self.decomposed_paths)
+        tree_level_name = self.decomposed_idx_identifier
 
-            try:
-                # TODO handle contexts with more than one index identifier
-                level_idx = tree.level_names.index(idx_id)
-            except ValueError as err:
-                print(tree)
-                print(self)
-                raise HubitError(
-                    f"Index identifier '{idx_id}' not found in tree"
-                ) from err
+        # Find out which level (index) we are at
+        try:
+            idx_level = tree.level_names.index(tree_level_name)
+        except ValueError as err:
+            print(tree)
+            print(self)
+            raise HubitError(
+                f"Level name '{tree_level_name}' not found in tree"
+            ) from err
 
-            n_decomposed_paths = len(self.decomposed_paths)
-            n_children = [node.nchildren() for node in tree.nodes_for_level[level_idx]]
-            results = [n >= n_decomposed_paths for n in n_children]
-            if not all(results):
-                print(
-                    f"Too few children at level {level_idx} of tree. "
-                    f"Expected at least {n_decomposed_paths} children"
-                    "corresponding to the number of decomposed paths.\n"
-                )
-                print(tree)
-                print(self)
-                raise HubitError("Query expansion error.")
+        # For each node at the level the number of children
+        results = [n >= n_decomposed_paths for n in tree.number_of_children(idx_level)]
+        if not all(results):
+            print(
+                f"Too few children at level {idx_level} with "
+                f"name '{tree_level_name}' of tree. "
+                f"Expected at least {n_decomposed_paths} children"
+                "corresponding to the number of decomposed paths.\n"
+            )
+            print(tree)
+            print(self)
+            raise HubitError("Query expansion error.")
 
     def __str__(self):
         lines = [f"\nQuery\n  {self.path}"]

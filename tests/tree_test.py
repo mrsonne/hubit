@@ -878,7 +878,7 @@ class TestQueryExpansion(unittest.TestCase):
         with pytest.raises(HubitModelQueryError):
             _QueryExpansion(qpath, mpaths)
 
-    def test_validate_tree(self):
+    def _get_qexp_and_tree(make_tree_invalid: bool = False):
         qpath = HubitQueryPath("lines[:].tanks[:].vol_outlet_flow")
         mpaths = [
             "lines[IDX_LINE].tanks[0@IDX_TANK].vol_outlet_flow",
@@ -888,31 +888,59 @@ class TestQueryExpansion(unittest.TestCase):
         mpaths = [HubitModelPath(mpath) for mpath in mpaths]
         qexp = _QueryExpansion(qpath, mpaths)
 
+        path = HubitModelPath("lines[IDX_LINE].tanks[0@IDX_TANK].vol_outlet_flow")
+        yml_input = """
+        lines:
+            - tanks:
+                - tank1: 1
+                - tank2: 2
+                - tank3: 3
+            - tanks:
+                - tank1: 1
+                - tank2: 2
+                - tank3: 3
+                - tank4: 4
+        """
+        input_data = yaml.load(yml_input, Loader=yaml.FullLoader)
+
+        if make_tree_invalid:
+            # Delete tank so the tank list only has 2 elements. qexp expects at least 3
+            del input_data["lines"][0]["tanks"][-1]
+
+        return qexp, LengthTree.from_data(path, input_data)
+
+    def test_validate_tree(self):
+        qexp, tree = TestQueryExpansion._get_qexp_and_tree()
+        qexp.validate_tree(tree)
+
         # DummyTree passes validation
         path = HubitModelPath("segments.layers.positions")
         tree = LengthTree.from_data(path, {})
         qexp.validate_tree(tree)
 
-        #
+    def test_validate_tree_fail(self):
+        qexp, tree = TestQueryExpansion._get_qexp_and_tree(make_tree_invalid=True)
+
+        with pytest.raises(Exception):
+            qexp.validate_tree(tree)
+
+        # Tree corresponds to something 'segments[IDX_SEG].layers[IDX_LAY]'
+        # while qexp was decomposed for the identifier 'IDX_TANK'
+        path = HubitModelPath("segments[IDX_SEG].layers[:@IDX_LAY]")
         yml_input = """
         segments:
             - layers:
                 - thickness: 0.1 # [m]
                   material: brick
-                - thickness: 0.02
-                  material: air
                 - thickness: 0.1
                   material: brick
             - layers:
                 - thickness: 0.15
                   material: concrete
-                - thickness: 0.025
-                  material: EPS
                 - thickness: 0.1
                   material: concrete
         """
         input_data = yaml.load(yml_input, Loader=yaml.FullLoader)
-        path = HubitModelPath("segments[IDX_SEG].layers[:@IDX_LAY]")
 
         tree = LengthTree.from_data(path, input_data)
         with pytest.raises(Exception):

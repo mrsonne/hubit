@@ -798,19 +798,20 @@ class _QueryExpansion:
         try:
             idx_level = tree.level_names.index(tree_level_name)
         except ValueError as err:
+            print(f"ERROR. Level name '{tree_level_name}' not found in tree")
             print(tree)
             print(self)
-            raise HubitError(
-                f"Level name '{tree_level_name}' not found in tree"
-            ) from err
+            raise HubitError("Query expansion error.")
 
-        # For each node at the level the number of children
+        # For each node at the level the number of children should be
+        # greater than or equal to the number for paths in the decomposition
         results = [n >= n_decomposed_paths for n in tree.number_of_children(idx_level)]
         if not all(results):
             print(
+                f"ERROR. "
                 f"Too few children at level {idx_level} with "
                 f"name '{tree_level_name}' of tree. "
-                f"Expected at least {n_decomposed_paths} children"
+                f"Expected at least {n_decomposed_paths} children "
                 "corresponding to the number of decomposed paths.\n"
             )
             print(tree)

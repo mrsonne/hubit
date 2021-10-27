@@ -181,7 +181,7 @@ Using _index scope_ tank 3 can alternatively be configured as
 In this case the index scope `index_scope.IDX_TANK: 2` assures that the identifier `IDX_TANK` equals 2 in all instances of this component. The explicit indices in `consumes_results` i.e. `0@IDX_TANK` and `1@IDX_TANK` are still used as is. This version of the model is shown in `examples/tanks/model_1b.yml`.
 
 ## Structured compartments - component contexts and index offsets (`model2.yml`)
-In structured cases, such as the tank example schematically illustrated below, `Hubit`'s _component contexts_ and _index offsets_ come in handy.
+In structured cases, such as the tank example schematically illustrated below, `Hubit`'s _index scope_ and _index offset_ come in handy.
 
 ```
            ║  Q_in,1                          

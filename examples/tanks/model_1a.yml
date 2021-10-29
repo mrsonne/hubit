@@ -1,6 +1,6 @@
 components:
   - path: ./components/mod1.py 
-    context:
+    index_scope:
       IDX_TANK: "0:2"
     provides_results:
       - name: Q_yield

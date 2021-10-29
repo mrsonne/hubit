@@ -115,14 +115,14 @@ def get_dot(model: HubitModel, query: Query, file_idstr: str):
         for component in model.model_cfg.components:
             path = component.provides_results[0].path
             dummy_indices: List[str] = []
-            context_idx_spec, context_start = component.context_start
+            scope_idxid, scope_start = component.scope_start
 
             # Create dummy indices. Leave indices if specified in model
             for idxspc in path.get_index_specifiers():
                 if idxspc.range.is_digit:
                     dummy_indices.append(idxspc.range)
-                elif idxspc == context_idx_spec:
-                    dummy_indices.append(str(context_start))
+                elif idxspc == scope_idxid:
+                    dummy_indices.append(str(scope_start))
                 else:
                     dummy_indices.append("0")
 
@@ -164,20 +164,20 @@ def get_dot(model: HubitModel, query: Query, file_idstr: str):
 
         for w in workers:
             component = w.component
-            context_range = component.context_range
-            if None in context_range:
-                _context_range = "None"
+            scope_range = component.scope_range
+            if None in scope_range:
+                _scope = "None"
             else:
                 # index identifier value is "member of" range
                 # TODO: Cast to string to make mypy happy. Should tell it that PathIndexRange is a str subclass
-                _context_range = " ϵ ".join([str(item) for item in context_range])
+                _scope = " ϵ ".join([str(item) for item in scope_range])
 
             subgraph.node(
                 name=w.id,  # Name identifier of the node
                 label=(
                     f"Component index {component._index}"
                     f"\n{component.name}"
-                    f"\nIndex scope: {_context_range}"
+                    f"\nIndex scope: {_scope}"
                     f"\nv {w.version}"
                 ),
                 fontname=fontname,

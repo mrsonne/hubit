@@ -29,8 +29,6 @@ from .utils import is_digit
 
 SEP = "."
 
-# TODO: Block context and slice
-
 
 class PathIndexRange(str):
     """
@@ -41,7 +39,7 @@ class PathIndexRange(str):
     - Positive integers e.g. `0`, `17`.
     - The all-index character `:`.
 
-    Further, in the `context` attribute of
+    Further, in the `index_scope` attribute of
     [`HubitModelComponent`][hubit.config.HubitModelComponent] the following
     ranges are also allowed
 
@@ -979,10 +977,10 @@ class HubitModelComponent:
             sequence specifying the input consumed by the component. The names
             in the bindings must be unique within `consumes_input` and `consumes_results`
             for the component.
-        context (dict, optional): A map from the index identifiers to an index. Used to
-            limit the scope of the component. If, for example, the context
+        index_scope (dict, optional): A map from the index identifiers to an index. Used to
+            limit the scope of the component. If, for example, the scope
             is `{IDX_TANK: 0}` the component is only used when the value of the
-            index identifier IDX_TANK is 0. The context can only have one element.
+            index identifier IDX_TANK is 0. The scope can only have one element.
             Values must comply with [`PathIndexRange`][hubit.config.PathIndexRange].
         is_dotted_path (bool, optional): Set to True if the specified `path` is a
             dotted path (typically for a package module in site-packages).
@@ -997,7 +995,7 @@ class HubitModelComponent:
     consumes_results: List[HubitBinding] = field(default_factory=list)
     func_name: str = "main"
     is_dotted_path: bool = False
-    context: Dict[str, PathIndexRange] = field(default_factory=dict)
+    index_scope: Dict[str, PathIndexRange] = field(default_factory=dict)
 
     def __post_init__(self):
 
@@ -1009,8 +1007,8 @@ class HubitModelComponent:
 
         self._id = f"cmp{self._index}@" + self._name
 
-        for key, value in self.context.items():
-            self.context[key] = PathIndexRange(value)
+        for key, value in self.index_scope.items():
+            self.index_scope[key] = PathIndexRange(value)
 
     def validate(self, cfg):
         """
@@ -1033,7 +1031,7 @@ class HubitModelComponent:
             len(names_reused) == 0
         ), f"Component at index {self._index} has names: '{', '.join(names_reused)}' in both 'consumes_results' and 'consumes_input'"
 
-        assert len(self.context) < 2, "Maximum one context allowed"
+        assert len(self.index_scope) < 2, "Maximum one index scope allowed"
 
         self._validate_scope()
         return self
@@ -1045,7 +1043,7 @@ class HubitModelComponent:
         Raises HubitModelComponentError if not successful
         """
         paths_provided = [binding.path for binding in self.provides_results]
-        cmp_scope_idxid, cmp_scope = self.context_range
+        cmp_scope_idxid, cmp_scope = self.scope_range
         if cmp_scope_idxid is not None:
             for path in paths_provided:
                 path_range = path.range_for_identifiers()[cmp_scope_idxid]
@@ -1053,29 +1051,29 @@ class HubitModelComponent:
                     raise HubitModelComponentError(
                         (
                             f"Path range '{path_range}' in path '{path}' "
-                            f"not included in component scope '{self.context}' "
+                            f"not included in component index scope '{self.index_scope}' "
                             f"for component '{self.id}'."
                         )
                     )
 
     @property
-    def context_range(self) -> Union[Tuple[str, PathIndexRange], Tuple[None, None]]:
-        if len(self.context) > 0:
-            idx_spec = list(self.context.keys())[0]
-            return idx_spec, self.context[idx_spec]
+    def scope_range(self) -> Union[Tuple[str, PathIndexRange], Tuple[None, None]]:
+        if len(self.index_scope) > 0:
+            idx_spec = list(self.index_scope.keys())[0]
+            return idx_spec, self.index_scope[idx_spec]
         else:
             return None, None
 
     @property
-    def context_start(self) -> Union[Tuple[str, int], Tuple[None, None]]:
-        context_idx_spec, context_range = self.context_range
-        if context_range is not None:
-            start = context_range.start
-            # For components contexts the pathIndexRange cannot
+    def scope_start(self) -> Union[Tuple[str, int], Tuple[None, None]]:
+        scope_idx_spec, scope_range = self.scope_range
+        if scope_range is not None:
+            scope_start = scope_range.start
+            # For components scopes the pathIndexRange cannot
             # be empty but mypy cannot know this
-            start = cast(int, start)
-            context_idx_spec = cast(str, context_idx_spec)
-            return context_idx_spec, start
+            start = cast(int, scope_start)
+            scope_idx_spec = cast(str, scope_idx_spec)
+            return scope_idx_spec, scope_start
         else:
             return None, None
 
@@ -1205,7 +1203,7 @@ class HubitModelConfig:
         """
         # Check that there are not multiple components that provide the same data
         paths = [
-            binding.path.set_range_for_idxid(component.context)
+            binding.path.set_range_for_idxid(component.index_scope)
             for component in self.components
             for binding in component.provides_results
         ]
@@ -1215,7 +1213,7 @@ class HubitModelConfig:
                 f"Fatal error. Multiple providers for model paths:"
                 f"{set(duplicates)}. Paths provided in the model "
                 f"files may be unintentionally identical or missing "
-                f" a unique contexts."
+                f" a unique scopes."
             )
             raise HubitError(msg)
         return self

@@ -2,7 +2,7 @@ components:
 
   # First tank
   - path: ./components/mod1.py 
-    context:
+    index_scope:
       IDX_TANK: 0
     provides_results:
       - name: Q_yield
@@ -17,7 +17,7 @@ components:
 
   # Tanks after the first
   - path: ./components/mod1.py
-    context:
+    index_scope:
       IDX_TANK: "1:"
     provides_results:
       - name: Q_yield

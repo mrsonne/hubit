@@ -680,16 +680,16 @@ class HubitModel:
         """
         # TODO: Next two lines should only be executed once in init (speed)
         itempairs = [
-            (cmp.id, binding.path, cmp.context)
+            (cmp.id, binding.path, cmp.index_scope)
             for cmp in self.model_cfg.components
             for binding in cmp.provides_results
         ]
-        cmp_ids, paths_provided, contexts = zip(*itempairs)
+        cmp_ids, paths_provided, scopes = zip(*itempairs)
 
-        # Set the context to check if provided paths are unique
+        # Set the scope to check if provided paths are unique
         _paths_provided = [
-            path.set_range_for_idxid(context)
-            for path, context in zip(paths_provided, contexts)
+            path.set_range_for_idxid(scope)
+            for path, scope in zip(paths_provided, scopes)
         ]
         idxs = qpath.idxs_for_matches(_paths_provided)
         return [cmp_ids[idx] for idx in idxs]
@@ -727,14 +727,14 @@ class HubitModel:
 
     def mpaths_for_qpath(self, qpath: HubitQueryPath) -> List[HubitModelPath]:
         """
-        Returns the model paths (with the index context inserted)
+        Returns the model paths (with the index scope inserted)
         that match the query.
         """
         # Find component that provides queried result
         cmp_ids = self._cmpids_for_query(qpath)
         # Find component
         paths = []
-        contexts = []
+        scopes = []
         for cmp_id in cmp_ids:
             cmp = self.model_cfg.component_for_id[cmp_id]
             # Find index in list of binding paths that match query path
@@ -742,12 +742,11 @@ class HubitModel:
                 [binding.path for binding in cmp.provides_results]
             )
             paths.append(cmp.provides_results[idxs[0]].path)
-            contexts.append(cmp.context)
+            scopes.append(cmp.index_scope)
 
-        # Set the index context
+        # Set the index scope
         mpaths = [
-            mpath.set_range_for_idxid(context)
-            for mpath, context in zip(paths, contexts)
+            mpath.set_range_for_idxid(scope) for mpath, scope in zip(paths, scopes)
         ]
         return mpaths
 

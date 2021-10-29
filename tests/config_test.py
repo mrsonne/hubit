@@ -104,24 +104,24 @@ class TestHubitComponent(unittest.TestCase):
         with self.assertRaises(AssertionError):
             HubitModelComponent.from_cfg(cfg, 0)
 
-    def test_invalid_context(self):
+    def test_invalid_scope(self):
 
-        # Multiple contexts not allowed
+        # Multiple scopes not allowed
         cfg = {
             "path": "dummy",
             "func_name": "dummy",
-            "context": {"IDX1": "1:", "IDX2": ":"},
+            "index_scope": {"IDX1": "1:", "IDX2": ":"},
             "provides_results": [{"name": "attr", "path": "shared.input.attr.path1"}],
             "consumes_results": [{"name": "attr", "path": "shared.input.attr.path2"}],
         }
         with self.assertRaises(AssertionError):
             HubitModelComponent.from_cfg(cfg, 0)
 
-        # Context has invalid range
+        # Scope has invalid range
         cfg = {
             "path": "dummy",
             "func_name": "dummy",
-            "context": {"IDX": "1:chars"},
+            "index_scope": {"IDX": "1:chars"},
             "provides_results": [{"name": "attr", "path": "shared.input.attr.path1"}],
             "consumes_results": [{"name": "attr", "path": "shared.input.attr.path2"}],
         }
@@ -147,13 +147,13 @@ class TestHubitComponent(unittest.TestCase):
         HubitModelComponent.from_cfg(cfg, 0)
 
         # Add various scopes
-        cfg.update({"context": {"IDX": "1"}})
+        cfg.update({"index_scope": {"IDX": "1"}})
         HubitModelComponent.from_cfg(cfg, 0)
 
-        cfg.update({"context": {"IDX": "1:4"}})
+        cfg.update({"index_scope": {"IDX": "1:4"}})
         HubitModelComponent.from_cfg(cfg, 0)
 
-        cfg.update({"context": {"IDX": ":"}})
+        cfg.update({"index_scope": {"IDX": ":"}})
         HubitModelComponent.from_cfg(cfg, 0)
 
         # Component with explicit index reference
@@ -166,13 +166,13 @@ class TestHubitComponent(unittest.TestCase):
         }
 
         # Add various scopes
-        cfg.update({"context": {"IDX": "2"}})
+        cfg.update({"index_scope": {"IDX": "2"}})
         HubitModelComponent.from_cfg(cfg, 0)
 
-        cfg.update({"context": {"IDX": "1:4"}})
+        cfg.update({"index_scope": {"IDX": "1:4"}})
         HubitModelComponent.from_cfg(cfg, 0)
 
-        cfg.update({"context": {"IDX": ":"}})
+        cfg.update({"index_scope": {"IDX": ":"}})
         HubitModelComponent.from_cfg(cfg, 0)
 
         # Component with index wildcard
@@ -185,15 +185,15 @@ class TestHubitComponent(unittest.TestCase):
         }
 
         # Add various scopes
-        cfg.update({"context": {"IDX": "2"}})
+        cfg.update({"index_scope": {"IDX": "2"}})
         with pytest.raises(HubitModelComponentError):
             HubitModelComponent.from_cfg(cfg, 0)
 
-        cfg.update({"context": {"IDX": "1:4"}})
+        cfg.update({"index_scope": {"IDX": "1:4"}})
         with pytest.raises(HubitModelComponentError):
             HubitModelComponent.from_cfg(cfg, 0)
 
-        cfg.update({"context": {"IDX": ":"}})
+        cfg.update({"index_scope": {"IDX": ":"}})
         HubitModelComponent.from_cfg(cfg, 0)
 
 

@@ -43,7 +43,7 @@ other words 0-dimensional and 1-dimensional forward XXX models can be solved.
 This feature is illustrated in the example with connected tanks where a liquid 
 flows from one tank to the next before reaching the outlet.
     - Multiple component may share the same entrypoint function.
-    - Components that share the same entrypoint function can be scoped using the new field `component.context`.
+    - Components that share the same entrypoint function can be scoped using the new field `component.index_scope`.
     - Components may consume specific elements in lists from the input.
     - Allow index offsets in index specifiers. This allows a compartment to refer to e.g. the previous compartment. 
 - Fix broken example (`examples/wall/run_precompute.py`)

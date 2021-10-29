@@ -1,6 +1,6 @@
 components:
   - path: ./components/mod1.py 
-    context:
+    index_scope:
       IDX_TANK: "0:2"
     provides_results:
       - name: Q_yield
@@ -16,7 +16,7 @@ components:
 # Component 2 configuration relying on index scope 
 # in provides_results and consumes_input
   - path: ./components/mod1.py 
-    context:
+    index_scope:
       IDX_TANK: 2
     provides_results:
       - name: Q_yield

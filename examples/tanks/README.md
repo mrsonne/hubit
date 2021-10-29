@@ -211,12 +211,12 @@ Q_spill,1 ║               | ˅      |
                                                                                  
 ```
 
-The input is the same as in the previous section. The first component is shown below
+The input is the same as in the previous section, but the component for the first tank may be defined as shown below
 
 ```yaml
 - path: ./components/mod1.py 
   context:
-    IDX_TANK: 0
+    index_scope: 0
   provides_results:
     - name: Q_yield
       path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[IDX_TANK].Q_yield
@@ -229,12 +229,12 @@ The input is the same as in the previous section. The first component is shown b
       path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[IDX_TANK].Q_transfer
 ```
 
-At first sight the component looks as if its binding paths can refer to any combination of `IDX_SITE`, `IDX_LINE` and `IDX_TANK`. The `context` node, however, assures that `IDX_TANK` is 0 in all instances of this component. The second component is shown below
+At first sight the component looks as if its binding paths can refer to any combination of `IDX_SITE`, `IDX_LINE` and `IDX_TANK`. The `index_scope` filed, however, assures that `IDX_TANK` is 0 in all instances of this component. The second component is shown below
 
 ```yaml
 - path: ./components/mod1.py
   context:
-    IDX_TANK: "1:"
+    index_scope: "1:"
   provides_results:
     - name: Q_yield
       path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[IDX_TANK].Q_yield
@@ -248,4 +248,4 @@ At first sight the component looks as if its binding paths can refer to any comb
       path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[IDX_TANK-1].Q_yield
 ```
 
-There are two important details to pay attention to. First, the `context` node limits the scope to tanks after the first in all instances of this component. Second, the component consumes the yield rate `Q_yield` from the previous tank since the index identifier `IDX_TANK` has been offset by 1 in `[IDX_TANK-1]`. To avoid going out of bounds it is important to exclude the first tank from the context as explained above.
+There are two important details. First, the `index_scope` field limits the scope to tanks after the first tank in all instances of this component. Second, the component consumes the yield rate `Q_yield` from the previous tank pointing to the index identifier `IDX_TANK` offset by 1 i.e `IDX_TANK-1`. To avoid going out of bounds it is important to exclude the first tank from the index scope as explained above.

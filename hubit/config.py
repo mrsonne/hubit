@@ -1071,7 +1071,7 @@ class HubitModelComponent:
             scope_start = scope_range.start
             # For components scopes the pathIndexRange cannot
             # be empty but mypy cannot know this
-            start = cast(int, scope_start)
+            scope_start = cast(int, scope_start)
             scope_idx_spec = cast(str, scope_idx_spec)
             return scope_idx_spec, scope_start
         else:

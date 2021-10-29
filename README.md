@@ -9,34 +9,36 @@
 
 ## At a glance
 
-`hubit` is an event-driven orchestration hub for your existing calculation tools. It allows you to 
+`Hubit` is an event-driven orchestration hub for your existing calculation tools. It allows you to 
 
-- execute calculation tools as one `hubit` composite model with a loose coupling between the model components,
-- centrally configure the interfaces between calculation tools rather than coding it thus  allowing true separation of responsibility between different teams,
+- execute calculation tools as one `Hubit` composite model with a loose coupling between the model components,
+- centrally configure the interfaces between calculation tools rather than coding them. This allows true separation of responsibility between different teams,
 - easily run your existing calculation tools in asynchronously in multiple processes,
-- query the model for specific results thus avoiding explicitly coding (fixed) call graphs and running superfluous calculations,
+- query the `Hubit` model for specific results thus avoiding explicitly coding (fixed) call graphs and running superfluous calculations,
 - make parameter sweeps,
 - feed previously calculated results into new calculations thus augmenting old results objects,
 - incremental results caching and calculation restart from cache,
-- caching of model component results allowing `hubit` to bypass repeated calculations,
-- visualize your `hubit` composite model i.e. visualize your existing tools and the attributes that flow between them.
+- caching of model component results allowing `Hubit` to bypass repeated calculations,
+- visualize your `Hubit` composite model i.e. visualize your existing tools and the attributes that flow between them.
 
 ## Motivation
-Many work places have developed a rich ecosystem of stand-alone tools. These tools may be developed/maintained by different teams using different programming languages and using different input/output data models. Nevertheless, the tools often depend on results provided the other tools leading to complicated dependencies and error-prone (manual) workflows. If this sounds familiar you should try `hubit`.
+Many work places have developed a rich ecosystem of stand-alone tools. These tools may be developed/maintained by different teams using different programming languages and using different input/output data models. Nevertheless, the tools often depend on results provided the other tools leading to complicated dependencies and error-prone (manual) workflows involving copy & paste. If this sounds familiar you should try `Hubit`.
 
-By defining input and results data structures that are shared between your tools `hubit` allows all your Python-wrappable tools to be seamlessly executed asynchronously as a single model. Asynchronous multi-processor execution often assures a better utilization of the available CPU resources compared to sequential single-processor execution. This is especially true when some time is spent in each component. In practice this performance improvement often compensates the management overhead introduced by `hubit`.
-Executing a fixed call graph is faster than executing the same call graph dynamically created by `hubit`. Nevertheless, a fixed call graph will typically encompass all relevant calculations and provide all results, which in many cases will represent wasteful compute since only a subset of the results are actually needed. `hubit` dynamically creates the smallest possible call graph that can provide the results that satisfy the user's query.  
+By defining input and results data structures that are shared between your tools `Hubit` allows all your Python-wrappable tools to be seamlessly executed asynchronously as a single model. Asynchronous multi-processor execution often assures a better utilization of the available CPU resources compared to sequential single-processor execution. This is especially true when some time is spent in each component i.e. for CPU bound calculations. In practice this performance improvement often compensates the management overhead introduced by `Hubit`.
+Executing a fixed call graph is faster than executing the dynamically created call graph created automatically by `Hubit`. Nevertheless, a fixed call graph will typically always encompass all relevant calculations and provide all results, which in many cases will represent wasteful compute since only a subset of the results are actually needed. `Hubit` dynamically creates the smallest possible call graph that can provide the results that satisfy the user's query. Further, `Hubit` can visualize your existing tools and the data flow between them.
 
 ## Teaser
 
-The example below is taken from the [in-depth tutorial](https://mrsonne.github.io/hubit/examples/), in the documentation. 
+The example below is taken from the [in-depth tutorial](https://mrsonne.github.io/hubit/examples/), in the documentation.
 
 To get results from a `Hubit` model requires you to submit a _query_, which tells `Hubit` what attributes from the results data structure you want to have calculated. After `Hubit` has processed the query, i.e. executed relevant components, the values of the queried attributes are returned in the _response_.
 
 ```python
 # Load model from file
-hmodel = HubitModel.from_file('model1.yml',
-                              name='car')
+hmodel = HubitModel.from_file(
+  'model1.yml',
+  name='car'
+)
 
 # Load the input
 with open("input.yml", "r") as stream:
@@ -70,8 +72,7 @@ and the corresponding response is
                             [312.0, 1120.0, 178.0, 3400.0]],
 ```
 
-From the response we can see the prices for the five parts that comprise the first car and the 
-prices for the four part that comprise the second car. The full example illustrates how a second calculation component can be used to calculate the total price for each car.
+From the response we can see the prices for the five parts that comprise the first car and the prices for the four parts that comprise the second car. The full example illustrates how a second calculation component can be used to calculate the total price for each car.
 
 `Hubit` can render models and queries. In the example below we have rendered the query `cars[0].price` i.e. the price of the car at index 0 using 
 

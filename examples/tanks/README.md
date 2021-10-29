@@ -180,7 +180,7 @@ Using _index scope_ tank 3 can alternatively be configured as
 
 In this case the index scope `index_scope.IDX_TANK: 2` assures that the identifier `IDX_TANK` equals 2 in all instances of this component. The explicit indices in `consumes_results` i.e. `0@IDX_TANK` and `1@IDX_TANK` are still used as is. This version of the model is shown in `examples/tanks/model_1b.yml`.
 
-## Structured compartments - component contexts and index offsets (`model2.yml`)
+## Structured compartments - component scope and index offsets (`model2.yml`)
 In structured cases, such as the tank example schematically illustrated below, `Hubit`'s _index scope_ and _index offset_ come in handy.
 
 ```
@@ -215,8 +215,8 @@ The input is the same as in the previous section, but the component for the firs
 
 ```yaml
 - path: ./components/mod1.py 
-  context:
-    index_scope: 0
+  index_scope: 
+    IDX_TANK: 0
   provides_results:
     - name: Q_yield
       path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[IDX_TANK].Q_yield
@@ -233,8 +233,8 @@ At first sight the component looks as if its binding paths can refer to any comb
 
 ```yaml
 - path: ./components/mod1.py
-  context:
-    index_scope: "1:"
+  index_scope: 
+    IDX_TANK: "1:"
   provides_results:
     - name: Q_yield
       path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[IDX_TANK].Q_yield

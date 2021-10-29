@@ -7,8 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
-- Components need be specified under the `components` key in the model file. This **breaks** previous model files.
-- The calculation components should be agnostic to the origin of their input. Therefore, entrypoint functions now accept only two arguments namely `_input_consumed` and `results_provided`. Previously three arguments were expected: `_input_consumed`, `_results_consumed` and `results_provided`. Now `_results_consumed` is simply included in `_input_consumed`.
+- Entrypoint functions now accept only two arguments namely `_input_consumed` and `results_provided`. Previously three arguments were expected: `_input_consumed`, `_results_consumed` and `results_provided`. Now `_results_consumed` is simply included in `_input_consumed`. The changes renders calculation components agnostic to the origin of their input.
 - The format for cache files stored in the folder `.hubit_cache` has changed. To convert old cache files see the example code below. Alternatively, clear the `Hubit` cache using the function `hubit.clear_hubit_cache()`.
 - Improved model validation.
 - Hyphen is no longer an allowed character for index identifiers. For example this model path is no longer valid `segments[IDX_SEG].layers[IDX-LAY]`.
@@ -33,27 +32,20 @@ with open("new.yml", "w") as handle:
         handle,
     )
 ```
-All files in the hubit cache folder `.hubit_cache` should be converted.
+All files in the hubit cache folder `.hubit_cache` should be converted if you want them to be compatible with `Hubit` 0.4.0+.
 
 ### Added
-- Support for subscriptions to neighboring compartments (cells, elements). 
-This allows for a sequence of connected and coupled compartments to be 
-calculated based on an initial value e.g. for the first compartment. In 
-other words 0-dimensional and 1-dimensional forward XXX models can be solved. 
-This feature is illustrated in the example with connected tanks where a liquid 
-flows from one tank to the next before reaching the outlet.
-    - Multiple component may share the same entrypoint function.
-    - Components that share the same entrypoint function can be scoped using the new field `component.index_scope`.
-    - Components may consume specific elements in lists from the input.
-    - Allow index offsets in index specifiers. This allows a compartment to refer to e.g. the previous compartment. 
+- Support for subscriptions to other domains (compartments/cells/elements). Now you can easily configure one domain to use e.g. a result from other domains as input as well as set up boundary conditions. This feature is illustrated in the example with connected tanks in `examples/tanks/README.md`. To enable connected domain we have allowed
+    - Components may sharing the same entrypoint function.
+    - Components can be scoped using the new field `component.index_scope`.
+    - Components may consume specific elements in lists.
+    - Index offsets which enables one domain to refer to e.g. the previous domain. 
 - Fix broken example (`examples/wall/run_precompute.py`)
-- Improved performance for input data where only some branches in the input are consumed and where branches are not consumed all the way to the leaves.
-
-Jointly, the first two items allow for sequential calculations dependent calculations. Such cascading dependencies essentially corresponds to a for-loop. See `examples/flow/run.py`.
+- Improved performance for input data where only some branches in the input data are consumed and where branches are not consumed all the way to the leaves.
 
 ### Fixed
 - The elements of lists that are leaves in the input data tree can now be referenced and queried. 
-- Lists of length 1 in input were erroneously interpreted as a simple value 
+- Lists of length 1 in the input were erroneously interpreted as a simple value.
 
 ## [0.3.0] - 2021-05-07
 ### Changed

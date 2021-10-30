@@ -3,13 +3,13 @@
 # Examples
 
 ## Full examples in the repository
-In the examples all calculation are, for simplicity, carried out directly in the 
-`Hubit` component, but the component could just as well wrap a C library, request 
-data from a web server or use an installed Python package. The examples are summarized below.
+In the examples all calculations are, for simplicity, carried out directly in the 
+`Hubit` entrypoint function, but the function could just as well wrap a C library, request 
+data from a web service or use an installed Python package. The examples are summarized below.
 
-* [`examples/car`](https://github.com/mrsonne/hubit/tree/master/examples/car). This example encompass four similar car models. The examples illustrate how the `Hubit` model file can be used to interface with cars models that carry out the same task, but have quite different levels of modularity. Further, the use of model-level caching and component-level caching is illustrated.
-* [`examples/wall`](https://github.com/mrsonne/hubit/tree/master/examples/wall). This example illustrates heat flow calculations and cost calculations for a wall with two segments. Each wall segment has multiple wall layers that consist of different materials. The example demonstrates model rendering (`render.py`), simple queries (`run_queries.py`) with model level caching, reusing previously calculated results `run_precompute.py`, setting results manually (`run_set_results.py`) and input parameter sweeps (`run_sweep.py`). Most of the wall examples run with or without multi-processing.
-* [`examples/tanks`](https://github.com/mrsonne/hubit/tree/master/examples/tanks). This example shows how to set up models where one compartment (cell, element) consumes the result of a neighboring compartment (cell, element). In the example, a liquid flows from one tank to the next in a cascading fashion. The example encompass two similar tanks models `model1` and `model2` that illustrate explicit linking of the tanks and a more generic linking pattern, respectively.
+* [`examples/car`](https://github.com/mrsonne/hubit/tree/master/examples/car) encompass four similar car models. The examples illustrate how you can use the `Hubit` model file to interface with a toy calculations for the price of a car that each have different levels of modularity. Further, the example illustrates model-level caching and component-level caching.
+* [`examples/wall`](https://github.com/mrsonne/hubit/tree/master/examples/wall) illustrates heat flow calculations and cost calculations for a wall with three segments. Each wall segment has multiple wall layers that consist of different materials and has different thicknesses. The example demonstrates model rendering (`render.py`), simple queries (`run_queries.py`) with model level caching, reusing previously calculated results `run_precompute.py`, setting results manually (`run_set_results.py`) and input parameter sweeps (`run_sweep.py`). In `run_queries.py` a toggle makes it easy to run with or without multi-processing and the the effect on the wall time.
+* [`examples/tanks`](https://github.com/mrsonne/hubit/tree/master/examples/tanks). This example shows how to set up models where one domain (compartment/cell/element) consumes results from a neighboring domain. In the example, a liquid flows from one tank to the next in a cascading fashion. The example encompass two similar tanks models `model_1` and `model_2`. The former illustrates explicit linking of the tanks, which is useful for an unstructured network of tanks. The latter illustrates a linking pattern which is useful for a structured network of tanks.
 
 
 To run, for example, the car example clone the repository and execute the command below from the project root 
@@ -22,18 +22,18 @@ python -m examples.car.run
 
 This tutorial follows, to a large extent, the example in [`examples/car`](https://github.com/mrsonne/hubit/tree/master/examples/car). The example will be explained and some key `Hubit` terminology will be introduced. 
 
-In the example let us imagine that we are calculating the price of a car using based on the names of the parts. So the calculation involves a lookup of the price for each part and a summation of the parts prices.
+In the example let us imagine that we are calculating the price of a car based on the names of the individual parts. So the calculation involves a lookup of the price for each part and a summation of the parts prices.
 
 ### Components
-First, your existing tools each need to be wrapped as a `Hubit` _component_. A `hubit` component is a computational task that has bindings to the input data and to the results data. The bindings define which attributes the component
+First, your existing tools each need to be wrapped as a `Hubit` [component][hubit.config.HubitModelComponent]. A `Hubit` component is a computational task that has bindings to the input data and to the results data. The [bindings][hubit.config.HubitBinding] define which attributes the component
 
 - _consumes_ from the shared input data structure, 
 - _consumes_ from the shared results data structure, and 
 - _provides_ to the shared results data structure. 
 
-From the bindings `Hubit` can check that all required input data and results data is available before the computational task is executed. The bindings are defined in a _model file_. 
+From the bindings `Hubit` can check that all required input data and results data is available before the computational task is executed. The bindings are defined in a _model configuration file_ and are passed to the component _entrypoint function_. 
 
-### Component entrypoint
+### Component entrypoint function
 Below you can see some pseudo code for the calculation for the car price calculation. The example is available in [`mod1_cmp1.py`](https://github.com/mrsonne/hubit/tree/master/examples/car/components/mod1_cmp1.py)
 
 ```python
@@ -52,10 +52,10 @@ def price(_input_consumed, results_provided):
     results_provided['car_price'] = result
 ```
 
-The entrypoint function in a component (`price` in the example above) should expect the arguments `_input_consumed` and `results_provided` in that order. Results data calculated in the components should only be added to the latter. The values stored in the keys `part_counts` and `part_names` in `_input_consumed` are controlled by the bindings in the model file. 
+The entrypoint function in a component (`price` in the example above) should expect the arguments `_input_consumed` and `results_provided` in that order. Results data calculated in the components should only be added to the latter. The values stored in the keys `part_counts` and `part_names` in `_input_consumed` are controlled by the bindings in the model configuration file. 
 
-### Model file & component bindings
-Before we look at the bindings let us look at the input data. The input can, like in the example below, be defined in a yml file. In the car example the input data is a list containing two cars each with a number of parts
+### Model configuration file & component bindings
+Before we look at the _bindings_ let us look at the input data. The input can, like in the example below, be defined in a yml file. In the car example the input data is a list containing two cars each with a number of parts
 
 ```yaml
 cars:
@@ -81,25 +81,28 @@ cars:
       name: engine14
 ```
 
-The `price` entrypoint above expects a list of part names be stored in the key `part_names` and a list of the corresponding part counts be stored in the key `part_counts`. Make such lists available in the expected fields, the model file should contain the lines below.
+The `price` entrypoint function above expects a list of part names stored in the field `part_names` and a list of the corresponding part counts stored in the field `part_counts`. To make such lists available for the entrypoint function, the model configuration file should contain the lines below.
 
 ```yaml
 consumes_input:
-  - name: part_names # key in component input dict
+  - name: part_names # key in _input_consumed exposed to the entrypoint function
     path: cars[IDX_CAR].parts[:@IDX_PART].name # path in input data
   - name: part_counts
     path: cars[IDX_CAR].parts[:@IDX_PART].count
 ```
 
-The strings in square braces are called _index specifiers_. The index specifier `:@IDX_PART` refers to all items for the _index identifier_ `IDX_PART`. In this case the specifier contains a slice and a reference to an index identifier. The index specifier `IDX_CAR` is simply an index identifier and refers to a specific car. 
+The strings in square braces are called [index specifiers][hubit.config.ModelIndexSpecifier]. The index specifier `:@IDX_PART` refers to all items for the _index identifier_ `IDX_PART`. The index specifier `IDX_CAR` is simply refers to a specific car. The index identifiers (here `IDX_PART` and `IDX_CAR`) are identification strings that the user can choose [with some limitations][hubit.config.ModelIndexSpecifier].
 
 With the input data and bindings shown above, the content of `_input_consumed` in the `price` function for the car at index 1 will be 
 
 ```python
-{'part_counts': [4, 1, 2, 1], 'part_names':  ['wheel2', 'chassis2', 'bumper', 'engine14']}
+{
+  'part_counts': [4, 1, 2, 1],
+  'part_names':  ['wheel2', 'chassis2', 'bumper', 'engine14']
+}
 ```
 
-i.e. the components will have all counts and part names for a single car in this case the car at index 1 in the input. 
+i.e. the component's entrypoint function will have all counts and part names for a single car in this case the car at index 1 available in the input.
 
 In the last line of the `price` function, the car price is added to the results
 
@@ -107,15 +110,15 @@ In the last line of the `price` function, the car price is added to the results
 results_provided['car_price'] = result
 ```
 
-To enable the transfer of the calculated car price to the shared results data object we must add a binding from the internal component name `car_price` to an appropriate field in the shared results object. If, for example, we want to store the car price in a field called `price` at the same car index as where the input data was taken from, the binding below should be added to the model file.
+To enable the transfer of the calculated car price to the correct path in the shared results data object we must add a binding for the name `car_price`. If, for example, we want to store the car price in a field called `price` at the same car index as where the input data was taken from, the binding below should be added to the model file.
 
 ```yaml
 provides_results: 
-  - name: car_price # internal name in the component
+  - name: car_price # internal name (key) in results_provided
     path: cars[IDX_CAR].price # path in the shared results data
 ```
 
-It is the index specifier `IDX_CAR` in the binding path that tells `Hubit` to store the car price at the same car index as where the input was taken from. Note that the component itself is unaware of which car (car index) the input represents. 
+The index specifier `IDX_CAR` in the binding path tells `Hubit` to store the car price at the same car index as where the input was taken from. Note that the component itself is unaware of which car (car index) the input represents.
 
 Collecting the bindings we get
 
@@ -130,12 +133,11 @@ consumes_input:
     path: cars[IDX_CAR].parts[:@IDX_PART].count
 ```
 
-Read more about paths, index specifiers and index identifiers 
-in the documentation for [`HubitModelPath`][hubit.config.HubitModelPath].
+Read more about [paths][hubit.config.HubitModelPath], [index specifiers][hubit.config.HubitModelPath] and index identifiers in the documentation.
 
 ### Refactoring
 
-The flexibility in the `Hubit` binding paths allows you to match the interfaces of your existing tools. Further, this flexibility enables you to refactor to get good modularity and optimize for speed when multi-processing is used. Below we will show three versions of the car model and outline some key differences when multi-processing is used.
+The flexibility of the `Hubit` binding paths allows you to match the interfaces of your existing tools. Further, this flexibility enables you to refactor to get good modularity and optimize for speed when multi-processing is used. Below we will show three versions of the car model and outline some key differences when multi-processing is used.
 
 #### Car model 0 
 In car model 0 the price calculation receives an entire car object at a specific car index (`IDX_CAR`). This allows the component to store results data on the corresponding car index in the results data object that `Hubit` creates. 

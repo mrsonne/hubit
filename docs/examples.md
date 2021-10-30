@@ -20,7 +20,7 @@ python -m examples.car.run
 
 ## Car calculation
 
-This tutorial follows, to a large extent, the example in [`examples/car`](https://github.com/mrsonne/hubit/tree/master/examples/car). The example will be explained and some key `Hubit` terminology will be introduced. 
+This tutorial follows, to a large extent, the example in [`examples/car`](https://github.com/mrsonne/hubit/tree/master/examples/car). The example will be explained and some key `Hubit` terminology will be introduced.
 
 In the example let us imagine that we are calculating the price of a car based on the names of the individual parts. So the calculation involves a lookup of the price for each part and a summation of the parts prices.
 
@@ -52,9 +52,9 @@ def price(_input_consumed, results_provided):
     results_provided['car_price'] = result
 ```
 
-The entrypoint function in a component (`price` in the example above) should expect the arguments `_input_consumed` and `results_provided` in that order. Results data calculated in the components should only be added to the latter. The values stored in the keys `part_counts` and `part_names` in `_input_consumed` are controlled by the bindings in the model configuration file. 
+The entrypoint function in a component (`price` in the example above) should expect the arguments `_input_consumed` and `results_provided` in that order. Results data calculated in the components should only be added to the latter. The values stored in the keys `part_counts` and `part_names` in `_input_consumed` are controlled by the bindings in the model configuration file.
 
-### Model configuration file & component bindings
+### Bindings
 Before we look at the _bindings_ let us look at the input data. The input can, like in the example below, be defined in a yml file. In the car example the input data is a list containing two cars each with a number of parts
 
 ```yaml
@@ -139,7 +139,7 @@ Read more about [paths][hubit.config.HubitModelPath], [index specifiers][hubit.c
 
 The flexibility of the `Hubit` binding paths allows you to match the interfaces of your existing tools. Further, this flexibility enables you to refactor to get good modularity and optimize for speed when multi-processing is used. Below we will show three versions of the car model and outline some key differences when multi-processing is used.
 
-#### Car model 0 
+#### Car model 0 (`model0.yml`)
 In car model 0 the price calculation receives an entire car object at a specific car index (`IDX_CAR`). This allows the component to store results data on the corresponding car index in the results data object that `Hubit` creates. 
 
 ```yaml
@@ -151,7 +151,7 @@ consumes_input:
     path: cars[IDX_CAR]
 ```
 
-This model allows quires such as `cars[:].price` and `cars[1].price`. If car objects in the input data only contains `count` and `name` (like in the example above) this simple model definition is more or less equivalent to the more elaborate model shown above. If, on the other hand, car objects in the input data contains more data that is not relevant for price calculation model 0 would expose that data to the price calculation. Further, in the implementation of the car prices calculation an undesirable tight coupling to the input data structure would be unavoidable. The entrypoint function could look something like this
+This model allows queries such as `cars[:].price` and `cars[1].price`. If car objects in the input data only contains `count` and `name` (like in the example above) this simple model definition is more or less equivalent to the more elaborate model shown above. If, on the other hand, car objects in the input data contains more data this (irrelevant) data would be exposed to the price calculation function. Further, in the implementation of the car price calculation an undesirable tight coupling to the input data structure would be unavoidable. The entrypoint function could look something like this
 
 ```python
   counts, names = list(
@@ -166,11 +166,11 @@ This model allows quires such as `cars[:].price` and `cars[1].price`. If car obj
 
 Notice how the `parts` list and the `count` and `name` attributes are accessed directly on the car object leading to a tight coupling.
 
-#### Car model 1
-Model 1 is the one described above where the car price is calculated in a single component i.e. in a single worker process. Such an approach works well if the lookup of parts prices is fast and the car price calculation is also fast. If, however, the lookup is fast while the car price calculation is slow, and we imagine that another component is also consuming the parts prices, then the car price calculation would be a bottleneck. In such cases, separating the lookup from the price calculation would probably boost performance. Models 2 and 3 present two different ways of implementing such a separation.
+#### Car model 1 (`model1.yml`)
+Model 1 is the one described above model 0 where the car price is calculated in a single component i.e. in a single worker process. Such an approach works well if the lookup of parts prices is fast and the car price calculation is also fast. If, however, the lookup is fast while the car price calculation is slow, and we imagine that another component is also consuming the parts prices, then the car price calculation would be a bottleneck. In such cases, separating the lookup from the price calculation would probably boost performance. Models 2 and 3 present two different ways of implementing such a separation.
 
-#### Car model 2
-In this version of the model the parts price lookup and the car price calculation are implemented in two separate components. Further, the component that is responsible for the price lookup retrieves the price for one part only. In other words, each lookup will happen in a separate asynchronous worker process. When all the lookup processes are done, the price component sums the parts prices to get the total car price. The relevant sections of the model file could look like this
+#### Car model 2 (`model2.yml`)
+In this version of the model the parts price lookup and the car price calculation are implemented in two separate components. Further, the component that is responsible for the price lookup retrieves the price for one part only. In other words, each lookup will happen in a separate (optionally asynchronous) worker process. When all the lookup processes are done, the price component sums the parts prices to get the total car price. The relevant sections of the model file could look like this
 
 ```yaml
 # price for one part
@@ -208,9 +208,9 @@ def car_price(_input_consumed, results_provided):
     results_provided['car_price'] = sum( _input_consumed['prices'] )
 ```
 
-In this refactored model `Hubit` will, when submitting a query for the car price using the multi-processor flag, execute each part price calculation in a separate asynchronous worker process. If the part price lookup is fast, the overhead introduced by multi-processing may be render model 2 less attractive. In such cases performing all the lookups in a single component, but still keeping the lookup separate from the car price calculation, could be a good solution. 
+In this refactored model `Hubit` will, when submitting a query for the car price using the multi-processor flag, execute each part price calculation in a separate asynchronous worker process. If the part price lookup is fast, the overhead introduced by multi-processing may be render model 2 less attractive. In such cases performing all the lookups in a single component, but still keeping the lookup separate from the car price calculation, as shown in car model 3, could be a good solution.
 
-#### Car model 3
+#### Car model 3 (`model3.yml`)
 In this version of the car model all price lookups take place in one single component and the car price calculation takes place in another component. For the lookup component, the relevant sections of the model file could look like this
 
 ```yaml
@@ -238,21 +238,20 @@ def part_price(_input_consumed, results_provided):
 
 In this model, the car price component is identical to the one used in model 2 and is therefore omitted here.
 
-### Paths
+### Path to the entrypoint function 
 To tie together the bindings with the the Python code that does the actual work you need to add the path of the Python source code file to the model file. For the first car model it could look like this.
 
 ```yaml
-components:
-  - path: ./components/price1.py 
-    func_name: price
-    provides_results: 
-      - name: car_price
-        path: cars[IDX_CAR].price
-    consumes_input:
-      - name: part_names
-        path: cars[IDX_CAR].parts[:@IDX_PART].name
-      - name: part_counts
-        path: cars[IDX_CAR].parts[:@IDX_PART].count
+- path: ./components/price1.py 
+  func_name: price
+  provides_results: 
+    - name: car_price
+      path: cars[IDX_CAR].price
+  consumes_input:
+    - name: part_names
+      path: cars[IDX_CAR].parts[:@IDX_PART].name
+    - name: part_counts
+      path: cars[IDX_CAR].parts[:@IDX_PART].count
 ```
 
 The specified path should be relative to [`model's`][hubit.model.HubitModel] `base_path` attribute, which defaults to the location of the model file when the model is initialized using the [`from_file`][hubit.model.HubitModel.from_file] method. You can also use a [dotted path][hubit.config.HubitModelComponent] e.g.
@@ -265,7 +264,7 @@ is_dotted_path: True
 where `hubit_components` would typically be a package you have installed in site-packages.
 
 ### Running
-To get results from a model requires you to submit a _query_, which is a sequence of [`query paths`][hubit.config.HubitQueryPath] each referencing a field in the results data structure that you want to have calculated. After `Hubit` has processed the query, i.e. executed relevant components, the values of the queried attributes are returned in the _response_. A query may spawn many component workers that may be instance of the same or different model components. Below are two examples of queries and the corresponding responses.
+To get results from a model requires you to submit a [`query`][hubit.config.Query]. After `Hubit` has processed the query, i.e. executed relevant components, the values of the queried attributes are returned in the _response_. A query may spawn many component workers that may each represent an instance of the same or different model components. Below are two examples of queries and the corresponding responses.
 
 ```python
 # Load model from file

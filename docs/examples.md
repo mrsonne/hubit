@@ -264,7 +264,7 @@ is_dotted_path: True
 where `hubit_components` would typically be a package you have installed in site-packages.
 
 ### Running
-To get results from a model requires you to submit a [`query`][hubit.config.Query]. After `Hubit` has processed the query, i.e. executed relevant components, the values of the queried attributes are returned in the _response_. A query may spawn many component workers that may each represent an instance of the same or different model components. Below are two examples of queries and the corresponding responses.
+To get results from a model requires you to submit a [`query`][hubit.config.Query]. After `Hubit` has processed the query the values of the queried attributes are returned in the _response_. A query may spawn many component workers that may each represent an instance of the same or different model components. Below are two examples of queries and the corresponding responses.
 
 ```python
 # Load model from file
@@ -298,8 +298,13 @@ response = hmodel.get(query)
 and the corresponding response is
 
 ```python
-{'cars[:].parts[:].price': [[480.0, 1234.0, 178.0, 2343.0, 45.0],
-                            [312.0, 1120.0, 178.0, 3400.0]],
+{
+  'cars[:].parts[:].price': 
+  [
+    [480.0, 1234.0, 178.0, 2343.0, 45.0],
+    [312.0, 1120.0, 178.0, 3400.0]
+  ]
+}
 ```
 
 ### Rendering

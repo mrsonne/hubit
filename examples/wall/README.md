@@ -66,31 +66,31 @@ Behind the scenes `hubit` constructs and executes the call graph for the query. 
 By using different queries it is straight forward to set up reports for different audiences, each with a customized content, but based on the same model and the same input. Such different reports can service different stakeholders e.g. management, internal design engineers, clients or independent verification agencies.
 
 ### Components
-The source code for the wall model components can be found in the `components` folder and are referenced from `model.yml`. A time delay has been added in some of the components to simulate a heavy computational load or a latency in a web service. The time delay illustrates the asynchronous capabilities in `hubit`.
+The source code for the wall model components can be found in the `example/wall/components` folder and are referenced from [`the model configuration file`](https://github.com/mrsonne/hubit/tree/master/examples/wall/model.yml). A time delay has been added in some of the components to simulate a heavy computational load or a latency in a web service. The time delay illustrates the asynchronous capabilities in `Hubit`.
 
 Some of the calculation components deals with the physics part of the wall model. These components include
 
-1. `thermal_conductivity.py`. Simple lookup of thermal conductivities based on the material name.
-2. `thermal_profile.py`. A calculation of the temperature for all wall layers in a segment as well 
+1. [`thermal_conductivity.py`](https://github.com/mrsonne/hubit/tree/master/examples/wall/components/thermal_conductivity.py). Simple lookup of thermal conductivities based on the material name.
+2. [`thermal_profile.py`](https://github.com/mrsonne/hubit/tree/master/examples/wall/components/thermal_profile.py). A calculation of the temperature for all wall layers in a segment as well 
 as the heat flux in the segment. We assume one-dimensional heat flow, and thus each segment can be treated independently.
-3. `heat_flow.py`. Calculates the heat flow through a segment.
-4. `heat_transfer_number.py`. Calculates the overall heat transfer number and wall energy classification. The wall energy classification ranges from A to D where A indicates the most insulating wall (best) and D indicates the least insulating wall (worst).
+3. [`heat_flow.py`](https://github.com/mrsonne/hubit/tree/master/examples/wall/components/heat_flow.py). Calculates the heat flow through a segment.
+4. [`heat_transfer_number.py`](https://github.com/mrsonne/hubit/tree/master/examples/wall/components/heat_transfer_number.py). Calculates the overall heat transfer number and wall energy classification. The wall energy classification ranges from A to D where A indicates the most insulating wall (best) and D indicates the least insulating wall (worst).
 
 Many (all) of the components could have been joined in a single component, but here they are kept as  separate components to increase modularity, to assure that any query only spawns a minimum of calculations and to maximize the potential speed-up obtained by multi-processing.
 
 The wall cost is calculated by the two components below
 
-5. `segment_cost.py`. Calculates wall segment cost. In the code notice how segments with type 'window' are handled differently compared to other segments types.
-6. `total_cost.py`. Calculates wall total cost.
+5. [`segment_cost.py`](https://github.com/mrsonne/hubit/tree/master/examples/wall/components/segment_cost.py). Calculates wall segment cost. In the code notice how segments with type 'window' are handled differently compared to other segments types.
+6. [`total_cost.py`](https://github.com/mrsonne/hubit/tree/master/examples/wall/components/total_cost.py). Calculates wall total cost.
 
 To support the cost calculations two extra engineering components are included
 
-7. `volume.py`. Calculates the volume of wall layers. 
-8. `weight.py`. Calculates the weight of wall layers.
+7. [`volume.py`](https://github.com/mrsonne/hubit/tree/master/examples/wall/components/volume.py). Calculates the volume of wall layers. 
+8. [`weight.py`](https://github.com/mrsonne/hubit/tree/master/examples/wall/components/weight.py). Calculates the weight of wall layers.
 
-#### Call graph & multi-processing
+### Call graph & multi-processing
 
-`hubit` is event-driven and components are spawned dynamically. The bindings that are used to set up the relations between components are defined in `model.yml`
+`Hubit` is event-driven and components are spawned dynamically. The bindings that are used to set up the relations between components are defined in `model.yml`
 
 To illustrate the cascade of events that spawn the necessary calculations let us consider a query for the wall `total_cost`. In the model file the total cost is _provided_ by `total_cost.py`. 
 

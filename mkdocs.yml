@@ -1,4 +1,5 @@
 site_name: Hubit Docs
+use_directory_urls: false
 
 theme:
   name: "material"
@@ -24,7 +25,11 @@ plugins:
 
 nav:
     - First steps: index.md
-    - Examples: examples.md
+    - Examples: 
+        - Summary: examples.md
+        - Car: example-car.md
+        - Wall: example-wall.md
+        - Tanks: example-tanks.md
     - Code Reference:
         - Hubit: hubit-reference.md
         - Config & data: config-reference.md

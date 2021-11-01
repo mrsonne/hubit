@@ -1,4 +1,4 @@
-# Cascading tanks
+# Connected tanks
 
 This example shows how to set up models where one compartment (cell, element) consumes a result of an upstream compartment (cell, element). In the example, a liquid flows from one tank to the next and encompass two similar tanks models `model_1.yml` and `model_2.yml`. The former illustrates explicit linking of the tanks which is useful for unstructured problems while the latter shows a linking pattern useful for structured problems. Notice that all the model components presented below share the same entrypoint function even though the configurations are quite different. This highlights the powerful separation of implementation and configuration in `Hubit`.
 

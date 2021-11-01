@@ -1,4 +1,4 @@
-# Calculations for a wall
+# Heat flow through a wall
 
 In this example we consider a wall that consists of three segments as shown in the illustration below. 
 
@@ -170,7 +170,7 @@ All the results that were used to process the query can be accessed using `hmode
 ## Example calculations
 The purpose of the examples are summarized below. To run an example using the `hubit` source code run the example script from the project root e.g. `python3 -m examples.wall.run_queries`. In some of the examples you can toggle the multi-processing flag to see the performance difference with and without multi-processing. The performance change obtained by activating multi-processing depends on the time spent in the components. You can try to adjust the sleep time in `thermal_conductivity.py` and `thermal_profile.py`.
 
-### `render.py` 
+### Rending the model
 To get a graphical overview of a `hubit` model the model can be rendered **if Graphviz is installed**. The rendition of the wall model is shown below  
 
 <img src="https://github.com/mrsonne/hubit/blob/develop/examples/wall/images/model_wall.png" width="1000">
@@ -179,23 +179,21 @@ To get a graphical overview of a `hubit` model the model can be rendered **if Gr
 
 <img src="https://github.com/mrsonne/hubit/blob/develop/examples/wall/images/query_wall.png" width="1000">
 
-Notice how the graph representing the query only includes a subset of all the model components. When a query is rendered only the relevant components for that particular query are shown. 
+Notice how the graph representing the query only includes a subset of all the model components. When a query is rendered only the relevant components for that particular query are shown. The example code can be found in `examples/wall/render.py`.
 
-### `run_queries.py`
-This example runs various queries. First the queries are submitted individually, which causes redundant calculations. Second, all the queries are submitted together in which case `hubit` will assure that the same result is not calculate multiple times.
+### Queries 
+This example runs various queries. First the queries are submitted individually, which causes redundant calculations. Second, all the queries are submitted together in which case `Hubit` will assure that the same result is not calculate multiple times. An example is shown in `examples/wall/run_queries.py`.
 
-### `run_precompute.py` 
-After completing a query the `hubit` model instance will store the results. If a new query is submitted using the same model and the `reuse_results` flag is set to `True`, `hubit` will use the cached results instead of re-calculating them i.e. `hubit` will bypass the components that provide the cached results. For example, if the layer costs are queried first followed by a query for the wall total cost, which consumes the layer cost, the layer cost will not be calculated in the second query.
+### Re-using old results 
+After completing a query the `Hubit` model instance will store the results. If a new query is submitted using the same model and the `reuse_results` flag is set to `True`, `Hubit` will use the cached results instead of re-calculating them i.e. `Hubit` will bypass the components that provide the cached results. For example, if the layer costs are queried first followed by a query for the wall total cost, which consumes the layer cost, the layer cost will not be calculated in the second query. An example is shown in `examples/wall/run_precompute.py`.
 
-The results can be retrieved using the `get_results()` method on the `hubit` model instance and can then be saved to disk or otherwise persisted.
+The results can be retrieved using the `get_results()` method on the `hubit` model instance and can then be saved to disk or otherwise persisted. 
 
-### `run_set_results.py` 
-Results can be manually set on the model using the `set_results()` method on a `hubit` model instance. In subsequent queries `hubit` will then omit re-calculating the results that have been set, thus bypassing the corresponding providers. The values that are manually set could represent some new measurements that you want to see the effect of when propagated in through the remaining components downstream of the component that is bypassed. The values could also represent persisted results that you want to augment with additional results or analyses without running the entire model again. 
+### Manually set results 
+Results can be manually set on the model using the `set_results()` method on a `hubit` model instance. In subsequent queries `hubit` will then omit re-calculating the results that have been set, thus bypassing the corresponding providers. The values that are manually set could represent some new measurements that you want to see the effect of when propagated in through the remaining components downstream of the component that is bypassed. The values could also represent persisted results that you want to augment with additional results or analyses without running the entire model again. An example is shown in `examples/wall/run_set_results.py`.
 
-### `run_sweep.py` 
-`hubit` can sweep over different values of the input attributes. The example shows the energy class and cost for different value of the insulation thickness and for different values of the wall materials. 
-
-For the example sweep the table below summarizes the results.
+### Sweep input parameters 
+`Hubit` can sweep over different values of the input attributes. The example shows the energy class and cost for different value of the insulation thickness and for different values of the wall materials. `examples/wall/run_sweep.py` shows an example sweep which results in the table below
 
 ```
 Wall sweep

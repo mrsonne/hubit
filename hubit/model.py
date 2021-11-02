@@ -725,7 +725,7 @@ class HubitModel:
     def component_for_qpath(self, path: HubitQueryPath) -> HubitModelComponent:
         return self.component_for_id(self._cmpid_for_query(path))
 
-    def mpaths_for_qpath(self, qpath: HubitQueryPath) -> List[HubitModelPath]:
+    def _mpaths_for_qpath(self, qpath: HubitQueryPath) -> List[HubitModelPath]:
         """
         Returns the model paths (with the index scope inserted)
         that match the query.
@@ -768,7 +768,7 @@ class HubitModel:
         # TODO: save component so we dont have to find top level components again
         """
         # Get all model paths that match the query
-        mpaths = self.mpaths_for_qpath(qpath)
+        mpaths = self._mpaths_for_qpath(qpath)
 
         # Prepare query expansion object
         qexp = _QueryExpansion(qpath, mpaths)

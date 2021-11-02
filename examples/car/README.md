@@ -113,14 +113,14 @@ consumes_input:
     path: cars[IDX_CAR].parts[:@IDX_PART].count
 ```
 
-Read more about [paths][hubit.config.HubitModelPath], [index specifiers][hubit.config.HubitModelPath] and index identifiers in the documentation.
+Read more about [paths][hubit.config.HubitModelPath], [index specifiers][hubit.config.ModelIndexSpecifier] and index identifiers in the documentation.
 
 ### Tips on refactoring
 
 The flexibility of the `Hubit` binding paths allows you to match the interfaces of your existing tools. Further, this flexibility enables you to refactor to get good modularity and optimize for speed when multi-processing is used. Below we will show three versions of the car model and outline some key differences when multi-processing is used.
 
-#### Car model 0 (`model0.yml`)
-In car model 0 the price calculation receives an entire car object at a specific car index (`IDX_CAR`). This allows the component to store results data on the corresponding car index in the results data object that `Hubit` creates. 
+#### Car model 0
+In [`model0.yml`](https://github.com/mrsonne/hubit/blob/master/examples/car/model0.yml) the price calculation receives an entire car object at a specific car index (`IDX_CAR`). This allows the component to store results data on the corresponding car index in the results data object that `Hubit` creates. 
 
 ```yaml
 provides_results: 
@@ -146,11 +146,11 @@ This model allows queries such as `cars[:].price` and `cars[1].price`. If car ob
 
 Notice how the `parts` list and the `count` and `name` attributes are accessed directly on the car object leading to a tight coupling.
 
-#### Car model 1 (`model1.yml`)
-Model 1 is the one described above model 0 where the car price is calculated in a single component i.e. in a single worker process. Such an approach works well if the lookup of parts prices is fast and the car price calculation is also fast. If, however, the lookup is fast while the car price calculation is slow, and we imagine that another component is also consuming the parts prices, then the car price calculation would be a bottleneck. In such cases, separating the lookup from the price calculation would probably boost performance. Models 2 and 3 present two different ways of implementing such a separation.
+#### Car model 1
+[`model1.yml`](https://github.com/mrsonne/hubit/blob/master/examples/car/model1.yml) is the one described above model 0 where the car price is calculated in a single component i.e. in a single worker process. Such an approach works well if the lookup of parts prices is fast and the car price calculation is also fast. If, however, the lookup is fast while the car price calculation is slow, and we imagine that another component is also consuming the parts prices, then the car price calculation would be a bottleneck. In such cases, separating the lookup from the price calculation would probably boost performance. Models 2 and 3 present two different ways of implementing such a separation.
 
-#### Car model 2 (`model2.yml`)
-In this version of the model the parts price lookup and the car price calculation are implemented in two separate components. Further, the component that is responsible for the price lookup retrieves the price for one part only. In other words, each lookup will happen in a separate (optionally asynchronous) worker process. When all the lookup processes are done, the price component sums the parts prices to get the total car price. The relevant sections of the model file could look like this
+#### Car model 2 
+In [`model2.yml`](https://github.com/mrsonne/hubit/blob/master/examples/car/model2.yml) the parts price lookup and the car price calculation are implemented in two separate components. Further, the component that is responsible for the price lookup retrieves the price for one part only. In other words, each lookup will happen in a separate (optionally asynchronous) worker process. When all the lookup processes are done, the price component sums the parts prices to get the total car price. The relevant sections of the model file could look like this
 
 ```yaml
 # price for one part
@@ -190,8 +190,8 @@ def car_price(_input_consumed, results_provided):
 
 In this refactored model `Hubit` will, when submitting a query for the car price using the multi-processor flag, execute each part price calculation in a separate asynchronous worker process. If the part price lookup is fast, the overhead introduced by multi-processing may be render model 2 less attractive. In such cases performing all the lookups in a single component, but still keeping the lookup separate from the car price calculation, as shown in car model 3, could be a good solution.
 
-#### Car model 3 (`model3.yml`)
-In this version of the car model all price lookups take place in one single component and the car price calculation takes place in another component. For the lookup component, the relevant sections of the model file could look like this
+#### Car model 3
+In [`model3.yml`](https://github.com/mrsonne/hubit/blob/master/examples/car/model3.yml) all price lookups take place in one single component and the car price calculation takes place in another component. For the lookup component, the relevant sections of the model file could look like this
 
 ```yaml
 # price for all parts
@@ -339,10 +339,10 @@ Query finish time    Query took (s)        Worker name        Workers spawned Co
 
 The second run (top) using the cache is much faster than the first run (bottom) that spawns 17 workers to complete the query. 
 
-The model cache can be cleared using the [`clear_cache`][hubit.model.HubitModel.clear_cache]  method on a `Hubit` model. To check if a model has an associated cached result use [`has_cached_results`][hubit.model.HubitModel.has_cached_results] method on a `Hubit` model. Cached results for all models can be cleared by using [`hubit.clear_hubit_cache`][hubit.__init__.clear_hubit_cache].
+The model cache can be cleared using the [`clear_cache`][hubit.model.HubitModel.clear_cache]  method on a `Hubit` model. To check if a model has an associated cached result use [`has_cached_results`][hubit.model.HubitModel.has_cached_results] method on a `Hubit` model. Cached results for all models can be cleared by using [`hubit.clear_hubit_cache()`][hubit.__init__.clear_hubit_cache].
 
 ### Component-level caching 
-Component-level caching can be activated using [set_component_caching][hubit.model.HubitModel.set_component_caching]. By default component-level caching is off. If component-level caching is on, the consumed data for all spawned component workers and the corresponding results will be stored in memory during execution of a query. If `Hubit` finds that, in the same query, two workers refer to the same model component and the input data are identical, the second worker will simply use the results produced by the first worker. The cache is not shared between sequential queries to a model. Also, the component-level cache is not shared between the individual sampling runs using ['get_many'][hubit.model.HubitModel.get_many].
+Component-level caching can be activated using [set_component_caching][hubit.model.HubitModel.set_component_caching]. By default component-level caching is off. If component-level caching is on, the consumed data for all spawned component workers and the corresponding results will be stored in memory during execution of a query. If `Hubit` finds that, in the same query, two workers refer to the same model component and the input data are identical, the second worker will simply use the results produced by the first worker. The cache is not shared between sequential queries to a model. Also, the component-level cache is not shared between the individual sampling runs using [`get_many`][hubit.model.HubitModel.get_many] method.
 
 The table below comes from printing the log after running car model 2 with and without component-level caching
 

@@ -54,7 +54,7 @@ answer = input(
 )
 if answer == confirm_deploy:
     # Tag and push
-    subprocess.run(["git", "tag", VERSION])
+    subprocess.run(["git", "tag", "-a", VERSION, "-m", f"'Version: {VERSION}'"])
     subprocess.run(["git", "push", "origin", VERSION])
 else:
     print("Not tagged, not deployed.")

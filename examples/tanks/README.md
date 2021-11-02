@@ -5,7 +5,14 @@ This example shows how to set up models where one compartment (cell, element) co
 ## Unstructured compartments - explicit indexing (`model_1.yml`)
 In this example liquid flows into tank 1 with rate `Q_in,1`. In tank 1 some process takes place and the yield rate is `Q_yield,1`. Tank 2 is similar to tank 1 only the yield rate is `Q_yield,2`. The two yield streams are mixed in tank 3 where another process takes place with yield `Q_yield,3`. The entire process is schematically illustrated below
 
-```                           
+<!-- Fixes width ssue for some characters in ascii drawing -->
+<style>
+code {
+  font-family: "var(--md-code-font-family,_)",SFMono-Regular,Consolas,Menlo,monospace;
+}
+</style>
+
+```
            ║  Q_in,1                ║ Q_in,2                         
            ║                        ║     
         ┌──║───────┐          ┌─────║──┐         
@@ -28,8 +35,8 @@ Q_spill,1 ║            ║    ║          ║ Q_spill,2
                       ╔═╩════╗                                     
            Q_spill,3  ║      ║  Q_yield,3
                       ˅      ˅
-                                                                                 
 ```
+
 
 For simplicity, the yields are determined from a predefined yield fraction parameter i.e. `Q_yield = yield_fraction * Q_in`. 
 

@@ -9,8 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.4.0] - 2021-11-01
 ### Changed
 - Entrypoint functions now accept only two arguments namely `_input_consumed` and `results_provided`. Previously three arguments were expected: `_input_consumed`, `_results_consumed` and `results_provided`. Now `_results_consumed` is simply included in `_input_consumed`. The changes renders entrypoint functions agnostic to the origin of their input.
+- The component list in the model configuration file must now sit under a key named"components".
 - The format for cache files stored in the folder `.hubit_cache` has changed. To convert old cache files see the example code below. Alternatively, clear the `Hubit` cache using the function `hubit.clear_hubit_cache()`.
-- Improved model validation.
 - Hyphen is no longer an allowed character for index identifiers. For example this model path is no longer valid `segments[IDX_SEG].layers[IDX-LAY]`.
 
 The example code below converts the cache file `old.yml` to `new.yml`. The file name `old.yml` will, more realistically, be named something like `a70300027991e56db5e3b91acf8b68a5.yml`.
@@ -44,6 +44,8 @@ All files in the Hubit cache folder `.hubit_cache` should be converted if you wa
 - Improved performance for cases 
     - where only some branches in the input data tree are consumed, and 
     - where branches are not consumed all the way to the leaves.
+- Improved model validation.
+- Improved documentation for model configuration file format.
 
 ### Fixed
 - Fix broken example (`examples/wall/run_precompute.py`)

@@ -3,7 +3,7 @@
 {% block header %}
 {{ super() }}
 <p style="color:RGBA(0,0,0,.3); font-size: 10px; padding-left: 10px">
-    Version {{config.extra.version}}. Page built on {{ build_date_utc.strftime("%b %d %Y %Z") }}
+    Page built on {{ build_date_utc.strftime("%b %d %Y %Z") }} for version {{config.extra.version}}.
 </p>
 {% endblock %}
 

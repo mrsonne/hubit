@@ -5,6 +5,7 @@ the code will be tagged and pushed and consequently deployed by the CI/CD pipeli
 from hubit import VERSION
 import re
 import subprocess
+import yaml
 
 allowed_branch = "master"
 
@@ -38,9 +39,17 @@ with open("CHANGELOG.md", "r") as stream:
 # Get the version from the changelog and see if it matches the package version
 versions = re.findall(r"\[(?:(\d+\.(?:\d+\.)*\d+))\]", text)
 newest_version = versions[0]
+
 assert (
     newest_version == VERSION
 ), f"Version mismatch: package version is {VERSION} but 'CHANGELOG.md' version is {newest_version}"
+
+with open("mkdocs.yml", "r") as fhandle:
+    docs_version = yaml.load(fhandle, Loader=yaml.SafeLoader)["extra"]["version"]
+
+assert (
+    docs_version == VERSION
+), f"Version mismatch: package version is {VERSION} but 'mkdocs.yml' version is {docs_version}"
 
 # Make sure the Unreleased section does not appear
 assert (

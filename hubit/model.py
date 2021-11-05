@@ -185,8 +185,6 @@ class HubitModel:
         if os.path.isabs(output_path):
             raise HubitError("Output path should be relative")
 
-        # TODO: NOT USED
-        self.ilocstr = "_IDX"
         self.model_cfg = model_cfg
 
         # Stores length tree. Filled when set_input() is called

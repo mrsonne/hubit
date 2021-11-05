@@ -4,6 +4,7 @@
 [![Version](https://img.shields.io/pypi/v/hubit.svg)](https://pypi.python.org/pypi/hubit/)
 [![Python versions](https://img.shields.io/pypi/pyversions/hubit.svg)](https://pypi.python.org/pypi/hubit/)
 [![Docs](https://github.com/mrsonne/hubit/actions/workflows/docs.yml/badge.svg)](https://github.com/mrsonne/hubit/actions/workflows/docs.yml)
+[![CI/CD](https://img.shields.io/badge/Travis-file-blue)](https://github.com/mrsonne/hubit/blob/master/.travis.yml)
 
 # hubit - a calculation hub  
 

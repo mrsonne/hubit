@@ -1,7 +1,7 @@
 from __future__ import annotations
 from hubit.utils import is_digit
 import os
-import pickle
+import json
 import hashlib
 import logging
 import multiprocessing
@@ -11,6 +11,7 @@ from typing import Any, Callable, Dict, Set, TYPE_CHECKING, List, Optional, Unio
 from .config import HubitBinding, HubitQueryPath, ModelIndexSpecifier
 from .tree import LengthTree
 from .utils import traverse, reshape, ReadOnlyDict
+from operator import itemgetter
 
 from .errors import HubitError, HubitWorkerError
 
@@ -496,13 +497,13 @@ class _Worker:
         """results_ids based on input and function only"""
         return hashlib.md5(
             # f'{self.inputval_for_name}_{id(self.func)}'.encode('utf-8')
-            pickle.dumps(
+            json.dumps(
                 [
-                    sorted((k, v) for k, v in self.inputval_for_name.items()),
-                    self.component.path,
+                    sorted(self.inputval_for_name.items(), key=itemgetter(0)),
+                    str(self.component.path),
                     self.func.__name__,
                 ]
-            )
+            ).encode()
         ).hexdigest()
 
     def set_results_id(self, results_ids: List[str]) -> str:

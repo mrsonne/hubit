@@ -96,7 +96,7 @@ class TestWorker(unittest.TestCase):
         version = None
         cfg = {
             "path": "dummy",
-            "func_name": "dummy",
+            "func_name": "dummy_fun",
             "provides_results": [
                 {
                     "name": "attrs1",
@@ -144,7 +144,7 @@ class TestWorker(unittest.TestCase):
     def test_set_results_id(self):
         w = TestWorker._make_worker()
         result = w.set_results_id(["A", "B", "C"])
-        expected_result = "4c7f0ae2b3bfc5d82fe15990359530ef"
+        expected_result = "9fe92bbe331cb58741ebc0256f3eb32c"
         assert result == expected_result
 
     def test_4(self):

@@ -22,6 +22,7 @@ stages:
 branches:
   only:
     - master
+    - \d+\.\d+\.\d+
 jobs:
   include:
   - stage: test

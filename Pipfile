@@ -10,6 +10,7 @@ hubit = {editable = true, extras = ["dev"], path = "."}
 hubit = {editable = true, path = "."}
 mypy = "*"
 types-pyyaml = "*"
+typing-extensions = "*"
 
 [requires]
 python_version = "3.8"

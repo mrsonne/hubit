@@ -12,6 +12,10 @@ from hubit.config import (
 from hubit.errors import HubitWorkerError
 
 
+def dummy_function():
+    pass
+
+
 class TestWorker(unittest.TestCase):
     def setUp(self):
         pass
@@ -88,7 +92,7 @@ class TestWorker(unittest.TestCase):
         qrunner._set_worker_working
         qrunner.check_cache.return_value = None
         cname = None
-        func = None
+        func = dummy_function
         version = None
         cfg = {
             "path": "dummy",
@@ -140,7 +144,7 @@ class TestWorker(unittest.TestCase):
     def test_set_results_id(self):
         w = TestWorker._make_worker()
         result = w.set_results_id(["A", "B", "C"])
-        expected_result = "5733e2da782c95b14ff6b84ee922884d"
+        expected_result = "53faa411e72f7fc8fe6accd8b689ba72"
         assert result == expected_result
 
     def test_4(self):

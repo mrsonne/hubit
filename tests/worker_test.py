@@ -144,7 +144,7 @@ class TestWorker(unittest.TestCase):
     def test_set_results_id(self):
         w = TestWorker._make_worker()
         result = w.set_results_id(["A", "B", "C"])
-        expected_result = "53faa411e72f7fc8fe6accd8b689ba72"
+        expected_result = "4c7f0ae2b3bfc5d82fe15990359530ef"
         assert result == expected_result
 
     def test_4(self):

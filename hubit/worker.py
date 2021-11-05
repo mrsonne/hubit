@@ -497,7 +497,11 @@ class _Worker:
         return hashlib.md5(
             # f'{self.inputval_for_name}_{id(self.func)}'.encode('utf-8')
             pickle.dumps(
-                [self.inputval_for_name, self.component.path, self.func.__name__]
+                [
+                    sorted(self.inputval_for_name),
+                    self.component.path,
+                    self.func.__name__,
+                ]
             )
         ).hexdigest()
 

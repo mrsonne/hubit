@@ -13,6 +13,7 @@ script:
 - coverage report -m
 - black --version
 - black --check .
+- mypy --version
 - mypy hubit
 after_success: coveralls
 stages:

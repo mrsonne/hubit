@@ -30,7 +30,7 @@ Executing a fixed call graph is faster than executing the dynamically created ca
 
 ## Teaser
 
-The example below is taken from the [in-depth tutorial](https://mrsonne.github.io/hubit/examples/), in the documentation.
+The example below is taken from the [in-depth tutorial](https://mrsonne.github.io/hubit/example-car.html), in the documentation.
 
 To get results from a `Hubit` model requires you to submit a _query_, which tells `Hubit` what attributes from the results data structure you want to have calculated. After `Hubit` has processed the query, i.e. executed relevant components, the values of the queried attributes are returned in the _response_.
 
@@ -69,8 +69,12 @@ response = hmodel.get(query)
 and the corresponding response is
 
 ```python
-{'cars[:].parts[:].price': [[480.0, 1234.0, 178.0, 2343.0, 45.0],
-                            [312.0, 1120.0, 178.0, 3400.0]],
+{
+  'cars[:].parts[:].price': [
+    [480.0, 1234.0, 178.0, 2343.0, 45.0],
+    [312.0, 1120.0, 178.0, 3400.0]
+  ]
+}
 ```
 
 From the response we can see the prices for the five parts that comprise the first car and the prices for the four parts that comprise the second car. The full example illustrates how a second calculation component can be used to calculate the total price for each car.

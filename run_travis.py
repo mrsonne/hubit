@@ -14,4 +14,4 @@ steps.extend(extra_steps)
 nsteps = len(steps)
 for istep, step in enumerate(steps, 1):
     logging.info(f"Running step {istep} of {nsteps}: {step}")
-    subprocess.run(step, shell=True)
+    subprocess.run(step, shell=True, check=True)

@@ -1,5 +1,6 @@
 from __future__ import annotations
 import copy
+from importlib.machinery import ModuleSpec
 from importlib.util import spec_from_file_location, module_from_spec
 from importlib.abc import Loader
 import importlib
@@ -34,6 +35,7 @@ class ModuleInterface(ModuleType):
 def module_from_path(module_name: str, file_path: str) -> ModuleInterface:
     spec = spec_from_file_location(module_name, file_path)
     # https://github.com/python/typeshed/issues/2793
+    assert isinstance(spec, ModuleSpec)
     assert isinstance(spec.loader, Loader)
     module = module_from_spec(spec)
     sys.modules[spec.name] = module

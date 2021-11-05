@@ -498,7 +498,7 @@ class _Worker:
             # f'{self.inputval_for_name}_{id(self.func)}'.encode('utf-8')
             pickle.dumps(
                 [
-                    sorted(self.inputval_for_name),
+                    sorted((k, v) for k, v in self.inputval_for_name.items()),
                     self.component.path,
                     self.func.__name__,
                 ]

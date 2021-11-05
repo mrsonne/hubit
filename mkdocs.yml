@@ -1,7 +1,9 @@
 site_name: Hubit Docs
+use_directory_urls: false
 
 theme:
   name: "material"
+  custom_dir: docs/custom_theme/
 
 markdown_extensions:
   - pymdownx.highlight
@@ -24,12 +26,16 @@ plugins:
 
 nav:
     - First steps: index.md
-    - Examples: examples.md
+    - Examples: 
+        - Summary: examples.md
+        - Car: example-car.md
+        - Wall: example-wall.md
+        - Tanks: example-tanks.md
     - Code Reference:
         - Hubit: hubit-reference.md
         - Config & data: config-reference.md
         - Log: log-reference.md
     - Change log: changelog.md
 
-# extra:
-#   version: 0.3.0
+extra:
+  version: 0.4.0

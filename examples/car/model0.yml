@@ -1,0 +1,8 @@
+components:
+  - path: ./components/mod0_cmp1.py 
+    provides_results: 
+      - name: car_price
+        path: cars[IDX_CAR].price
+    consumes_input:
+        - name: car
+          path: cars[IDX_CAR]

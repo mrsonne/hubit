@@ -13,7 +13,7 @@ script:
 - coverage report -m
 - black --version
 - black --check .
-- mypy hubit/model.py hubit/config.py
+- mypy hubit
 after_success: coveralls
 stages:
 - test

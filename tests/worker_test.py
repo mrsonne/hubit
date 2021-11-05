@@ -1,15 +1,20 @@
 import unittest
 from unittest.mock import Mock
 import yaml
-from hubit import shared
+from hubit.tree import DummyLengthTree, tree_for_idxcontext, LengthNode, LengthTree
 from hubit.worker import _Worker
-from hubit.config import HubitModelComponent, HubitBinding, HubitModelPath
+from hubit.config import (
+    HubitModelComponent,
+    HubitBinding,
+    HubitModelPath,
+    HubitQueryPath,
+)
 from hubit.errors import HubitWorkerError
 
 
 class TestWorker(unittest.TestCase):
     def setUp(self):
-        self.manager = None
+        pass
 
     def test_1(self):
         """
@@ -27,15 +32,14 @@ class TestWorker(unittest.TestCase):
             ],
             "consumes_input": [{"name": "attr", "path": "shared.input.attr.path"}],
         }
-        component = HubitModelComponent.from_cfg(cfg)
+        component = HubitModelComponent.from_cfg(cfg, 0)
 
         # No index IDs in model
-        tree = shared.DummyLengthTree()
+        tree = DummyLengthTree()
 
-        querystring = "shared.attr.path"
+        querystring = HubitQueryPath("shared.attr.path")
         with self.assertRaises(HubitWorkerError) as context:
             w = _Worker(
-                self.manager,
                 qrunner,
                 component,
                 querystring,
@@ -61,15 +65,14 @@ class TestWorker(unittest.TestCase):
             ],
             "consumes_input": [{"name": "attr", "path": "shared.input.attr.path"}],
         }
-        component = HubitModelComponent.from_cfg(cfg)
+        component = HubitModelComponent.from_cfg(cfg, 0)
 
         # No index IDs in model
-        tree_for_idxcontext = {"": shared.DummyLengthTree()}
+        tree_for_idxcontext = {"": DummyLengthTree()}
 
         # Query something known to exist
-        querystring = component.provides_results[0].path
+        querystring = HubitQueryPath(component.provides_results[0].path)
         w = _Worker(
-            self.manager,
             qrunner,
             component,
             querystring,
@@ -79,13 +82,7 @@ class TestWorker(unittest.TestCase):
             dryrun=True,
         )
 
-    def test_4(self):
-        """
-        Adding required data to worker stepwise to see that it
-        starts working when all expected consumptions are present
-
-        TODO: split in multiple tests
-        """
+    def _make_worker():
         qrunner = Mock()
         qrunner._set_worker
         qrunner._set_worker_working
@@ -114,7 +111,7 @@ class TestWorker(unittest.TestCase):
                 {"name": "dependency2", "path": "items_outer[:@IDX_OUTER].value"},
             ],
         }
-        component = HubitModelComponent.from_cfg(cfg)
+        component = HubitModelComponent.from_cfg(cfg, 0)
 
         # Required for shape inference. TODO: change when shapes are defined in model
         inputdata = {
@@ -125,30 +122,55 @@ class TestWorker(unittest.TestCase):
             "some_number": 33,
         }
 
-        querystring = "items_outer.1.attr.items_inner.0.path1"
-        tree_for_idxcontext = shared.tree_for_idxcontext([component], inputdata)
+        querystring = HubitQueryPath("items_outer[1].attr.items_inner[0].path1")
+        _tree_for_idxcontext = tree_for_idxcontext([component], inputdata)
 
         w = _Worker(
-            self.manager,
             qrunner,
             component,
             querystring,
             func,
             version,
-            tree_for_idxcontext,
+            _tree_for_idxcontext,
             dryrun=True,  # Use dryrun to easily predict the result
         )
 
+        return w
+
+    def test_set_results_id(self):
+        w = TestWorker._make_worker()
+        result = w.set_results_id(["A", "B", "C"])
+        expected_result = "5733e2da782c95b14ff6b84ee922884d"
+        assert result == expected_result
+
+    def test_4(self):
+        """
+        Adding required data to worker stepwise to see that it
+        starts working when all expected consumptions are present
+
+        TODO: split in multiple tests
+        """
+        w = TestWorker._make_worker()
         # Set current consumed input and results to nothing so we can fill manually
         w.set_values({}, {})
 
+        # input_values = {
+        #     "some_number": 64.0,
+        #     "items_outer.0.attr.items_inner.0.path": 17.0,
+        #     "items_outer.0.attr.items_inner.1.path": 18.0,
+        #     "items_outer.1.attr.items_inner.0.path": 19.0,
+        #     "items_outer.1.attr.items_inner.1.path": 20.0,
+        # }
+
         input_values = {
             "some_number": 64.0,
-            "items_outer.0.attr.items_inner.0.path": 17.0,
-            "items_outer.0.attr.items_inner.1.path": 18.0,
-            "items_outer.1.attr.items_inner.0.path": 19.0,
-            "items_outer.1.attr.items_inner.1.path": 20.0,
+            "items_outer[0].attr.items_inner[0].path": 17.0,
+            "items_outer[0].attr.items_inner[1].path": 18.0,
+            "items_outer[1].attr.items_inner[0].path": 19.0,
+            "items_outer[1].attr.items_inner[1].path": 20.0,
         }
+
+        input_values = {HubitQueryPath(key): val for key, val in input_values.items()}
 
         # Local version of worker input paths pending
         pending_input_paths = list(input_values.keys())
@@ -171,10 +193,16 @@ class TestWorker(unittest.TestCase):
             # Worker should not be ready to work since consumed results are missing
             itests_ready_to_work.append(w.is_ready_to_work() == False)
 
+        # results_values = {
+        #     "value": 11.0,
+        #     "items_outer.1.value": 71.0,
+        #     "items_outer.0.value": 49.0,
+        # }
+
         results_values = {
             "value": 11.0,
-            "items_outer.1.value": 71.0,
-            "items_outer.0.value": 49.0,
+            "items_outer[1].value": 71.0,
+            "items_outer[0].value": 49.0,
         }
 
         pending_results_paths = list(results_values.keys())
@@ -195,6 +223,9 @@ class TestWorker(unittest.TestCase):
             rtests_ready_to_work.append(
                 w.is_ready_to_work() == (len(pending_results_paths) == 0)
             )
+
+        print("WWW", w.pending_results_paths, pending_results_paths)
+        print("WWW", w.pending_input_paths, pending_input_paths)
 
         # After adding last attribute the worker starts running (sequentially)
         self.assertTrue(w.results_ready())
@@ -225,29 +256,30 @@ class TestWorker(unittest.TestCase):
                 - name: material
                   path: segments[IDX_SEG].layers[:@IDX_LAY].material
         """
-        component = HubitModelComponent.from_cfg(yaml.load(cfg, Loader=yaml.FullLoader))
+        component = HubitModelComponent.from_cfg(
+            yaml.load(cfg, Loader=yaml.FullLoader), 0
+        )
 
         # Query something known to exist
-        querystr = "segments[0].layers[0].k_therm"
+        querystr = HubitQueryPath("segments[0].layers[0].k_therm")
 
-        seg_node = shared.LengthNode(2)
-        lay_nodes = shared.LengthNode(2), shared.LengthNode(2)
+        seg_node = LengthNode(2)
+        lay_nodes = LengthNode(2), LengthNode(2)
         seg_node.set_children(lay_nodes)
         nodes = [seg_node]
         nodes.extend(lay_nodes)
         level_names = "IDX_SEG", "IDX_LAY"
-        tree = shared.LengthTree(nodes, level_names)
-        tree_for_idxcontext = {tree.get_idx_context(): tree}
+        tree = LengthTree(nodes, level_names)
+        _tree_for_idxcontext = {tree.get_idx_context(): tree}
 
-        querystr = HubitModelPath.as_internal(querystr)
+        querystr = HubitQueryPath(querystr)
         w = _Worker(
-            self.manager,
             qrunner,
             component,
             querystr,
             func,
             version,
-            tree_for_idxcontext,
+            _tree_for_idxcontext,
             dryrun=True,
         )
 
@@ -267,13 +299,46 @@ class TestWorker(unittest.TestCase):
                 }
             )
         ]
-        querystring = "segments[0].layers[0].k_therm"
+        querystring = HubitQueryPath("segments[0].layers[0].k_therm")
         path_for_name, _ = _Worker.get_bindings(bindings, querystring)
         # This is what will be provided for the query: The attribute 'k_therm'
         # for all layers for the specific index ID _IDX=0
         # expected_path_for_name = {"k_therm": "segments.0.layers.:.k_therm"}
-        expected_path_for_name = {"k_therm": "segments[0].layers[:@IDX_LAY].k_therm"}
+        expected_path_for_name = {
+            "k_therm": HubitModelPath("segments[0@IDX_SEG].layers[:@IDX_LAY].k_therm")
+        }
         self.assertDictEqual(expected_path_for_name, path_for_name)
+        self.assertTrue(
+            all([type(item) == HubitModelPath for item in path_for_name.values()])
+        )
+
+    def test_get_bindings(self):
+        """
+        Get bindings for query where model path is fully specified
+        """
+        bindings = [
+            HubitBinding.from_cfg(
+                {
+                    "name": "inflow",
+                    "path": "inlets[0@IDX_INLET].tanks[2@IDX_TANK].inflow",
+                }
+            )
+        ]
+
+        # The query path mathces the model path
+        querypath = HubitQueryPath("inlets[0].tanks[2].inflow")
+        path_for_name, idxval_for_idxid = _Worker.get_bindings(bindings, querypath)
+        expected_idxval_for_idxid = {"IDX_INLET": "0", "IDX_TANK": "2"}
+        self.assertDictEqual(expected_idxval_for_idxid, idxval_for_idxid)
+
+        expected_path_for_name = {
+            "inflow": HubitModelPath("inlets[0@IDX_INLET].tanks[2@IDX_TANK].inflow")
+        }
+        self.assertDictEqual(expected_path_for_name, path_for_name)
+
+        querypath = HubitQueryPath("inlets.1.tanks.2.inflow")
+        with self.assertRaises(HubitWorkerError):
+            _Worker.get_bindings(bindings, querypath)
 
     def test_7(self):
         """Queries should be expanded (location specific)
@@ -287,7 +352,7 @@ class TestWorker(unittest.TestCase):
                 }
             )
         ]
-        querystring = "segments[0].layers[:].k_therm"
+        querystring = HubitQueryPath("segments[0].layers[:].k_therm")
         with self.assertRaises(HubitWorkerError):
             _Worker.get_bindings(provides_results, querystring)
 
@@ -309,28 +374,27 @@ class TestWorker(unittest.TestCase):
                             path: list[:@IDX1].some_attr.factors
                     """
         component = HubitModelComponent.from_cfg(
-            yaml.load(comp_yml, Loader=yaml.FullLoader)
+            yaml.load(comp_yml, Loader=yaml.FullLoader), 0
         )
 
         # Query something known to exist
         querystr = "factors"
-        idx1_node = shared.LengthNode(2)
+        idx1_node = LengthNode(2)
         nodes = [idx1_node]
         level_names = ("IDX1",)
-        tree = shared.LengthTree(nodes, level_names)
-        dummy_tree = shared.DummyLengthTree()
+        tree = LengthTree(nodes, level_names)
+        dummy_tree = DummyLengthTree()
 
-        tree_for_idxcontext = {"": dummy_tree, tree.get_idx_context(): tree}
+        _tree_for_idxcontext = {"": dummy_tree, tree.get_idx_context(): tree}
 
-        querystr = HubitModelPath.as_internal(querystr)
+        querystr = HubitQueryPath(querystr)
         w = _Worker(
-            self.manager,
             qrunner,
             component,
             querystr,
             func,
             version,
-            tree_for_idxcontext,
+            _tree_for_idxcontext,
             dryrun=True,
         )
 
@@ -342,8 +406,13 @@ class TestWorker(unittest.TestCase):
         bindings = [HubitBinding.from_cfg(binding) for binding in bindings]
         idxval_for_idxid = {"IDX_SEG": "3"}
         path_for_name = _Worker.bindings_from_idxs(bindings, idxval_for_idxid)
-        expected_path_for_name = {"heat_flux": "segments[3].heat_flux"}
+        expected_path_for_name = {
+            "heat_flux": HubitModelPath("segments[3@IDX_SEG].heat_flux")
+        }
         self.assertDictEqual(path_for_name, expected_path_for_name)
+        self.assertTrue(
+            all([type(item) == HubitModelPath for item in path_for_name.values()])
+        )
 
     def test_bindings_from_idxs_1(self):
         """
@@ -362,9 +431,14 @@ class TestWorker(unittest.TestCase):
         idxval_for_idxid = {"IDX_SEG": "0"}
         path_for_name = _Worker.bindings_from_idxs(bindings, idxval_for_idxid)
         expected_path_for_name = {
-            "outer_temperature_all_layers": "segments[0].layers[:@IDX_LAY].outer_temperature"
+            "outer_temperature_all_layers": HubitModelPath(
+                "segments[0@IDX_SEG].layers[:@IDX_LAY].outer_temperature"
+            )
         }
         self.assertDictEqual(path_for_name, expected_path_for_name)
+        self.assertTrue(
+            all([type(item) == HubitModelPath for item in path_for_name.values()])
+        )
 
 
 if __name__ == "__main__":

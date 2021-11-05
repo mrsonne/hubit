@@ -1,4 +1,5 @@
 import logging
+import pprint
 from .utils import get_model, HubitModel
 
 logging.basicConfig(level=logging.INFO)
@@ -42,7 +43,7 @@ def query_with_custom_results(hmodel: HubitModel, use_multi_processing=False) ->
     response = hmodel.get(
         query, use_multi_processing=use_multi_processing, use_results="current"
     )
-    print(response)
+    pprint.pprint(response)
 
 
 if (

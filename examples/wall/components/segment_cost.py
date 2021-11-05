@@ -27,7 +27,7 @@ prices = {
 }
 
 
-def cost(_input_consumed, _results_consumed, results_provided):
+def cost(_input_consumed, results_provided):
     """ """
     if _input_consumed["type"] == "window":
         # A window has a fixed price
@@ -38,7 +38,7 @@ def cost(_input_consumed, _results_consumed, results_provided):
             [
                 weight * prices[material]
                 for weight, material in zip(
-                    _results_consumed["weights"], _input_consumed["materials"]
+                    _input_consumed["weights"], _input_consumed["materials"]
                 )
             ]
         )

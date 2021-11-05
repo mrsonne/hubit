@@ -1,25 +1,22 @@
 from __future__ import annotations
+from hubit.utils import is_digit
 import os
 import pickle
 import hashlib
 import logging
 import multiprocessing
+from multiprocessing.managers import SyncManager
 import copy
-from typing import Callable, Dict, Set, TYPE_CHECKING, List
-from .config import HubitBinding, HubitModelPath
-from .shared import (
-    LengthTree,
-    idxs_for_matches,
-    check_path_match,
-    get_iloc_indices,
-    traverse,
-    reshape,
-)
-from .errors import HubitWorkerError
+from typing import Any, Callable, Dict, Set, TYPE_CHECKING, List, Optional, Union
+from .config import HubitBinding, HubitQueryPath, ModelIndexSpecifier
+from .tree import LengthTree
+from .utils import traverse, reshape, ReadOnlyDict
+
+from .errors import HubitError, HubitWorkerError
 
 if TYPE_CHECKING:
     from .qrun import _QueryRunner
-    from .shared import HubitModelComponent
+    from .config import HubitModelComponent
 
 
 class _Worker:
@@ -29,93 +26,15 @@ class _Worker:
     RESULTS_FROM_CALCULATION_ID = "calculation"
     RESULTS_FROM_UNKNOWN = "unknown"
 
-    @staticmethod
-    def bindings_from_idxs(bindings: List[HubitBinding], idxval_for_idxid) -> Dict:
-        """
-        replace index IDs with the actual indices
-        if idxid from binding path not found in idxval_for_idxid it
-        must correspond to a IDX_WILDCARD in the binding path.
-        IDX_WILDCARD ignored in set_ilocs_on_path. Dealt with in expansion
-
-        Returns path for name
-        """
-        if len(idxval_for_idxid) == 0:
-            return {binding.name: binding.path for binding in bindings}
-        else:
-            return {
-                binding.name: binding.path.set_indices(
-                    [
-                        idxval_for_idxid[idxid] if idxid in idxval_for_idxid else None
-                        for idxid in binding.path.get_index_identifiers()
-                    ],
-                )
-                for binding in bindings
-            }
-
-    @staticmethod
-    def get_bindings(bindings: List[HubitBinding], query_path):
-        """Make symbolic binding specific i.e. replace index IDs
-        with actual indices based on query
-
-        Args:
-            bindings (List[str]): List of bindings
-            query_path (str): Query path
-            idxids: TODO
-
-        Raises:
-            HubitWorkerError: Raised if query does not match any of the bindings
-
-        Returns:
-            [type]: TODO [description]
-        """
-        binding_paths = [binding.path for binding in bindings]
-        # Get indices in binding_paths list that match the query
-        idxs = idxs_for_matches(query_path, binding_paths, accept_idx_wildcard=False)
-        if len(idxs) == 0:
-            fstr = 'Query "{}" did not match attributes provided by worker ({}).'
-            raise HubitWorkerError(fstr.format(query_path, ", ".join(binding_paths)))
-
-        # Get the location indices from query. Using the first binding path that
-        # matched the query suffice
-        idxval_for_idxid = {}
-        for binding in bindings:
-            if check_path_match(query_path, binding.path, accept_idx_wildcard=False):
-                idxids = binding.path.get_index_identifiers()
-                idxs = get_iloc_indices(
-                    HubitModelPath.as_internal(query_path),
-                    HubitModelPath.as_internal(binding.path),
-                    idxids,
-                )
-                idxval_for_idxid.update(dict(zip(idxids, idxs)))
-                break
-
-        path_for_name = _Worker.bindings_from_idxs(bindings, idxval_for_idxid)
-
-        return path_for_name, idxval_for_idxid
-
-    @staticmethod
-    def expand(path_for_name, tree_for_idxcontext, model_path_for_name):
-        paths_for_name = {}
-        for name, path in path_for_name.items():
-            tree = tree_for_idxcontext[model_path_for_name[name].get_idx_context()]
-            pruned_tree = tree.prune_from_path(
-                HubitModelPath.as_internal(path),
-                HubitModelPath.as_internal(model_path_for_name[name]),
-                inplace=False,
-            )
-
-            paths_for_name[name] = pruned_tree.expand_path(path, as_internal_path=True)
-        return paths_for_name
-
     def __init__(
         self,
-        manager: multiprocessing.Manager,
         qrun: _QueryRunner,
         component: HubitModelComponent,
-        query: HubitModelPath,
+        query: HubitQueryPath,
         func: Callable,
         version: str,
         tree_for_idxcontext: Dict[str, LengthTree],
+        manager: Optional[SyncManager] = None,
         dryrun: bool = False,
         caching: bool = False,
     ):
@@ -128,7 +47,8 @@ class _Worker:
 
         """
         self.func = func  # function to excecute
-        self.name = component.id  # name of the component
+        self.id = component.id  # name of the component
+        self.name = component.name  # name of the component
         self.version = version  # Version of the component
         self.qrun = qrun  # reference to the query runner
         self.job = None  # For referencing the job if using multiprocessing
@@ -139,7 +59,7 @@ class _Worker:
         self._consumed_input_ready = False
         self._consumed_results_ready = False
         self._consumes_input_only = False
-        self._results_id = None
+        self._results_id: Optional[str] = None
         self.caching = caching
 
         # Store information on how results were created (calculation or cache)
@@ -152,20 +72,23 @@ class _Worker:
             self.workfun = self.work
 
         # Paths for values that are consumed but not ready
-        self.pending_input_paths = []
-        self.pending_results_paths = []
+        self.pending_input_paths: List[HubitQueryPath] = []
+        self.pending_results_paths: List[HubitQueryPath] = []
 
         # Stores required values using internal names as keys
-        self.inputval_for_name = {}
-        self.resultval_for_name = {}
+        self.inputval_for_name: Dict[str, Any] = {}
+        self.resultval_for_name: Dict[str, Any] = {}
 
         # Stores required values using internal names as keys
-        self.inputval_for_path = {}
-        self.resultval_for_path = {}
+        self.inputval_for_path: Dict[HubitQueryPath, Any] = {}
+        self.resultval_for_path: Dict[HubitQueryPath, Any] = {}
 
         # Which indices are specified for each index ID
         self.idxval_for_idxid = {}
 
+        # To store provided results. Values stores with the internal
+        # name specified in the model as the key
+        self.results: Dict[str, Any]
         if manager is None:
             self.results = {}
             self.use_multiprocessing = False
@@ -177,8 +100,11 @@ class _Worker:
         # 1) Prune tree corresponding to query
         # 2) Prune remaining trees based idxval_for_idxid (method does no exist yet on LengthTree)
 
-        # TODO: assumes provider has the all ilocs defined.
-        # Model path for input provisions with ilocs from query
+        # Creating self.idxval_for_idxid from "provides_results" assumes that
+        # the providers have all index identifiers from "consumes_input" and
+        # "consumes_results" defined excluding the ones that have a range = ":".
+        # This is reasonable since this assures that there is a well-defined place to
+        # store the results.
         if self.component.does_provide_results():
             self.rpath_provided_for_name, self.idxval_for_idxid = _Worker.get_bindings(
                 self.component.provides_results, query
@@ -188,12 +114,7 @@ class _Worker:
             )
         else:
             self.provided_mpath_for_name = None
-            raise HubitWorkerError(
-                'No provider for Hubit \
-                                     model component "{}"'.format(
-                    self.name
-                )
-            )
+            raise HubitWorkerError("No provider for Hubit model component '{self.id}'")
 
         # Model path for input dependencies with ilocs from query
         if self.component.does_consume_input():
@@ -252,7 +173,97 @@ class _Worker:
                 for path in traverse(paths)
             }
 
-        logging.info(f'Worker "{self.name}" was deployed for query "{self.query}"')
+        logging.info(f'Worker "{self.id}" was deployed for query "{self.query}"')
+
+    @staticmethod
+    def bindings_from_idxs(bindings: List[HubitBinding], idxval_for_idxid) -> Dict:
+        """
+        replace index IDs with the actual indices
+        if idxid from binding path not found in idxval_for_idxid it
+        must correspond to a IDX_WILDCARD in the binding path.
+        IDX_WILDCARD ignored in set_ilocs_on_path. Dealt with in expansion
+
+        Returns path for name
+        """
+        if len(idxval_for_idxid) == 0:
+            return {binding.name: binding.path for binding in bindings}
+        else:
+            result = {}
+            for binding in bindings:
+                indices = []
+                for model_index_spec in binding.path.get_index_specifiers():
+                    idxid = model_index_spec.identifier
+                    range = model_index_spec.range
+                    offset = model_index_spec.offset
+
+                    index: Optional[str]
+                    if range.is_digit:
+                        # already an index so no transformation required
+                        index = str(range)
+                    elif range.is_empty:
+                        # Map index ID to the value
+                        index = str(int(idxval_for_idxid[idxid]) + offset)
+                    elif range.is_full_range:
+                        # leave for subsequent expansion.
+                        # From the expansion method's perspective 'index' could be any character.
+                        index = range
+                    else:
+                        raise HubitError(f"Unknown range '{range}'")
+                    indices.append(ModelIndexSpecifier.from_components(idxid, index))
+
+                result[binding.name] = binding.path.set_indices(indices, mode=1)
+            return result
+
+    @staticmethod
+    def get_bindings(bindings: List[HubitBinding], query_path: HubitQueryPath):
+        """Make symbolic binding specific i.e. replace index IDs
+        with actual indices based on query
+
+        Args:
+            bindings: List of bindings
+            query_path: Query path
+
+        Raises:
+            HubitWorkerError: Raised if query does not match any of the bindings
+            or if query is not expanded
+
+        Returns:
+            [type]: TODO [description]
+        """
+        if query_path.wildcard_chr in query_path:
+            raise HubitWorkerError(
+                f"Query path '{query_path}' contains illegal character '{query_path.wildcard_chr}'. Should already have been expanded."
+            )
+
+        binding_paths = [binding.path for binding in bindings]
+        # Get indices in binding_paths list that match the query
+        idxs_match = query_path.idxs_for_matches(binding_paths)
+        if len(idxs_match) == 0:
+            fstr = 'Query "{}" did not match attributes provided by worker ({}).'
+            raise HubitWorkerError(fstr.format(query_path, ", ".join(binding_paths)))
+
+        # Get the location indices from query. Using the first binding path that
+        # matched the query suffice
+        idxval_for_idxid = {}
+        for binding in bindings:
+            if query_path.check_path_match(binding.path):
+                identifiers = binding.path.get_index_identifiers()
+                ranges = query_path.ranges()
+                idxval_for_idxid.update(dict(zip(identifiers, ranges)))
+                break
+
+        path_for_name = _Worker.bindings_from_idxs(bindings, idxval_for_idxid)
+
+        return path_for_name, idxval_for_idxid
+
+    @staticmethod
+    def expand(path_for_name, tree_for_idxcontext, model_path_for_name):
+        paths_for_name = {}
+        for name, path in path_for_name.items():
+            tree = tree_for_idxcontext[model_path_for_name[name].get_idx_context()]
+            pruned_tree = tree.prune_from_path(path, inplace=False)
+            paths_for_name[name] = pruned_tree.expand_path(path)
+        return paths_for_name
 
     def consumes_input_only(self):
         return self._consumes_input_only
@@ -343,7 +354,7 @@ class _Worker:
             self.job.join()
 
     def use_cached_result(self, result):
-        logging.info(f'Worker "{self.name}" using CACHE for query "{self.query}"')
+        logging.info(f'Worker "{self.id}" using CACHE for query "{self.query}"')
         self.qrun._set_worker_working(self)
         # Set each key-val pair from the cached results to the worker results
         # The worker results may be a managed dict
@@ -355,23 +366,30 @@ class _Worker:
         """
         Executes actual work
         """
-        logging.info(f'Worker "{self.name}" STARTED for query "{self.query}"')
+        logging.info(f'Worker "{self.id}" STARTED for query "{self.query}"')
 
         # Notify the hubit model that we are about to start the work
         self.qrun._set_worker_working(self)
+        # create single input
+        inputval_for_name = ReadOnlyDict(
+            {
+                **self.inputval_for_name,
+                **self.resultval_for_name,
+            }
+        )
         if self.use_multiprocessing:
             self.job = multiprocessing.Process(
                 target=self.func,
-                args=(self.inputval_for_name, self.resultval_for_name, self.results),
+                args=(inputval_for_name, self.results),
             )
             self.job.daemon = False
             self.job.start()
         else:
-            self.func(self.inputval_for_name, self.resultval_for_name, self.results)
+            self.func(inputval_for_name, self.results)
         self._results_from = self.RESULTS_FROM_CALCULATION_ID
 
         logging.debug("\n**STOP WORKING**\n{}".format(self.__str__()))
-        logging.info(f'Worker "{self.name}" finished for query "{self.query}"')
+        logging.info(f'Worker "{self.id}" finished for query "{self.query}"')
 
     @staticmethod
     def reshape(path_for_name, val_for_path):
@@ -403,7 +421,7 @@ class _Worker:
             else:
                 self.use_cached_result(results)
 
-    def set_consumed_input(self, path, value):
+    def set_consumed_input(self, path: HubitQueryPath, value):
         if path in self.pending_input_paths:
             self.pending_input_paths.remove(path)
             self.inputval_for_path[path] = value
@@ -431,7 +449,8 @@ class _Worker:
         Set the consumed values if they are ready otherwise add them
         to the list of pending items
         """
-        # set the worker here since in init we have not yet checked that a similar instance does not exist
+        # set the worker here since in init we have not yet
+        # checked that a similar instance does not exist
         self.qrun._set_worker(self)
 
         # Check consumed input (should not have any pending items by definition)
@@ -468,7 +487,7 @@ class _Worker:
         if all ilocs are the same for the same component
         """
         return "name={} v{} idxs={}".format(
-            self.name,
+            self.id,
             self.version,
             "&".join([f"{k}={v}" for k, v in self.idxval_for_idxid.items()]),
         )
@@ -480,13 +499,13 @@ class _Worker:
             pickle.dumps([self.inputval_for_name, id(self.func)])
         ).hexdigest()
 
-    def set_results_id(self, results_ids: Set[str]) -> str:
+    def set_results_id(self, results_ids: List[str]) -> str:
         """results_ids are the IDs of workers spawned from the
         current worker
 
         augment that with worker's own results_id
         """
-        results_ids.add(self._make_results_id())
+        results_ids.append(self._make_results_id())
         self._results_id = hashlib.md5("".join(results_ids).encode("utf-8")).hexdigest()
         return self._results_id
 
@@ -512,29 +531,30 @@ class _Worker:
 
     def __str__(self):
         n = 100
-        fstr1 = "R provided {}\nR provided exp {}\nI consumed {}\nI consumed exp {}\nR consumed {}\nR consumed exp {}\n"
-        fstr2 = "I attr values {}\nI path values {}\nR attr values {}\nR path values {}\nI pending {}\nR pending {}\n"
+        fstr1 = "{:30}{}\n"
         strtmp = "=" * n + "\n"
         strtmp += "ID {}\n".format(self.idstr())
         strtmp += "Function {}\n".format(self.func)
         strtmp += "-" * n + "\n"
+        strtmp += fstr1.format("Results provided", self.rpath_provided_for_name)
         strtmp += fstr1.format(
-            self.rpath_provided_for_name,
-            self.rpaths_provided_for_name,
-            self.ipath_consumed_for_name,
-            self.ipaths_consumed_for_name,
-            self.rpath_consumed_for_name,
-            self.rpaths_consumed_for_name,
+            "Results provided expanded", self.rpaths_provided_for_name
         )
+        strtmp += fstr1.format("Input consumed", self.ipath_consumed_for_name)
+        strtmp += fstr1.format("Input consumed expanded", self.ipaths_consumed_for_name)
+        strtmp += fstr1.format("Results consumed", self.rpath_consumed_for_name)
+        strtmp += fstr1.format(
+            "Results consumed expanded", self.rpaths_consumed_for_name
+        )
+
         strtmp += "-" * n + "\n"
-        strtmp += fstr2.format(
-            self.inputval_for_name,
-            self.inputval_for_path,
-            self.resultval_for_name,
-            self.resultval_for_path,
-            self.pending_input_paths,
-            self.pending_results_paths,
-        )
+        strtmp += fstr1.format("Input attr values", self.inputval_for_name)
+        strtmp += fstr1.format("Input path values", self.inputval_for_path)
+        strtmp += fstr1.format("Results attr values", self.resultval_for_name)
+        strtmp += fstr1.format("Results path values", self.resultval_for_path)
+        strtmp += fstr1.format("Input pending", self.pending_input_paths)
+        strtmp += fstr1.format("Results pending", self.pending_results_paths)
+
         strtmp += "-" * n + "\n"
         strtmp += "Results {}\n".format(self.results)
 

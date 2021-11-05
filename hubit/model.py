@@ -9,32 +9,159 @@ for executing your calculations.
 from __future__ import annotations
 import pathlib
 import datetime
+import hashlib
+import pickle
 from dataclasses import dataclass, field, fields
-from typing import Any, Callable, List, Tuple, Dict
+from typing import (
+    Any,
+    Callable,
+    List,
+    Sequence,
+    Tuple,
+    Dict,
+    Optional,
+    cast,
+    TYPE_CHECKING,
+)
+from multiprocessing.managers import SyncManager
+from multiprocessing import Manager
 import logging
 import os
 import time
 import copy
 import itertools
 from multiprocessing import Pool
+from threading import Thread, Event
 
 from .qrun import _QueryRunner
-from ._model import _HubitModel, _get, _default_skipfun
-from .shared import LengthTree
-from .config import FlatData, HubitModelConfig, HubitModelPath, Query
+from .tree import LengthTree, _QueryExpansion, tree_for_idxcontext
+from .config import FlatData, HubitModelConfig, Query, PathIndexRange, HubitQueryPath
+from .utils import set_element
+from .render import get_dot
 
 from .errors import (
     HubitError,
     HubitModelNoInputError,
     HubitModelNoResultsError,
+    HubitModelValidationError,
+    HubitModelQueryError,
 )
+
+if TYPE_CHECKING:
+    from .config import HubitBinding, HubitModelComponent, HubitModelPath
+
 
 _CACHE_DIR = ".hubit_cache"
 _HUBIT_DIR = os.path.dirname(os.path.realpath(__file__))
 _CACHE_DIR = os.path.join(_HUBIT_DIR, _CACHE_DIR)
+IDX_WILDCARD = PathIndexRange.wildcard_chr
 
 
-class HubitModel(_HubitModel):
+def _default_skipfun(flat_input: FlatData) -> bool:
+    """
+    flat_input is the input for one factor combination in a sweep
+    calculation
+    """
+    return False
+
+
+def _get(
+    queryrunner: _QueryRunner,
+    query: Query,
+    flat_input,
+    flat_results: Optional[FlatData] = None,
+    dryrun: bool = False,
+    expand_iloc: bool = False,
+):
+    """
+    With the 'queryrunner' object deploy the paths
+    in 'query'.
+
+    flat_results is a dict and will be modified
+
+    If dryrun=True the workers will generate dummy results. Usefull
+    to validate s query.
+    """
+    if flat_results is None:
+        _flat_results = FlatData()
+    else:
+        _flat_results = flat_results
+    # Reset book keeping data
+    queryrunner.workers = []
+    queryrunner.workers_working = []
+    queryrunner.workers_completed = []
+    queryrunner.worker_for_id = {}
+    queryrunner.observers_for_query = {}
+
+    extracted_input: Dict[str, Any] = {}
+
+    # Expand the query for each path
+    queries_exp = [queryrunner.model._expand_query(qpath) for qpath in query.paths]
+    # Make flat list of expanded queries
+    _queries = [qpath for qexp in queries_exp for qpath in qexp.flat_expanded_paths()]
+
+    for qexp in queries_exp:
+        logging.debug(f"Expanded query {qexp}")
+
+    # Start thread that periodically checks whether we are finished or not
+    shutdown_event = Event()
+    watcher = Thread(
+        target=queryrunner._watcher, args=(_queries, _flat_results, shutdown_event)
+    )
+    watcher.daemon = True
+
+    # remeber to send SIGTERM for processes
+    # https://stackoverflow.com/questions/11436502/closing-all-threads-with-a-keyboard-interrupt
+    the_err = None
+    try:
+        watcher.start()
+        if queryrunner.use_multi_processing:
+            with Manager() as manager:
+                # mypy complains although the type seems to be SyncManager as expected
+                manager = cast(SyncManager, manager)
+                queryrunner.spawn_workers(
+                    _queries,
+                    extracted_input,
+                    _flat_results,
+                    flat_input,
+                    manager,
+                    dryrun=dryrun,
+                )
+                watcher.join()
+        else:
+            queryrunner.spawn_workers(
+                _queries,
+                extracted_input,
+                _flat_results,
+                flat_input,
+                dryrun=dryrun,
+            )
+            watcher.join()
+
+    except (Exception, KeyboardInterrupt) as err:
+        the_err = err
+        shutdown_event.set()
+
+    # Join workers
+    queryrunner._join_workers()
+
+    if the_err is None:
+        response = {query: _flat_results[query] for query in _queries}
+
+        if not expand_iloc:
+            # TODO: compression call belongs on model (like expand)
+            response = queryrunner.model._compress_response(response, queries_exp)
+
+        return response, _flat_results
+    else:
+        # Re-raise if failed
+        raise the_err
+
+
+class HubitModel:
+    _valid_model_caching_modes = "none", "incremental", "after_execution"
+    _do_model_caching = "incremental", "after_execution"
+
     def __init__(
         self,
         model_cfg: HubitModelConfig,
@@ -58,15 +185,13 @@ class HubitModel(_HubitModel):
         if os.path.isabs(output_path):
             raise HubitError("Output path should be relative")
 
-        # TODO: NOT USED
-        self.ilocstr = "_IDX"
         self.model_cfg = model_cfg
 
         # Stores length tree. Filled when set_input() is called
-        self.tree_for_idxcontext: Dict[LengthTree, str] = {}
+        self.tree_for_idxcontext: Dict[str, LengthTree] = {}
 
         # Stores trees for query
-        self._tree_for_qpath: Dict[LengthTree, str] = {}
+        self._tree_for_qpath: Dict[str, LengthTree] = {}
 
         # Stores normalized query paths
         self._normqpath_for_qpath: Dict[str, str] = {}
@@ -199,7 +324,11 @@ class HubitModel(_HubitModel):
             Hubit model with input set.
         """
         self.inputdata = input_data
-        self.flat_input = FlatData.from_dict(input_data)
+        self.flat_input = FlatData.from_dict(
+            input_data,
+            stop_at=self.model_cfg.compiled_query_depths,
+            include_patterns=self.model_cfg.include_patterns,
+        )
         self._set_trees()
         self._input_is_set = True
         return self
@@ -231,7 +360,7 @@ class HubitModel(_HubitModel):
         """
         _query = Query.from_paths(query)
 
-        dot, filename = self._get_dot(_query, file_idstr)
+        dot, filename = get_dot(self, _query, file_idstr)
         filepath = os.path.join(self.odir, filename)
         dot.render(filepath, view=False)
         if os.path.exists(filepath):
@@ -376,7 +505,7 @@ class HubitModel(_HubitModel):
         for pvalues in ppvalues:
             _flat_input = copy.deepcopy(self.flat_input)
             for path, val in zip(paths, pvalues):
-                _flat_input[HubitModelPath.as_internal(path)] = val
+                _flat_input[path] = val
 
             if skipfun(_flat_input):
                 continue
@@ -444,6 +573,274 @@ class HubitModel(_HubitModel):
             [HubitLog][hubit.model.HubitLog] object
         """
         return self._log
+
+    def clean_log(self):
+        self._log._clean()
+
+    @property
+    def base_path(self):
+        return self.model_cfg.base_path
+
+    def _add_log_items(
+        self,
+        worker_counts: Dict[str, int],
+        elapsed_time: float,
+        cache_counts: Dict[str, int],
+    ):
+        self._log._add_items(worker_counts, elapsed_time, cache_counts)
+
+    def _get_id(self):
+        """
+        ID of the model based on configuration and input
+
+        TODO: We could easily include the entry point function which includes the version
+        https://stackoverflow.com/questions/3431825/generating-an-md5-checksum-of-a-file
+        """
+        return hashlib.md5(
+            pickle.dumps({"input": self.inputdata, "cfg": self.model_cfg})
+        ).hexdigest()
+
+    def _get_binding_ids(self, prefix_input, prefix_results):
+        """
+        Get list of objects from model that need redering e.g. layers and segment.
+        These object name are prefixed to cluster them
+        """
+        results_object_ids = set()
+        input_object_ids = set()
+        for component in self.model_cfg.components:
+            bindings = component.provides_results
+            results_object_ids.update(
+                [
+                    "{}_{}".format(prefix_results, objname)
+                    for objname in self._get_path_cmps(bindings)
+                ]
+            )
+
+            bindings = component.consumes_input
+            input_object_ids.update(
+                [
+                    "{}_{}".format(prefix_input, objname)
+                    for objname in self._get_path_cmps(bindings)
+                ]
+            )
+
+            bindings = component.consumes_results
+            results_object_ids.update(
+                [
+                    "{}_{}".format(prefix_results, objname)
+                    for objname in self._get_path_cmps(bindings)
+                ]
+            )
+
+        results_object_ids = list(results_object_ids)
+        input_object_ids = list(input_object_ids)
+        return input_object_ids, results_object_ids
+
+    def _get_path_cmps(self, bindings: Sequence[HubitBinding]):
+        """
+        Get path components from bindings
+        """
+        cmps = set()
+        for binding in bindings:
+            pathcmps = binding.path.remove_braces().split(".")
+            if len(pathcmps) - 1 > 0:
+                cmps.update(pathcmps[:-1])
+        return cmps
+
+    def _set_trees(self):
+        """Compute and set trees for all index contexts in model"""
+        self.tree_for_idxcontext = tree_for_idxcontext(
+            self.model_cfg.component_for_id.values(), self.inputdata
+        )
+
+    def _validate_query(self, query: Query, use_multi_processing=False):
+        """
+        Run the query using a dummy calculation to see that all required
+        input and results are available
+        """
+        qrunner = _QueryRunner(self, use_multi_processing)
+        _get(qrunner, query, self.flat_input, dryrun=True)
+        return qrunner.workers
+
+    def _validate_model(self):
+        fname_for_path = {}
+        for component in self.model_cfg.components:
+            fname = component.func_name
+            for binding in component.provides_results:
+                if not binding.path in fname_for_path:
+                    fname_for_path[binding.path] = fname
+                else:
+                    raise HubitModelValidationError(binding.path, fname, fname_for_path)
+
+    def _cmpids_for_query(self, qpath: HubitQueryPath) -> List[str]:
+        """
+        Find IDs of components that can respond to the "query".
+        """
+        # TODO: Next two lines should only be executed once in init (speed)
+        itempairs = [
+            (cmp.id, binding.path, cmp.index_scope)
+            for cmp in self.model_cfg.components
+            for binding in cmp.provides_results
+        ]
+        cmp_ids, paths_provided, scopes = zip(*itempairs)
+
+        # Set the scope to check if provided paths are unique
+        _paths_provided = [
+            path.set_range_for_idxid(scope)
+            for path, scope in zip(paths_provided, scopes)
+        ]
+        idxs = qpath.idxs_for_matches(_paths_provided)
+        return [cmp_ids[idx] for idx in idxs]
+
+    def component_for_id(self, compid: str) -> HubitModelComponent:
+        return self.model_cfg.component_for_id[compid]
+
+    def _cmpid_for_query(self, path: HubitQueryPath) -> str:
+        """Find ID of component that can respond to the "query".
+
+        Args:
+            path: Query path
+
+        Raises:
+            HubitModelQueryError: Raised if no or multiple components provide the
+            queried attribute
+
+        Returns:
+            str: Function name
+        """
+        # Get all components that provide data for the query
+        cmp_ids = self._cmpids_for_query(path)
+
+        if len(cmp_ids) > 1:
+            msg = f"Fatal error. Multiple providers for query path '{path}': {cmp_ids}. Note that query path might originate from an expansion of the original query."
+            raise HubitModelQueryError(msg)
+
+        if len(cmp_ids) == 0:
+            msg = f"Fatal error. No provider for query path '{path}'."
+            raise HubitModelQueryError(msg)
+        return cmp_ids[0]
+
+    def component_for_qpath(self, path: HubitQueryPath) -> HubitModelComponent:
+        return self.component_for_id(self._cmpid_for_query(path))
+
+    def _mpaths_for_qpath(self, qpath: HubitQueryPath) -> List[HubitModelPath]:
+        """
+        Returns the model paths (with the index scope inserted)
+        that match the query.
+        """
+        # Find component that provides queried result
+        cmp_ids = self._cmpids_for_query(qpath)
+        # Find component
+        paths = []
+        scopes = []
+        for cmp_id in cmp_ids:
+            cmp = self.model_cfg.component_for_id[cmp_id]
+            # Find index in list of binding paths that match query path
+            idxs = qpath.idxs_for_matches(
+                [binding.path for binding in cmp.provides_results]
+            )
+            paths.append(cmp.provides_results[idxs[0]].path)
+            scopes.append(cmp.index_scope)
+
+        # Set the index scope
+        mpaths = [
+            mpath.set_range_for_idxid(scope) for mpath, scope in zip(paths, scopes)
+        ]
+        return mpaths
+
+    def _expand_query(
+        self, qpath: HubitQueryPath, store: bool = True
+    ) -> _QueryExpansion:
+        """
+        Expand query so that any index wildcards are converted to
+        real indies
+
+        qpath: The query path to be expanded. Both braced and dotted paths are accepted.
+        store: If True some intermediate results will be saved on the
+            instance for later use.
+
+        TODO: NEgative indices... prune_tree requires real indices but normalize
+        path require all IDX_WILDCARDs be expanded to get the context
+
+        # TODO: Save pruned trees so the worker need not prune top level trees again
+        # TODO: save component so we dont have to find top level components again
+        """
+        # Get all model paths that match the query
+        mpaths = self._mpaths_for_qpath(qpath)
+
+        # Prepare query expansion object
+        qexp = _QueryExpansion(qpath, mpaths)
+
+        # Get the tree that corresponds to the (one) index context
+        tree = self.tree_for_idxcontext[qexp.idx_context]
+
+        # Validate that tree and expantion are consistent
+        qexp.validate_tree(tree)
+
+        # First store unpruned tree
+        if store:
+            self._tree_for_qpath[qpath] = tree
+
+        for decomposed_qpath, _mpath in zip(qexp.decomposed_paths, mpaths):
+            pruned_tree = tree.prune_from_path(
+                decomposed_qpath,
+                inplace=False,
+            )
+
+            if store:
+                # Store pruned tree
+                self._tree_for_qpath[decomposed_qpath] = pruned_tree
+                self._modelpath_for_querypath[decomposed_qpath] = _mpath
+
+            # Expand the path
+            expanded_paths = pruned_tree.expand_path(decomposed_qpath, flat=True)
+
+            qexp.update_expanded_paths(decomposed_qpath, expanded_paths)
+
+        return qexp
+
+    def _compress_response(self, response, queries_expanded: List[_QueryExpansion]):
+        """
+        Compress the response to reflect queries with index wildcards.
+        So if the query has the structure list1[:].list2[:] and is
+        rectangular with N1 (2) elements in list1 and N2 (3) elements
+        in list2 the compressed response will be a nested list like
+        [[00, 01, 02], [10, 11, 12]]
+        """
+        _response = {}
+        for qexp in queries_expanded:
+            if not qexp.is_expanded():
+                # Path not expanded so no need to compress
+                _response[qexp.path] = response[qexp.path]
+            else:
+                # Get the index IDs from the original query
+                idxids = qexp.path.get_index_specifiers()
+                tree = self._tree_for_qpath[qexp.path]
+                # TODO: Can we prune earlier on?
+                # inplace = False to leave the model state unchanged.
+                # This is important for successive get requests
+                values_decomp = tree.prune_from_path(
+                    qexp.path, inplace=False
+                ).none_like()
+                # Extract iloc indices for each query in the expanded query
+                for expanded_paths in qexp.expanded_paths_for_decomposed_path.values():
+                    for path in expanded_paths:
+                        ranges = path.ranges()
+                        # Only keep ilocs that come from an expansion... otherwise
+                        # the dimensions of "values" do no match
+                        ranges = [
+                            range
+                            for range, idxid in zip(ranges, idxids)
+                            if idxid == IDX_WILDCARD
+                        ]
+                        values_decomp = set_element(
+                            values_decomp,
+                            response[path],
+                            [int(range) for range in ranges],
+                        )
+                _response[qexp.path] = values_decomp
+
+        return _response
 
 
 def now():
@@ -595,6 +992,9 @@ class HubitLog:
     """
 
     log_items: List[LogItem] = field(default_factory=list)
+
+    def _clean(self):
+        self.log_items = []
 
     def _add_items(
         self,

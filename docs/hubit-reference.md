@@ -11,6 +11,7 @@ Therefore, the model class can be imported as `from hubit import HubitModel`.
     selection:
         filters:
             - "!^__init__$" 
+            - "!^_" 
 
 ::: hubit.__init__.clear_hubit_cache
     rendering:

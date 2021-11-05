@@ -6,6 +6,16 @@ from hubit import clear_hubit_cache
 # logging.basicConfig(level=logging.INFO)
 
 
+def model_0():
+    """Send entire car object to worker"""
+    print(f"\n***MODEL 0***")
+    hmodel = get_model("model0.yml")
+    query = ["cars[0].price", "cars[1].price", "cars[2].price"]
+    response = hmodel.get(query, use_multi_processing=False)
+    print(response)
+    print(hmodel.get_results().as_dict())
+
+
 def model_1():
     """Run model 1 and illustrate worker-level caching
 
@@ -95,6 +105,7 @@ def model_2_component_cache():
     print(hmodel.log())
 
 
+model_0()
 model_1()
 model_2()
 model_3()

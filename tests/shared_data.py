@@ -1,6 +1,7 @@
 # Paths are relative to the root directory where the tests are executed from
 # This model collects wall data in a list on the end node
 model = """
+  components:
     -   
         # move a number
         func_name: move_number

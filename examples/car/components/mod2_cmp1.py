@@ -2,7 +2,7 @@ from time import sleep
 import shared
 
 
-def main(_input_consumed, _results_consumed, results_provided):
+def main(_input_consumed, results_provided):
     """
     part price calculations
     """

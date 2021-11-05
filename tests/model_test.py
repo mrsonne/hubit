@@ -6,6 +6,7 @@ import yaml
 from hubit.errors import HubitModelNoInputError, HubitModelQueryError
 from hubit.config import HubitModelConfig, HubitModelPath
 from hubit import HubitModel
+import pprint
 
 yml_input = None
 model = None
@@ -125,7 +126,7 @@ class TestModel(unittest.TestCase):
         """
         Render the query, but not input.
         """
-        query = ["list.1.some_attr.two_x_numbers"]
+        query = ["list[1].some_attr.two_x_numbers"]
 
         # ModuleNotFoundError raised if graphviz is not installed
         with self.assertRaises(HubitModelNoInputError) as context:
@@ -312,18 +313,14 @@ class TestModel(unittest.TestCase):
         """
         Sweep input parameters
         """
-        # self.skipTest('TODO. Works but not with other test?!?!?')
         idx = 1
-        # TODO change this
-        path = "list[{}].some_attr.numbers".format(idx)
-        ipath = HubitModelPath.as_internal(path)
+        path = f"list[{idx}].some_attr.numbers"
         input_values_for_path = {
             path: ([1.0, 2.0, 3.0], [4.0, 5.0, 6.0]),
         }
         self.hmodel.set_input(self.input)
-        queries = [self.querystr_level0]
-        responses, inps, _ = self.hmodel.get_many(queries, input_values_for_path)
-
+        paths = [self.querystr_level0]
+        responses, inps, _ = self.hmodel.get_many(paths, input_values_for_path)
         expected_results = []
         calc_responses = []
         for flat_inp, response in zip(inps, responses):
@@ -333,7 +330,7 @@ class TestModel(unittest.TestCase):
 
         for idx, flat_inp in enumerate(inps):
             with self.subTest():
-                self.assertListEqual(flat_inp[ipath], input_values_for_path[path][idx])
+                self.assertListEqual(flat_inp[path], input_values_for_path[path][idx])
 
         with self.subTest():
             self.assertSequenceEqual(calc_responses, expected_results)

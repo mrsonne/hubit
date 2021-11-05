@@ -1,0 +1,36 @@
+components:
+  - path: ./components/mod1.py 
+    index_scope:
+      IDX_TANK: "0:2"
+    provides_results:
+      - name: Q_yield
+        path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[IDX_TANK].Q_yield
+    consumes_input:
+      - name: yield_fraction
+        path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[IDX_TANK].yield_fraction
+      - name: Q_in
+        path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[IDX_TANK].Q_in
+      - name: Q_transfer
+        path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[IDX_TANK].Q_transfer
+
+# Component 2 configuration relying on index scope 
+# in provides_results and consumes_input
+  - path: ./components/mod1.py 
+    index_scope:
+      IDX_TANK: 2
+    provides_results:
+      - name: Q_yield
+        path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[IDX_TANK].Q_yield
+    consumes_input:
+      - name: yield_fraction
+        path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[IDX_TANK].yield_fraction
+      - name: Q_in
+        path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[IDX_TANK].Q_in
+    consumes_results:
+      # use outlet flow from previous tank 0
+      - name: Q_transfer_1
+        path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[0@IDX_TANK].Q_yield
+      # use outlet flow from previous tank 1
+      - name: Q_transfer_2
+        path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[1@IDX_TANK].Q_yield
+      

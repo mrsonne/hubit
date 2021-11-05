@@ -1,0 +1,32 @@
+components:
+
+  # First tank
+  - path: ./components/mod1.py 
+    index_scope:
+      IDX_TANK: 0
+    provides_results:
+      - name: Q_yield
+        path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[IDX_TANK].Q_yield
+    consumes_input:
+      - name: yield_fraction
+        path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[IDX_TANK].yield_fraction
+      - name: Q_in
+        path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[IDX_TANK].Q_in
+      - name: Q_transfer
+        path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[IDX_TANK].Q_transfer
+
+  # Tanks after the first
+  - path: ./components/mod1.py
+    index_scope:
+      IDX_TANK: "1:"
+    provides_results:
+      - name: Q_yield
+        path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[IDX_TANK].Q_yield
+    consumes_input:
+      - name: yield_fraction
+        path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[IDX_TANK].yield_fraction
+      - name: Q_in
+        path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[IDX_TANK].Q_in
+    consumes_results:
+      - name: Q_transfer
+        path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[IDX_TANK-1].Q_yield

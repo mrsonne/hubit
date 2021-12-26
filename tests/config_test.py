@@ -273,6 +273,35 @@ class TestHubitQueryPath(unittest.TestCase):
         idxs_match = qpath.idxs_for_matches(mpaths)
         self.assertSequenceEqual(idxs_match, idxs_match_expected)
 
+    def test_check_path_match(self):
+        # Match
+        qpath = HubitQueryPath("segs[42].walls[3].temps")
+        mpath = HubitModelPath("segs[IDX1].walls[IDX1].temps")
+        assert qpath.check_path_match(mpath)
+
+        # Match
+        mpath = HubitModelPath("segs[:@IDX1].walls[IDX1].temps")
+        assert qpath.check_path_match(mpath)
+
+        # No match: different field names
+        mpath = HubitModelPath("seg[:@IDX1].wall[IDX1].temp")
+        assert qpath.check_path_match(mpath)
+
+        # No match: different field count
+        qpath = HubitQueryPath("segs[42].walls[3].temps")
+        mpath = HubitModelPath("segs[IDX1].walls[IDX1]")
+        assert not qpath.check_path_match(mpath)
+
+        # No match: different brace count
+        qpath = HubitQueryPath("segs[42].walls[3].temps")
+        mpath = HubitModelPath("segs.walls[IDX1].temps")
+        assert not qpath.check_path_match(mpath)
+
+        # No match: no intersection for second index
+        qpath = HubitQueryPath("segs[42].walls[3].temps")
+        mpath = HubitModelPath("segs[IDX1].walls[43@IDX2].temps")
+        assert not qpath.check_path_match(mpath)
+
 
 class TestHubitModelPath(unittest.TestCase):
     def test_has_slice_range(self):

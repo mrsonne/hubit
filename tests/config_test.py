@@ -285,7 +285,7 @@ class TestHubitQueryPath(unittest.TestCase):
 
         # No match: different field names
         mpath = HubitModelPath("seg[:@IDX1].wall[IDX1].temp")
-        assert qpath.check_path_match(mpath)
+        assert not qpath.check_path_match(mpath)
 
         # No match: different field count
         qpath = HubitQueryPath("segs[42].walls[3].temps")
@@ -300,6 +300,20 @@ class TestHubitQueryPath(unittest.TestCase):
         # No match: no intersection for second index
         qpath = HubitQueryPath("segs[42].walls[3].temps")
         mpath = HubitModelPath("segs[IDX1].walls[43@IDX2].temps")
+        assert not qpath.check_path_match(mpath)
+
+        ### Negative index in query
+        # Match: negative index in query
+        qpath = HubitQueryPath("segs[42].walls[-1].temps")
+        mpath = HubitModelPath("segs[IDX1].walls[IDX1].temps")
+        assert qpath.check_path_match(mpath)
+
+        # Match: negative index in query
+        mpath = HubitModelPath("segs[IDX1].walls[:@IDX1].temps")
+        assert qpath.check_path_match(mpath)
+
+        # No match: negative index in query. Index 12 might be the last index, i.e. math -1 but we cannot guarantee it
+        mpath = HubitModelPath("segs[IDX1].walls[12@IDX1].temps")
         assert not qpath.check_path_match(mpath)
 
 

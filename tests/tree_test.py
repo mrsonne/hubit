@@ -460,6 +460,34 @@ class TestTree(unittest.TestCase):
                 expanded_paths = tree.expand_path(path)
                 self.assertSequenceEqual(expanded_paths, expected_paths)
 
+    def test_expand_path_count_from_back(self):
+        """Expand path with fixed index set to negative number"""
+        path = HubitQueryPath("segments[:].layers[-2].test")
+
+        seg_node = LengthNode(3)
+        lay_nodes = LengthNode(2), LengthNode(4), LengthNode(3)
+        seg_node.set_children(lay_nodes)
+
+        nodes = [seg_node]
+        nodes.extend(lay_nodes)
+        level_names = "IDX_SEG", "IDX_LAY"
+        tree = LengthTree(nodes, level_names)
+
+        expected_paths = [
+            "segments[0].layers[0].test",
+            "segments[1].layers[2].test",
+            "segments[2].layers[1].test",
+        ]
+
+        # Since the tree is not pruned we must use flat=True
+        expanded_paths = tree.expand_path(path, flat=True)
+        self.assertSequenceEqual(expanded_paths, expected_paths)
+
+        # Index error
+        path = HubitQueryPath("segments[:].layers[-3].test")
+        with self.assertRaises(HubitIndexError) as context:
+            expanded_paths = tree.expand_path(path, flat=True)
+
     def test_expand_mpath3(self):
         """Prune tree before expanding. Two indices vary so
         expanded paths is 2D

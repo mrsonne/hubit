@@ -89,6 +89,11 @@ class PathIndexRange(str):
         self._validate()
 
     @property
+    def is_counted_from_back(self):
+        """Is the range counted from the back end"""
+        return self.is_digit and int(self) < 0
+
+    @property
     def start(self) -> Union[int, None]:
         """First index in range"""
         if self.is_digit:

@@ -504,7 +504,9 @@ class LengthTree:
         path: Path,
         flat: bool = False,
     ) -> List[HubitQueryPath]:
-        """Expand model path with wildcard based on tree
+        """Expand model path with wildcard based on tree. If path is fixed at some index the
+        tree must be pruned according to the specified path if flat = False. This is not
+        checked.
 
         Example for a query path:
             list[:].some_attr.numbers ->
@@ -526,33 +528,47 @@ class LengthTree:
 
         # Manipulate as strings
         paths = [str(path)]
-        for idx_level, (idxspec, range) in enumerate(zip(idxspecs, ranges)):
+        for idx_level, (idxspec, range_) in enumerate(zip(idxspecs, ranges)):
             nodes = self.nodes_for_level[idx_level]
             paths_current_level = []
             for _path, node in zip(paths, nodes):
-                if range.is_digit:
-                    # slice is digit so replace index specifier with that digit
-                    paths_current_level.append(_path.replace(idxspec, range))
-                elif range.is_full_range or range.is_empty:
-                    # slice is wildcard or not specified so expand from node children
+                if range_.is_digit:
+                    if range_.is_counted_from_back:
+                        try:
+                            # Get the max index of the children.
+                            index = str(
+                                sorted(child.index for child in node.children)[
+                                    int(range_)
+                                ]
+                            )
+                        except IndexError as err:
+                            raise HubitIndexError(
+                                f"Invalid index '{range_}' from path '{path}'. Tree is \n{self}."
+                            ) from err
+                        paths_current_level.append(_path.replace(idxspec, index))
+                    else:
+                        # range is digit so replace index specifier with that digit
+                        paths_current_level.append(_path.replace(idxspec, range_))
+                elif range_.is_full_range or range_.is_empty:
+                    # range is wildcard or not specified so expand from node children
                     paths_current_level.extend(
                         [
                             _path.replace(idxspec, str(child.index), 1)
                             for child in node.children
                         ]
                     )
-                elif range.is_limited_range:
+                elif range_.is_limited_range:
                     # Loop over children to see who are included in the range
                     paths_current_level.extend(
                         [
                             _path.replace(idxspec, str(child.index), 1)
                             for child in node.children
-                            if range.contains_index(child.index)
+                            if range_.contains_index(child.index)
                         ]
                     )
                 else:
                     raise HubitError(
-                        f"Unknown index range '{range}' for path '{path}' of type '{type(path)}'."
+                        f"Unknown index range '{range_}' for path '{path}' of type '{type(path)}'."
                     )
             paths = copy.deepcopy(paths_current_level)
 

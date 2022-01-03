@@ -685,9 +685,7 @@ class HubitQueryPath(_HubitPath):
         Returns:
             bool: True if the query matches the model path
         """
-        q_fields = self.remove_braces()
-        m_fields = model_path.remove_braces()
-        if q_fields != m_fields:
+        if self.remove_braces() != model_path.remove_braces():
             return False
 
         q_specifiers = self.get_index_specifiers()

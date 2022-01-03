@@ -258,13 +258,15 @@ class PathIndexRange(str):
         self, other: PathIndexRange, allow_self_empty: bool = False
     ) -> Optional[bool]:
         """The intersection between the two ranges
-             self               D  L  F  E
+
+        Scenarios
+
+             self               D  L  F  Empty
         other
                   Digit (D)     2  4  1  6
                   Limited (L)   3  5  1  6
                   Full (F)      1  1  1  6
         """
-
         if self.is_full_range or other.is_full_range:
             # Scenario 1: At least one range covers all indices so
             # there must be an an intersection

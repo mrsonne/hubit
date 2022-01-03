@@ -683,6 +683,8 @@ class _QueryExpansion:
             msg = f"Fatal error. No provider for query path '{path}'."
             raise HubitModelQueryError(msg)
 
+        self._idx_context = list(_idx_contexts)[0]
+
         self.decomposed_paths, index_identifiers = _QueryExpansion.decompose_query(
             path, mpaths
         )
@@ -698,8 +700,6 @@ class _QueryExpansion:
             #     msg = f"Fatal error. Inconsistent decomposition for query '{path}': {', '.join(mpaths)}"
             #     raise HubitModelQueryError(msg)
             self.decomposed_idx_identifier = index_identifiers[0]
-
-        self._idx_context = list(_idx_contexts)[0]
 
     @property
     def idx_context(self):

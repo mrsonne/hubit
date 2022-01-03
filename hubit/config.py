@@ -712,6 +712,10 @@ class HubitQueryPath(_HubitPath):
         items = re.findall(_HubitPath.regex_idx_spec, self)
         return [QueryIndexSpecifier(item) for item in items]
 
+    @property
+    def has_negative_indices(self):
+        return any(range_.is_counted_from_back for range_ in self.ranges())
+
 
 class _HubitQueryDepthPath(HubitQueryPath):
     """

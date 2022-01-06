@@ -676,21 +676,22 @@ class HubitModel:
         """
         Find IDs of components that can respond to the "query".
         """
-        # TODO: Next two lines should only be executed once in init (speed)
-        itempairs = [
-            (cmp.id, binding.path, cmp.index_scope)
-            for cmp in self.model_cfg.components
-            for binding in cmp.provides_results
-        ]
-        cmp_ids, paths_provided, scopes = zip(*itempairs)
+        # TODO: Next line should only be executed once in init (speed)
+        cmp_ids, paths_provided, scopes = zip(
+            *[
+                (cmp.id, binding.path, cmp.index_scope)
+                for cmp in self.model_cfg.components
+                for binding in cmp.provides_results
+            ]
+        )
+        
 
         # Set the scope to check if provided paths are unique
         _paths_provided = [
             path.set_range_for_idxid(scope)
             for path, scope in zip(paths_provided, scopes)
         ]
-        idxs = qpath.idxs_for_matches(_paths_provided)
-        return [cmp_ids[idx] for idx in idxs]
+        return [cmp_ids[idx] for idx in qpath.idxs_for_matches(_paths_provided)]
 
     def component_for_id(self, compid: str) -> HubitModelComponent:
         return self.model_cfg.component_for_id[compid]

@@ -23,7 +23,7 @@ class TestDummyTree(unittest.TestCase):
 
     def test_get_idx_context(self):
         """Index context for dummy tree must be the empty string"""
-        result = self.tree.get_idx_context()
+        result = self.tree.index_context
         assert result == ""
 
     def test_prune_from_path(self):

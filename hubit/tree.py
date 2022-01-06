@@ -674,7 +674,7 @@ class _QueryExpansion:
             )
 
         # Get the index contexts for doing some tests
-        _idx_contexts = {mpath.get_idx_context() for mpath in mpaths}
+        _idx_contexts = {mpath.index_context for mpath in mpaths}
         if len(_idx_contexts) > 1:
             msg = f"Fatal error. Inconsistent providers for query '{path}': {', '.join(mpaths)}"
             raise HubitModelQueryError(msg)
@@ -863,7 +863,7 @@ def tree_for_idxcontext(
     for component in components:
         for binding in component.consumes_input:
             tree = LengthTree.from_data(binding.path, data)
-            idx_context = binding.path.get_idx_context()
+            idx_context = binding.path.index_context
             if idx_context in out.keys():
                 continue
             out[idx_context] = tree
@@ -872,7 +872,7 @@ def tree_for_idxcontext(
     for tree in copy.deepcopy(list(out.values())):
         for level_name in tree.level_names[:-1]:
             new_tree = tree.clip_at_level(level_name, inplace=False)
-            idx_context = new_tree.get_idx_context()
+            idx_context = new_tree.index_context
             if idx_context in out.keys():
                 continue
             out[idx_context] = new_tree

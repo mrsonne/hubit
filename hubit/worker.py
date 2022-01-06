@@ -261,7 +261,7 @@ class _Worker:
     def expand(path_for_name, tree_for_idxcontext, model_path_for_name):
         paths_for_name = {}
         for name, path in path_for_name.items():
-            tree = tree_for_idxcontext[model_path_for_name[name].get_idx_context()]
+            tree = tree_for_idxcontext[model_path_for_name[name].index_context]
             pruned_tree = tree.prune_from_path(path, inplace=False)
             paths_for_name[name] = pruned_tree.expand_path(path)
         return paths_for_name
@@ -344,7 +344,7 @@ class _Worker:
         self.qrun._set_worker_working(self)
         for name in self.rpath_provided_for_name.keys():
             tree = self.tree_for_idxcontext[
-                self.provided_mpath_for_name[name].get_idx_context()
+                self.provided_mpath_for_name[name].index_context
             ]
             self.results[name] = tree.none_like()
 

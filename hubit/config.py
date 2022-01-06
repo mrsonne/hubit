@@ -911,7 +911,8 @@ class HubitModelPath(_HubitPath):
     def as_include_pattern(self):
         return self.remove_braces()
 
-    def get_idx_context(self):
+    @property
+    def index_context(self):
         """
         Get the index context of a path
         """

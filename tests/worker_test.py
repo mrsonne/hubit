@@ -274,7 +274,7 @@ class TestWorker(unittest.TestCase):
         nodes.extend(lay_nodes)
         level_names = "IDX_SEG", "IDX_LAY"
         tree = LengthTree(nodes, level_names)
-        _tree_for_idxcontext = {tree.get_idx_context(): tree}
+        _tree_for_idxcontext = {tree.index_context: tree}
 
         querystr = HubitQueryPath(querystr)
         w = _Worker(
@@ -389,7 +389,7 @@ class TestWorker(unittest.TestCase):
         tree = LengthTree(nodes, level_names)
         dummy_tree = DummyLengthTree()
 
-        _tree_for_idxcontext = {"": dummy_tree, tree.get_idx_context(): tree}
+        _tree_for_idxcontext = {"": dummy_tree, tree.index_context: tree}
 
         querystr = HubitQueryPath(querystr)
         w = _Worker(

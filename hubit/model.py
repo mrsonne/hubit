@@ -653,7 +653,7 @@ class HubitModel:
             self.model_cfg.component_for_id.values(), self.inputdata
         )
 
-    def _validate_query(self, query: Query, use_multi_processing=False):
+    def _validate_query(self, query: Query, use_multi_processing: bool =False):
         """
         Run the query using a dummy calculation to see that all required
         input and results are available

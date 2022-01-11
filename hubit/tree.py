@@ -675,17 +675,8 @@ class _QueryExpansion:
                 f"More than one component match the query '{path}'. Matching components provide: {mpaths}."
             )
 
-        # Get the index contexts for doing some tests
-        _idx_contexts = {mpath.index_context for mpath in mpaths}
-        if len(_idx_contexts) > 1:
-            msg = f"Fatal error. Inconsistent providers for query '{path}': {', '.join(mpaths)}"
-            raise HubitModelQueryError(msg)
-
-        if len(_idx_contexts) == 0:
-            msg = f"Fatal error. No provider for query path '{path}'."
-            raise HubitModelQueryError(msg)
-
-        self._idx_context = list(_idx_contexts)[0]
+        # Get the index contexts for doing some validation
+        self._idx_context = _QueryExpansion.get_index_context(path, mpaths)
 
         self.decomposed_paths, index_identifiers = _QueryExpansion.decompose_query(
             path, mpaths
@@ -702,6 +693,23 @@ class _QueryExpansion:
             #     msg = f"Fatal error. Inconsistent decomposition for query '{path}': {', '.join(mpaths)}"
             #     raise HubitModelQueryError(msg)
             self.decomposed_idx_identifier = index_identifiers[0]
+
+    @staticmethod
+    def get_index_context(qpath: HubitQueryPath, mpaths: List[HubitModelPath]):
+        """
+        Get the index context and do some validation
+        """
+        # Get the index contexts for doing some tests
+        _idx_contexts = {mpath.index_context for mpath in mpaths}
+        if len(_idx_contexts) > 1:
+            msg = f"Fatal error. Inconsistent providers for query '{qpath}': {', '.join(mpaths)}"
+            raise HubitModelQueryError(msg)
+
+        if len(_idx_contexts) == 0:
+            msg = f"Fatal error. No provider for query path '{qpath}'."
+            raise HubitModelQueryError(msg)
+
+        return list(_idx_contexts)[0]
 
     @property
     def idx_context(self):

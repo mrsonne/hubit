@@ -675,12 +675,15 @@ class HubitQueryPath(_HubitPath):
     #         _path = _path.replace(idx_spec, index, 1)
     #     return self.__class__(_path)
 
-    def check_path_match(self, model_path: HubitModelPath) -> bool:
+    def check_path_match(
+        self, model_path: HubitModelPath, check_intersection: bool = True
+    ) -> bool:
         """Check if the query matches the model path from the
         model bindings
 
         Args:
             model_path: A model path (provider)
+            check_intersection: Should the intersection between the index specifiers be checked
 
         Returns:
             bool: True if the query matches the model path
@@ -693,20 +696,27 @@ class HubitQueryPath(_HubitPath):
         if len(q_specifiers) != len(m_specifiers):
             return False
 
+        # Exit here if intersection between index specifiers should not be checked
+        if not check_intersection:
+            return True
+
         for qspec, mspec in zip(q_specifiers, m_specifiers):
             if not mspec.range.intersects(qspec.range, allow_self_empty=True):
                 return False
         return True
 
     def idxs_for_matches(
-        self,
-        mpaths: List[HubitModelPath],
+        self, mpaths: List[HubitModelPath], check_intersection: bool = True
     ) -> List[int]:
         """
         Returns indices in the sequence of provider strings that match the
         structure of the query string
         """
-        return [idx for idx, mpath in enumerate(mpaths) if self.check_path_match(mpath)]
+        return [
+            idx
+            for idx, meaty in enumerate(mpaths)
+            if self.check_path_match(meaty, check_intersection)
+        ]
 
     def get_index_specifiers(self) -> List[QueryIndexSpecifier]:
         items = re.findall(_HubitPath.regex_idx_spec, self)

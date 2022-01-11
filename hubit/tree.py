@@ -125,7 +125,8 @@ class DummyLengthTree:
     def __init__(self, *args, **kwargs):
         self.level_names = []
 
-    def get_idx_context(self):
+    @property
+    def index_context(self):
         return "-".join(self.level_names)
 
     def prune_from_path(
@@ -183,7 +184,8 @@ class LengthTree:
             node.tree = self
             self.nodes_for_level[node.level].append(node)
 
-    def get_idx_context(self):
+    @property
+    def index_context(self):
         return "-".join(self.level_names)
 
     def clip_at_level(self, level_name: str, inplace: bool = True) -> LengthTree:

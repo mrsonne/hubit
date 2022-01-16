@@ -304,9 +304,9 @@ class TestHubitQueryPath(unittest.TestCase):
 
         ### Negative index in query
         # Match: negative index in query
-        # qpath = HubitQueryPath("segs[42].walls[-1].temps")
-        # mpath = HubitModelPath("segs[IDX1].walls[IDX1].temps")
-        # assert qpath.path_match(mpath)
+        qpath = HubitQueryPath("segs[42].walls[-1].temps")
+        mpath = HubitModelPath("segs[IDX1].walls[IDX1].temps")
+        assert qpath.path_match(mpath)
 
         # Match: negative index in query
         mpath = HubitModelPath("segs[IDX1].walls[:@IDX1].temps")

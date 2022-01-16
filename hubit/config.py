@@ -1166,6 +1166,18 @@ class HubitModelComponent:
     def include_patterns(self):
         return [binding.path.as_include_pattern() for binding in self.consumes_input]
 
+    @property
+    def provides_results_paths(self) -> List[HubitModelPath]:
+        return [binding.path for binding in self.provides_results]
+
+    @property
+    def consumes_input_paths(self) -> List[HubitModelPath]:
+        return [binding.path for binding in self.consumes_input]
+
+    @property
+    def consumes_results_paths(self) -> List[HubitModelPath]:
+        return [binding.path for binding in self.consumes_results]
+
 
 @dataclass
 class HubitModelConfig:

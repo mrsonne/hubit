@@ -653,7 +653,7 @@ class HubitModel:
             self.model_cfg.component_for_id.values(), self.inputdata
         )
 
-    def _validate_query(self, query: Query, use_multi_processing: bool =False):
+    def _validate_query(self, query: Query, use_multi_processing: bool = False):
         """
         Run the query using a dummy calculation to see that all required
         input and results are available
@@ -728,6 +728,47 @@ class HubitModel:
     def component_for_qpath(self, path: HubitQueryPath) -> HubitModelComponent:
         return self.component_for_id(self._cmpid_for_query(path))
 
+    def mpaths_for_qpath_fields_only(
+        self, qpath: HubitQueryPath
+    ) -> Tuple[List[HubitModelPath], List[str]]:
+        """Find model paths that match the query. The match
+        is evaluated only based on field names
+        """
+        # Find component that provides queried result
+        cmp_ids = self._cmpids_for_query(qpath, check_intersection=False)
+
+        # Find component
+        mpaths = []
+        for cmp_id in cmp_ids:
+            # Get the provided paths
+            binding_paths = self.model_cfg.component_for_id[
+                cmp_id
+            ].provides_results_paths
+            # Find index in list of binding paths that match query path (there can
+            # be only one match which should be validated elsewhere)
+            idx = qpath.idxs_for_matches(binding_paths, check_intersection=False)[0]
+            mpaths.append(binding_paths[idx])
+        return mpaths, cmp_ids
+
+    def filter_mpaths_for_qpath_index_ranges(
+        self, qpath: HubitQueryPath, mpaths: List[HubitModelPath], cmp_ids: List[str]
+    ) -> List[HubitModelPath]:
+        """
+        each path represents a path provided for the corresponding component.
+        mpaths, cmp_ids have same length
+        """
+        # Indexes for models paths that match the query path (index considering intersections)
+        _mpaths = []
+        for mpath, cmp_id in zip(mpaths, cmp_ids):
+            # Find component
+            cmp = self.model_cfg.component_for_id[cmp_id]
+            # Set the index scope
+            _mpaths.append(mpath.set_range_for_idxid(cmp.index_scope))
+
+        # TODO split out field check
+        idxs = qpath.idxs_for_matches(_mpaths, check_intersection=True)
+        return [_mpaths[idx] for idx in idxs]
+
     def _mpaths_for_qpath(
         self, qpath: HubitQueryPath, check_intersection: bool = True
     ) -> List[HubitModelPath]:
@@ -768,17 +809,34 @@ class HubitModel:
         store: If True some intermediate results will be saved on the
             instance for later use.
 
-        TODO: NEgative indices... prune_tree requires real indices but normalize
-        path require all IDX_WILDCARDs be expanded to get the context
-
-        # TODO: Save pruned trees so the worker need not prune top level trees again
-        # TODO: save component so we dont have to find top level components again
+        TODO: Save pruned trees so the worker need not prune top level trees again
+        TODO: save component so we dont have to find top level components again
         """
-        # Get all model paths that match the query
-        mpaths = self._mpaths_for_qpath(qpath)
+
+        mpaths_old = self._mpaths_for_qpath(qpath)
 
         # Prepare query expansion object
-        qexp = _QueryExpansion(qpath, mpaths)
+        mpaths, cmp_ids = self.mpaths_for_qpath_fields_only(qpath)
+
+        # Get index context to find tree and normalize path if needed
+        # index_context = _QueryExpansion.get_index_context(qpath, mpaths)
+        # qpath_norm = self.tree_for_idxcontext[index_context].expand_path(qpath)
+
+        # assert len(qpath_norm) == 1, (
+        #     f"Normalizing '{qpath}' resulted in multiple paths which is not supported.",
+        #     f" Resulting paths: {qpath_norm}",
+        # )
+        # qpath_norm = qpath_norm[0]
+
+        qpath_norm = qpath
+
+        # Filter models paths using index specifiers for normalized query path
+        mpaths = self.filter_mpaths_for_qpath_index_ranges(qpath_norm, mpaths, cmp_ids)
+
+        # TODO: remove this test
+        assert mpaths_old == mpaths
+
+        qexp = _QueryExpansion(qpath_norm, mpaths)
 
         # Get the tree that corresponds to the (one) index context
         tree = self.tree_for_idxcontext[qexp.idx_context]

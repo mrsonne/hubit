@@ -247,7 +247,7 @@ class _Worker:
         # matched the query suffice
         idxval_for_idxid = {}
         for binding in bindings:
-            if query_path.check_path_match(binding.path):
+            if query_path.path_match(binding.path):
                 identifiers = binding.path.get_index_identifiers()
                 ranges = query_path.ranges()
                 idxval_for_idxid.update(dict(zip(identifiers, ranges)))

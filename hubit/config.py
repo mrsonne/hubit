@@ -675,7 +675,30 @@ class HubitQueryPath(_HubitPath):
     #         _path = _path.replace(idx_spec, index, 1)
     #     return self.__class__(_path)
 
-    def check_path_match(
+    def field_names_match(self, model_path: HubitModelPath) -> bool:
+        """Check if the field names in query match the field names
+        in the model path
+        """
+        if self.remove_braces() != model_path.remove_braces():
+            return False
+        else:
+            return True
+
+    def index_specifiers_match(self, model_path: HubitModelPath) -> bool:
+        """Check if the index specifiers in query intersect the index
+        specifiers in the model path
+        """
+        q_specifiers = self.get_index_specifiers()
+        m_specifiers = model_path.get_index_specifiers()
+        if len(q_specifiers) != len(m_specifiers):
+            return False
+
+        for qspec, mspec in zip(q_specifiers, m_specifiers):
+            if not mspec.range.intersects(qspec.range, allow_self_empty=True):
+                return False
+        return True
+
+    def path_match(
         self, model_path: HubitModelPath, check_intersection: bool = True
     ) -> bool:
         """Check if the query matches the model path from the
@@ -688,22 +711,11 @@ class HubitQueryPath(_HubitPath):
         Returns:
             bool: True if the query matches the model path
         """
-        if self.remove_braces() != model_path.remove_braces():
-            return False
+        fields_ok = self.field_names_match(model_path)
+        if not check_intersection or not fields_ok:
+            return fields_ok
 
-        q_specifiers = self.get_index_specifiers()
-        m_specifiers = model_path.get_index_specifiers()
-        if len(q_specifiers) != len(m_specifiers):
-            return False
-
-        # Exit here if intersection between index specifiers should not be checked
-        if not check_intersection:
-            return True
-
-        for qspec, mspec in zip(q_specifiers, m_specifiers):
-            if not mspec.range.intersects(qspec.range, allow_self_empty=True):
-                return False
-        return True
+        return self.index_specifiers_match(model_path)
 
     def idxs_for_matches(
         self, mpaths: List[HubitModelPath], check_intersection: bool = True
@@ -714,8 +726,8 @@ class HubitQueryPath(_HubitPath):
         """
         return [
             idx
-            for idx, meaty in enumerate(mpaths)
-            if self.check_path_match(meaty, check_intersection)
+            for idx, mpath in enumerate(mpaths)
+            if self.path_match(mpath, check_intersection)
         ]
 
     def get_index_specifiers(self) -> List[QueryIndexSpecifier]:

@@ -830,15 +830,11 @@ class HubitModel:
             qpaths_norm = self.tree_for_idxcontext[index_context].expand_path(qpath)
 
             assert len(qpaths_norm) == 1, (
-                f"Normalizing '{qpath}' resulted in multiple paths, which is not supported.",
-                f" Resulting paths: {qpaths_norm}",
+                f"Normalizing '{qpath}' resulted in multiple paths, which is not supported."
+                f" Resulting paths: {qpaths_norm}"
             )
 
             qpath_norm = qpaths_norm[0]
-
-            assert qpath == qpath_norm, (
-                f"Normalizing '{qpath}' resulted in an unexpected path '{qpaths_norm}'",
-            )
         else:
             qpath_norm = qpath
 

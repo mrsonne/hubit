@@ -826,6 +826,9 @@ class HubitModel:
             #   field[1].field2[4],
             #   field[2].filed2[1]
             # ]
+
+            # Even though the model paths have not yet been filtered based on
+            # index ranges the index context should still be unique
             index_context = _QueryExpansion.get_index_context(qpath, mpaths)
             qpaths_norm = self.tree_for_idxcontext[index_context].expand_path(qpath)
 

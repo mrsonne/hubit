@@ -769,34 +769,34 @@ class HubitModel:
         idxs = qpath.idxs_for_matches(_mpaths, check_intersection=True)
         return [_mpaths[idx] for idx in idxs]
 
-    def _mpaths_for_qpath(
-        self, qpath: HubitQueryPath, check_intersection: bool = True
-    ) -> List[HubitModelPath]:
-        """
-        Returns the model paths (with the index scope inserted)
-        that match the query.
-        """
-        # Find component that provides queried result
-        cmp_ids = self._cmpids_for_query(qpath, check_intersection)
+    # def _mpaths_for_qpath(
+    #     self, qpath: HubitQueryPath, check_intersection: bool = True
+    # ) -> List[HubitModelPath]:
+    #     """
+    #     Returns the model paths (with the index scope inserted)
+    #     that match the query.
+    #     """
+    #     # Find component that provides queried result
+    #     cmp_ids = self._cmpids_for_query(qpath, check_intersection)
 
-        # Find component
-        paths = []
-        scopes = []
-        for cmp_id in cmp_ids:
-            cmp = self.model_cfg.component_for_id[cmp_id]
-            # Find index in list of binding paths that match query path
-            idxs = qpath.idxs_for_matches(
-                [binding.path for binding in cmp.provides_results],
-                check_intersection,
-            )
-            paths.append(cmp.provides_results[idxs[0]].path)
-            scopes.append(cmp.index_scope)
+    #     # Find component
+    #     paths = []
+    #     scopes = []
+    #     for cmp_id in cmp_ids:
+    #         cmp = self.model_cfg.component_for_id[cmp_id]
+    #         # Find index in list of binding paths that match query path
+    #         idxs = qpath.idxs_for_matches(
+    #             [binding.path for binding in cmp.provides_results],
+    #             check_intersection,
+    #         )
+    #         paths.append(cmp.provides_results[idxs[0]].path)
+    #         scopes.append(cmp.index_scope)
 
-        # Set the index scope
-        mpaths = [
-            mpath.set_range_for_idxid(scope) for mpath, scope in zip(paths, scopes)
-        ]
-        return mpaths
+    #     # Set the index scope
+    #     mpaths = [
+    #         mpath.set_range_for_idxid(scope) for mpath, scope in zip(paths, scopes)
+    #     ]
+    #     return mpaths
 
     def _expand_query(
         self, qpath: HubitQueryPath, store: bool = True
@@ -813,28 +813,37 @@ class HubitModel:
         TODO: save component so we dont have to find top level components again
         """
 
-        mpaths_old = self._mpaths_for_qpath(qpath)
-
         # Prepare query expansion object
         mpaths, cmp_ids = self.mpaths_for_qpath_fields_only(qpath)
 
-        # Get index context to find tree and normalize path if needed
-        # index_context = _QueryExpansion.get_index_context(qpath, mpaths)
-        # qpath_norm = self.tree_for_idxcontext[index_context].expand_path(qpath)
+        # If the query path has negative indices we must normalize the path
+        # i.e expand it to get rid of this abstraction.
+        if qpath.has_negative_indices:
+            # Get index context to find tree and normalizethe  path. The tree
+            # is required since field[:].filed2[-1] may, for non-rectangular data,
+            # for example correspond to
+            # [ field[0].field2[2],
+            #   field[1].field2[4],
+            #   field[2].filed2[1]
+            # ]
+            index_context = _QueryExpansion.get_index_context(qpath, mpaths)
+            qpaths_norm = self.tree_for_idxcontext[index_context].expand_path(qpath)
 
-        # assert len(qpath_norm) == 1, (
-        #     f"Normalizing '{qpath}' resulted in multiple paths which is not supported.",
-        #     f" Resulting paths: {qpath_norm}",
-        # )
-        # qpath_norm = qpath_norm[0]
+            assert len(qpaths_norm) == 1, (
+                f"Normalizing '{qpath}' resulted in multiple paths, which is not supported.",
+                f" Resulting paths: {qpaths_norm}",
+            )
 
-        qpath_norm = qpath
+            qpath_norm = qpaths_norm[0]
+
+            assert qpath == qpath_norm, (
+                f"Normalizing '{qpath}' resulted in an unexpected path '{qpaths_norm}'",
+            )
+        else:
+            qpath_norm = qpath
 
         # Filter models paths using index specifiers for normalized query path
         mpaths = self.filter_mpaths_for_qpath_index_ranges(qpath_norm, mpaths, cmp_ids)
-
-        # TODO: remove this test
-        assert mpaths_old == mpaths
 
         qexp = _QueryExpansion(qpath_norm, mpaths)
 

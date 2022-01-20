@@ -1,5 +1,8 @@
 VERSION = "0.4.1"
 import shutil
+import warnings
+
+warnings.simplefilter("always", DeprecationWarning)
 
 
 # Make HubitModel available as from hubit import model

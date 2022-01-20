@@ -49,6 +49,7 @@ class LengthNode:
         """
         self.level = 0
         # Assume bottom level
+        self._nchildren_org = nchildren
         self.children: Sequence[Union[LengthNode, LeafNode]] = [
             LeafNode(idx) for idx in range(nchildren)
         ]
@@ -67,11 +68,19 @@ class LengthNode:
     def _set_child_for_idx(self):
         self._child_for_idx = {child.index: child for child in self.children}
 
+    def normalize_child_index(self, index: int):
+        # TODO: negative-indices. think about this for a while...
+        if index < 0:
+            return self._nchildren_org + index
+        else:
+            return index
+
     def nchildren(self) -> int:
         return len(self.children)
 
     def set_children(self, children: Sequence[Union[LengthNode, LeafNode]]):
         self.children = list(children)
+        self._nchildren_org = len(self.children)
         for idx, child in enumerate(self.children):
             child.parent = self
             child.level = self.level + 1
@@ -258,9 +267,10 @@ class LengthTree:
             # Keep child corresponding to idx remove the rest
             idx_others = [child.index for child in node.children]
             node.is_constrained = True
-            if idx_value in idx_others:
+            idx_value_norm = node.normalize_child_index(idx_value)
+            if idx_value_norm in idx_others:
                 # idx can be provided
-                idx_others.remove(idx_value)
+                idx_others.remove(idx_value_norm)
                 for idx_other in reversed(idx_others):
                     node.pop_child_for_idx(idx_other)
 
@@ -272,7 +282,7 @@ class LengthTree:
                 node.remove()
             except HubitIndexError:
                 raise HubitIndexError(
-                    f"Cannot find index {idx_value} "
+                    f"Cannot find index {idx_value} ({idx_value_norm}) "
                     f"for index ID {obj.level_names[level_idx]} "
                     f"in tree "
                     f"{self}"
@@ -649,22 +659,31 @@ class LengthTree:
 class _QueryExpansion:
     """A Hubit query expansion. A query can be split into multiple queries
 
-    Args:
-        path: A [`HubitQueryPath`][hubit.config.HubitQueryPath] representing the original query.
-        decomposed_paths: If a single component can provide results for `path`, `decomposed_paths`
-            has one element of type [`HubitQueryPath`][hubit.config.HubitQueryPath]. If multiple
-            components match the query individual path contributions are the items in the list.
-        expanded_paths_for_decomposed_path: For each element in `decomposed_paths`
-            these are the expanded paths i.e. dotted paths with real indices not
-            wildcards.
+    path: A [`HubitQueryPath`][hubit.config.HubitQueryPath] representing the original query.
+    decomposed_paths: If a single component can provide results for `path`, `decomposed_paths`
+        has one element of type [`HubitQueryPath`][hubit.config.HubitQueryPath]. If multiple
+        components match the query individual path contributions are the items in the list.
+    expanded_paths_for_decomposed_path: For each element in `decomposed_paths`
+        these are the expanded paths i.e. dotted paths with real indices not
+        wildcards.
     """
 
-    def __init__(self, path: HubitQueryPath, mpaths: List[HubitModelPath]):
+    def __init__(
+        self,
+        path: HubitQueryPath,
+        mpaths: List[HubitModelPath],
+        paths_norm: Optional[List[HubitQueryPath]] = None,
+    ):
         """
         path: the query path
         mpaths: the model paths that match the query
+        paths_norm: Result of query path normalization
+
+        We don't normalize on initialization  to reduce coupling to model and tree objects
         """
         self.path = path
+
+        self.paths_norm = [path] if paths_norm is None else paths_norm
 
         if len(mpaths) > 1 and not path.has_slice_range():
             # Should not be possible to have multiple providers if the query
@@ -729,19 +748,52 @@ class _QueryExpansion:
             for path in paths
         ]
 
+    def _path_is_normalized(self):
+        print("norm", self.path, self.paths_norm)
+        return len(self.paths_norm) > 1 or self.path != self.paths_norm[0]
+
     def is_decomposed(self):
         return len(self.decomposed_paths) > 1
 
     def is_expanded(self):
+        print("IS_EXPANDED")
+        print("path", self.path)
+        print("decomposed_paths", self.decomposed_paths)
+        print(
+            "len",
+            len(self.expanded_paths_for_decomposed_path[self.decomposed_paths[0]]),
+        )
+        print(
+            "expanded_paths_for_decomposed_path 0,0",
+            (self.expanded_paths_for_decomposed_path[self.decomposed_paths[0]][0]),
+        )
+        print("norm?", self._path_is_normalized())
         if (
             not self.is_decomposed()
             and self.path == self.decomposed_paths[0]
             and len(self.expanded_paths_for_decomposed_path[self.decomposed_paths[0]])
             == 1
-            and self.path
-            == self.expanded_paths_for_decomposed_path[self.decomposed_paths[0]][0]
         ):
-            return False
+            if self._path_is_normalized():
+                if (
+                    self.paths_norm[0]
+                    == self.expanded_paths_for_decomposed_path[
+                        self.decomposed_paths[0]
+                    ][0]
+                ):
+                    return False
+                else:
+                    return True
+            else:
+                if (
+                    self.path
+                    == self.expanded_paths_for_decomposed_path[
+                        self.decomposed_paths[0]
+                    ][0]
+                ):
+                    return False
+                else:
+                    return True
         else:
             return True
 

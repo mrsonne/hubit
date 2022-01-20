@@ -32,6 +32,7 @@ import copy
 import itertools
 from multiprocessing import Pool
 from threading import Thread, Event
+import warnings
 
 from .qrun import _QueryRunner
 from .tree import LengthTree, _QueryExpansion, tree_for_idxcontext
@@ -367,6 +368,20 @@ class HubitModel:
             os.remove(filepath)
 
     def get_results(self) -> FlatData:
+        """
+        Get model results as [`FlatData`][hubit.config.FlatData]
+
+        Returns:
+            Results for the model instance.
+        """
+        warnings.warn(
+            "The method 'get_results' on 'HubitModel' is deprecated. Use the 'results' property instead.",
+            DeprecationWarning,
+        )
+        return self.flat_results
+
+    @property
+    def results(self) -> FlatData:
         """
         Get model results as [`FlatData`][hubit.config.FlatData]
 
@@ -830,21 +845,32 @@ class HubitModel:
             # Even though the model paths have not yet been filtered based on
             # index ranges the index context should still be unique
             index_context = _QueryExpansion.get_index_context(qpath, mpaths)
-            qpaths_norm = self.tree_for_idxcontext[index_context].expand_path(qpath)
+            qpaths_norm = self.tree_for_idxcontext[index_context].expand_path(
+                qpath, flat=True
+            )
 
             assert len(qpaths_norm) == 1, (
                 f"Normalizing '{qpath}' resulted in multiple paths, which is not supported."
                 f" Resulting paths: {qpaths_norm}"
             )
-
-            qpath_norm = qpaths_norm[0]
         else:
-            qpath_norm = qpath
+            qpaths_norm = [qpath]
 
+        print("XXXXX", qpaths_norm),
         # Filter models paths using index specifiers for normalized query path
-        mpaths = self.filter_mpaths_for_qpath_index_ranges(qpath_norm, mpaths, cmp_ids)
+        mpaths = [
+            mpath
+            for qpath_norm in qpaths_norm
+            for mpath in self.filter_mpaths_for_qpath_index_ranges(
+                qpath_norm, mpaths, cmp_ids
+            )
+        ]
 
-        qexp = _QueryExpansion(qpath_norm, mpaths)
+        qexp = _QueryExpansion(
+            qpath,
+            mpaths,
+            qpaths_norm,
+        )
 
         # Get the tree that corresponds to the (one) index context
         tree = self.tree_for_idxcontext[qexp.idx_context]
@@ -874,7 +900,7 @@ class HubitModel:
 
         return qexp
 
-    def _compress_response(self, response, queries_expanded: List[_QueryExpansion]):
+    def _compress_response(self, response, query_expansions: List[_QueryExpansion]):
         """
         Compress the response to reflect queries with index wildcards.
         So if the query has the structure list1[:].list2[:] and is
@@ -882,11 +908,18 @@ class HubitModel:
         in list2 the compressed response will be a nested list like
         [[00, 01, 02], [10, 11, 12]]
         """
+        print("response", response)
         _response = {}
-        for qexp in queries_expanded:
+        for qexp in query_expansions:
+            print("qexp.is_expanded()", qexp.is_expanded())
             if not qexp.is_expanded():
                 # Path not expanded so no need to compress
-                _response[qexp.path] = response[qexp.path]
+                if len(qexp.paths_norm) == 1:
+                    # Simple map from single normalized path to the path
+                    # e.g cars[-1].price ['cars[2].price'] or cars[2].price ['cars[2].price']
+                    _response[qexp.path] = response[qexp.paths_norm[0]]
+                else:
+                    raise NotImplementedError
             else:
                 # Get the index IDs from the original query
                 idxids = qexp.path.get_index_specifiers()

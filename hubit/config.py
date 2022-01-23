@@ -597,7 +597,7 @@ class _HubitPath(str):
 
     def has_slice_range(self):
         """Check if path has a slice that is a range"""
-        return self.wildcard_chr in self.ranges()
+        return self.wildcard_chr in self
 
     def ranges(self) -> List[PathIndexRange]:
         """Get the ranges from the path i.e. the part of all square braces preceding the @.

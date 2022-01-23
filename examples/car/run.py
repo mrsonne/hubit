@@ -1,6 +1,5 @@
 from pprint import pprint
 import logging
-import warnings
 from .shared import get_model
 from hubit import clear_hubit_cache
 

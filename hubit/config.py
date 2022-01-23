@@ -147,6 +147,8 @@ class PathIndexRange(str):
             )
 
         if self.is_digit:
+            # TODO: negative-indices. check this for model paths
+
             pass
             # if int(self) < 0:
             #     raise HubitError(f"Index '{self}' should be positive")

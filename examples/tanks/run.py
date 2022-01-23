@@ -1,3 +1,4 @@
+import logging
 from pprint import pprint
 from .shared import get_model
 
@@ -5,7 +6,7 @@ from .shared import get_model
 # For hard refs
 
 
-def run(model_id):
+def run(model_id, input_file="input.yml"):
     use_multi_processing = False
 
     ltot = 100
@@ -16,10 +17,12 @@ def run(model_id):
     print("*" * ltot)
     print("{:<}{}{:>}".format("*" * lpad, model_id, "*" * rpad))
     print("*" * ltot)
-    hmodel = get_model(model_id)
+    hmodel = get_model(model_id, input_file)
+
+    prod_site = 0
 
     # Should result in a number
-    query = ["prod_sites[0].prod_lines[0].tanks[0].Q_yield"]
+    query = [f"prod_sites[{prod_site}].prod_lines[0].tanks[0].Q_yield"]
     print(f"\nQuery")
     pprint(query)
     print(f"Spawns 1 worker")
@@ -30,7 +33,7 @@ def run(model_id):
     hmodel.clean_log()
 
     # Should result in a number
-    query = ["prod_sites[0].prod_lines[0].tanks[1].Q_yield"]
+    query = [f"prod_sites[{prod_site}].prod_lines[0].tanks[1].Q_yield"]
     print(f"\nQuery")
     pprint(query)
     print(f"Spawns 2 workers")
@@ -42,7 +45,7 @@ def run(model_id):
 
     # Should result in a number
     print(f"\nQuery")
-    query = ["prod_sites[0].prod_lines[0].tanks[2].Q_yield"]
+    query = [f"prod_sites[{prod_site}].prod_lines[0].tanks[2].Q_yield"]
     pprint(query)
     print(f"Spawns 3 workers")
     response = hmodel.get(query, use_multi_processing=use_multi_processing)
@@ -54,7 +57,7 @@ def run(model_id):
 
     # Should result in a number
     print(f"\nQuery")
-    query = ["prod_sites[0].prod_lines[0].tanks[-1].Q_yield"]
+    query = [f"prod_sites[{prod_site}].prod_lines[0].tanks[-1].Q_yield"]
     pprint(query)
     print(f"Spawns 3 workers")
     response = hmodel.get(query, use_multi_processing=use_multi_processing)
@@ -87,9 +90,9 @@ def run(model_id):
 
     # # Should result in three numbers
     query = [
-        "prod_sites[0].prod_lines[0].tanks[0].Q_yield",
-        "prod_sites[0].prod_lines[0].tanks[1].Q_yield",
-        "prod_sites[0].prod_lines[0].tanks[2].Q_yield",
+        f"prod_sites[{prod_site}].prod_lines[0].tanks[0].Q_yield",
+        f"prod_sites[{prod_site}].prod_lines[0].tanks[1].Q_yield",
+        f"prod_sites[{prod_site}].prod_lines[0].tanks[2].Q_yield",
     ]
     print(f"\nQuery")
     pprint(query)
@@ -101,7 +104,7 @@ def run(model_id):
     hmodel.clean_log()
 
     # Should result in 1D array
-    query = ["prod_sites[0].prod_lines[0].tanks[:].Q_yield"]
+    query = [f"prod_sites[{prod_site}].prod_lines[0].tanks[:].Q_yield"]
     print(f"\nSpawns 3 workers: {query}")
     response = hmodel.get(query, use_multi_processing=use_multi_processing)
     print("Response (One path with list as value):")
@@ -110,7 +113,7 @@ def run(model_id):
     hmodel.clean_log()
 
     # Should result in double nested list
-    query = ["prod_sites[0].prod_lines[:].tanks[:].Q_yield"]
+    query = [f"prod_sites[{prod_site}].prod_lines[:].tanks[:].Q_yield"]
     print(f"\nSpawns 3 workers: {query}")
     response = hmodel.get(query, use_multi_processing=use_multi_processing)
     print("Response (One path with double nested list as value):")
@@ -129,7 +132,14 @@ def run(model_id):
 
 
 if __name__ == "__main__":
-    run("model_1.yml")
-    run("model_1a.yml")
-    run("model_1b.yml")
-    run("model_2.yml")
+    input_file = "input.yml"
+    run("model_1.yml", input_file)
+    run("model_1a.yml", input_file)
+    run("model_1b.yml", input_file)
+    run("model_2.yml", input_file)
+
+    # input_file = "input_2_prod_sites.yml"
+    # run("model_1.yml", input_file)
+    # run("model_1a.yml", input_file)
+    # run("model_1b.yml", input_file)
+    # run("model_2.yml", input_file)

@@ -1,5 +1,6 @@
 from pprint import pprint
 import logging
+import warnings
 from .shared import get_model
 from hubit import clear_hubit_cache
 
@@ -11,9 +12,10 @@ def model_0():
     print(f"\n***MODEL 0***")
     hmodel = get_model("model0.yml")
     query = ["cars[0].price", "cars[1].price", "cars[2].price"]
+    query = ["cars[-1].price", "cars[2].price"]
     response = hmodel.get(query, use_multi_processing=False)
-    print(response)
-    print(hmodel.get_results().as_dict())
+    print("response:", response)
+    print("results: ", hmodel.results.as_dict())
 
 
 def model_1():

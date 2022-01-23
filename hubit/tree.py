@@ -663,7 +663,7 @@ class _QueryExpansion:
     decomposed_paths: If a single component can provide results for `path`, `decomposed_paths`
         has one element of type [`HubitQueryPath`][hubit.config.HubitQueryPath]. If multiple
         components match the query individual path contributions are the items in the list.
-    expanded_paths_for_decomposed_path: For each element in `decomposed_paths`
+    exp_paths_for_decomp_path: For each element in `decomposed_paths`
         these are the expanded paths i.e. dotted paths with real indices not
         wildcards.
     """
@@ -698,11 +698,9 @@ class _QueryExpansion:
         self._idx_context = _QueryExpansion.get_index_context(path, mpaths)
 
         self.decomposed_paths, index_identifiers = _QueryExpansion.decompose_query(
-            path, mpaths
+            paths_norm[0], mpaths
         )
-        self.expanded_paths_for_decomposed_path: Dict[
-            HubitQueryPath, List[HubitQueryPath]
-        ] = {}
+        self.exp_paths_for_decomp_path: Dict[HubitQueryPath, List[HubitQueryPath]] = {}
 
         if index_identifiers is None:
             self.decomposed_idx_identifier = None
@@ -738,64 +736,28 @@ class _QueryExpansion:
     def update_expanded_paths(
         self, decomposed_path: HubitQueryPath, expanded_paths: List[HubitQueryPath]
     ):
-        self.expanded_paths_for_decomposed_path[decomposed_path] = expanded_paths
+        self.exp_paths_for_decomp_path[decomposed_path] = expanded_paths
 
     def flat_expanded_paths(self):
         """Returns flat list of expanded paths"""
         return [
-            path
-            for paths in self.expanded_paths_for_decomposed_path.values()
-            for path in paths
+            path for paths in self.exp_paths_for_decomp_path.values() for path in paths
         ]
 
+    def normalization_is_simple(self):
+        return len(self.paths_norm) == 1
+
     def _path_is_normalized(self):
-        print("norm", self.path, self.paths_norm)
         return len(self.paths_norm) > 1 or self.path != self.paths_norm[0]
 
     def is_decomposed(self):
         return len(self.decomposed_paths) > 1
 
     def is_expanded(self):
-        print("IS_EXPANDED")
-        print("path", self.path)
-        print("decomposed_paths", self.decomposed_paths)
-        print(
-            "len",
-            len(self.expanded_paths_for_decomposed_path[self.decomposed_paths[0]]),
-        )
-        print(
-            "expanded_paths_for_decomposed_path 0,0",
-            (self.expanded_paths_for_decomposed_path[self.decomposed_paths[0]][0]),
-        )
-        print("norm?", self._path_is_normalized())
-        if (
-            not self.is_decomposed()
-            and self.path == self.decomposed_paths[0]
-            and len(self.expanded_paths_for_decomposed_path[self.decomposed_paths[0]])
-            == 1
-        ):
-            if self._path_is_normalized():
-                if (
-                    self.paths_norm[0]
-                    == self.expanded_paths_for_decomposed_path[
-                        self.decomposed_paths[0]
-                    ][0]
-                ):
-                    return False
-                else:
-                    return True
-            else:
-                if (
-                    self.path
-                    == self.expanded_paths_for_decomposed_path[
-                        self.decomposed_paths[0]
-                    ][0]
-                ):
-                    return False
-                else:
-                    return True
-        else:
+        if self.path.has_slice_range():
             return True
+
+        return False
 
     @staticmethod
     def decompose_query(
@@ -902,7 +864,7 @@ class _QueryExpansion:
         lines.append("Decomposition & expansion")
         for decomp_path, expanded_paths in itertools.zip_longest(
             self.decomposed_paths,
-            self.expanded_paths_for_decomposed_path.values(),
+            self.exp_paths_for_decomp_path.values(),
             fillvalue=None,
         ):
             lines.append(f"  {decomp_path} -> {expanded_paths}")

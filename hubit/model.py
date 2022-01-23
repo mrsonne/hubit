@@ -856,7 +856,6 @@ class HubitModel:
         else:
             qpaths_norm = [qpath]
 
-        print("XXXXX", qpaths_norm),
         # Filter models paths using index specifiers for normalized query path
         mpaths = [
             mpath
@@ -908,18 +907,13 @@ class HubitModel:
         in list2 the compressed response will be a nested list like
         [[00, 01, 02], [10, 11, 12]]
         """
-        print("response", response)
         _response = {}
         for qexp in query_expansions:
-            print("qexp.is_expanded()", qexp.is_expanded())
             if not qexp.is_expanded():
                 # Path not expanded so no need to compress
-                if len(qexp.paths_norm) == 1:
-                    # Simple map from single normalized path to the path
-                    # e.g cars[-1].price ['cars[2].price'] or cars[2].price ['cars[2].price']
-                    _response[qexp.path] = response[qexp.paths_norm[0]]
-                else:
-                    raise NotImplementedError
+                # Simple map from single normalized path to the path
+                # e.g cars[-1].price ['cars[2].price'] or cars[2].price ['cars[2].price']
+                _response[qexp.path] = response[qexp.paths_norm[0]]
             else:
                 # Get the index IDs from the original query
                 idxids = qexp.path.get_index_specifiers()
@@ -931,7 +925,7 @@ class HubitModel:
                     qexp.path, inplace=False
                 ).none_like()
                 # Extract iloc indices for each query in the expanded query
-                for expanded_paths in qexp.expanded_paths_for_decomposed_path.values():
+                for expanded_paths in qexp.exp_paths_for_decomp_path.values():
                     for path in expanded_paths:
                         ranges = path.ranges()
                         # Only keep ilocs that come from an expansion... otherwise

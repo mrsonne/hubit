@@ -147,8 +147,9 @@ class PathIndexRange(str):
             )
 
         if self.is_digit:
-            if int(self) < 0:
-                raise HubitError(f"Index '{self}' should be positive")
+            pass
+            # if int(self) < 0:
+            #     raise HubitError(f"Index '{self}' should be positive")
         elif self.is_limited_range:
             self._validate_limited_range()
 

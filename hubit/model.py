@@ -848,11 +848,6 @@ class HubitModel:
             qpaths_norm = self.tree_for_idxcontext[index_context].expand_path(
                 qpath, flat=True
             )
-
-            assert len(qpaths_norm) == 1, (
-                f"Normalizing '{qpath}' resulted in multiple paths, which is not supported."
-                f" Resulting paths: {qpaths_norm}"
-            )
         else:
             qpaths_norm = [qpath]
 
@@ -881,21 +876,22 @@ class HubitModel:
         if store:
             self._tree_for_qpath[qpath] = tree
 
-        for decomposed_qpath, _mpath in zip(qexp.decomposed_paths, mpaths):
-            pruned_tree = tree.prune_from_path(
-                decomposed_qpath,
-                inplace=False,
-            )
+        for decomposed_qpaths in qexp.decomposed_paths:
+            for decomposed_qpath, _mpath in zip(decomposed_qpaths, mpaths):
+                pruned_tree = tree.prune_from_path(
+                    decomposed_qpath,
+                    inplace=False,
+                )
 
-            if store:
-                # Store pruned tree
-                self._tree_for_qpath[decomposed_qpath] = pruned_tree
-                self._modelpath_for_querypath[decomposed_qpath] = _mpath
+                if store:
+                    # Store pruned tree
+                    self._tree_for_qpath[decomposed_qpath] = pruned_tree
+                    self._modelpath_for_querypath[decomposed_qpath] = _mpath
 
-            # Expand the path
-            expanded_paths = pruned_tree.expand_path(decomposed_qpath, flat=True)
+                # Expand the path
+                expanded_paths = pruned_tree.expand_path(decomposed_qpath, flat=True)
 
-            qexp.update_expanded_paths(decomposed_qpath, expanded_paths)
+                qexp.update_expanded_paths(decomposed_qpath, expanded_paths)
 
         return qexp
 

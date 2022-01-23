@@ -697,19 +697,26 @@ class _QueryExpansion:
         # Get the index contexts for doing some validation
         self._idx_context = _QueryExpansion.get_index_context(path, mpaths)
 
-        self.decomposed_paths, index_identifiers = _QueryExpansion.decompose_query(
-            paths_norm[0], mpaths
-        )
+        self.decomposed_paths: List[List[HubitQueryPath]] = []
+        for path_norm in paths_norm:
+            _decomposed_paths, index_identifiers = _QueryExpansion.decompose_query(
+                path_norm, mpaths
+            )
+            self.decomposed_paths.append(list(set(_decomposed_paths)))
+
+        # TODO: negative-indices. Cannot see that I actually use the keys any longer
         self.exp_paths_for_decomp_path: Dict[HubitQueryPath, List[HubitQueryPath]] = {}
 
+        # Used to validate tree against expansion
+        self.decomposed_idx_identifiers: List[Union[None, str]] = []
         if index_identifiers is None:
-            self.decomposed_idx_identifier = None
+            self.decomposed_idx_identifiers.append(None)
         else:
             # Cannot occur since len(_idx_contexts) is 1
             # if len(set(index_identifiers)) > 1:
             #     msg = f"Fatal error. Inconsistent decomposition for query '{path}': {', '.join(mpaths)}"
             #     raise HubitModelQueryError(msg)
-            self.decomposed_idx_identifier = index_identifiers[0]
+            self.decomposed_idx_identifiers.append(index_identifiers[0])
 
     @staticmethod
     def get_index_context(qpath: HubitQueryPath, mpaths: List[HubitModelPath]):
@@ -832,32 +839,36 @@ class _QueryExpansion:
         if not self.is_decomposed():
             return
 
-        n_decomposed_paths = len(self.decomposed_paths)
-        tree_level_name = self.decomposed_idx_identifier
+        for decomposed_paths, tree_level_name in zip(
+            self.decomposed_paths, self.decomposed_idx_identifiers
+        ):
+            n_decomposed_paths = len(decomposed_paths)
 
-        # Find out which level (index) we are at
-        try:
-            idx_level = tree.level_names.index(tree_level_name)
-        except ValueError as err:
-            print(f"ERROR. Level name '{tree_level_name}' not found in tree")
-            print(tree)
-            print(self)
-            raise HubitError("Query expansion error.")
+            # Find out which level (index) we are at
+            try:
+                idx_level = tree.level_names.index(tree_level_name)
+            except ValueError as err:
+                print(f"ERROR. Level name '{tree_level_name}' not found in tree")
+                print(tree)
+                print(self)
+                raise HubitError("Query expansion error.")
 
-        # For each node at the level the number of children should be
-        # greater than or equal to the number for paths in the decomposition
-        results = [n >= n_decomposed_paths for n in tree.number_of_children(idx_level)]
-        if not all(results):
-            print(
-                f"ERROR. "
-                f"Too few children at level {idx_level} with "
-                f"name '{tree_level_name}' of tree. "
-                f"Expected at least {n_decomposed_paths} children "
-                "corresponding to the number of decomposed paths.\n"
-            )
-            print(tree)
-            print(self)
-            raise HubitError("Query expansion error.")
+            # For each node at the level the number of children should be
+            # greater than or equal to the number for paths in the decomposition
+            results = [
+                n >= n_decomposed_paths for n in tree.number_of_children(idx_level)
+            ]
+            if not all(results):
+                print(
+                    f"ERROR. "
+                    f"Too few children at level {idx_level} with "
+                    f"name '{tree_level_name}' of tree. "
+                    f"Expected at least {n_decomposed_paths} children "
+                    "corresponding to the number of decomposed paths.\n"
+                )
+                print(tree)
+                print(self)
+                raise HubitError("Query expansion error.")
 
     def __str__(self):
         lines = [f"\nQuery\n  {self.path}"]

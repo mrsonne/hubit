@@ -63,12 +63,23 @@ class PathIndexRange(str):
         else:
             return False
 
-    def __new__(self, value, allow_limited_range: bool = True):
+    def __new__(
+        self,
+        value,
+        allow_limited_range: bool = True,
+        allow_negative_index: bool = True,
+    ):
         return super().__new__(self, value)
 
-    def __init__(self, value, allow_limited_range: bool = True):
+    def __init__(
+        self,
+        value,
+        allow_limited_range: bool = True,
+        allow_negative_index: bool = True,
+    ):
         super().__init__()
         self.allow_limited_range = allow_limited_range
+        self.allow_negative_index = allow_negative_index
 
         # Determine the range type
         self.is_digit = False
@@ -110,7 +121,16 @@ class PathIndexRange(str):
                 return int(start)
         return None
 
+    def _validate_digit(self):
+        if not self.allow_negative_index and int(self) < 0:
+            raise HubitError(f"Index '{self}' should be positive")
+
     def _validate_limited_range(self):
+
+        if not self.allow_limited_range:
+            raise HubitError(
+                f"Limited range is not allowed here. Found range '{self}'."
+            )
 
         start, end = self.split(self.wildcard_chr)
 
@@ -140,18 +160,8 @@ class PathIndexRange(str):
             )
 
     def _validate(self):
-
-        if self.is_limited_range and not self.allow_limited_range:
-            raise HubitError(
-                f"Limited range is not allowed here. Found range '{self}'."
-            )
-
         if self.is_digit:
-            # TODO: negative-indices. check this for model paths
-
-            pass
-            # if int(self) < 0:
-            #     raise HubitError(f"Index '{self}' should be positive")
+            self._validate_digit()
         elif self.is_limited_range:
             self._validate_limited_range()
 
@@ -385,12 +395,17 @@ class ModelIndexSpecifier(str):
     # Characters a-z, A-Z, _ and digits are allowed
     regex_allowed_identifier = r"^[a-zA-Z_0-9]+$"
 
-    def __new__(self, value, allow_limited_range: bool = True):
+    def __new__(
+        self, value, allow_limited_range: bool = True, allow_negative_index: bool = True
+    ):
         return super().__new__(self, value)
 
-    def __init__(self, value, allow_limited_range: bool = True):
+    def __init__(
+        self, value, allow_limited_range: bool = True, allow_negative_index: bool = True
+    ):
         super().__init__()
         self.allow_limited_range = allow_limited_range
+        self.allow_negative_index = allow_negative_index
 
     def validate(self):
         assert (
@@ -434,6 +449,7 @@ class ModelIndexSpecifier(str):
             PathIndexRange(
                 self.split(self.ref_chr)[0],
                 allow_limited_range=self.allow_limited_range,
+                allow_negative_index=self.allow_negative_index,
             )
             if self.ref_chr in self
             else PathIndexRange("")
@@ -870,12 +886,17 @@ class HubitModelPath(_HubitPath):
 
     """
 
-    def __new__(self, value, allow_limited_range: bool = True):
+    def __new__(
+        self, value, allow_limited_range: bool = True, allow_negative_index: bool = True
+    ):
         return super().__new__(self, value)
 
-    def __init__(self, value, allow_limited_range: bool = True):
+    def __init__(
+        self, value, allow_limited_range: bool = True, allow_negative_index: bool = True
+    ):
         super().__init__()
         self.allow_limited_range = allow_limited_range
+        self.allow_negative_index = allow_negative_index
 
     def _validate_index_specifiers(self):
         for idx_spec in self.get_index_specifiers():
@@ -890,7 +911,12 @@ class HubitModelPath(_HubitPath):
 
     def get_index_specifiers(self) -> List[ModelIndexSpecifier]:
         items = re.findall(_HubitPath.regex_idx_spec, self)
-        return [ModelIndexSpecifier(item, self.allow_limited_range) for item in items]
+        return [
+            ModelIndexSpecifier(
+                item, self.allow_limited_range, self.allow_negative_index
+            )
+            for item in items
+        ]
 
     def get_index_identifiers(self) -> List[str]:
         """Get the index identifiers from the path i.e. the
@@ -978,12 +1004,13 @@ class HubitBinding:
             HubitBinding: Object corresponding to the configuration data
         """
 
-        # Do not allow limited index ranges in binding paths
+        # Do not allow limited index ranges and negative indices in binding paths
         return cls(
             name=cfg["name"],
             path=HubitModelPath(
                 cfg["path"],
                 allow_limited_range=False,
+                allow_negative_index=False,
             ),
         ).validate()
 

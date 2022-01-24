@@ -437,7 +437,9 @@ class TestHubitModelPath(unittest.TestCase):
         path.validate()
 
         # Invalid due to negative index range
-        path = HubitModelPath("segments[-1@IDX_SEG].layers[IDX_LAY]")
+        path = HubitModelPath(
+            "segments[-1@IDX_SEG].layers[IDX_LAY]", allow_negative_index=False
+        )
         with self.assertRaises(HubitError):
             path.validate()
 
@@ -676,7 +678,7 @@ class TestPathIndexRange(unittest.TestCase):
 
     def test_invalid(self):
         with self.assertRaises(HubitError):
-            PathIndexRange("-1")
+            PathIndexRange("-1", allow_negative_index=False)
 
         with self.assertRaises(HubitError):
             PathIndexRange("k")

@@ -68,6 +68,13 @@ class LengthNode:
     def _set_child_for_idx(self):
         self._child_for_idx = {child.index: child for child in self.children}
 
+    def child(self, index: int) -> Union[LengthNode, LeafNode]:
+        """Get the child corresponding to the specified index"""
+        # TODO: negative-indices. should this be improved?
+        return {child.index: child for child in self.children}[
+            self.normalize_child_index(index)
+        ]
+
     def normalize_child_index(self, index: int):
         # TODO: negative-indices. think about this for a while...
         if index < 0:
@@ -547,20 +554,16 @@ class LengthTree:
                 if range_.is_digit:
                     if range_.is_counted_from_back:
                         try:
-                            # Get the max index of the children.
-                            index = str(
-                                sorted(child.index for child in node.children)[
-                                    int(range_)
-                                ]
-                            )
+                            # Get the index of the children.
+                            index = str(node.child(int(range_)).index)
                         except IndexError as err:
                             raise HubitIndexError(
                                 f"Invalid index '{range_}' from path '{path}'. Tree is \n{self}."
                             ) from err
-                        paths_current_level.append(_path.replace(idxspec, index))
+                        paths_current_level.append(_path.replace(idxspec, index, 1))
                     else:
                         # range is digit so replace index specifier with that digit
-                        paths_current_level.append(_path.replace(idxspec, range_))
+                        paths_current_level.append(_path.replace(idxspec, range_, 1))
                 elif range_.is_full_range or range_.is_empty:
                     # range is wildcard or not specified so expand from node children
                     paths_current_level.extend(

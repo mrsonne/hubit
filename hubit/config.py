@@ -886,6 +886,8 @@ class HubitModelPath(_HubitPath):
 
     """
 
+    # TODO: negative-indices. Looks like 2x allows are always set to false on init
+    # so they can be removed from inteface
     def __new__(
         self, value, allow_limited_range: bool = True, allow_negative_index: bool = True
     ):

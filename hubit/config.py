@@ -346,7 +346,7 @@ class QueryIndexSpecifier(_IndexSpecifier):
         return 0
 
 
-class ModelIndexSpecifier(str):
+class ModelIndexSpecifier(_IndexSpecifier):
     """
     Index specifiers for [`HubitModelPath`][hubit.config.HubitModelPath].
     A model path index specifier is composed of three parts namely the

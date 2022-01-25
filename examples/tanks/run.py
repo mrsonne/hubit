@@ -70,7 +70,7 @@ def run(model_id, input_file="input.yml"):
     print(f"\nQuery")
     query = ["prod_sites[:].prod_lines[:].tanks[-1].Q_yield"]
     pprint(query)
-    print(f"Spawns 3 workers")
+    print(f"Spawns 6 workers")
     response = hmodel.get(query, use_multi_processing=use_multi_processing)
     print("Response (one path with double nested list as value):")
     pprint(response)
@@ -81,7 +81,7 @@ def run(model_id, input_file="input.yml"):
     print(f"\nQuery")
     query = ["prod_sites[:].prod_lines[:].tanks[2].Q_yield"]
     pprint(query)
-    print(f"Spawns 3 workers")
+    print(f"Spawns 6 workers")
     response = hmodel.get(query, use_multi_processing=use_multi_processing)
     print("Response (one path with double nested list as value):")
     pprint(response)

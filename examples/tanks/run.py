@@ -56,8 +56,10 @@ def run(model_id, input_file="input.yml"):
     hmodel.clean_log()
 
     # Should result in a number
+    # TODO: negative-indices. this is not right!!!!
     print(f"\nQuery")
-    query = [f"prod_sites[{prod_site}].prod_lines[0].tanks[-1].Q_yield"]
+    query = [f"prod_sites[-1].prod_lines[0].tanks[-1].Q_yield"]
+    # query = [f"prod_sites[1].prod_lines[0].tanks[2].Q_yield"]
     pprint(query)
     print(f"Spawns 3 workers")
     response = hmodel.get(query, use_multi_processing=use_multi_processing)

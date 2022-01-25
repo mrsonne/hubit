@@ -39,6 +39,10 @@ class PathIndexRange(str):
     - Positive integers e.g. `0`, `17`.
     - The all-index character `:`.
 
+    A `HubitQueryPath` also supports
+
+    - Negative integers e.g. `-1`, `-2`.
+
     Further, in the `index_scope` attribute of
     [`HubitModelComponent`][hubit.config.HubitModelComponent] the following
     ranges are also allowed
@@ -329,8 +333,7 @@ class QueryIndexSpecifier(_IndexSpecifier):
     """
     Index specifiers for [`HubitQueryPath`][hubit.config.HubitQueryPath].
     Currently, index specifiers should be either a positive integer or
-    the character `:`. General slicing and negative indices is not
-    supported.
+    the character `:`. General slicing is not supported.
     """
 
     @property
@@ -887,7 +890,7 @@ class HubitModelPath(_HubitPath):
     """
 
     # TODO: negative-indices. Looks like 2x allows are always set to false on init
-    # so they can be removed from inteface
+    # so they can be removed from interface
     def __new__(
         self, value, allow_limited_range: bool = True, allow_negative_index: bool = True
     ):

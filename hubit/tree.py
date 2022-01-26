@@ -71,14 +71,27 @@ class LengthNode:
     def child(self, index: int) -> Union[LengthNode, LeafNode]:
         """Get the child corresponding to the specified index"""
         # TODO: negative-indices. should this be improved?
-        return {child.index: child for child in self.children}[
-            self.normalize_child_index(index)
-        ]
+        try:
+            return {child.index: child for child in self.children}[
+                self.normalize_child_index(index)
+            ]
+        except KeyError:
+            idxs = [str(child.index) for child in self.children]
+            raise HubitIndexError(
+                f"No child with index {index} ({self.normalize_child_index(index)}) on node."
+                f"Available indices are: {', '.join(idxs)}"
+            )
 
     def normalize_child_index(self, index: int):
         # TODO: negative-indices. think about this for a while...
         if index < 0:
-            return self._nchildren_org + index
+            norm_index = self._nchildren_org + index
+            if norm_index < 0:
+                raise HubitIndexError(
+                    f"Index {index} was normalized to {norm_index} for node "
+                    f"that had {self._nchildren_org} children (now {self.nchildren()})."
+                )
+            return norm_index
         else:
             return index
 

@@ -561,7 +561,7 @@ class LengthTree:
         paths = [path]
         for idx_level, (idxspec, range_) in enumerate(zip(idxspecs, ranges)):
             nodes = self.nodes_for_level[idx_level]
-            paths_current_level = []
+            paths_current_level: List[Path] = []
             for _path, node in zip(paths, nodes):
                 if range_.is_digit:
                     if range_.is_counted_from_back:

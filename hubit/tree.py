@@ -685,22 +685,22 @@ class _QueryExpansion:
         """
         self.path = path
 
-        self.paths_norm = [path] if paths_norm is None else paths_norm
+        self.paths_norm = [self.path] if paths_norm is None else paths_norm
 
-        if len(mpaths) > 1 and not path.has_slice_range():
+        if len(mpaths) > 1 and not self.path.has_slice_range():
             # Should not be possible to have multiple providers if the query
             # points to a specific path i.e. has no ranges.
             # TODO: This check could be more strict e.g. the wildcard is located where
             # the mpaths vary
             raise HubitModelQueryError(
-                f"More than one component match the query '{path}'. Matching components provide: {mpaths}."
+                f"More than one component match the query '{self.path}'. Matching components provide: {mpaths}."
             )
 
         # Get the index contexts for doing some validation
-        self._idx_context = _QueryExpansion.get_index_context(path, mpaths)
+        self._idx_context = _QueryExpansion.get_index_context(self.path, mpaths)
 
         self.decomposed_paths: List[List[HubitQueryPath]] = []
-        for path_norm in paths_norm:
+        for path_norm in self.paths_norm:
             _decomposed_paths, index_identifiers = _QueryExpansion.decompose_query(
                 path_norm, mpaths
             )

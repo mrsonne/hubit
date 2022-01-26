@@ -483,7 +483,7 @@ class TestTree(unittest.TestCase):
         expanded_paths = tree.expand_path(path, flat=True)
         self.assertSequenceEqual(expanded_paths, expected_paths)
 
-        # Index error
+        # Index error. There are 2 layers on segment at index 0.
         path = HubitQueryPath("segments[:].layers[-3].test")
         with self.assertRaises(HubitIndexError) as context:
             expanded_paths = tree.expand_path(path, flat=True)

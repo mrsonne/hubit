@@ -760,7 +760,7 @@ class _QueryExpansion:
         return len(self.paths_norm) > 1 or self.path != self.paths_norm[0]
 
     def is_decomposed(self):
-        return len(self.decomposed_paths) > 1
+        return any(len(paths) > 1 for paths in self.decomposed_paths)
 
     def is_expanded(self):
         if self.path.has_slice_range():

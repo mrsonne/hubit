@@ -545,8 +545,7 @@ class LengthTree:
         idxspecs = path.get_index_specifiers()
         ranges = path.ranges()
 
-        # Manipulate as strings
-        paths = [str(path)]
+        paths = [path]
         for idx_level, (idxspec, range_) in enumerate(zip(idxspecs, ranges)):
             nodes = self.nodes_for_level[idx_level]
             paths_current_level = []
@@ -560,15 +559,15 @@ class LengthTree:
                             raise HubitIndexError(
                                 f"Invalid index '{range_}' from path '{path}'. Tree is \n{self}."
                             ) from err
-                        paths_current_level.append(_path.replace(idxspec, index, 1))
+                        paths_current_level.append(_path.set_index(idxspec, index))
                     else:
                         # range is digit so replace index specifier with that digit
-                        paths_current_level.append(_path.replace(idxspec, range_, 1))
+                        paths_current_level.append(_path.set_index(idxspec, range_))
                 elif range_.is_full_range or range_.is_empty:
                     # range is wildcard or not specified so expand from node children
                     paths_current_level.extend(
                         [
-                            _path.replace(idxspec, str(child.index), 1)
+                            _path.set_index(idxspec, str(child.index))
                             for child in node.children
                         ]
                     )
@@ -576,7 +575,7 @@ class LengthTree:
                     # Loop over children to see who are included in the range
                     paths_current_level.extend(
                         [
-                            _path.replace(idxspec, str(child.index), 1)
+                            _path.set_index(idxspec, str(child.index))
                             for child in node.children
                             if range_.contains_index(child.index)
                         ]

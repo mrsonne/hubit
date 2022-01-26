@@ -488,6 +488,11 @@ class ModelIndexSpecifier(_IndexSpecifier):
         return cls(f"{_idx_range}{identifier}{_offset}")
 
 
+# upper bound types
+Path = TypeVar("Path", bound="_HubitPath")
+IndexSpecifier = TypeVar("IndexSpecifier", bound="_IndexSpecifier")
+
+
 class _HubitPath(str):
     wildcard_chr = PathIndexRange.wildcard_chr
 
@@ -547,6 +552,12 @@ class _HubitPath(str):
 
     def components(self):
         return self.as_internal(self).split(".")
+
+    def set_index(self, idxspec: IndexSpecifier, index: str) -> Path:
+        """
+        Replace the first index specifier (idxspec) with the index
+        """
+        return cast(Path, self.__class__(self.replace(f"[{idxspec}]", f"[{index}]", 1)))
 
     def set_indices(self, indices: Sequence[str], mode: int = 0) -> _HubitPath:
         """Replace the index specifiers on the path with location indices
@@ -637,10 +648,6 @@ class _HubitPath(str):
             specifers. Includes path after last index specifier
         """
         return re.split(f"{_HubitPath.regex_braces}.|{_HubitPath.regex_braces}", self)
-
-
-# upper bound type
-Path = TypeVar("Path", bound=_HubitPath)
 
 
 class HubitQueryPath(_HubitPath):

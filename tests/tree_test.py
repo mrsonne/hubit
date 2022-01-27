@@ -10,7 +10,7 @@ from hubit.tree import (
     _QueryExpansion,
     LeafNode,
 )
-from hubit.config import HubitModelPath, HubitQueryPath
+from hubit.config import FlatData, HubitModelPath, HubitQueryPath
 from hubit.errors import HubitIndexError, HubitModelQueryError
 
 
@@ -973,6 +973,81 @@ class TestQueryExpansion(unittest.TestCase):
         tree = LengthTree.from_data(path, input_data)
         with pytest.raises(Exception):
             qexp.validate_tree(tree)
+
+    def test_collect_results_1(self):
+        """
+        Test that the flat results are collected correctly when forming the response
+
+        - 1 provider -> 1 mpath
+        - 1 production site
+        """
+
+        # Make the tree
+        site_nodes = LengthNode(1)
+        line_nodes = [LengthNode(1)]
+        tank_nodes = [LengthNode(3)]
+
+        site_nodes.set_children(line_nodes)
+        line_nodes[0].set_children(tank_nodes)
+
+        nodes = [site_nodes]
+        nodes.extend(line_nodes)
+        nodes.extend(tank_nodes)
+        level_names = "IDX_SITE", "IDX_LINE", "IDX_TANK"
+        tree = LengthTree(nodes, level_names)
+
+        # Create query expansion
+        mpaths = [
+            "sites[IDX_SITE].lines[IDX_LINE].tanks[IDX_TANK].Q_yield",
+        ]
+        mpaths = [HubitModelPath(mpath) for mpath in mpaths]
+
+        flat_results = FlatData(
+            {
+                "sites[0].lines[0].tanks[0].Q_yield": 10.0,
+                "sites[0].lines[0].tanks[1].Q_yield": 6.0,
+                "sites[0].lines[0].tanks[2].Q_yield": 4.0,
+            }
+        )
+
+        # Negative index
+        qpath = HubitQueryPath("sites[:].lines[:].tanks[-1].Q_yield")
+        qexp = _QueryExpansion(qpath, mpaths)
+        qexp.set_expanded_paths(tree)
+        result = qexp.collect_results(flat_results, tree)
+        # Query has two index wildcards hence nested list
+        assert result == [[4.0]]
+
+        # Positive index
+        qpath = HubitQueryPath("sites[:].lines[:].tanks[2].Q_yield")
+        qexp = _QueryExpansion(qpath, mpaths)
+        qexp.set_expanded_paths(tree)
+        result = qexp.collect_results(flat_results, tree)
+        # Query has two index wildcards hence nested list
+        assert result == [[4.0]]
+
+        # All tanks on all lines
+        qpath = HubitQueryPath("sites[0].lines[:].tanks[:].Q_yield")
+        qexp = _QueryExpansion(qpath, mpaths)
+        qexp.set_expanded_paths(tree)
+        result = qexp.collect_results(flat_results, tree)
+        # Query has two index wildcards hence nested list
+        assert result == [[10.0, 6.0, 4.0]]
+
+        # All tanks on all lines in all sites
+        qpath = HubitQueryPath("sites[:].lines[:].tanks[:].Q_yield")
+        qexp = _QueryExpansion(qpath, mpaths)
+        qexp.set_expanded_paths(tree)
+        result = qexp.collect_results(flat_results, tree)
+        # Query has two index wildcards hence nested list
+        assert result == [[[10.0, 6.0, 4.0]]]
+
+        # A tad more difficult since it requires an extra decomposition step cf. model.py 877
+        # mpaths = [
+        #     "sites[IDX_SITE].lines[IDX_LINE].tanks[0@IDX_TANK].Q_yield",
+        #     "sites[IDX_SITE].lines[IDX_LINE].tanks[1@IDX_TANK].Q_yield",
+        #     "sites[IDX_SITE].lines[IDX_LINE].tanks[2@IDX_TANK].Q_yield",
+        # ]
 
 
 if __name__ == "__main__":

@@ -896,9 +896,12 @@ class HubitModelPath(_HubitPath):
 
     """
 
-    def __init__(self, value):
+    def __new__(self, value, allow_limited_range: bool = True):
+        return super().__new__(self, value)
+
+    def __init__(self, value, allow_limited_range: bool = True):
         super().__init__()
-        self.allow_limited_range = False
+        self.allow_limited_range = allow_limited_range
         self.allow_negative_index = False
 
     def _validate_index_specifiers(self):
@@ -1007,10 +1010,13 @@ class HubitBinding:
             HubitBinding: Object corresponding to the configuration data
         """
 
-        # Do not allow limited index ranges and negative indices in binding paths
+        # Do not allow limited index ranges in binding paths
         return cls(
             name=cfg["name"],
-            path=HubitModelPath(cfg["path"]),
+            path=HubitModelPath(
+                cfg["path"],
+                allow_limited_range=False,
+            ),
         ).validate()
 
 

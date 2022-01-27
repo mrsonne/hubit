@@ -896,19 +896,10 @@ class HubitModelPath(_HubitPath):
 
     """
 
-    # TODO: negative-indices. Looks like 2x allows are always set to false on init
-    # so they can be removed from interface
-    def __new__(
-        self, value, allow_limited_range: bool = True, allow_negative_index: bool = True
-    ):
-        return super().__new__(self, value)
-
-    def __init__(
-        self, value, allow_limited_range: bool = True, allow_negative_index: bool = True
-    ):
+    def __init__(self, value):
         super().__init__()
-        self.allow_limited_range = allow_limited_range
-        self.allow_negative_index = allow_negative_index
+        self.allow_limited_range = False
+        self.allow_negative_index = False
 
     def _validate_index_specifiers(self):
         for idx_spec in self.get_index_specifiers():
@@ -1019,11 +1010,7 @@ class HubitBinding:
         # Do not allow limited index ranges and negative indices in binding paths
         return cls(
             name=cfg["name"],
-            path=HubitModelPath(
-                cfg["path"],
-                allow_limited_range=False,
-                allow_negative_index=False,
-            ),
+            path=HubitModelPath(cfg["path"]),
         ).validate()
 
 

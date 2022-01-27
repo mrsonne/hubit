@@ -570,13 +570,8 @@ class LengthTree:
             for _path, node in zip(paths, nodes):
                 if range_.is_digit:
                     if range_.is_counted_from_back:
-                        try:
-                            # Get the index of the children.
-                            index = str(node.child(int(range_)).index)
-                        except IndexError as err:
-                            raise HubitIndexError(
-                                f"Invalid index '{range_}' from path '{path}'. Tree is \n{self}."
-                            ) from err
+                        # Get the index of the children.
+                        index = str(node.child(int(range_)).index)
                         paths_current_level.append(_path.set_index(idxspec, index))
                     else:
                         # range is digit so replace index specifier with that digit

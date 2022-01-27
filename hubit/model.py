@@ -37,7 +37,6 @@ import warnings
 from .qrun import _QueryRunner
 from .tree import LengthTree, _QueryExpansion, tree_for_idxcontext
 from .config import FlatData, HubitModelConfig, Query, PathIndexRange, HubitQueryPath
-from .utils import set_element
 from .render import get_dot
 
 from .errors import (
@@ -147,11 +146,10 @@ def _get(
     queryrunner._join_workers()
 
     if the_err is None:
-        response = {query: _flat_results[query] for query in _queries}
 
         if not expand_iloc:
             # TODO: compression call belongs on model (like expand)
-            response = queryrunner.model._compress_response(response, queries_exp)
+            response = queryrunner.model._collect_results(_flat_results, queries_exp)
 
         return response, _flat_results
     else:
@@ -895,7 +893,9 @@ class HubitModel:
 
         return qexp
 
-    def _compress_response(self, response, query_expansions: List[_QueryExpansion]):
+    def _collect_results(
+        self, flat_results: FlatData, query_expansions: List[_QueryExpansion]
+    ):
         """
         Compress the response to reflect queries with index wildcards.
         So if the query has the structure list1[:].list2[:] and is
@@ -909,34 +909,10 @@ class HubitModel:
                 # Path not expanded so no need to compress
                 # Simple map from single normalized path to the path
                 # e.g cars[-1].price ['cars[2].price'] or cars[2].price ['cars[2].price']
-                _response[qexp.path] = response[qexp.paths_norm[0]]
+                _response[qexp.path] = flat_results[qexp.paths_norm[0]]
             else:
-                # Get the index IDs from the original query
-                idxids = qexp.path.get_index_specifiers()
                 tree = self._tree_for_qpath[qexp.path]
-                # TODO: Can we prune earlier on?
-                # inplace = False to leave the model state unchanged.
-                # This is important for successive get requests
-                values_decomp = tree.prune_from_path(
-                    qexp.path, inplace=False
-                ).none_like()
-                # Extract iloc indices for each query in the expanded query
-                for expanded_paths in qexp.exp_paths_for_decomp_path.values():
-                    for path in expanded_paths:
-                        ranges = path.ranges()
-                        # Only keep ilocs that come from an expansion... otherwise
-                        # the dimensions of "values" do no match
-                        ranges = [
-                            range
-                            for range, idxid in zip(ranges, idxids)
-                            if idxid == IDX_WILDCARD
-                        ]
-                        values_decomp = set_element(
-                            values_decomp,
-                            response[path],
-                            [int(range) for range in ranges],
-                        )
-                _response[qexp.path] = values_decomp
+                _response[qexp.path] = qexp.collect_results(flat_results, tree)
 
         return _response
 

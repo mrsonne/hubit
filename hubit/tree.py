@@ -14,13 +14,18 @@ from typing import (
     TYPE_CHECKING,
 )
 from .errors import HubitIndexError, HubitError, HubitModelQueryError
-from .config import _HubitPath, HubitModelPath, HubitQueryPath, PathIndexRange, Path
-from .utils import is_digit, get_from_datadict, split_items, traverse
+from .config import (
+    _HubitPath,
+    FlatData,
+    HubitModelPath,
+    HubitQueryPath,
+    PathIndexRange,
+    Path,
+)
+from .utils import is_digit, get_from_datadict, split_items, traverse, set_element
 
 if TYPE_CHECKING:
     from .config import HubitModelComponent
-
-IDX_WILDCARD = PathIndexRange.wildcard_chr
 
 
 class LeafNode:
@@ -780,6 +785,35 @@ class _QueryExpansion:
             return True
 
         return False
+
+    def collect_results(self, flat_results: FlatData, tree: LengthTree):
+        """
+        Collect result from the flat data that belong to the query (expansion)
+        """
+        # Get the index IDs from the original query
+        idxids = self.path.get_index_specifiers()
+        # TODO: Can we prune earlier on?
+        # inplace = False to leave the model state unchanged.
+        # This is important for successive get requests
+        values = tree.prune_from_path(self.path, inplace=False).none_like()
+        # Extract iloc indices for each query in the expanded query
+        for expanded_paths in self.exp_paths_for_decomp_path.values():
+            for path in expanded_paths:
+                ranges = path.ranges()
+                # Only keep ilocs that come from an expansion... otherwise
+                # the dimensions of "values" do no match
+                ranges = [
+                    range
+                    for range, idxid in zip(ranges, idxids)
+                    if idxid == PathIndexRange.wildcard_chr
+                ]
+                values = set_element(
+                    values,
+                    flat_results[path],
+                    [int(range) for range in ranges],
+                )
+
+        return values
 
     @staticmethod
     def decompose_query(

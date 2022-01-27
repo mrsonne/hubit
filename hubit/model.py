@@ -858,11 +858,7 @@ class HubitModel:
             )
         ]
 
-        qexp = _QueryExpansion(
-            qpath,
-            mpaths,
-            qpaths_norm,
-        )
+        qexp = _QueryExpansion(qpath, mpaths, qpaths_norm)
 
         # Get the tree that corresponds to the (one) index context
         tree = self.tree_for_idxcontext[qexp.idx_context]
@@ -874,22 +870,10 @@ class HubitModel:
         if store:
             self._tree_for_qpath[qpath] = tree
 
-        for decomposed_qpaths in qexp.decomposed_paths:
-            for decomposed_qpath, _mpath in zip(decomposed_qpaths, mpaths):
-                pruned_tree = tree.prune_from_path(
-                    decomposed_qpath,
-                    inplace=False,
-                )
-
-                if store:
-                    # Store pruned tree
-                    self._tree_for_qpath[decomposed_qpath] = pruned_tree
-                    self._modelpath_for_querypath[decomposed_qpath] = _mpath
-
-                # Expand the path
-                expanded_paths = pruned_tree.expand_path(decomposed_qpath, flat=True)
-
-                qexp.update_expanded_paths(decomposed_qpath, expanded_paths)
+        tree_for_qpath, modelpath_for_querypath = qexp.set_expanded_paths(tree)
+        if store:
+            self._tree_for_qpath.update(tree_for_qpath)
+            self._modelpath_for_querypath.update(modelpath_for_querypath)
 
         return qexp
 

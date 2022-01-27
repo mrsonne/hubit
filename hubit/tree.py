@@ -697,25 +697,25 @@ class _QueryExpansion:
         We don't normalize on initialization  to reduce coupling to model and tree objects
         """
         self.path = path
-
         self.paths_norm = [self.path] if paths_norm is None else paths_norm
+        self.mpaths = mpaths
 
-        if len(mpaths) > 1 and not self.path.has_slice_range():
+        if len(self.mpaths) > 1 and not self.path.has_slice_range():
             # Should not be possible to have multiple providers if the query
             # points to a specific path i.e. has no ranges.
             # TODO: This check could be more strict e.g. the wildcard is located where
             # the mpaths vary
             raise HubitModelQueryError(
-                f"More than one component match the query '{self.path}'. Matching components provide: {mpaths}."
+                f"More than one component match the query '{self.path}'. Matching components provide: {self.mpaths}."
             )
 
         # Get the index contexts for doing some validation
-        self._idx_context = _QueryExpansion.get_index_context(self.path, mpaths)
+        self._idx_context = _QueryExpansion.get_index_context(self.path, self.mpaths)
 
         self.decomposed_paths: List[List[HubitQueryPath]] = []
         for path_norm in self.paths_norm:
             _decomposed_paths, index_identifiers = _QueryExpansion.decompose_query(
-                path_norm, mpaths
+                path_norm, self.mpaths
             )
             self.decomposed_paths.append(list(set(_decomposed_paths)))
 
@@ -755,7 +755,31 @@ class _QueryExpansion:
         """The (one) index context corresponding to the model paths"""
         return self._idx_context
 
-    def update_expanded_paths(
+    def set_expanded_paths(self, tree: LengthTree) -> Tuple[Dict, Dict]:
+        """Set the expanded paths using the tree"""
+        tree_for_qpath = {}
+        modelpath_for_querypath = {}
+        for decomposed_qpaths in self.decomposed_paths:
+            for decomposed_qpath, _mpath in zip(decomposed_qpaths, self.mpaths):
+                pruned_tree = tree.prune_from_path(
+                    decomposed_qpath,
+                    inplace=False,
+                )
+
+                # Store pruned tree
+                tree_for_qpath[decomposed_qpath] = pruned_tree
+
+                # Store model path for the (decomposed) query path
+                modelpath_for_querypath[decomposed_qpath] = _mpath
+
+                # Expand the path
+                expanded_paths = pruned_tree.expand_path(decomposed_qpath, flat=True)
+
+                self._update_expanded_paths(decomposed_qpath, expanded_paths)
+
+        return tree_for_qpath, modelpath_for_querypath
+
+    def _update_expanded_paths(
         self, decomposed_path: HubitQueryPath, expanded_paths: List[HubitQueryPath]
     ):
         self.exp_paths_for_decomp_path[decomposed_path] = expanded_paths

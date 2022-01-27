@@ -553,6 +553,8 @@ class _HubitPath(str):
     def components(self):
         return self.as_internal(self).split(".")
 
+    # TODO: negative-indices. Consider name. It's confusing that self is not
+    # modified but a new path is returned
     def set_index(self, idxspec: IndexSpecifier, index: str) -> Path:
         """
         Replace the first index specifier (idxspec) with the index

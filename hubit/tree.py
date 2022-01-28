@@ -514,6 +514,7 @@ class LengthTree:
                 node = node._child_for_idx[node_idx]
         return node
 
+    # TODO: negative-indices. Unused
     def normalize_path(self, q_path: HubitQueryPath) -> HubitQueryPath:
         """Handle negative indices
         As stated in "test_normalize_path2" the normalization in general depends
@@ -687,18 +688,34 @@ class _QueryExpansion:
         self,
         path: HubitQueryPath,
         mpaths: List[HubitModelPath],
-        paths_norm: Optional[List[HubitQueryPath]] = None,
+        tree: LengthTree,
+        cmps: Optional[List[HubitModelComponent]] = None,
     ):
         """
         path: the query path
         mpaths: the model paths that match the query
-        paths_norm: Result of query path normalization
+        cmps: the component for each of the mpaths. If None no mpath filtering is performed
 
         We don't normalize on initialization  to reduce coupling to model and tree objects
         """
         self.path = path
-        self.paths_norm = [self.path] if paths_norm is None else paths_norm
-        self.mpaths = mpaths
+        self.tree = tree
+        # self.paths_norm = [self.path] if paths_norm is None else paths_norm
+        # self.mpaths = mpaths
+
+        self.paths_norm = _QueryExpansion._normalize_path(self.path, tree)
+
+        # Filter models paths using index specifiers for normalized query path
+        if cmps is None:
+            self.mpaths = mpaths
+        else:
+            self.mpaths = [
+                mpath
+                for qpath_norm in self.paths_norm
+                for mpath in _QueryExpansion._filter_mpaths_for_qpath_index_ranges(
+                    qpath_norm, mpaths, cmps
+                )
+            ]
 
         if len(self.mpaths) > 1 and not self.path.has_slice_range():
             # Should not be possible to have multiple providers if the query
@@ -733,6 +750,55 @@ class _QueryExpansion:
             #     raise HubitModelQueryError(msg)
             self.decomposed_idx_identifiers.append(index_identifiers[0])
 
+        # Validate that tree and expantion are consistent
+        self._validate_tree()
+        self._set_expanded_paths()
+
+    @staticmethod
+    def _filter_mpaths_for_qpath_index_ranges(
+        qpath: HubitQueryPath,
+        mpaths: List[HubitModelPath],
+        cmps: List[HubitModelComponent],
+    ) -> List[HubitModelPath]:
+        """
+        each path represents a path provided for the corresponding component.
+        mpaths, cmp_ids have same length
+        """
+        # Indexes for models paths that match the query path (index considering intersections)
+        _mpaths = []
+        # Set the index scope
+        _mpaths = [
+            mpath.set_range_for_idxid(cmp.index_scope)
+            for mpath, cmp in zip(mpaths, cmps)
+        ]
+
+        # TODO split out field check
+        idxs = qpath.idxs_for_matches(_mpaths, check_intersection=True)
+        return [_mpaths[idx] for idx in idxs]
+
+    @staticmethod
+    def _normalize_path(
+        qpath: HubitQueryPath, tree: LengthTree
+    ) -> List[HubitQueryPath]:
+        """
+        If the query path has negative indices we must normalize the path
+        i.e expand it to get rid of this abstraction.
+        """
+        if qpath.has_negative_indices:
+            # Get index context to find tree and normalizethe  path. The tree
+            # is required since field[:].filed2[-1] may, for non-rectangular data,
+            # for example correspond to
+            # [ field[0].field2[2],
+            #   field[1].field2[4],
+            #   field[2].filed2[1]
+            # ]
+
+            # Even though the model paths have not yet been filtered based on
+            # index ranges the index context should still be unique
+            return tree.expand_path(qpath, flat=True)
+        else:
+            return [qpath]
+
     @staticmethod
     def get_index_context(qpath: HubitQueryPath, mpaths: List[HubitModelPath]):
         """
@@ -755,29 +821,19 @@ class _QueryExpansion:
         """The (one) index context corresponding to the model paths"""
         return self._idx_context
 
-    def set_expanded_paths(self, tree: LengthTree) -> Tuple[Dict, Dict]:
+    def _set_expanded_paths(self):
         """Set the expanded paths using the tree"""
-        tree_for_qpath = {}
-        modelpath_for_querypath = {}
         for decomposed_qpaths in self.decomposed_paths:
             for decomposed_qpath, _mpath in zip(decomposed_qpaths, self.mpaths):
-                pruned_tree = tree.prune_from_path(
+                pruned_tree = self.tree.prune_from_path(
                     decomposed_qpath,
                     inplace=False,
                 )
-
-                # Store pruned tree
-                tree_for_qpath[decomposed_qpath] = pruned_tree
-
-                # Store model path for the (decomposed) query path
-                modelpath_for_querypath[decomposed_qpath] = _mpath
 
                 # Expand the path
                 expanded_paths = pruned_tree.expand_path(decomposed_qpath, flat=True)
 
                 self._update_expanded_paths(decomposed_qpath, expanded_paths)
-
-        return tree_for_qpath, modelpath_for_querypath
 
     def _update_expanded_paths(
         self, decomposed_path: HubitQueryPath, expanded_paths: List[HubitQueryPath]
@@ -805,16 +861,22 @@ class _QueryExpansion:
 
         return False
 
-    def collect_results(self, flat_results: FlatData, tree: LengthTree):
+    def collect_results(self, flat_results: FlatData):
         """
         Collect result from the flat data that belong to the query (expansion)
         """
+        if not self.is_expanded():
+            # Path not expanded so no need to compress
+            # Simple map from single normalized path to the path
+            # e.g cars[-1].price ['cars[2].price'] or cars[2].price ['cars[2].price']
+            return flat_results[self.paths_norm[0]]
+
         # Get the index IDs from the original query
         idxids = self.path.get_index_specifiers()
+
         # TODO: Can we prune earlier on?
-        # inplace = False to leave the model state unchanged.
-        # This is important for successive get requests
-        values = tree.prune_from_path(self.path, inplace=False).none_like()
+        # inplace = False to leave the tree state unchanged.
+        values = self.tree.prune_from_path(self.path, inplace=False).none_like()
         # Extract iloc indices for each query in the expanded query
         for expanded_paths in self.exp_paths_for_decomp_path.values():
             for path in expanded_paths:
@@ -891,7 +953,7 @@ class _QueryExpansion:
 
         return decomposed_qpaths, index_identifiers
 
-    def validate_tree(self, tree: LengthTree):
+    def _validate_tree(self):
         """Validate that we get the expected number of mpaths in the expansion
 
         Raises if tree is invalid.
@@ -900,7 +962,7 @@ class _QueryExpansion:
         instead of >=.
         """
         # Don't validate if DummyLengthTree since they can never be decomposed
-        if isinstance(tree, DummyLengthTree):
+        if isinstance(self.tree, DummyLengthTree):
             return
 
         # Don't validate tree against expansion if path was not decomposed
@@ -914,17 +976,17 @@ class _QueryExpansion:
 
             # Find out which level (index) we are at
             try:
-                idx_level = tree.level_names.index(tree_level_name)
+                idx_level = self.tree.level_names.index(tree_level_name)
             except ValueError as err:
                 print(f"ERROR. Level name '{tree_level_name}' not found in tree")
-                print(tree)
+                print(self.tree)
                 print(self)
                 raise HubitError("Query expansion error.")
 
             # For each node at the level the number of children should be
             # greater than or equal to the number for paths in the decomposition
             results = [
-                n >= n_decomposed_paths for n in tree.number_of_children(idx_level)
+                n >= n_decomposed_paths for n in self.tree.number_of_children(idx_level)
             ]
             if not all(results):
                 print(
@@ -934,7 +996,7 @@ class _QueryExpansion:
                     f"Expected at least {n_decomposed_paths} children "
                     "corresponding to the number of decomposed paths.\n"
                 )
-                print(tree)
+                print(self.tree)
                 print(self)
                 raise HubitError("Query expansion error.")
 

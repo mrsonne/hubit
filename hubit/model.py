@@ -189,14 +189,8 @@ class HubitModel:
         # Stores length tree. Filled when set_input() is called
         self.tree_for_idxcontext: Dict[str, LengthTree] = {}
 
-        # Stores trees for query
-        self._tree_for_qpath: Dict[str, LengthTree] = {}
-
         # Stores normalized query paths
         self._normqpath_for_qpath: Dict[str, str] = {}
-
-        # Store the model path that matches the query
-        self._modelpath_for_querypath: Dict[str, str] = {}
 
         self.name = name
         self.odir = os.path.normpath(os.path.join(model_cfg.base_path, output_path))
@@ -763,25 +757,6 @@ class HubitModel:
             mpaths.append(binding_paths[idx])
         return mpaths, cmp_ids
 
-    def filter_mpaths_for_qpath_index_ranges(
-        self, qpath: HubitQueryPath, mpaths: List[HubitModelPath], cmp_ids: List[str]
-    ) -> List[HubitModelPath]:
-        """
-        each path represents a path provided for the corresponding component.
-        mpaths, cmp_ids have same length
-        """
-        # Indexes for models paths that match the query path (index considering intersections)
-        _mpaths = []
-        for mpath, cmp_id in zip(mpaths, cmp_ids):
-            # Find component
-            cmp = self.model_cfg.component_for_id[cmp_id]
-            # Set the index scope
-            _mpaths.append(mpath.set_range_for_idxid(cmp.index_scope))
-
-        # TODO split out field check
-        idxs = qpath.idxs_for_matches(_mpaths, check_intersection=True)
-        return [_mpaths[idx] for idx in idxs]
-
     # def _mpaths_for_qpath(
     #     self, qpath: HubitQueryPath, check_intersection: bool = True
     # ) -> List[HubitModelPath]:
@@ -826,56 +801,18 @@ class HubitModel:
         TODO: save component so we dont have to find top level components again
         """
 
-        # Prepare query expansion object
+        # Find mpaths and component IDs
         mpaths, cmp_ids = self.mpaths_for_qpath_fields_only(qpath)
 
-        # If the query path has negative indices we must normalize the path
-        # i.e expand it to get rid of this abstraction.
-        if qpath.has_negative_indices:
-            # Get index context to find tree and normalizethe  path. The tree
-            # is required since field[:].filed2[-1] may, for non-rectangular data,
-            # for example correspond to
-            # [ field[0].field2[2],
-            #   field[1].field2[4],
-            #   field[2].filed2[1]
-            # ]
-
-            # Even though the model paths have not yet been filtered based on
-            # index ranges the index context should still be unique
-            index_context = _QueryExpansion.get_index_context(qpath, mpaths)
-            qpaths_norm = self.tree_for_idxcontext[index_context].expand_path(
-                qpath, flat=True
-            )
-        else:
-            qpaths_norm = [qpath]
-
-        # Filter models paths using index specifiers for normalized query path
-        mpaths = [
-            mpath
-            for qpath_norm in qpaths_norm
-            for mpath in self.filter_mpaths_for_qpath_index_ranges(
-                qpath_norm, mpaths, cmp_ids
-            )
-        ]
-
-        qexp = _QueryExpansion(qpath, mpaths, qpaths_norm)
+        # Find components corresponding to the IDs
+        cmps = [self.model_cfg.component_for_id[cmp_id] for cmp_id in cmp_ids]
 
         # Get the tree that corresponds to the (one) index context
-        tree = self.tree_for_idxcontext[qexp.idx_context]
+        index_context = _QueryExpansion.get_index_context(qpath, mpaths)
+        tree = self.tree_for_idxcontext[index_context]
 
-        # Validate that tree and expantion are consistent
-        qexp.validate_tree(tree)
-
-        # First store unpruned tree
-        if store:
-            self._tree_for_qpath[qpath] = tree
-
-        tree_for_qpath, modelpath_for_querypath = qexp.set_expanded_paths(tree)
-        if store:
-            self._tree_for_qpath.update(tree_for_qpath)
-            self._modelpath_for_querypath.update(modelpath_for_querypath)
-
-        return qexp
+        # Create and return expansion object
+        return _QueryExpansion(qpath, mpaths, tree, cmps)
 
     def _collect_results(
         self, flat_results: FlatData, query_expansions: List[_QueryExpansion]
@@ -883,22 +820,13 @@ class HubitModel:
         """
         Compress the response to reflect queries with index wildcards.
         So if the query has the structure list1[:].list2[:] and is
-        rectangular with N1 (2) elements in list1 and N2 (3) elements
+        rectangular with 2 elements in list1 and 3 elements
         in list2 the compressed response will be a nested list like
         [[00, 01, 02], [10, 11, 12]]
         """
-        _response = {}
-        for qexp in query_expansions:
-            if not qexp.is_expanded():
-                # Path not expanded so no need to compress
-                # Simple map from single normalized path to the path
-                # e.g cars[-1].price ['cars[2].price'] or cars[2].price ['cars[2].price']
-                _response[qexp.path] = flat_results[qexp.paths_norm[0]]
-            else:
-                tree = self._tree_for_qpath[qexp.path]
-                _response[qexp.path] = qexp.collect_results(flat_results, tree)
-
-        return _response
+        return {
+            qexp.path: qexp.collect_results(flat_results) for qexp in query_expansions
+        }
 
 
 def now():

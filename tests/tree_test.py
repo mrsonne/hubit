@@ -986,15 +986,17 @@ class TestQueryExpansion(unittest.TestCase):
     @staticmethod
     def _get_data():
         # Make the tree
-        site_nodes = LengthNode(1)
-        line_nodes = [LengthNode(1)]
+        site_nodes = LengthNode(2)
+        line_nodes = [LengthNode(1), LengthNode(1)]
         tank_nodes = [LengthNode(3)]
 
         site_nodes.set_children(line_nodes)
         line_nodes[0].set_children(tank_nodes)
+        line_nodes[1].set_children(tank_nodes)
 
         nodes = [site_nodes]
         nodes.extend(line_nodes)
+        nodes.extend(tank_nodes)
         nodes.extend(tank_nodes)
         level_names = "IDX_SITE", "IDX_LINE", "IDX_TANK"
 
@@ -1003,10 +1005,14 @@ class TestQueryExpansion(unittest.TestCase):
                 "sites[0].lines[0].tanks[0].Q_yield": 10.0,
                 "sites[0].lines[0].tanks[1].Q_yield": 6.0,
                 "sites[0].lines[0].tanks[2].Q_yield": 4.0,
+                "sites[1].lines[0].tanks[0].Q_yield": 20.0,
+                "sites[1].lines[0].tanks[1].Q_yield": 8.0,
+                "sites[1].lines[0].tanks[2].Q_yield": 3.0,
             }
         )
+        tree = LengthTree(nodes, level_names)
 
-        return LengthTree(nodes, level_names), flat_results
+        return tree, flat_results
 
     @staticmethod
     def _get_tests():
@@ -1056,21 +1062,21 @@ class TestQueryExpansion(unittest.TestCase):
                 qexp = _QueryExpansion(qpath, mpaths, tree, cmps)
                 result = qexp.collect_results(flat_results)
                 # Query has two index wildcards hence nested list
-                assert result == 4.0
+                assert result == 3.0
 
                 # Negative index
                 qpath = HubitQueryPath("sites[:].lines[:].tanks[-1].Q_yield")
                 qexp = _QueryExpansion(qpath, mpaths, tree, cmps)
                 result = qexp.collect_results(flat_results)
                 # Query has two index wildcards hence nested list
-                assert result == [[4.0]]
+                assert result == [[4.0], [3.0]]
 
                 # Positive index
                 qpath = HubitQueryPath("sites[:].lines[:].tanks[2].Q_yield")
                 qexp = _QueryExpansion(qpath, mpaths, tree, cmps)
                 result = qexp.collect_results(flat_results)
                 # Query has two index wildcards hence nested list
-                assert result == [[4.0]]
+                assert result == [[4.0], [3.0]]
 
                 # All tanks on all lines
                 qpath = HubitQueryPath("sites[0].lines[:].tanks[:].Q_yield")
@@ -1084,7 +1090,7 @@ class TestQueryExpansion(unittest.TestCase):
                 qexp = _QueryExpansion(qpath, mpaths, tree, cmps)
                 result = qexp.collect_results(flat_results)
                 # Query has two index wildcards hence nested list
-                assert result == [[[10.0, 6.0, 4.0]]]
+                assert result == [[[10.0, 6.0, 4.0]], [[20.0, 8.0, 3.0]]]
 
 
 if __name__ == "__main__":

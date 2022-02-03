@@ -15,6 +15,40 @@ from hubit.config import FlatData, HubitModelPath, HubitQueryPath, PathIndexRang
 from hubit.errors import HubitError, HubitIndexError, HubitModelQueryError
 
 
+def _get_data():
+    # Make the tree
+    site_nodes = LengthNode(2)
+    line_nodes = [LengthNode(1), LengthNode(1)]
+    tank_nodes_site0 = [LengthNode(3)]
+    tank_nodes_site1 = [LengthNode(4)]
+
+    site_nodes.set_children(line_nodes)
+    line_nodes[0].set_children(tank_nodes_site0)
+    line_nodes[1].set_children(tank_nodes_site1)
+
+    nodes = [site_nodes]
+    nodes.extend(line_nodes)
+    nodes.extend(tank_nodes_site0)
+    nodes.extend(tank_nodes_site1)
+    level_names = "IDX_SITE", "IDX_LINE", "IDX_TANK"
+
+    flat_results = FlatData(
+        {
+            "sites[0].lines[0].tanks[0].Q_yield": 10.0,
+            "sites[0].lines[0].tanks[1].Q_yield": 6.0,
+            "sites[0].lines[0].tanks[2].Q_yield": 4.0,
+            "sites[1].lines[0].tanks[0].Q_yield": 20.0,
+            "sites[1].lines[0].tanks[1].Q_yield": 8.0,
+            "sites[1].lines[0].tanks[2].Q_yield": 3.0,
+            "sites[1].lines[0].tanks[3].Q_yield": 1.0,
+        }
+    )
+    tree = LengthTree(nodes, level_names)
+    print("tree", tree)
+
+    return tree, flat_results
+
+
 class TestDummyTree(unittest.TestCase):
     def setUp(self):
         self.tree = LengthTree.from_data(
@@ -488,6 +522,15 @@ class TestTree(unittest.TestCase):
         path = HubitQueryPath("segments[:].layers[-3].test")
         with self.assertRaises(HubitIndexError) as context:
             expanded_paths = tree.expand_path(path, flat=True)
+
+        tree, _ = _get_data()
+        qpath = HubitQueryPath("sites[1].lines[0].tanks[-1].Q_yield")
+        expanded_paths = tree.expand_path(qpath, flat=True)
+        assert expanded_paths == "['sites[1].lines[0].tanks[3].Q_yield']"
+
+        qpath = HubitQueryPath("sites[0].lines[-1].tanks[-1].Q_yield")
+        expanded_paths = tree.expand_path(qpath, flat=True)
+        assert expanded_paths == "['sites[0].lines[0].tanks[2].Q_yield']"
 
     def test_expand_mpath3(self):
         """Prune tree before expanding. Two indices vary so
@@ -984,39 +1027,6 @@ class TestQueryExpansion(unittest.TestCase):
             qexp._validate_tree()
 
     @staticmethod
-    def _get_data():
-        # Make the tree
-        site_nodes = LengthNode(2)
-        line_nodes = [LengthNode(1), LengthNode(1)]
-        tank_nodes_site0 = [LengthNode(3)]
-        tank_nodes_site1 = [LengthNode(4)]
-
-        site_nodes.set_children(line_nodes)
-        line_nodes[0].set_children(tank_nodes_site0)
-        line_nodes[1].set_children(tank_nodes_site1)
-
-        nodes = [site_nodes]
-        nodes.extend(line_nodes)
-        nodes.extend(tank_nodes_site0)
-        nodes.extend(tank_nodes_site1)
-        level_names = "IDX_SITE", "IDX_LINE", "IDX_TANK"
-
-        flat_results = FlatData(
-            {
-                "sites[0].lines[0].tanks[0].Q_yield": 10.0,
-                "sites[0].lines[0].tanks[1].Q_yield": 6.0,
-                "sites[0].lines[0].tanks[2].Q_yield": 4.0,
-                "sites[1].lines[0].tanks[0].Q_yield": 20.0,
-                "sites[1].lines[0].tanks[1].Q_yield": 8.0,
-                "sites[1].lines[0].tanks[2].Q_yield": 3.0,
-                "sites[1].lines[0].tanks[3].Q_yield": 1.0,
-            }
-        )
-        tree = LengthTree(nodes, level_names)
-
-        return tree, flat_results
-
-    @staticmethod
     def _get_tests():
 
         # Test1
@@ -1025,7 +1035,6 @@ class TestQueryExpansion(unittest.TestCase):
         ]
         cmps = None
         tests = [(mpaths, cmps)]
-
         # Test 2
         mpaths = [
             "sites[IDX_SITE].lines[IDX_LINE].tanks[0@IDX_TANK].Q_yield",
@@ -1049,13 +1058,13 @@ class TestQueryExpansion(unittest.TestCase):
         - 1 provider -> 1 mpath
         - 1 production site
         """
-        tree, flat_results = TestQueryExpansion._get_data()
+        tree, flat_results = _get_data()
         test_items = TestQueryExpansion._get_tests()
 
         for mpaths, cmps in test_items:
             mpaths = [HubitModelPath(mpath) for mpath in mpaths]
             with self.subTest(mpaths=mpaths, cmps=cmps):
-                # positive indices
+                # Positive indices
                 qpath = HubitQueryPath("sites[0].lines[0].tanks[0].Q_yield")
                 qexp = _QueryExpansion(qpath, mpaths, tree, cmps)
                 result = qexp.collect_results(flat_results)

@@ -462,8 +462,12 @@ class TestTree(unittest.TestCase):
             ],
         ]
 
-        paths = self.tree.prune_from_path(path).expand_path(path)
+        paths = self.tree.prune_from_path(path, inplace=False).expand_path(path)
         self.assertSequenceEqual(paths, expected_paths)
+
+        # Cannot expand without pruning
+        with self.assertRaises(HubitError) as context:
+            paths = self.tree.expand_path(path)
 
     def test_expand_path2(self):
         """Expand path"""
@@ -483,7 +487,10 @@ class TestTree(unittest.TestCase):
         tree = LengthTree(nodes, level_names)
         # 2  values for segment 0 and 2 values for segment 1
         expected_paths = [
-            ["segments[0].layers[0].test", "segments[0].layers[1].test"],
+            [
+                "segments[0].layers[0].test",
+                "segments[0].layers[1].test",
+            ],
             [
                 "segments[1].layers[0].test",
                 "segments[1].layers[1].test",
@@ -529,7 +536,6 @@ class TestTree(unittest.TestCase):
 
         tree, _ = _get_data()
         qpath = HubitQueryPath("sites[1].lines[0].tanks[-1].Q_yield")
-        # qpath = HubitQueryPath("sites[1].lines[0].tanks[-1].Q_yield")
         expanded_paths = tree.prune_from_path(qpath, inplace=False).expand_path(
             qpath, flat=True
         )
@@ -540,6 +546,20 @@ class TestTree(unittest.TestCase):
             qpath, flat=True
         )
         assert expanded_paths == ["sites[0].lines[0].tanks[2].Q_yield"]
+
+        qpath = HubitQueryPath("sites[:].lines[-1].tanks[-1].Q_yield")
+        expanded_paths = tree.prune_from_path(qpath, inplace=False).expand_path(
+            qpath, flat=True
+        )
+        assert expanded_paths == [
+            "sites[0].lines[0].tanks[2].Q_yield",
+            "sites[1].lines[0].tanks[3].Q_yield",
+        ]
+
+        qpath = HubitQueryPath("sites[:].lines[:].tanks[:].Q_yield")
+        expanded_paths = tree.prune_from_path(qpath, inplace=False).expand_path(
+            qpath, flat=True
+        )
 
     def test_expand_mpath3(self):
         """Prune tree before expanding. Two indices vary so

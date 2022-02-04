@@ -211,6 +211,9 @@ class LengthTree:
         self.nlevels = len(level_names)
         self.level_names: Sequence[str] = level_names
 
+        # Set to pruning path when pruned else None
+        self._prune_path: Union[None, Path] = None
+
         self.nodes_for_level: Sequence[List[LengthNode]] = [
             [] for _ in range(self.nlevels)
         ]
@@ -252,6 +255,7 @@ class LengthTree:
             LengthTree: Pruned tree. If inplace=True the instance itself is also pruned.
         """
         obj = self if inplace else copy.deepcopy(self)
+        obj._prune_path = path
         ranges = path.ranges()
         if all([range.is_full_range for range in ranges]):
             return obj
@@ -537,6 +541,9 @@ class LengthTree:
                 )
         return norm_path
 
+    def _is_pruned_from(self, path: Path):
+        return self._prune_path == path
+
     def expand_path(
         self,
         path: Path,
@@ -560,6 +567,11 @@ class LengthTree:
             defined by the tree if flat = False. Otherwise a
             flat list.
         """
+        if not self._is_pruned_from(path):
+            raise HubitError(
+                f"Tree should be pruned using path '{path}'. Tree pruned with: '{self._prune_path}'"
+            )
+
         # Get the content of the braces
         idxspecs = path.get_index_specifiers()
         ranges = path.ranges()
@@ -795,7 +807,9 @@ class _QueryExpansion:
 
             # Even though the model paths have not yet been filtered based on
             # index ranges the index context should still be unique
-            return tree.expand_path(qpath, flat=True)
+            return tree.prune_from_path(qpath, inplace=False).expand_path(
+                qpath, flat=True
+            )
         else:
             return [qpath]
 

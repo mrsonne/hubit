@@ -462,7 +462,7 @@ class TestTree(unittest.TestCase):
             ],
         ]
 
-        paths = self.tree.expand_path(path)
+        paths = self.tree.prune_from_path(path).expand_path(path)
         self.assertSequenceEqual(paths, expected_paths)
 
     def test_expand_path2(self):
@@ -492,7 +492,7 @@ class TestTree(unittest.TestCase):
 
         for path in paths:
             with self.subTest(path=path):
-                expanded_paths = tree.expand_path(path)
+                expanded_paths = tree.prune_from_path(path).expand_path(path)
                 self.assertSequenceEqual(expanded_paths, expected_paths)
 
     def test_expand_path_count_from_back(self):
@@ -515,22 +515,31 @@ class TestTree(unittest.TestCase):
         ]
 
         # Since the tree is not pruned we must use flat=True
-        expanded_paths = tree.expand_path(path, flat=True)
+        expanded_paths = tree.prune_from_path(path, inplace=False).expand_path(
+            path, flat=True
+        )
         self.assertSequenceEqual(expanded_paths, expected_paths)
 
         # Index error. There are 2 layers on segment at index 0.
         path = HubitQueryPath("segments[:].layers[-3].test")
         with self.assertRaises(HubitIndexError) as context:
-            expanded_paths = tree.expand_path(path, flat=True)
+            expanded_paths = tree.prune_from_path(path, inplace=False).expand_path(
+                path, flat=True
+            )
 
         tree, _ = _get_data()
         qpath = HubitQueryPath("sites[1].lines[0].tanks[-1].Q_yield")
-        expanded_paths = tree.expand_path(qpath, flat=True)
-        assert expanded_paths == "['sites[1].lines[0].tanks[3].Q_yield']"
+        # qpath = HubitQueryPath("sites[1].lines[0].tanks[-1].Q_yield")
+        expanded_paths = tree.prune_from_path(qpath, inplace=False).expand_path(
+            qpath, flat=True
+        )
+        assert expanded_paths == ["sites[1].lines[0].tanks[3].Q_yield"]
 
         qpath = HubitQueryPath("sites[0].lines[-1].tanks[-1].Q_yield")
-        expanded_paths = tree.expand_path(qpath, flat=True)
-        assert expanded_paths == "['sites[0].lines[0].tanks[2].Q_yield']"
+        expanded_paths = tree.prune_from_path(qpath, inplace=False).expand_path(
+            qpath, flat=True
+        )
+        assert expanded_paths == ["sites[0].lines[0].tanks[2].Q_yield"]
 
     def test_expand_mpath3(self):
         """Prune tree before expanding. Two indices vary so
@@ -556,11 +565,6 @@ class TestTree(unittest.TestCase):
             "segments[0@IDX_SEG].layers[:@IDX_LAY].test.positions[:@IDX_POS]"
         )
         pruned_tree = self.tree.prune_from_path(mpath, inplace=False)
-        paths = pruned_tree.expand_path(mpath)
-        self.assertSequenceEqual(paths, expected_paths)
-
-        qpath = HubitQueryPath("segments[0].layers[:].test.positions[:]")
-        pruned_tree = self.tree.prune_from_path(qpath, inplace=False)
         paths = pruned_tree.expand_path(mpath)
         self.assertSequenceEqual(paths, expected_paths)
 
@@ -611,7 +615,9 @@ class TestTree(unittest.TestCase):
         }
 
         result = {
-            name: tree.expand_path(path_consumed_for_name[name])
+            name: tree.prune_from_path(path_consumed_for_name[name]).expand_path(
+                path_consumed_for_name[name]
+            )
             for name, tree in tree_for_name.items()
         }
 
@@ -1066,14 +1072,16 @@ class TestQueryExpansion(unittest.TestCase):
             with self.subTest(mpaths=mpaths, cmps=cmps):
                 # Positive indices
                 qpath = HubitQueryPath("sites[0].lines[0].tanks[0].Q_yield")
-                qexp = _QueryExpansion(qpath, mpaths, tree, cmps)
+                _tree = tree.prune_from_path(qpath, inplace=False)
+                qexp = _QueryExpansion(qpath, mpaths, _tree, cmps)
                 result = qexp.collect_results(flat_results)
                 # Query has two index wildcards hence nested list
                 assert result == 10.0
 
                 # Positive indices
                 qpath = HubitQueryPath("sites[1].lines[0].tanks[3].Q_yield")
-                qexp = _QueryExpansion(qpath, mpaths, tree, cmps)
+                _tree = tree.prune_from_path(qpath, inplace=False)
+                qexp = _QueryExpansion(qpath, mpaths, _tree, cmps)
                 result = qexp.collect_results(flat_results)
                 # Query has two index wildcards hence nested list
                 assert result == 1.0
@@ -1081,35 +1089,40 @@ class TestQueryExpansion(unittest.TestCase):
                 # Negative indices
                 qpath = HubitQueryPath("sites[-1].lines[-1].tanks[-1].Q_yield")
                 qpath = HubitQueryPath("sites[1].lines[0].tanks[-1].Q_yield")
-                qexp = _QueryExpansion(qpath, mpaths, tree, cmps)
+                _tree = tree.prune_from_path(qpath, inplace=False)
+                qexp = _QueryExpansion(qpath, mpaths, _tree, cmps)
                 result = qexp.collect_results(flat_results)
                 # Query has two index wildcards hence nested list
                 assert result == 1.0
 
                 # Negative index
                 qpath = HubitQueryPath("sites[:].lines[:].tanks[-1].Q_yield")
-                qexp = _QueryExpansion(qpath, mpaths, tree, cmps)
+                _tree = tree.prune_from_path(qpath, inplace=False)
+                qexp = _QueryExpansion(qpath, mpaths, _tree, cmps)
                 result = qexp.collect_results(flat_results)
                 # Query has two index wildcards hence nested list
                 assert result == [[4.0], [1.0]]
 
                 # Positive index
                 qpath = HubitQueryPath("sites[:].lines[:].tanks[2].Q_yield")
-                qexp = _QueryExpansion(qpath, mpaths, tree, cmps)
+                _tree = tree.prune_from_path(qpath, inplace=False)
+                qexp = _QueryExpansion(qpath, mpaths, _tree, cmps)
                 result = qexp.collect_results(flat_results)
                 # Query has two index wildcards hence nested list
                 assert result == [[4.0], [3.0]]
 
                 # All tanks on all lines
                 qpath = HubitQueryPath("sites[0].lines[:].tanks[:].Q_yield")
-                qexp = _QueryExpansion(qpath, mpaths, tree, cmps)
+                _tree = tree.prune_from_path(qpath, inplace=False)
+                qexp = _QueryExpansion(qpath, mpaths, _tree, cmps)
                 result = qexp.collect_results(flat_results)
                 # Query has two index wildcards hence nested list
                 assert result == [[10.0, 6.0, 4.0]]
 
                 # All tanks on all lines in all sites
                 qpath = HubitQueryPath("sites[:].lines[:].tanks[:].Q_yield")
-                qexp = _QueryExpansion(qpath, mpaths, tree, cmps)
+                _tree = tree.prune_from_path(qpath, inplace=False)
+                qexp = _QueryExpansion(qpath, mpaths, _tree, cmps)
                 result = qexp.collect_results(flat_results)
                 # Query has two index wildcards hence nested list
                 assert result == [[[10.0, 6.0, 4.0]], [[20.0, 8.0, 3.0, 1.0]]]

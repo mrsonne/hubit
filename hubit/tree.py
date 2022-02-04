@@ -212,7 +212,7 @@ class LengthTree:
         self.level_names: Sequence[str] = level_names
 
         # Set to pruning path when pruned else None
-        self._prune_path: Union[None, Path] = None
+        self._prune_path: Union[None, _HubitPath] = None
 
         self.nodes_for_level: Sequence[List[LengthNode]] = [
             [] for _ in range(self.nlevels)
@@ -574,42 +574,26 @@ class LengthTree:
 
         # Get the content of the braces
         idxspecs = path.get_index_specifiers()
-        ranges = path.ranges()
 
+        # Top level always has one node
         paths = [path]
-        for idx_level, (idxspec, range_) in enumerate(zip(idxspecs, ranges)):
+
+        # Loop over levels in sequence stating from the top (left)
+        for idx_level, idxspec in enumerate(idxspecs):
             nodes = self.nodes_for_level[idx_level]
+            # After processing the number of paths (on the current level) there will
+            # always be an equal number of paths and children. Therefore, before the
+            # processing (here), the number of nodes and paths are
+            # equal (in a LengthTree #nodes next level = #children current level).
             paths_current_level: List[Path] = []
             for _path, node in zip(paths, nodes):
-                if range_.is_digit:
-                    if range_.is_counted_from_back:
-                        # Get the index of the children.
-                        index = str(node.child(int(range_)).index)
-                        paths_current_level.append(_path.set_index(idxspec, index))
-                    else:
-                        # range is digit so replace index specifier with that digit
-                        paths_current_level.append(_path.set_index(idxspec, range_))
-                elif range_.is_full_range or range_.is_empty:
-                    # range is wildcard or not specified so expand from node children
-                    paths_current_level.extend(
-                        [
-                            _path.set_index(idxspec, str(child.index))
-                            for child in node.children
-                        ]
-                    )
-                elif range_.is_limited_range:
-                    # Loop over children to see who are included in the range
-                    paths_current_level.extend(
-                        [
-                            _path.set_index(idxspec, str(child.index))
-                            for child in node.children
-                            if range_.contains_index(child.index)
-                        ]
-                    )
-                else:
-                    raise HubitError(
-                        f"Unknown index range '{range_}' for path '{path}' of type '{type(path)}'."
-                    )
+                # Assumes pruned tree
+                paths_current_level.extend(
+                    [
+                        _path.set_index(idxspec, str(child.index))
+                        for child in node.children
+                    ]
+                )
             paths = copy.deepcopy(paths_current_level)
 
         # Cast strings as paths

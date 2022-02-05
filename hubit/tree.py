@@ -990,9 +990,12 @@ class _QueryExpansion:
                 print(
                     f"ERROR. "
                     f"Too few children at level {idx_level} with "
-                    f"name '{tree_level_name}' of tree. "
-                    f"Expected at least {n_decomposed_paths} children "
-                    "corresponding to the number of decomposed paths.\n"
+                    f"name '{tree_level_name}' of tree.\n"
+                    f"Found {self.tree.number_of_children(idx_level)} "
+                    f"but expected at least {n_decomposed_paths} children "
+                    f"corresponding to the number of decomposed\n"
+                    f"paths in\n"
+                    f"{decomposed_paths}.\n"
                 )
                 print(self.tree)
                 print(self)

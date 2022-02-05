@@ -768,7 +768,7 @@ class _QueryExpansion:
             for mpath, cmp in zip(mpaths, cmps)
         ]
 
-        # TODO split out field check
+        # TODO negative-indices. split out field check
         idxs = qpath.idxs_for_matches(_mpaths, check_intersection=True)
         return [_mpaths[idx] for idx in idxs]
 

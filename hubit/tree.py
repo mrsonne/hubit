@@ -631,6 +631,32 @@ class LengthTree:
         # like all leaves in the tree
         return self.reshape([None for _ in range(self.number_of_leaves())])
 
+    def is_path_described(self, mpath: HubitModelPath) -> bool:
+        """Check if the specified model path is described by the tree"""
+
+        # Index contexts must match
+        if not self.index_context == mpath.index_context:
+            return False
+
+        # On each level the path index range must contain at least one child index. Example:
+        # For the tree
+        #   level=0 (IDX_SITE), nodes=1 parents=0, children=1, children are leaves=[False], child idxs=[[0]]
+        #   level=1 (IDX_LINE), nodes=1 parents=1, children=1, children are leaves=[False], child idxs=[[0]]
+        #   level=2 (IDX_TANK), nodes=1 parents=1, children=3, children are leaves=[True], child idxs=[[0, 1, 2]]
+        # The following path match
+        #   prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[0@IDX_TANK].Q_yield -> OK
+        #   prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[1@IDX_TANK].Q_yield -> OK
+        #   prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[2@IDX_TANK].Q_yield -> OK
+        # while the path below does not
+        #   prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[3@IDX_TANK].Q_yield -> Not OK
+        # since the index range '3' coming from [3@IDX_TANK] is not a part of the tree
+        for idx_level, range_ in enumerate(mpath.ranges()):
+            for node in self.nodes_for_level[idx_level]:
+                x = [range_.contains_index(child.index) for child in node.children]
+                if not any(x):
+                    return False
+        return True
+
     def __str__(self):
         lines = ["--------------------", "Tree"]
         for idx, (name, nodes) in enumerate(
@@ -709,7 +735,10 @@ class _QueryExpansion:
                 mpath
                 for qpath_norm in self.paths_norm
                 for mpath in _QueryExpansion._filter_mpaths_for_qpath_index_ranges(
-                    qpath_norm, mpaths, cmps
+                    qpath_norm,
+                    mpaths,
+                    cmps,
+                    self.tree.prune_from_path(self.path, inplace=False),
                 )
             ]
 
@@ -755,6 +784,7 @@ class _QueryExpansion:
         qpath: HubitQueryPath,
         mpaths: List[HubitModelPath],
         cmps: List[HubitModelComponent],
+        pruned_tree: LengthTree,
     ) -> List[HubitModelPath]:
         """
         each path represents a path provided for the corresponding component.
@@ -770,7 +800,12 @@ class _QueryExpansion:
 
         # TODO negative-indices. split out field check
         idxs = qpath.idxs_for_matches(_mpaths, check_intersection=True)
-        return [_mpaths[idx] for idx in idxs]
+
+        # Check that math exists in pruned tree?!?!
+        return [
+            _mpaths[idx] for idx in idxs if pruned_tree.is_path_described(_mpaths[idx])
+        ]
+        # return [_mpaths[idx] for idx in idxs]
 
     @staticmethod
     def _normalize_path(

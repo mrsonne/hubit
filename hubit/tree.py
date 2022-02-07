@@ -612,6 +612,12 @@ class LengthTree:
         """Number of leaves in the tree"""
         return sum(self.number_of_children(-1))
 
+    def children_at_level(self, idx_level: int) -> List[int]:
+        """Number of children for each node at the specified level"""
+        return [
+            child for node in self.nodes_for_level[idx_level] for child in node.children
+        ]
+
     def number_of_children(self, idx_level: int) -> List[int]:
         """Number of children for each node at the specified level"""
         return [node.nchildren() for node in self.nodes_for_level[idx_level]]
@@ -651,10 +657,12 @@ class LengthTree:
         #   prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[3@IDX_TANK].Q_yield -> Not OK
         # since the index range '3' coming from [3@IDX_TANK] is not a part of the tree
         for idx_level, range_ in enumerate(mpath.ranges()):
-            for node in self.nodes_for_level[idx_level]:
-                x = [range_.contains_index(child.index) for child in node.children]
-                if not any(x):
-                    return False
+            x = [
+                range_.contains_index(child.index)
+                for child in self.children_at_level(idx_level)
+            ]
+            if not any(x):
+                return False
         return True
 
     def __str__(self):
@@ -722,25 +730,28 @@ class _QueryExpansion:
         """
         self.path = path
         self.tree = tree
-        # self.paths_norm = [self.path] if paths_norm is None else paths_norm
-        # self.mpaths = mpaths
-
         self.paths_norm = _QueryExpansion._normalize_path(self.path, tree)
 
         # Filter models paths using index specifiers for normalized query path
         if cmps is None:
             self.mpaths = mpaths
         else:
-            self.mpaths = [
-                mpath
-                for qpath_norm in self.paths_norm
-                for mpath in _QueryExpansion._filter_mpaths_for_qpath_index_ranges(
+            # Store in dict with normalized path so decomposition can be carried out in
+            # pairs (qpath_norm, mpaths)
+            mpaths_for_qpath_norm = {
+                qpath_norm: _QueryExpansion._filter_mpaths_for_qpath_index_ranges(
                     qpath_norm,
                     mpaths,
                     cmps,
-                    self.tree.prune_from_path(self.path, inplace=False),
+                    self.tree.prune_from_path(qpath_norm, inplace=False),
                 )
-            ]
+                for qpath_norm in self.paths_norm
+            }
+
+            # Store the flattened version
+            self.mpaths = list(
+                itertools.chain.from_iterable(mpaths_for_qpath_norm.values())
+            )
 
         if len(self.mpaths) > 1 and not self.path.has_slice_range():
             # Should not be possible to have multiple providers if the query
@@ -757,7 +768,7 @@ class _QueryExpansion:
         self.decomposed_paths: List[List[HubitQueryPath]] = []
         for path_norm in self.paths_norm:
             _decomposed_paths, index_identifiers = _QueryExpansion.decompose_query(
-                path_norm, self.mpaths
+                path_norm, mpaths_for_qpath_norm[path_norm]
             )
             self.decomposed_paths.append(list(set(_decomposed_paths)))
 
@@ -791,7 +802,6 @@ class _QueryExpansion:
         mpaths, cmp_ids have same length
         """
         # Indexes for models paths that match the query path (index considering intersections)
-        _mpaths = []
         # Set the index scope
         _mpaths = [
             mpath.set_range_for_idxid(cmp.index_scope)
@@ -802,10 +812,10 @@ class _QueryExpansion:
         idxs = qpath.idxs_for_matches(_mpaths, check_intersection=True)
 
         # Check that math exists in pruned tree?!?!
-        return [
+        _mpaths = [
             _mpaths[idx] for idx in idxs if pruned_tree.is_path_described(_mpaths[idx])
         ]
-        # return [_mpaths[idx] for idx in idxs]
+        return _mpaths
 
     @staticmethod
     def _normalize_path(
@@ -934,6 +944,10 @@ class _QueryExpansion:
         qpath: HubitQueryPath, mpaths: List[HubitModelPath]
     ) -> Tuple[List[HubitQueryPath], Union[List[str], None]]:
         """
+        Handles the case where more than one provider required to match query.
+        In that case the query is into (decomposed) queries each having a single
+        provider.
+
         If a single component can provide results for `path`, `decomposed_paths`
         has one element of type [`HubitQueryPath`][hubit.config.HubitQueryPath].
         If multiple components are required to provide the query their individual

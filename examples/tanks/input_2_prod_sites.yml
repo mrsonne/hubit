@@ -19,3 +19,5 @@ prod_sites:
          Q_transfer: 0.
        - yield_fraction: 0.5
          Q_in: 0.
+       - yield_fraction: 0.5
+         Q_in: 0.

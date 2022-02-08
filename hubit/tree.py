@@ -194,6 +194,9 @@ class DummyLengthTree:
     def none_like(self):
         return None
 
+    def is_path_described(self, path: Path) -> bool:
+        return True
+
 
 class LengthTree:
     """Stores length information for multi-dimensional and non-rectangular
@@ -637,12 +640,16 @@ class LengthTree:
         # like all leaves in the tree
         return self.reshape([None for _ in range(self.number_of_leaves())])
 
-    def is_path_described(self, mpath: HubitModelPath) -> bool:
+    def is_path_described(self, path: Path) -> bool:
         """Check if the specified model path is described by the tree"""
 
         # Index contexts must match
-        if not self.index_context == mpath.index_context:
-            return False
+        try:
+            if not self.index_context == path.index_context:
+                return False
+        except AttributeError:
+            # query paths have no index context
+            pass
 
         # On each level the path index range must contain at least one child index. Example:
         # For the tree
@@ -656,7 +663,7 @@ class LengthTree:
         # while the path below does not
         #   prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[3@IDX_TANK].Q_yield -> Not OK
         # since the index range '3' coming from [3@IDX_TANK] is not a part of the tree
-        for idx_level, range_ in enumerate(mpath.ranges()):
+        for idx_level, range_ in enumerate(path.ranges()):
             x = [
                 range_.contains_index(child.index)
                 for child in self.children_at_level(idx_level)
@@ -719,7 +726,7 @@ class _QueryExpansion:
         path: HubitQueryPath,
         mpaths: List[HubitModelPath],
         tree: LengthTree,
-        cmps: Optional[List[HubitModelComponent]] = None,
+        cmps: List[HubitModelComponent],
     ):
         """
         path: the query path
@@ -733,25 +740,23 @@ class _QueryExpansion:
         self.paths_norm = _QueryExpansion._normalize_path(self.path, tree)
 
         # Filter models paths using index specifiers for normalized query path
-        if cmps is None:
-            self.mpaths = mpaths
-        else:
-            # Store in dict with normalized path so decomposition can be carried out in
-            # pairs (qpath_norm, mpaths)
-            mpaths_for_qpath_norm = {
-                qpath_norm: _QueryExpansion._filter_mpaths_for_qpath_index_ranges(
-                    qpath_norm,
-                    mpaths,
-                    cmps,
-                    self.tree.prune_from_path(qpath_norm, inplace=False),
-                )
-                for qpath_norm in self.paths_norm
-            }
 
-            # Store the flattened version
-            self.mpaths = list(
-                itertools.chain.from_iterable(mpaths_for_qpath_norm.values())
+        # Store in dict with normalized path so decomposition can be carried out in
+        # pairs (qpath_norm, mpaths)
+        mpaths_for_qpath_norm = {
+            qpath_norm: _QueryExpansion._filter_mpaths_for_qpath_index_ranges(
+                qpath_norm,
+                mpaths,
+                cmps,
+                self.tree.prune_from_path(qpath_norm, inplace=False),
             )
+            for qpath_norm in self.paths_norm
+        }
+
+        # Store the flattened version
+        self.mpaths = list(
+            itertools.chain.from_iterable(mpaths_for_qpath_norm.values())
+        )
 
         if len(self.mpaths) > 1 and not self.path.has_slice_range():
             # Should not be possible to have multiple providers if the query
@@ -1019,36 +1024,22 @@ class _QueryExpansion:
         for decomposed_paths, tree_level_name in zip(
             self.decomposed_paths, self.decomposed_idx_identifiers
         ):
-            n_decomposed_paths = len(decomposed_paths)
 
             # Find out which level (index) we are at
             try:
-                idx_level = self.tree.level_names.index(tree_level_name)
+                self.tree.level_names.index(tree_level_name)
             except ValueError as err:
                 print(f"ERROR. Level name '{tree_level_name}' not found in tree")
                 print(self.tree)
                 print(self)
                 raise HubitError("Query expansion error.")
 
-            # For each node at the level the number of children should be
-            # greater than or equal to the number for paths in the decomposition
-            results = [
-                n >= n_decomposed_paths for n in self.tree.number_of_children(idx_level)
-            ]
-            if not all(results):
-                print(
-                    f"ERROR. "
-                    f"Too few children at level {idx_level} with "
-                    f"name '{tree_level_name}' of tree.\n"
-                    f"Found {self.tree.number_of_children(idx_level)} "
-                    f"but expected at least {n_decomposed_paths} children "
-                    f"corresponding to the number of decomposed\n"
-                    f"paths in\n"
-                    f"{decomposed_paths}.\n"
-                )
-                print(self.tree)
-                print(self)
-                raise HubitError("Query expansion error.")
+            for path in decomposed_paths:
+                if not self.tree.is_path_described(path):
+                    print(self.tree)
+                    raise HubitError(
+                        f"Query expansion error. Path '{path}' not described by tree."
+                    )
 
     def __str__(self):
         lines = [f"\nQuery\n  {self.path}"]

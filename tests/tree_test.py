@@ -15,6 +15,12 @@ from hubit.config import FlatData, HubitModelPath, HubitQueryPath, PathIndexRang
 from hubit.errors import HubitError, HubitIndexError, HubitModelQueryError
 
 
+def get_mock_components(mpaths):
+    cmp = Mock()
+    cmp.index_scope = {}
+    return [cmp for _ in mpaths]
+
+
 def _get_data():
     # Make the tree
     site_nodes = LengthNode(2)
@@ -949,18 +955,8 @@ class TestQueryExpansion(unittest.TestCase):
         mpaths = [HubitModelPath(mpath) for mpath in mpaths]
         # Use a dummy tree. It will not be used since the path normalization is bypassed
         tree = DummyLengthTree()
-        _QueryExpansion(qpath, mpaths, tree)
-
-        # Inconsistent query and mpaths
-        qpath = HubitQueryPath("lines[1].tanks[1].vol_outlet_flow")
-        mpaths = [
-            "lines[IDX_LINE].tanks[0@IDX_TANK].vol_outlet_flow",
-            "lines[IDX_LINE].tanks[1@IDX_TANK].vol_outlet_flow",
-            "lines[IDX_LINE].tanks[2@IDX_TANK].vol_outlet_flow",
-        ]
-        mpaths = [HubitModelPath(mpath) for mpath in mpaths]
-        with pytest.raises(HubitModelQueryError):
-            _QueryExpansion(qpath, mpaths, tree)
+        cmps = get_mock_components(mpaths)
+        _QueryExpansion(qpath, mpaths, tree, cmps)
 
         # mpaths cannot have different index contexts
         qpath = HubitQueryPath("lines[:].tanks[:].vol_outlet_flow")
@@ -969,16 +965,18 @@ class TestQueryExpansion(unittest.TestCase):
             "lines[IDX_LINE].tanks[1@IDX_OTHER].vol_outlet_flow",
         ]
         mpaths = [HubitModelPath(mpath) for mpath in mpaths]
+        cmps = get_mock_components(mpaths)
         with pytest.raises(HubitModelQueryError):
-            _QueryExpansion(qpath, mpaths, tree)
+            _QueryExpansion(qpath, mpaths, tree, cmps)
 
         # No mpaths i.e. no provider
         qpath = HubitQueryPath("lines[:].tanks[:].vol_outlet_flow")
         mpaths = []
+        cmps = get_mock_components(mpaths)
         with pytest.raises(HubitModelQueryError):
-            _QueryExpansion(qpath, mpaths, tree)
+            _QueryExpansion(qpath, mpaths, tree, cmps)
 
-    def _get_qexp(make_tree_invalid: bool = False):
+    def _get_qexp():
 
         path = HubitModelPath("lines[IDX_LINE].tanks[0@IDX_TANK].vol_outlet_flow")
         yml_input = """
@@ -995,10 +993,6 @@ class TestQueryExpansion(unittest.TestCase):
         """
         input_data = yaml.load(yml_input, Loader=yaml.FullLoader)
 
-        if make_tree_invalid:
-            # Delete tank so the tank list only has 2 elements. qexp expects at least 3
-            del input_data["lines"][0]["tanks"][-1]
-
         tree = LengthTree.from_data(path, input_data)
 
         qpath = HubitQueryPath("lines[:].tanks[:].vol_outlet_flow")
@@ -1008,8 +1002,9 @@ class TestQueryExpansion(unittest.TestCase):
             "lines[IDX_LINE].tanks[2@IDX_TANK].vol_outlet_flow",
         ]
         mpaths = [HubitModelPath(mpath) for mpath in mpaths]
+        cmps = get_mock_components(mpaths)
 
-        qexp = _QueryExpansion(qpath, mpaths, tree)
+        qexp = _QueryExpansion(qpath, mpaths, tree, cmps)
 
         return qexp
 
@@ -1023,10 +1018,6 @@ class TestQueryExpansion(unittest.TestCase):
         qexp._validate_tree()
 
     def test_validate_tree_fail(self):
-
-        # TODO: raise and test more specific error
-        with pytest.raises(HubitError):
-            qexp = TestQueryExpansion._get_qexp(make_tree_invalid=True)
 
         qexp = TestQueryExpansion._get_qexp()
 
@@ -1059,7 +1050,7 @@ class TestQueryExpansion(unittest.TestCase):
         mpaths = [
             "sites[IDX_SITE].lines[IDX_LINE].tanks[IDX_TANK].Q_yield",
         ]
-        cmps = None
+        cmps = get_mock_components(mpaths)
         tests = [(mpaths, cmps)]
         # Test 2
         mpaths = [
@@ -1070,9 +1061,7 @@ class TestQueryExpansion(unittest.TestCase):
         # Explicitly defining tank three doesn't work since it doesn't exits for the first site
         # "sites[IDX_SITE].lines[IDX_LINE].tanks[2@IDX_TANK].Q_yield",
         # "sites[IDX_SITE].lines[IDX_LINE].tanks[3@IDX_TANK].Q_yield",
-        cmp = Mock()
-        cmp.index_scope = {}
-        cmps = [cmp for _ in mpaths]
+        cmps = get_mock_components(mpaths)
 
         tests.append((mpaths, cmps))
         return tests

@@ -503,6 +503,10 @@ class _HubitPath(str):
     # Any sequence of characters in square braces including the braces
     regex_braces = r"\[.*?\]"
 
+    @property
+    def index_context(self):
+        raise NotImplementedError
+
     @staticmethod
     def as_internal(path: Any) -> str:
         """Convert path using braces [IDX] to internal

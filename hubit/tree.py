@@ -27,6 +27,8 @@ from .utils import is_digit, get_from_datadict, split_items, traverse, set_eleme
 if TYPE_CHECKING:
     from .config import HubitModelComponent
 
+Node = Union["LeafNode", "LengthNode"]
+
 
 class LeafNode:
     """Used for leaves in the LengthTree instead of a LengthNode"""
@@ -55,9 +57,7 @@ class LengthNode:
         self.level = 0
         # Assume bottom level
         self._nchildren_org = nchildren
-        self.children: Sequence[Union[LengthNode, LeafNode]] = [
-            LeafNode(idx) for idx in range(nchildren)
-        ]
+        self.children: Sequence[Node] = [LeafNode(idx) for idx in range(nchildren)]
         self._set_child_for_idx()
 
         # Assume top level (parent = None)
@@ -615,7 +615,7 @@ class LengthTree:
         """Number of leaves in the tree"""
         return sum(self.number_of_children(-1))
 
-    def children_at_level(self, idx_level: int) -> List[int]:
+    def children_at_level(self, idx_level: int) -> List[Node]:
         """Number of children for each node at the specified level"""
         return [
             child for node in self.nodes_for_level[idx_level] for child in node.children
@@ -647,7 +647,7 @@ class LengthTree:
         try:
             if not self.index_context == path.index_context:
                 return False
-        except AttributeError:
+        except NotImplementedError:
             # query paths have no index context
             pass
 

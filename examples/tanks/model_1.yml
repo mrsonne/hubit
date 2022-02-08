@@ -1,4 +1,20 @@
 components:
+
+  - path: ./components/mod1.py 
+    provides_results:
+      - name: Q_yield
+        path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[3@IDX_TANK].Q_yield
+    consumes_input:
+      - name: yield_fraction
+        path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[3@IDX_TANK].yield_fraction
+      - name: Q_in
+        path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[3@IDX_TANK].Q_in
+    consumes_results:
+      # use outlet flow from previous tank 2
+      - name: Q_transfer_1
+        path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[2@IDX_TANK].Q_yield
+
+
   - path: ./components/mod1.py   
     provides_results:
       - name: Q_yield

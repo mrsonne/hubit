@@ -56,12 +56,23 @@ def run(model_id, input_file="input.yml"):
     hmodel.clean_log()
 
     # Should result in a number
-    # TODO: negative-indices. this is not right!!!!
+    print(f"\nQuery")
+    query = [f"prod_sites[{prod_site}].prod_lines[0].tanks[-1].Q_yield"]
+    query = [f"prod_sites[{prod_site}].prod_lines[0].tanks[2].Q_yield"]
+    pprint(query)
+    print(f"Spawns 3 workers")
+    response = hmodel.get(query, use_multi_processing=use_multi_processing)
+    print("Response (one path & value):")
+    print(response)
+    print(hmodel.log())
+    hmodel.clean_log()
+
+    # Should result in a number
     print(f"\nQuery")
     query = [f"prod_sites[-1].prod_lines[0].tanks[-1].Q_yield"]
     # query = [f"prod_sites[1].prod_lines[0].tanks[2].Q_yield"]
     pprint(query)
-    print(f"Spawns 3 workers")
+    print(f"Spawns 4 workers")
     response = hmodel.get(query, use_multi_processing=use_multi_processing)
     print("Response (one path & value):")
     print(response)
@@ -90,45 +101,56 @@ def run(model_id, input_file="input.yml"):
     print(hmodel.log())
     hmodel.clean_log()
 
-    # # Should result in three numbers
     query = [
         f"prod_sites[{prod_site}].prod_lines[0].tanks[0].Q_yield",
         f"prod_sites[{prod_site}].prod_lines[0].tanks[1].Q_yield",
         f"prod_sites[{prod_site}].prod_lines[0].tanks[2].Q_yield",
     ]
-    print(f"\nQuery")
-    pprint(query)
-    print(f"Spawns 3 workers")
-    response = hmodel.get(query, use_multi_processing=use_multi_processing)
-    print("Response (three paths & corresponding values)")
-    pprint(response)
-    print(hmodel.log())
-    hmodel.clean_log()
+    run_query(
+        use_multi_processing,
+        hmodel,
+        query,
+        n_workers_expected=3,
+        response_description="three paths & corresponding values",
+    )
 
-    # Should result in 1D array
     query = [f"prod_sites[{prod_site}].prod_lines[0].tanks[:].Q_yield"]
-    print(f"\nSpawns 3 workers: {query}")
-    response = hmodel.get(query, use_multi_processing=use_multi_processing)
-    print("Response (One path with list as value):")
-    print(response)
-    print(hmodel.log())
-    hmodel.clean_log()
+    run_query(
+        use_multi_processing,
+        hmodel,
+        query,
+        n_workers_expected=3,
+        response_description="one path with values as items in a list",
+    )
 
-    # Should result in double nested list
     query = [f"prod_sites[{prod_site}].prod_lines[:].tanks[:].Q_yield"]
-    print(f"\nSpawns 3 workers: {query}")
-    response = hmodel.get(query, use_multi_processing=use_multi_processing)
-    print("Response (One path with double nested list as value):")
-    print(response)
-    print(hmodel.log())
-    hmodel.clean_log()
+    run_query(
+        use_multi_processing,
+        hmodel,
+        query,
+        n_workers_expected=3,
+        response_description="one path with values as items in double nested list",
+    )
 
-    # Should result in triple nested list
     query = ["prod_sites[:].prod_lines[:].tanks[:].Q_yield"]
-    print(f"\nSpawns 3 workers: {query}")
+    run_query(
+        use_multi_processing,
+        hmodel,
+        query,
+        n_workers_expected=3,
+        response_description="one path with values as items in triple nested list",
+    )
+
+
+def run_query(
+    use_multi_processing, hmodel, query, n_workers_expected, response_description
+):
+    print("\nQuery")
+    pprint(query)
+    print(f"spawns {n_workers_expected} workers")
     response = hmodel.get(query, use_multi_processing=use_multi_processing)
-    print("Response (One path with triple nested list as value):")
-    print(response)
+    print(f"Response ({response_description}):")
+    pprint(response)
     print(hmodel.log())
     hmodel.clean_log()
 
@@ -140,6 +162,7 @@ if __name__ == "__main__":
     run("model_1b.yml", input_file)
     run("model_2.yml", input_file)
 
+    # TODO: negative-indices. turn "prod_sites[:].prod_lines[:].tanks[:].Q_yield" into test og query expansion
     # input_file = "input_2_prod_sites.yml"
     # run("model_1.yml", input_file)
     # run("model_1a.yml", input_file)

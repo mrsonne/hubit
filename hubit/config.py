@@ -490,8 +490,10 @@ class ModelIndexSpecifier(_IndexSpecifier):
         return cls(f"{_idx_range}{identifier}{_offset}")
 
 
+Path = Union["HubitModelPath", "HubitQueryPath"]
+
 # upper bound types
-Path = TypeVar("Path", bound="_HubitPath")
+# Path = TypeVar("Path", bound="_HubitPath") # gives issues with init LengthTree._prune_path
 IndexSpecifier = TypeVar("IndexSpecifier", bound="_IndexSpecifier")
 
 

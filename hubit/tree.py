@@ -15,7 +15,6 @@ from typing import (
 )
 from .errors import HubitIndexError, HubitError, HubitModelQueryError
 from .config import (
-    _HubitPath,
     FlatData,
     HubitModelPath,
     HubitQueryPath,
@@ -165,7 +164,7 @@ class DummyLengthTree:
 
     def prune_from_path(
         self,
-        _path: _HubitPath = _HubitPath(),
+        _path: Path,
         inplace: bool = True,
     ) -> DummyLengthTree:
         return self if inplace else copy.deepcopy(self)
@@ -215,7 +214,7 @@ class LengthTree:
         self.level_names: Sequence[str] = level_names
 
         # Set to pruning path when pruned else None
-        self._prune_path: Union[None, _HubitPath] = None
+        self._prune_path: Union[None, Path] = None
 
         self.nodes_for_level: Sequence[List[LengthNode]] = [
             [] for _ in range(self.nlevels)
@@ -246,7 +245,7 @@ class LengthTree:
         obj.nodes_for_level = obj.nodes_for_level[: level_idx + 1]
         return obj
 
-    def prune_from_path(self, path: _HubitPath, inplace: bool = True) -> LengthTree:
+    def prune_from_path(self, path: Path, inplace: bool = True) -> LengthTree:
         """Prune the length tree based on a path where zero
         to all indices are already specified.
 

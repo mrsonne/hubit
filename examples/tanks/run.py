@@ -106,52 +106,55 @@ def run(model_id, input_file="input.yml"):
         f"prod_sites[{prod_site}].prod_lines[0].tanks[1].Q_yield",
         f"prod_sites[{prod_site}].prod_lines[0].tanks[2].Q_yield",
     ]
-    run_query(
+    run_yield_calc(
         use_multi_processing,
         hmodel,
         query,
-        n_workers_expected=3,
         response_description="three paths & corresponding values",
     )
 
     query = [f"prod_sites[{prod_site}].prod_lines[0].tanks[:].Q_yield"]
-    run_query(
+    run_yield_calc(
         use_multi_processing,
         hmodel,
         query,
-        n_workers_expected=3,
         response_description="one path with values as items in a list",
     )
 
     query = [f"prod_sites[{prod_site}].prod_lines[:].tanks[:].Q_yield"]
-    run_query(
+    run_yield_calc(
         use_multi_processing,
         hmodel,
         query,
-        n_workers_expected=3,
         response_description="one path with values as items in double nested list",
     )
 
     query = ["prod_sites[:].prod_lines[:].tanks[:].Q_yield"]
-    run_query(
+    run_yield_calc(
         use_multi_processing,
         hmodel,
         query,
-        n_workers_expected=3,
         response_description="one path with values as items in triple nested list",
     )
 
 
-def run_query(
-    use_multi_processing, hmodel, query, n_workers_expected, response_description
-):
+def run_yield_calc(use_multi_processing, hmodel, query, response_description):
+    """The yield calculation is sequential and in this example there is always
+    one worker per tank
+    """
     print("\nQuery")
     pprint(query)
-    print(f"spawns {n_workers_expected} workers")
     response = hmodel.get(query, use_multi_processing=use_multi_processing)
+    n_workers_expected = len(hmodel.results)
+    log = hmodel.log()
+    n_workers = sum(log.get_all("worker_counts")[0].values())
+    assert (
+        n_workers == n_workers_expected
+    ), f"Expected {n_workers_expected} worker but {n_workers} were spawned."
+    print(f"Spawns {n_workers_expected} workers")
     print(f"Response ({response_description}):")
     pprint(response)
-    print(hmodel.log())
+    print(log)
     hmodel.clean_log()
 
 

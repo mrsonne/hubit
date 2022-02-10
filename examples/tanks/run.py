@@ -108,9 +108,12 @@ def run_yield_calc(use_multi_processing, hmodel, query, response_description):
     """The yield calculation is sequential and in this example there is always
     one worker per tank
     """
+    # This is where the actions is
+    response = hmodel.get(query, use_multi_processing=use_multi_processing)
+
+    # Below is some consistency checks and printing
     print("\nQuery")
     pprint(query)
-    response = hmodel.get(query, use_multi_processing=use_multi_processing)
     n_workers_expected = len(hmodel.results)
     log = hmodel.log()
     n_workers = sum(log.get_all("worker_counts")[0].values())

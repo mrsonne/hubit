@@ -19,92 +19,58 @@ def run(model_id, input_file="input.yml"):
     print("*" * ltot)
     hmodel = get_model(model_id, input_file)
 
-    prod_site = 0
+    query = [f"prod_sites[0].prod_lines[0].tanks[0].Q_yield"]
+    run_yield_calc(
+        use_multi_processing,
+        hmodel,
+        query,
+        response_description="one path & corresponding value",
+    )
 
-    # Should result in a number
-    query = [f"prod_sites[{prod_site}].prod_lines[0].tanks[0].Q_yield"]
-    print(f"\nQuery")
-    pprint(query)
-    print(f"Spawns 1 worker")
-    response = hmodel.get(query, use_multi_processing=use_multi_processing)
-    print("Response (one path & value):")
-    pprint(response)
-    print(hmodel.log())
-    hmodel.clean_log()
+    query = [f"prod_sites[0].prod_lines[0].tanks[2].Q_yield"]
+    run_yield_calc(
+        use_multi_processing,
+        hmodel,
+        query,
+        response_description="one path & corresponding value",
+    )
 
-    # Should result in a number
-    query = [f"prod_sites[{prod_site}].prod_lines[0].tanks[1].Q_yield"]
-    print(f"\nQuery")
-    pprint(query)
-    print(f"Spawns 2 workers")
-    response = hmodel.get(query, use_multi_processing=use_multi_processing)
-    print("Response (one path & value):")
-    pprint(response)
-    print(hmodel.log())
-    hmodel.clean_log()
+    query = [f"prod_sites[0].prod_lines[0].tanks[-1].Q_yield"]
+    run_yield_calc(
+        use_multi_processing,
+        hmodel,
+        query,
+        response_description="one path & corresponding value",
+    )
 
-    # Should result in a number
-    print(f"\nQuery")
-    query = [f"prod_sites[{prod_site}].prod_lines[0].tanks[2].Q_yield"]
-    pprint(query)
-    print(f"Spawns 3 workers")
-    response = hmodel.get(query, use_multi_processing=use_multi_processing)
-    print("Response (one path & value):")
-    pprint(response)
-    # pprint(hmodel.results)
-    print(hmodel.log())
-    hmodel.clean_log()
-
-    # Should result in a number
-    print(f"\nQuery")
-    query = [f"prod_sites[{prod_site}].prod_lines[0].tanks[-1].Q_yield"]
-    query = [f"prod_sites[{prod_site}].prod_lines[0].tanks[2].Q_yield"]
-    pprint(query)
-    print(f"Spawns 3 workers")
-    response = hmodel.get(query, use_multi_processing=use_multi_processing)
-    print("Response (one path & value):")
-    print(response)
-    print(hmodel.log())
-    hmodel.clean_log()
-
-    # Should result in a number
-    print(f"\nQuery")
     query = [f"prod_sites[-1].prod_lines[0].tanks[-1].Q_yield"]
-    # query = [f"prod_sites[1].prod_lines[0].tanks[2].Q_yield"]
-    pprint(query)
-    print(f"Spawns 4 workers")
-    response = hmodel.get(query, use_multi_processing=use_multi_processing)
-    print("Response (one path & value):")
-    print(response)
-    print(hmodel.log())
-    hmodel.clean_log()
+    run_yield_calc(
+        use_multi_processing,
+        hmodel,
+        query,
+        response_description="one path & corresponding value",
+    )
 
-    # Should result in double nested list
-    print(f"\nQuery")
     query = ["prod_sites[:].prod_lines[:].tanks[-1].Q_yield"]
-    pprint(query)
-    print(f"Spawns 6 workers")
-    response = hmodel.get(query, use_multi_processing=use_multi_processing)
-    print("Response (one path with double nested list as value):")
-    pprint(response)
-    print(hmodel.log())
-    hmodel.clean_log()
+    run_yield_calc(
+        use_multi_processing,
+        hmodel,
+        query,
+        response_description="one path with values as items in double nested list",
+    )
 
-    # Should result in double nested list
-    print(f"\nQuery")
     query = ["prod_sites[:].prod_lines[:].tanks[2].Q_yield"]
-    pprint(query)
-    print(f"Spawns 6 workers")
-    response = hmodel.get(query, use_multi_processing=use_multi_processing)
-    print("Response (one path with double nested list as value):")
-    pprint(response)
-    print(hmodel.log())
-    hmodel.clean_log()
+    run_yield_calc(
+        use_multi_processing,
+        hmodel,
+        query,
+        response_description="one path with values as items in double nested list",
+    )
 
     query = [
-        f"prod_sites[{prod_site}].prod_lines[0].tanks[0].Q_yield",
-        f"prod_sites[{prod_site}].prod_lines[0].tanks[1].Q_yield",
-        f"prod_sites[{prod_site}].prod_lines[0].tanks[2].Q_yield",
+        f"prod_sites[0].prod_lines[0].tanks[0].Q_yield",
+        f"prod_sites[0].prod_lines[0].tanks[1].Q_yield",
+        f"prod_sites[0].prod_lines[0].tanks[2].Q_yield",
     ]
     run_yield_calc(
         use_multi_processing,
@@ -113,7 +79,7 @@ def run(model_id, input_file="input.yml"):
         response_description="three paths & corresponding values",
     )
 
-    query = [f"prod_sites[{prod_site}].prod_lines[0].tanks[:].Q_yield"]
+    query = [f"prod_sites[0].prod_lines[0].tanks[:].Q_yield"]
     run_yield_calc(
         use_multi_processing,
         hmodel,
@@ -121,7 +87,7 @@ def run(model_id, input_file="input.yml"):
         response_description="one path with values as items in a list",
     )
 
-    query = [f"prod_sites[{prod_site}].prod_lines[:].tanks[:].Q_yield"]
+    query = [f"prod_sites[0].prod_lines[:].tanks[:].Q_yield"]
     run_yield_calc(
         use_multi_processing,
         hmodel,

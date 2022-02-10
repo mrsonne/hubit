@@ -128,15 +128,19 @@ def run_yield_calc(use_multi_processing, hmodel, query, response_description):
 
 
 if __name__ == "__main__":
+    # One production site with one production line.
     input_file = "input.yml"
     run("model_1.yml", input_file)
     run("model_1a.yml", input_file)
     run("model_1b.yml", input_file)
     run("model_2.yml", input_file)
 
-    # TODO: negative-indices. turn "prod_sites[:].prod_lines[:].tanks[:].Q_yield" into test og query expansion
-    # input_file = "input_2_prod_sites.yml"
-    # run("model_1.yml", input_file)
-    # run("model_1a.yml", input_file)
-    # run("model_1b.yml", input_file)
-    # run("model_2.yml", input_file)
+    # Same model definitions but different input used for
+    # two production sites each with one production line.
+    # The production lines in the two sites have 3
+    # and 4 tanks, respectively.
+    input_file = "input_2_prod_sites.yml"
+    run("model_1.yml", input_file)
+    run("model_1a.yml", input_file)
+    run("model_1b.yml", input_file)
+    run("model_2.yml", input_file)

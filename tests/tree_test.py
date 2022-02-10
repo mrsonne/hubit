@@ -69,7 +69,7 @@ class TestDummyTree(unittest.TestCase):
 
     def test_prune_from_path(self):
         """Inplace pruning gives the dummy tree itself"""
-        result = self.tree.prune_from_path(inplace=True)
+        result = self.tree.prune_from_path(HubitModelPath(), inplace=True)
         assert result == self.tree
 
     def test_clip_at_level(self):

@@ -1021,13 +1021,20 @@ class HubitBinding:
         """
 
         # Do not allow limited index ranges in binding paths
-        return cls(
-            name=cfg["name"],
-            path=HubitModelPath(
-                cfg["path"],
-                allow_limited_range=False,
-            ),
-        ).validate()
+        try:
+            return cls(
+                name=cfg["name"],
+                path=HubitModelPath(
+                    cfg["path"],
+                    allow_limited_range=False,
+                ),
+            ).validate()
+        except HubitError as err:
+            name = cfg["name"]
+            path = cfg["path"]
+            raise HubitError(
+                f"Error while processing binding with name '{name}' and path '{path}': {str(err)}"
+            )
 
 
 @dataclass

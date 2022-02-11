@@ -1,3 +1,5 @@
+import random
+import string
 import unittest
 from unittest.mock import Mock
 import yaml
@@ -81,6 +83,14 @@ class TestDummyTree(unittest.TestCase):
         """Inplace fix gives the dummy tree itself"""
         result = self.tree.fix_idx_at_level()
         assert result == self.tree
+
+    def test_is_path_described(self):
+        """Any path is describe"""
+        assert DummyLengthTree().is_path_described(
+            HubitModelPath(
+                "".join(random.choices(string.ascii_uppercase + string.digits, k=10))
+            )
+        )
 
 
 class TestTree(unittest.TestCase):
@@ -919,6 +929,28 @@ class TestTree(unittest.TestCase):
                         self.assertEqual(result, expected_result)
                     else:
                         self.assertListEqual(result, expected_result)
+
+    def test_is_path_described(self):
+        """Any path is describe"""
+        assert not self.tree.is_path_described(HubitModelPath("i.dont.exist"))
+
+        print(self.tree)
+
+        assert self.tree.is_path_described(
+            HubitQueryPath("segments[0].layers[0].test.positions[0]")
+        )
+
+        assert not self.tree.is_path_described(
+            HubitQueryPath("segments[0].layers[0].test.positions[1]")
+        )
+
+        assert self.tree.is_path_described(
+            HubitQueryPath("segments[1].layers[0].test.positions[4]")
+        )
+
+        assert not self.tree.is_path_described(
+            HubitQueryPath("segments[1].layers[0].test.positions[5]")
+        )
 
 
 # TODO: test if len(mpaths) > 1 and not path.has_slice_range():

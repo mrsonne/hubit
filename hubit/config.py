@@ -906,10 +906,10 @@ class HubitModelPath(_HubitPath):
 
     """
 
-    def __new__(self, value, allow_limited_range: bool = True):
+    def __new__(self, value: str = "", allow_limited_range: bool = True):
         return super().__new__(self, value)
 
-    def __init__(self, value, allow_limited_range: bool = True):
+    def __init__(self, value: str = "", allow_limited_range: bool = True):
         super().__init__()
         self.allow_limited_range = allow_limited_range
         self.allow_negative_index = False

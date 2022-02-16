@@ -667,6 +667,12 @@ class LengthTree:
             # query paths have no index context
             pass
 
+        ranges = path.ranges()
+
+        # The path must have ranges corresponding to the number of levels in the tree
+        if not (len(ranges) == self.nlevels):
+            return False
+
         def filter_children(range_, children):
             """Only consider children that are described by the index"""
             return [child for child in children if range_.contains_index(child.index)]
@@ -676,7 +682,6 @@ class LengthTree:
             return [child for node in nodes for child in node.children]
 
         children = self.children_at_level(0)
-        ranges = path.ranges()
 
         # Loop over levels excluding the last which has LeafNode (with no children)
         for range_ in ranges[:-1]:

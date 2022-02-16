@@ -930,11 +930,11 @@ class TestTree(unittest.TestCase):
                     else:
                         self.assertListEqual(result, expected_result)
 
-    def test_is_path_described(self):
-        # Any path is described
-        assert not self.tree.is_path_described(HubitModelPath("i.dont.exist"))
-
+    def test_is_path_described_query_paths(self):
         print(self.tree)
+
+        # Path with no ranges is not described by a LengthTree
+        assert not self.tree.is_path_described(HubitQueryPath("i.dont.exist"))
 
         assert self.tree.is_path_described(
             HubitQueryPath("segments[0].layers[0].test.positions[0]")
@@ -954,6 +954,41 @@ class TestTree(unittest.TestCase):
 
         assert not self.tree.is_path_described(
             HubitQueryPath("segments[1].layers[0].test.positions[5]")
+        )
+
+        # At least one segment has 4 positions on layer 0
+        assert self.tree.is_path_described(
+            HubitQueryPath("segments[:].layers[0].test.positions[4]")
+        )
+
+        # No segment has 5 positions on layer 0
+        assert not self.tree.is_path_described(
+            HubitQueryPath("segments[:].layers[0].test.positions[5]")
+        )
+
+    def test_is_path_described_model_paths(self):
+        print(self.tree)
+
+        # Path with no ranges is not described by a LengthTree
+        assert not self.tree.is_path_described(HubitModelPath("i.dont.exist"))
+
+        assert self.tree.is_path_described(
+            HubitModelPath(
+                "segments[0@IDX_SEG].layers[0@IDX_LAY].test.positions[0@IDX_POS]"
+            )
+        )
+
+        assert not self.tree.is_path_described(
+            HubitModelPath(
+                "segments[0@IDX_SEG].layers[0@IDX_LAY].test.positions[1@IDX_POS]"
+            )
+        )
+
+        # Wrong index context
+        assert not self.tree.is_path_described(
+            HubitModelPath(
+                "segments[0@IDX_WRONG].layers[0@IDX_LAY].test.positions[0@IDX_POS]"
+            )
         )
 
 

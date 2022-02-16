@@ -931,7 +931,7 @@ class TestTree(unittest.TestCase):
                         self.assertListEqual(result, expected_result)
 
     def test_is_path_described(self):
-        """Any path is describe"""
+        # Any path is described
         assert not self.tree.is_path_described(HubitModelPath("i.dont.exist"))
 
         print(self.tree)
@@ -942,6 +942,10 @@ class TestTree(unittest.TestCase):
 
         assert not self.tree.is_path_described(
             HubitQueryPath("segments[0].layers[0].test.positions[1]")
+        )
+
+        assert not self.tree.is_path_described(
+            HubitQueryPath("segments[7].layers[0].test.positions[1]")
         )
 
         assert self.tree.is_path_described(

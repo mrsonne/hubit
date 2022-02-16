@@ -43,6 +43,9 @@ class LeafNode:
     def remove_decendants(self):
         pass
 
+    def __str__(self):
+        return f'LeafNode(nchildren=NA, index={self.index}, has parent={"Yes" if self.parent else "No"}, is_constrained=NA)'
+
 
 class LengthNode:
     def __init__(self, nchildren: int):
@@ -640,7 +643,21 @@ class LengthTree:
         return self.reshape([None for _ in range(self.number_of_leaves())])
 
     def is_path_described(self, path: Path) -> bool:
-        """Check if the specified model path is described by the tree"""
+        """Check if the specified model path is described by the tree
+
+        On each level the path index range must contain at least one child index. Example:
+        For the tree
+          level=0 (IDX_SITE), nodes=1 parents=0, children=1, children are leaves=[False], child idxs=[[0]]
+          level=1 (IDX_LINE), nodes=1 parents=1, children=1, children are leaves=[False], child idxs=[[0]]
+          level=2 (IDX_TANK), nodes=1 parents=1, children=3, children are leaves=[True], child idxs=[[0, 1, 2]]
+        The following path match
+          prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[0@IDX_TANK].Q_yield -> OK
+          prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[1@IDX_TANK].Q_yield -> OK
+          prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[2@IDX_TANK].Q_yield -> OK
+        while the path below does not
+          prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[3@IDX_TANK].Q_yield -> Not OK
+        since the index range '3' coming from [3@IDX_TANK] is not a part of the tree
+        """
 
         # Index contexts must match
         try:
@@ -650,25 +667,32 @@ class LengthTree:
             # query paths have no index context
             pass
 
-        # On each level the path index range must contain at least one child index. Example:
-        # For the tree
-        #   level=0 (IDX_SITE), nodes=1 parents=0, children=1, children are leaves=[False], child idxs=[[0]]
-        #   level=1 (IDX_LINE), nodes=1 parents=1, children=1, children are leaves=[False], child idxs=[[0]]
-        #   level=2 (IDX_TANK), nodes=1 parents=1, children=3, children are leaves=[True], child idxs=[[0, 1, 2]]
-        # The following path match
-        #   prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[0@IDX_TANK].Q_yield -> OK
-        #   prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[1@IDX_TANK].Q_yield -> OK
-        #   prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[2@IDX_TANK].Q_yield -> OK
-        # while the path below does not
-        #   prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[3@IDX_TANK].Q_yield -> Not OK
-        # since the index range '3' coming from [3@IDX_TANK] is not a part of the tree
-        for idx_level, range_ in enumerate(path.ranges()):
-            x = [
-                range_.contains_index(child.index)
-                for child in self.children_at_level(idx_level)
-            ]
-            if not any(x):
+        def filter_children(range_, children):
+            """Only consider children that are described by the index"""
+            return [child for child in children if range_.contains_index(child.index)]
+
+        def children_next(nodes: List[LengthNode]):
+            """Get children for the LengthNode"""
+            return [child for node in nodes for child in node.children]
+
+        children = self.children_at_level(0)
+        ranges = path.ranges()
+
+        # Loop over levels excluding the last which has LeafNode (with no children)
+        for range_ in ranges[:-1]:
+            # Build list of children matching the "description"
+            children = filter_children(range_, children)
+            if len(children) == 0:
                 return False
+
+            children = children_next(children)
+
+        # Handle LeafNodes
+        children = filter_children(ranges[-1], children)
+        if len(children) == 0:
+            return False
+
+        # If we get to the leaves the path is described
         return True
 
     def __str__(self):
@@ -815,7 +839,7 @@ class _QueryExpansion:
         # TODO negative-indices. split out field check
         idxs = qpath.idxs_for_matches(_mpaths, check_intersection=True)
 
-        # Check that math exists in pruned tree?!?!
+        # Check that math exists in pruned tree
         _mpaths = [
             _mpaths[idx] for idx in idxs if pruned_tree.is_path_described(_mpaths[idx])
         ]

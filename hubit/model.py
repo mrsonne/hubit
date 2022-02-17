@@ -761,35 +761,6 @@ class HubitModel:
             mpaths.append(binding_paths[idx])
         return mpaths, cmp_ids
 
-    # def _mpaths_for_qpath(
-    #     self, qpath: HubitQueryPath, check_intersection: bool = True
-    # ) -> List[HubitModelPath]:
-    #     """
-    #     Returns the model paths (with the index scope inserted)
-    #     that match the query.
-    #     """
-    #     # Find component that provides queried result
-    #     cmp_ids = self._cmpids_for_query(qpath, check_intersection)
-
-    #     # Find component
-    #     paths = []
-    #     scopes = []
-    #     for cmp_id in cmp_ids:
-    #         cmp = self.model_cfg.component_for_id[cmp_id]
-    #         # Find index in list of binding paths that match query path
-    #         idxs = qpath.idxs_for_matches(
-    #             [binding.path for binding in cmp.provides_results],
-    #             check_intersection,
-    #         )
-    #         paths.append(cmp.provides_results[idxs[0]].path)
-    #         scopes.append(cmp.index_scope)
-
-    #     # Set the index scope
-    #     mpaths = [
-    #         mpath.set_range_for_idxid(scope) for mpath, scope in zip(paths, scopes)
-    #     ]
-    #     return mpaths
-
     def _expand_query(
         self, qpath: HubitQueryPath, store: bool = True
     ) -> _QueryExpansion:

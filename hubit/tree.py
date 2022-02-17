@@ -524,29 +524,6 @@ class LengthTree:
                 node = node._child_for_idx[node_idx]
         return node
 
-    # TODO: negative-indices. Unused
-    def normalize_path(self, q_path: HubitQueryPath) -> HubitQueryPath:
-        """Handle negative indices
-        As stated in "test_normalize_path2" the normalization in general depends
-        on the context
-        """
-
-        norm_path = copy.copy(q_path)
-
-        for idx_level, idx_spec in enumerate(q_path.get_index_specifiers()):
-            if is_digit(idx_spec) and int(idx_spec) < 0:
-                # Get index context i.e. indices prior to current level
-                _idx_context = [
-                    int(idx) for idx in norm_path.get_index_specifiers()[:idx_level]
-                ]
-                node = self._node_for_idxs(_idx_context)
-                norm_path = HubitQueryPath(
-                    norm_path.replace(
-                        idx_spec, str(node.nchildren() + int(idx_spec)), 1
-                    )
-                )
-        return norm_path
-
     def _is_pruned_from(self, path: Path):
         return self._prune_path == path
 

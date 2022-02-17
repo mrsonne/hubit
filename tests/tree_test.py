@@ -398,39 +398,6 @@ class TestTree(unittest.TestCase):
         ]
         self.assertListEqual(tree.to_list(), expected_lengths)
 
-    def test_normalize_path1(self):
-        """
-        First index ID is negative so no context
-        """
-        qpath = HubitModelPath("segments[-1].layers[XX].test.positions[YY]")
-        normalized_qpath_expected = "segments[1].layers[XX].test.positions[YY]"
-        normalized_qpath = self.tree.normalize_path(qpath)
-        self.assertEqual(normalized_qpath_expected, normalized_qpath)
-
-    def test_normalize_path2(self):
-        """
-        Second index ID is negative there's context
-        """
-        qpaths = (
-            HubitModelPath("segments[0].layers[-1].test.positions[:]"),
-            HubitModelPath("segments[1].layers[-1].test.positions[:]"),
-        )
-        normalized_qpaths_expected = (
-            "segments[0].layers[2].test.positions[:]",
-            "segments[1].layers[3].test.positions[:]",
-        )
-
-        for qpath, expected_qpath in zip(qpaths, normalized_qpaths_expected):
-            path = self.tree.normalize_path(qpath)
-            with self.subTest(path=path, expected_qpath=expected_qpath):
-                self.assertEqual(expected_qpath, path)
-
-    def test_normalize_path3(self):
-        qpath = HubitModelPath("segments[1].layers[3].test.positions[-1]")
-        expected_qpath = "segments[1].layers[3].test.positions[3]"
-        normalized_qpath = self.tree.normalize_path(qpath)
-        self.assertEqual(expected_qpath, normalized_qpath)
-
     def test_expand_mpath1(self):
         """Expand to full template path"""
         path = HubitModelPath(

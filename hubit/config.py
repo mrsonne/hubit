@@ -737,9 +737,7 @@ class HubitQueryPath(_HubitPath):
                 return False
         return True
 
-    def path_match(
-        self, model_path: HubitModelPath, check_intersection: bool = True
-    ) -> bool:
+    def path_match(self, model_path: HubitModelPath) -> bool:
         """Check if the query matches the model path from the
         model bindings
 
@@ -750,11 +748,10 @@ class HubitQueryPath(_HubitPath):
         Returns:
             bool: True if the query matches the model path
         """
-        fields_ok = self.field_names_match(model_path)
-        if not check_intersection or not fields_ok:
-            return fields_ok
-
-        return self.index_specifiers_match(model_path)
+        if not self.field_names_match(model_path):
+            return False
+        else:
+            return self.index_specifiers_match(model_path)
 
     def idxs_for_matches(
         self, mpaths: List[HubitModelPath], check_intersection: bool = True
@@ -763,11 +760,8 @@ class HubitQueryPath(_HubitPath):
         Returns indices in the sequence of provider strings that match the
         structure of the query string
         """
-        return [
-            idx
-            for idx, mpath in enumerate(mpaths)
-            if self.path_match(mpath, check_intersection)
-        ]
+        feval = self.path_match if check_intersection else self.field_names_match
+        return [idx for idx, mpath in enumerate(mpaths) if feval(mpath)]
 
     def get_index_specifiers(self) -> List[QueryIndexSpecifier]:
         items = re.findall(_HubitPath.regex_idx_spec, self)

@@ -83,6 +83,37 @@ class _QueryRunner:
         self.provided_results_id: Set[str] = set()
         self.subscribers_for_results_id: Dict[str, List[_Worker]] = {}
 
+    def __str__(self):
+        headers = [f"Workers ({len(self.workers)})"]
+        lines = [f"\n*** {headers[-1]} ***"]
+        lines.extend([str(worker) for worker in self.workers])
+
+        headers.append(f"Workers working ({len(self.workers_working)})")
+        lines += [f"\n*** {headers[-1]} ***"]
+        lines.extend([str(worker) for worker in self.workers_working])
+
+        headers.append(f"Pending queries ({len(self.observers_for_query)})")
+        lines += [f"\n*** {headers[-1]} ***"]
+        lines.extend(
+            [
+                f"{query}: {observers}"
+                for query, observers in self.observers_for_query.items()
+            ]
+        )
+
+        lines += [f"*" * 100]
+        lines += [f"SUMMARY"]
+        lines.extend(headers)
+        lines += [f"*" * 100]
+        return "\n".join(lines)
+
+    def reset(self):
+        self.workers = []
+        self.workers_working = []
+        self.workers_completed = []
+        self.worker_for_id = {}
+        self.observers_for_query = {}
+
     def _join_workers(self):
         # TODO Not sure this is required
         for i, worker in enumerate(self.workers_completed):

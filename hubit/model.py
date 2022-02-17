@@ -87,11 +87,7 @@ def _get(
     else:
         _flat_results = flat_results
     # Reset book keeping data
-    queryrunner.workers = []
-    queryrunner.workers_working = []
-    queryrunner.workers_completed = []
-    queryrunner.worker_for_id = {}
-    queryrunner.observers_for_query = {}
+    queryrunner.reset()
 
     extracted_input: Dict[str, Any] = {}
 
@@ -140,6 +136,7 @@ def _get(
 
     except (Exception, KeyboardInterrupt) as err:
         the_err = err
+        status = str(queryrunner)
         shutdown_event.set()
 
     # Join workers
@@ -153,6 +150,7 @@ def _get(
 
         return response, _flat_results
     else:
+        print(status)
         # Re-raise if failed
         raise the_err
 

@@ -150,6 +150,7 @@ def _get(
 
         return response, _flat_results
     else:
+        print("Exited with runner status")
         print(status)
         # Re-raise if failed
         raise the_err

@@ -1344,21 +1344,26 @@ class HubitModelConfig:
 
         return cls(components=components, _base_path=base_path).validate()
 
-    def provides(
-        self,
-    ) -> Tuple[List[str], List[HubitModelPath], List[Dict[str, PathIndexRange]]]:
-        """Returns three lists with
+    def provides(self) -> Tuple[List[str], List[HubitModelPath]]:
+        """Returns two lists with
         1) component ID
-        2) Binding path for attributes provided
-        3) Index scope
+        2) Binding path for attributes provided with scope set
         """
-        return zip(
+        cmp_ids, paths_provided, scopes = zip(
             *[
                 (cmp.id, binding.path, cmp.index_scope)
                 for cmp in self.components
                 for binding in cmp.provides_results
             ]
         )
+
+        # Set the scope to check if provided paths are unique
+        paths_provided = [
+            path.set_range_for_idxid(scope)
+            for path, scope in zip(paths_provided, scopes)
+        ]
+
+        return cmp_ids, paths_provided
 
 
 @dataclass

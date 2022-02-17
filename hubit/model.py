@@ -686,16 +686,11 @@ class HubitModel:
         Find IDs of components that can respond to the "query".
         """
         # TODO: Next line should only be executed once in init (speed)
-        cmp_ids, paths_provided, scopes = self.model_cfg.provides()
+        cmp_ids, paths_provided = self.model_cfg.provides()
 
-        # Set the scope to check if provided paths are unique
-        _paths_provided = [
-            path.set_range_for_idxid(scope)
-            for path, scope in zip(paths_provided, scopes)
-        ]
         return [
             cmp_ids[idx]
-            for idx in qpath.idxs_for_matches(_paths_provided, check_intersection)
+            for idx in qpath.idxs_for_matches(paths_provided, check_intersection)
         ]
 
     def component_for_id(self, compid: str) -> HubitModelComponent:

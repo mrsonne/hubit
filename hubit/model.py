@@ -741,8 +741,10 @@ class HubitModel:
         """Find model paths that match the query. The match
         is evaluated only based on field names
         """
+        check_intersection = False
+
         # Find component that provides queried result
-        cmp_ids = self._cmpids_for_query(qpath, check_intersection=False)
+        cmp_ids = self._cmpids_for_query(qpath, check_intersection=check_intersection)
 
         # Find component
         mpaths = []
@@ -753,7 +755,9 @@ class HubitModel:
             ].provides_results_paths
             # Find index in list of binding paths that match query path (there can
             # be only one match which should be validated elsewhere)
-            idx = qpath.idxs_for_matches(binding_paths, check_intersection=False)[0]
+            idx = qpath.idxs_for_matches(
+                binding_paths, check_intersection=check_intersection
+            )[0]
             mpaths.append(binding_paths[idx])
         return mpaths, cmp_ids
 

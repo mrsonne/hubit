@@ -213,18 +213,19 @@ class LengthTree:
             nodes (List[LengthNode]): Connected length nodes
             level_names (List[str]): Name of the levels specified on the nodes
         """
-        self.nlevels = len(level_names)
         self.level_names: Sequence[str] = level_names
 
         # Set to pruning path when pruned else None
         self._prune_path: Union[None, Path] = None
 
-        self.nodes_for_level: Sequence[List[LengthNode]] = [
-            [] for _ in range(self.nlevels)
-        ]
+        self.nodes_for_level: Sequence[List[LengthNode]] = [[] for _ in level_names]
         for node in nodes:
             node.tree = self
             self.nodes_for_level[node.level].append(node)
+
+    @property
+    def nlevels(self):
+        return len(self.nodes_for_level)
 
     @property
     def index_context(self):

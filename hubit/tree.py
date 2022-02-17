@@ -12,6 +12,7 @@ from typing import (
     Union,
     Optional,
     TYPE_CHECKING,
+    cast,
 )
 from .errors import HubitIndexError, HubitError, HubitModelQueryError
 from .config import (
@@ -651,28 +652,31 @@ class LengthTree:
         if not (len(ranges) == self.nlevels):
             return False
 
-        def filter_children(range_, children):
+        def filter_nodes(range_: PathIndexRange, nodes: List[Node]) -> List[Node]:
             """Only consider children that are described by the index"""
-            return [child for child in children if range_.contains_index(child.index)]
+            return [node for node in nodes if range_.contains_index(node.index)]
 
-        def children_next(nodes: List[LengthNode]):
+        def nodes_next(nodes: List[LengthNode]) -> List[Node]:
             """Get children for the LengthNode"""
             return [child for node in nodes for child in node.children]
 
-        children = self.children_at_level(0)
+        nodes = self.children_at_level(0)
+        cast(List[LengthNode], nodes)
 
         # Loop over levels excluding the last which has LeafNode (with no children)
         for range_ in ranges[:-1]:
             # Build list of children matching the "description"
-            children = filter_children(range_, children)
-            if len(children) == 0:
+            nodes = filter_nodes(range_, nodes)
+            # assert all(isinstance(node, LengthNode) for node in nodes)
+            # cast(List[LengthNode], nodes)
+            if len(nodes) == 0:
                 return False
 
-            children = children_next(children)
+            nodes = nodes_next(nodes)
 
         # Handle LeafNodes
-        children = filter_children(ranges[-1], children)
-        if len(children) == 0:
+        nodes = filter_nodes(ranges[-1], nodes)
+        if len(nodes) == 0:
             return False
 
         # If we get to the leaves the path is described

@@ -84,7 +84,7 @@ class _QueryRunner:
         self.subscribers_for_results_id: Dict[str, List[_Worker]] = {}
 
     def __str__(self):
-        headers = [f"Workers ({len(self.workers)})"]
+        headers = [f"Workers spawned ({len(self.workers)})"]
         lines = [f"\n*** {headers[-1]} ***"]
         lines.extend([str(worker) for worker in self.workers])
 
@@ -96,11 +96,12 @@ class _QueryRunner:
         lines += [f"\n*** {headers[-1]} ***"]
         lines.extend(
             [
-                f"{query}: {observers}"
+                f"{query}: {', '.join(observer.idstr() for observer in observers)}"
                 for query, observers in self.observers_for_query.items()
             ]
         )
 
+        headers.append(f"Workers completed ({len(self.workers_completed)})")
         lines += [f"*" * 100]
         lines += [f"SUMMARY"]
         lines.extend(headers)

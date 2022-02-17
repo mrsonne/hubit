@@ -137,6 +137,11 @@ def _get(
     except (Exception, KeyboardInterrupt) as err:
         the_err = err
         status = str(queryrunner)
+        lines = ["\nResults collected"]
+        lines.extend([f"   {path}: {value}" for path, value in flat_results.items()])
+        lines += ["*" * 100]
+        status += "\n".join(lines)
+
         shutdown_event.set()
 
     # Join workers

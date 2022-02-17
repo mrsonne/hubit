@@ -1344,6 +1344,22 @@ class HubitModelConfig:
 
         return cls(components=components, _base_path=base_path).validate()
 
+    def provides(
+        self,
+    ) -> Tuple[List[str], List[HubitModelPath], List[Dict[str, PathIndexRange]]]:
+        """Returns three lists with
+        1) component ID
+        2) Binding path for attributes provided
+        3) Index scope
+        """
+        return zip(
+            *[
+                (cmp.id, binding.path, cmp.index_scope)
+                for cmp in self.components
+                for binding in cmp.provides_results
+            ]
+        )
+
 
 @dataclass
 class Query:

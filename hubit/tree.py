@@ -41,6 +41,11 @@ class LeafNode:
         self.level = 0
         self.parent = None
 
+    @property
+    def children(self):
+        """A leaf has no children"""
+        raise NotImplementedError
+
     def remove_decendants(self):
         pass
 
@@ -656,19 +661,16 @@ class LengthTree:
             """Only consider children that are described by the index"""
             return [node for node in nodes if range_.contains_index(node.index)]
 
-        def nodes_next(nodes: List[LengthNode]) -> List[Node]:
+        def nodes_next(nodes: List[Node]) -> List[Node]:
             """Get children for the LengthNode"""
             return [child for node in nodes for child in node.children]
 
         nodes = self.children_at_level(0)
-        cast(List[LengthNode], nodes)
 
         # Loop over levels excluding the last which has LeafNode (with no children)
         for range_ in ranges[:-1]:
             # Build list of children matching the "description"
             nodes = filter_nodes(range_, nodes)
-            # assert all(isinstance(node, LengthNode) for node in nodes)
-            # cast(List[LengthNode], nodes)
             if len(nodes) == 0:
                 return False
 

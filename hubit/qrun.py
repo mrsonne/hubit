@@ -83,6 +83,9 @@ class _QueryRunner:
         self.provided_results_id: Dict[_Worker, str] = {}
         self.subscribers_for_results_id: Dict[str, List[_Worker]] = {}
 
+    def _worker_status(self, worker):
+        return "(complete)" if worker in self.workers_completed else "(waiting )"
+
     def __str__(self):
         worker_ids: List[List[str]] = []
 
@@ -91,17 +94,17 @@ class _QueryRunner:
         for worker in self.workers:
             results_id = self.provided_results_id[worker]
             arrow = "<-" if worker.used_cache() else "->"
-            status = "(complete)" if worker in self.workers_completed else "(waiting )"
+            status = self._worker_status(worker)
             s = f"{worker.idstr()} {status} {arrow} {results_id}"
             tmp.append(s)
         worker_ids.append(tmp)
         lines = [f"\n*** {headers[-1]} ***"]
         lines.extend([str(worker) for worker in self.workers])
 
-        headers.append(f"Pending queries ({len(self.observers_for_query)})")
+        headers.append(f"Pending queries ({len(self.observers_for_query)}) & observers")
         lines += [f"\n*** {headers[-1]} ***"]
         tmp = [
-            f"{query}: {', '.join(observer.idstr() for observer in observers)}"
+            f"{query} -> {', '.join(f'{observer.idstr()} {self._worker_status(observer)}' for observer in observers)}"
             for query, observers in self.observers_for_query.items()
         ]
         if len(tmp) == 0:

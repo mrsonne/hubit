@@ -96,22 +96,14 @@ class _QueryRunner:
         lines = [f"\n*** {headers[-1]} ***"]
         lines.extend([str(worker) for worker in self.workers])
 
-        headers.append(f"Workers working ({len(self.workers_working)})")
-        worker_ids.append([worker.idstr() for worker in self.workers_working])
-        lines += [f"\n*** {headers[-1]} ***"]
-        lines.extend([str(worker) for worker in self.workers_working])
-
-        headers.append(f"Workers completed ({len(self.workers_completed)})")
-        worker_ids.append([worker.idstr() for worker in self.workers_completed])
-        lines += [f"\n*** {headers[-1]} ***"]
-        lines.extend([str(worker) for worker in self.workers_completed])
-
         headers.append(f"Pending queries ({len(self.observers_for_query)})")
         lines += [f"\n*** {headers[-1]} ***"]
         tmp = [
             f"{query}: {', '.join(observer.idstr() for observer in observers)}"
             for query, observers in self.observers_for_query.items()
         ]
+        if len(tmp) == 0:
+            tmp = ["None"]
         lines.extend(tmp)
         worker_ids.append(tmp)
 

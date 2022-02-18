@@ -62,6 +62,8 @@ class _Worker:
         self._consumes_input_only = False
         self._results_id: Optional[str] = None
         self.caching = caching
+        self._did_complete = False
+        self._did_start = False
 
         # Store information on how results were created (calculation or cache)
         self._results_from = self.RESULTS_FROM_UNKNOWN
@@ -417,10 +419,12 @@ class _Worker:
             )
 
             self._consumed_data_set = True
+            self._did_start = True
             if results is None:
                 self.workfun()
             else:
                 self.use_cached_result(results)
+            self._did_complete = True
 
     def set_consumed_input(self, path: HubitQueryPath, value):
         if path in self.pending_input_paths:
@@ -563,6 +567,9 @@ class _Worker:
         strtmp += fstr1.format("Results pending", self.pending_results_paths)
 
         strtmp += "-" * n + "\n"
+        strtmp += f"Ready to work: {self.is_ready_to_work()}\n"
+        strtmp += f"Did start: {self._did_start}\n"
+        strtmp += f"Did complete: {self._did_complete}\n"
         strtmp += "Results {}\n".format(self.results)
 
         strtmp += "=" * n + "\n"

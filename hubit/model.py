@@ -65,6 +65,16 @@ def _default_skipfun(flat_input: FlatData) -> bool:
     return False
 
 
+def _status(queryrunner: _QueryRunner, flat_results: FlatData) -> str:
+    """String representation of run status"""
+    lines = ["*" * 100, f"SUMMARY", "*" * 100]
+    lines.append(str(queryrunner))
+    lines += ["Results collected"]
+    lines.extend([f"   {path}: {value}" for path, value in flat_results.items()])
+    lines += ["*" * 100]
+    return "\n".join(lines)
+
+
 def _get(
     queryrunner: _QueryRunner,
     query: Query,
@@ -136,12 +146,7 @@ def _get(
 
     except (Exception, KeyboardInterrupt) as err:
         the_err = err
-        status = str(queryrunner)
-        lines = ["\nResults collected"]
-        lines.extend([f"   {path}: {value}" for path, value in flat_results.items()])
-        lines += ["*" * 100]
-        status += "\n".join(lines)
-
+        status = _status(queryrunner, flat_results)
         shutdown_event.set()
 
     # Join workers

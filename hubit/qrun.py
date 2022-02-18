@@ -84,27 +84,42 @@ class _QueryRunner:
         self.subscribers_for_results_id: Dict[str, List[_Worker]] = {}
 
     def __str__(self):
+        worker_ids: List[List[str]] = []
+
         headers = [f"Workers spawned ({len(self.workers)})"]
+        worker_ids.append(
+            [
+                f"{worker.idstr()} ({'completed' if worker in self.workers_completed else 'pending/working'})"
+                for worker in self.workers
+            ]
+        )
         lines = [f"\n*** {headers[-1]} ***"]
         lines.extend([str(worker) for worker in self.workers])
 
         headers.append(f"Workers working ({len(self.workers_working)})")
+        worker_ids.append([worker.idstr() for worker in self.workers_working])
         lines += [f"\n*** {headers[-1]} ***"]
         lines.extend([str(worker) for worker in self.workers_working])
 
+        headers.append(f"Workers completed ({len(self.workers_completed)})")
+        worker_ids.append([worker.idstr() for worker in self.workers_completed])
+        lines += [f"\n*** {headers[-1]} ***"]
+        lines.extend([str(worker) for worker in self.workers_completed])
+
         headers.append(f"Pending queries ({len(self.observers_for_query)})")
         lines += [f"\n*** {headers[-1]} ***"]
-        lines.extend(
-            [
-                f"{query}: {', '.join(observer.idstr() for observer in observers)}"
-                for query, observers in self.observers_for_query.items()
-            ]
-        )
+        tmp = [
+            f"{query}: {', '.join(observer.idstr() for observer in observers)}"
+            for query, observers in self.observers_for_query.items()
+        ]
+        lines.extend(tmp)
+        worker_ids.append(tmp)
 
         headers.append(f"Workers completed ({len(self.workers_completed)})")
         lines += [f"*" * 100]
-        lines += [f"SUMMARY"]
-        lines.extend(headers)
+        for header, wids in zip(headers, worker_ids):
+            lines.append(header)
+            lines.extend([f"   {wid}" for wid in wids])
         lines += [f"*" * 100]
         return "\n".join(lines)
 

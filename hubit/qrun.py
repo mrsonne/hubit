@@ -89,7 +89,7 @@ class _QueryRunner:
     def __str__(self):
         worker_ids: List[List[str]] = []
 
-        headers = [f"Workers spawned ({len(self.workers)})"]
+        headers = [f"Workers spawned ({len(self.workers)}) & results ID"]
         tmp = []
         for worker in self.workers:
             results_id = self.provided_results_id[worker]

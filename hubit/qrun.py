@@ -80,19 +80,21 @@ class _QueryRunner:
         self.results_for_results_id: Dict[str, Dict[str, Any]] = {}
 
         # To track if there is already a provider for the results. Elements are checksums
-        self.provided_results_id: Set[str] = set()
+        self.provided_results_id: Dict[_Worker, str] = {}
         self.subscribers_for_results_id: Dict[str, List[_Worker]] = {}
 
     def __str__(self):
         worker_ids: List[List[str]] = []
 
         headers = [f"Workers spawned ({len(self.workers)})"]
-        worker_ids.append(
-            [
-                f"{worker.idstr()} ({'completed' if worker in self.workers_completed else 'pending/working'})"
-                for worker in self.workers
-            ]
-        )
+        tmp = []
+        for worker in self.workers:
+            results_id = self.provided_results_id[worker]
+            arrow = "<-" if worker.used_cache() else "->"
+            status = "(complete)" if worker in self.workers_completed else "(waiting )"
+            s = f"{worker.idstr()} {status} {arrow} {results_id}"
+            tmp.append(s)
+        worker_ids.append(tmp)
         lines = [f"\n*** {headers[-1]} ***"]
         lines.extend([str(worker) for worker in self.workers])
 
@@ -107,8 +109,9 @@ class _QueryRunner:
         lines.extend(tmp)
         worker_ids.append(tmp)
 
-        headers.append(f"Workers completed ({len(self.workers_completed)})")
         lines += [f"*" * 100]
+        lines.append(f"Use component caching: {self.component_caching}")
+        lines.append(f"Use multi-procesing: {self.use_multi_processing}")
         for header, wids in zip(headers, worker_ids):
             lines.append(header)
             lines.extend([f"   {wid}" for wid in wids])
@@ -296,7 +299,7 @@ class _QueryRunner:
 
             # Add the worker to the observers list for that query in order
             for path_next in qpaths_next_exp:
-                if not path_next in self.observers_for_query:
+                if not (path_next in self.observers_for_query):
                     self.observers_for_query[path_next] = []
                 self.observers_for_query[path_next].append(worker)
 
@@ -325,15 +328,17 @@ class _QueryRunner:
         Start worker or add it to the list of workers waiting for a provider
         """
         # if not success: return False
+        if worker.consumes_input_only():
+            results_id = worker.results_id
+        else:
+            # set the worker's results id based on result ids of sub-workers
+            results_id = worker.set_results_id(results_ids_sub_workers)
+
         if self.component_caching:
-            if worker.consumes_input_only():
-                results_id = worker.results_id
-            else:
-                # set the worker's results id based on result ids of sub-workers
-                results_id = worker.set_results_id(results_ids_sub_workers)
 
             # if results_id in self.provider_for_results_id:
-            if results_id in self.provided_results_id:
+            if results_id in self.provided_results_id.values():
+                self.provided_results_id[worker] = results_id
                 # there is a provider for the results
                 if results_id in self.results_for_results_id:
                     # The results are already there.
@@ -348,12 +353,12 @@ class _QueryRunner:
             else:
                 # There is no provider yet so this worker should be registered as the provider
                 # self.provider_for_results_id[results_id] = worker
-                self.provided_results_id.add(results_id)
+                self.provided_results_id[worker] = results_id
                 worker.work_if_ready()
 
         else:
+            self.provided_results_id[worker] = results_id
             worker.work_if_ready()
-            results_id = "NA"
         return results_id
 
     def _set_worker(self, worker: _Worker):
@@ -393,8 +398,8 @@ class _QueryRunner:
             if results_id in self.subscribers_for_results_id.keys():
                 # There are subscribers
                 for _worker in self.subscribers_for_results_id[results_id]:
-                    self.subscribers_for_results_id[results_id].remove(_worker)
-                    _worker.work_if_ready(self.results_for_results_id[results_id])
+                    _worker.work_if_ready(worker.results)
+                del self.subscribers_for_results_id[results_id]
 
         # Save results to disk
         if self.model._model_caching_mode == "incremental":

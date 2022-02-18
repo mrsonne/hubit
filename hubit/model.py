@@ -65,12 +65,16 @@ def _default_skipfun(flat_input: FlatData) -> bool:
     return False
 
 
-def _status(queryrunner: _QueryRunner, flat_results: FlatData) -> str:
+def _status(queryrunner: _QueryRunner, flat_results: Optional[FlatData]) -> str:
     """String representation of run status"""
     lines = ["*" * 100, f"SUMMARY", "*" * 100]
     lines.append(str(queryrunner))
     lines += ["Results collected"]
-    lines.extend([f"   {path}: {value}" for path, value in flat_results.items()])
+    if flat_results is not None:
+        lines.extend([f"   {path}: {value}" for path, value in flat_results.items()])
+    else:
+        lines.append("   NA")
+
     lines += ["*" * 100]
     return "\n".join(lines)
 

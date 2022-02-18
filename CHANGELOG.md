@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Support for negative indices in queries.
 - Fix issue with explicit indexing for non-rectangular data
+- Fix issue that caused Hubit to intermittently stall during executions. Happened when
+- Fix bug when useing component caching and low-level query before high-level query.
+
+-
 
 ## [0.4.1] - 2021-11-06
 

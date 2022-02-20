@@ -407,24 +407,30 @@ class _Worker:
     def is_ready_to_work(self):
         return self._consumed_input_ready and self._consumed_results_ready
 
-    def work_if_ready(self, results=None):
+    def _prepare_work(self):
+        logging.debug("Let the work begin: {}".format(self.workfun))
+        self._consumed_data_set = True
+        self._did_start = True
+
+    def work_if_ready(self):
         """
         If all consumed attributes are present start working
         """
         if self.is_ready_to_work():
-            logging.debug("Let the work begin: {}".format(self.workfun))
-
             self.resultval_for_name = _Worker.reshape(
                 self.rpaths_consumed_for_name, self.resultval_for_path
             )
-
-            self._consumed_data_set = True
-            self._did_start = True
-            if results is None:
-                self.workfun()
-            else:
-                self.use_cached_result(results)
+            self._prepare_work()
+            self.workfun()
             self._did_complete = True
+
+    def set_results(self, results):
+        """Set pre-computed results directly on worker.
+        Don't wait for input.
+        """
+        self._prepare_work()
+        self.use_cached_result(results)
+        self._did_complete = True
 
     def set_consumed_input(self, path: HubitQueryPath, value):
         if path in self.pending_input_paths:

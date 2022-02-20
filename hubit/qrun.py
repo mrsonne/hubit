@@ -101,15 +101,13 @@ class _QueryRunner:
         lines = [f"\n*** {headers[-1]} ***"]
         lines.extend([str(worker) for worker in self.workers])
 
-        headers.append(f"Pending queries ({len(self.observers_for_query)}) & observers")
-        lines += [f"\n*** {headers[-1]} ***"]
+        headers.append(f"Paths ({len(self.observers_for_query)}) with observers")
         tmp = [
-            f"{query} -> {', '.join(f'{observer.idstr()} {self._worker_status(observer)}' for observer in observers)}"
+            f"{query}: {', '.join(f'{observer.idstr()} {self._worker_status(observer)}' for observer in observers)}"
             for query, observers in self.observers_for_query.items()
         ]
         if len(tmp) == 0:
             tmp = ["None"]
-        lines.extend(tmp)
         worker_ids.append(tmp)
 
         lines += [f"*" * 100]
@@ -322,6 +320,18 @@ class _QueryRunner:
 
         return results_ids
 
+    def _set_results(self, worker: _Worker, results_id: str):
+        # Start worker to handle transfer of results to correct paths
+        worker.set_results(self.results_for_results_id[results_id])
+        for observers in self.observers_for_query.values():
+            if worker in observers:
+                observers.remove(worker)
+
+        # Remove elements with no observers. Not necessary but aids debugging
+        self.observers_for_query = {
+            k: v for k, v in self.observers_for_query.items() if len(v) > 0
+        }
+
     def _submit_worker(
         self,
         worker: _Worker,
@@ -345,8 +355,7 @@ class _QueryRunner:
                 # there is a provider for the results
                 if results_id in self.results_for_results_id:
                     # The results are already there.
-                    # Start worker to handle transfer of results to correct paths
-                    worker.work_if_ready(self.results_for_results_id[results_id])
+                    self._set_results(worker, results_id)
                 else:
                     # Register as subscriber for the results
                     if not results_id in self.subscribers_for_results_id:
@@ -401,7 +410,7 @@ class _QueryRunner:
             if results_id in self.subscribers_for_results_id.keys():
                 # There are subscribers
                 for _worker in self.subscribers_for_results_id[results_id]:
-                    _worker.work_if_ready(worker.results)
+                    self._set_results(_worker, worker.results_id)
                 del self.subscribers_for_results_id[results_id]
 
         # Save results to disk

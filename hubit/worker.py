@@ -522,9 +522,17 @@ class _Worker:
 
         augment that with worker's own results_id
         """
-        results_ids.append(self._make_results_id())
-        self._results_id = hashlib.md5("".join(results_ids).encode("utf-8")).hexdigest()
-        return self._results_id
+        if self.consumes_input_only():
+            return self.results_id
+        else:
+            # TODO: when setting consumed results also store results_ids from the
+            # workers that supplied the data. Append these results_ids here so it
+            # does
+            results_ids.append(self._make_results_id())
+            self._results_id = hashlib.md5(
+                "".join(results_ids).encode("utf-8")
+            ).hexdigest()
+            return self._results_id
 
     @property
     def results_id(self):

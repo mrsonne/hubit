@@ -340,12 +340,7 @@ class _QueryRunner:
         """
         Start worker or add it to the list of workers waiting for a provider
         """
-        # if not success: return False
-        if worker.consumes_input_only():
-            results_id = worker.results_id
-        else:
-            # set the worker's results id based on result ids of sub-workers
-            results_id = worker.set_results_id(results_ids_sub_workers)
+        results_id = worker.set_results_id(results_ids_sub_workers)
 
         if self.component_caching:
 

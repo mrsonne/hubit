@@ -68,7 +68,7 @@ class _QueryRunner:
         self.workers_working: List[_Worker] = []
         self.workers_completed: List[_Worker] = []
         self.worker_for_id: Dict[str, _Worker] = {}
-        self.observers_for_query: Dict[HubitQueryPath, List[_Worker]] = {}
+        self.subscribers_for_path: Dict[HubitQueryPath, List[_Worker]] = {}
         self.component_caching: bool = component_caching
 
         # For book-keeping what has already been imported
@@ -101,10 +101,10 @@ class _QueryRunner:
         lines = [f"\n*** {headers[-1]} ***"]
         lines.extend([str(worker) for worker in self.workers])
 
-        headers.append(f"Paths ({len(self.observers_for_query)}) with observers")
+        headers.append(f"Paths ({len(self.subscribers_for_path)}) with subscribers")
         tmp = [
-            f"{query}: {', '.join(f'{observer.idstr()} {self._worker_status(observer)}' for observer in observers)}"
-            for query, observers in self.observers_for_query.items()
+            f"{query}: {', '.join(f'{subscriber.idstr()} {self._worker_status(subscriber)}' for subscriber in subscribers)}"
+            for query, subscribers in self.subscribers_for_path.items()
         ]
         if len(tmp) == 0:
             tmp = ["None"]
@@ -124,7 +124,7 @@ class _QueryRunner:
         self.workers_working = []
         self.workers_completed = []
         self.worker_for_id = {}
-        self.observers_for_query = {}
+        self.subscribers_for_path = {}
 
     def _join_workers(self):
         # TODO Not sure this is required
@@ -298,11 +298,11 @@ class _QueryRunner:
             ]
             logging.debug("qpaths_next: {}".format(qpaths_next_exp))
 
-            # Add the worker to the observers list for that query in order
+            # Add the worker to the subscribers list for that query in order
             for path_next in qpaths_next_exp:
-                if not (path_next in self.observers_for_query):
-                    self.observers_for_query[path_next] = []
-                self.observers_for_query[path_next].append(worker)
+                if not (path_next in self.subscribers_for_path):
+                    self.subscribers_for_path[path_next] = []
+                self.subscribers_for_path[path_next].append(worker)
 
             # Spawn workers for the dependencies
             results_ids_sub_workers = self.spawn_workers(
@@ -323,13 +323,13 @@ class _QueryRunner:
     def _set_results(self, worker: _Worker, results_id: str):
         # Start worker to handle transfer of results to correct paths
         worker.set_results(self.results_for_results_id[results_id])
-        for observers in self.observers_for_query.values():
-            if worker in observers:
-                observers.remove(worker)
+        for subscribers in self.subscribers_for_path.values():
+            if worker in subscribers:
+                subscribers.remove(worker)
 
-        # Remove elements with no observers. Not necessary but aids debugging
-        self.observers_for_query = {
-            k: v for k, v in self.observers_for_query.items() if len(v) > 0
+        # Remove elements with no subscribers. Not necessary but aids debugging
+        self.subscribers_for_path = {
+            k: v for k, v in self.subscribers_for_path.items() if len(v) > 0
         }
 
     def _submit_worker(
@@ -421,14 +421,14 @@ class _QueryRunner:
 
     def _transfer_results(self, worker, flat_results):
         """
-        Transfer results and notify observers. Called from workflow.
+        Transfer results and notify subscribers. Called from workflow.
         """
         results = worker.result_for_path()
         # sets results on workflow
         for path, value in results.items():
-            if path in self.observers_for_query.keys():
-                for observer in self.observers_for_query[path]:
-                    observer.set_consumed_result(path, value)
+            if path in self.subscribers_for_path.keys():
+                for subscriber in self.subscribers_for_path[path]:
+                    subscriber.set_consumed_result(path, value)
             flat_results[path] = value
 
     def _watcher(self, queries, flat_results, shutdown_event):

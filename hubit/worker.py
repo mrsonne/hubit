@@ -1,4 +1,5 @@
 from __future__ import annotations
+from pprint import pprint
 from hubit.utils import is_digit
 import os
 import json
@@ -61,6 +62,8 @@ class _Worker:
         self._consumed_results_ready = False
         self._consumes_input_only = False
         self._results_id: Optional[str] = None
+        self.input_checksum: Optional[str] = None
+        self.results_checksum: Optional[str] = None
         self.caching = caching
         self._did_complete = False
         self._did_start = False
@@ -69,10 +72,10 @@ class _Worker:
         self._results_from = self.RESULTS_FROM_UNKNOWN
 
         if dryrun:
-            # If worker should perform a dry run set the worker function to "work_dryrun"
-            self.workfun = self.work_dryrun
+            # If worker should perform a dry run set the worker function to "_work_dryrun"
+            self.workfun = self._work_dryrun
         else:
-            self.workfun = self.work
+            self.workfun = self._work
 
         # Paths for values that are consumed but not ready
         self.pending_input_paths: List[HubitQueryPath] = []
@@ -176,7 +179,7 @@ class _Worker:
                 for path in traverse(paths)
             }
 
-        logging.info(f'Worker "{self.id}" was deployed for query "{self.query}"')
+        logging.info(f'Worker "{self.id}" was created for query "{self.query}"')
 
     @staticmethod
     def bindings_from_idxs(bindings: List[HubitBinding], idxval_for_idxid) -> Dict:
@@ -339,7 +342,7 @@ class _Worker:
         """
         return set(self.results.keys()) == set(self.rpath_provided_for_name.keys())
 
-    def work_dryrun(self):
+    def _work_dryrun(self):
         """
         Sets all results to None
         """
@@ -365,7 +368,7 @@ class _Worker:
             self.results[key] = val
         self._results_from = self.RESULTS_FROM_CACHE_ID
 
-    def work(self):
+    def _work(self):
         """
         Executes actual work
         """
@@ -412,17 +415,11 @@ class _Worker:
         self._consumed_data_set = True
         self._did_start = True
 
-    def work_if_ready(self):
-        """
-        If all consumed attributes are present start working
-        """
-        if self.is_ready_to_work():
-            self.resultval_for_name = _Worker.reshape(
-                self.rpaths_consumed_for_name, self.resultval_for_path
-            )
-            self._prepare_work()
-            self.workfun()
-            self._did_complete = True
+    def work(self):
+        """ """
+        self._prepare_work()
+        self.workfun()
+        self._did_complete = True
 
     def set_results(self, results):
         """Set pre-computed results directly on worker.
@@ -444,6 +441,16 @@ class _Worker:
                 self.ipaths_consumed_for_name, self.inputval_for_path
             )
 
+        if len(self.pending_input_paths) == 0:
+            self.input_checksum = self._input_checksum()
+
+        if self.is_ready_to_work():
+            self.resultval_for_name = _Worker.reshape(
+                self.rpaths_consumed_for_name, self.resultval_for_path
+            )
+            self.results_checksum = self._results_checksum()
+            self.qrun.report_for_duty(self)
+
         # if not self.caching:
         #     self.work_if_ready()
 
@@ -453,7 +460,16 @@ class _Worker:
             self.resultval_for_path[path] = value
 
         self._consumed_results_ready = len(self.pending_results_paths) == 0
-        self.work_if_ready()
+
+        if self.is_ready_to_work():
+            self.resultval_for_name = _Worker.reshape(
+                self.rpaths_consumed_for_name, self.resultval_for_path
+            )
+            self.results_checksum = self._results_checksum()
+
+            self.qrun.report_for_duty(self)
+
+        # self.work_if_ready()
 
     def set_values(self, inputdata, resultsdata):
         """
@@ -486,6 +502,16 @@ class _Worker:
             self.inputval_for_name = _Worker.reshape(
                 self.ipaths_consumed_for_name, self.inputval_for_path
             )
+            self.input_checksum = self._input_checksum()
+
+        if self._consumed_results_ready:
+            self.resultval_for_name = _Worker.reshape(
+                self.rpaths_consumed_for_name, self.resultval_for_path
+            )
+            self.results_checksum = self._results_checksum()
+
+        if self.is_ready_to_work():
+            self.qrun.report_for_duty(self)
 
         return (
             copy.copy(self.pending_input_paths),
@@ -503,8 +529,8 @@ class _Worker:
             "&".join([f"{k}={v}" for k, v in self.idxval_for_idxid.items()]),
         )
 
-    def _make_results_id(self):
-        """results_ids based on input and function only"""
+    def _input_checksum(self) -> str:
+        """checksum for the input values"""
         return hashlib.md5(
             # f'{self.inputval_for_name}_{id(self.func)}'.encode('utf-8')
             json.dumps(
@@ -516,43 +542,21 @@ class _Worker:
             ).encode()
         ).hexdigest()
 
-    def set_results_id(self, results_ids: List[str]) -> str:
-        """results_ids are the IDs of workers spawned from the
-        current worker
-
-        augment that with worker's own results_id
+    def _results_checksum(self) -> str:
         """
-        if self.consumes_input_only():
-            return self.results_id
-        else:
-            # TODO: when setting consumed results also store results_ids from the
-            # workers that supplied the data. Append these results_ids here so it
-            # does
-            results_ids.append(self._make_results_id())
-            self._results_id = hashlib.md5(
-                "".join(results_ids).encode("utf-8")
-            ).hexdigest()
-            return self._results_id
-
-    @property
-    def results_id(self):
-        return self._results_id or self._set_results_id()
-
-    def _set_results_id(self):
-        """checksum for worker function and input. This ID is identical for
-        worker that carry out the same calculation
+        We want to know the checksum before the results values are available.
+        The results will be identifiable by
+          - the worker input (input_checksum)
+          - the consumed results
         """
-        if self._results_id is not None:
-            return self._results_id
-
-        if not self._consumes_input_only:
-            raise HubitWorkerError("Not safe to create results ID")
-
-        if not self._consumed_input_ready:
-            raise HubitWorkerError("Not enough data to create calc ID")
-
-        self._results_id = self._make_results_id()
-        return self._results_id
+        return hashlib.md5(
+            json.dumps(
+                [
+                    self.input_checksum,
+                    sorted(self.resultval_for_name.items(), key=itemgetter(0)),
+                ]
+            ).encode()
+        ).hexdigest()
 
     def __str__(self):
         n = 100

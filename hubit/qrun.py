@@ -77,11 +77,11 @@ class _QueryRunner:
 
         # For book-keeping which results have already been calculated
         # {checksum: worker.results}
-        self.results_for_results_id: Dict[str, Dict[str, Any]] = {}
+        self.results_for_results_checksum: Dict[str, Dict[str, Any]] = {}
 
         # To track if there is already a provider for the results. Elements are checksums
-        self.provided_results_id: Dict[_Worker, str] = {}
-        self.subscribers_for_results_id: Dict[str, List[_Worker]] = {}
+        self.results_checksum_for_worker: Dict[_Worker, str] = {}
+        self.subscribers_for_results_checksum: Dict[str, List[_Worker]] = {}
 
     def _worker_status(self, worker):
         return "(complete)" if worker in self.workers_completed else "(waiting )"
@@ -92,10 +92,13 @@ class _QueryRunner:
         headers = [f"Workers spawned ({len(self.workers)}) & results ID"]
         tmp = []
         for worker in self.workers:
-            results_id = self.provided_results_id[worker]
+            try:
+                results_checksum = self.results_checksum_for_worker[worker]
+            except KeyError:
+                results_checksum = "Not available"
             arrow = "<-" if worker.used_cache() else "->"
             status = self._worker_status(worker)
-            s = f"{worker.idstr()} {status} {arrow} {results_id}"
+            s = f"{worker.query} -> {worker.idstr()} {status} {arrow} {results_checksum}"
             tmp.append(s)
         worker_ids.append(tmp)
         lines = [f"\n*** {headers[-1]} ***"]
@@ -241,7 +244,7 @@ class _QueryRunner:
         manager: Optional[SyncManager] = None,
         skip_paths=[],
         dryrun=False,
-    ) -> List[str]:
+    ):
         """Create workers
 
         queries should be expanded i.e. explicit in terms of iloc
@@ -251,7 +254,6 @@ class _QueryRunner:
         paths in skip_paths are skipped
         """
         _skip_paths = copy.copy(skip_paths)
-        results_ids: List[str] = []
         for qpath in qpaths:
             # Skip if the queried data will be provided
             if qpath in _skip_paths:
@@ -305,7 +307,7 @@ class _QueryRunner:
                 self.subscribers_for_path[path_next].append(worker)
 
             # Spawn workers for the dependencies
-            results_ids_sub_workers = self.spawn_workers(
+            self.spawn_workers(
                 queries_next,
                 extracted_input,
                 flat_results,
@@ -314,15 +316,10 @@ class _QueryRunner:
                 skip_paths=_skip_paths,
                 dryrun=dryrun,
             )
-            # Update with IDs for sub-workers
-            results_id_current = self._submit_worker(worker, results_ids_sub_workers)
-            results_ids.extend(results_id_current)
 
-        return results_ids
-
-    def _set_results(self, worker: _Worker, results_id: str):
+    def _set_results(self, worker: _Worker, results_checksum: str):
         # Start worker to handle transfer of results to correct paths
-        worker.set_results(self.results_for_results_id[results_id])
+        worker.set_results(self.results_for_results_checksum[results_checksum])
         for subscribers in self.subscribers_for_path.values():
             if worker in subscribers:
                 subscribers.remove(worker)
@@ -332,41 +329,35 @@ class _QueryRunner:
             k: v for k, v in self.subscribers_for_path.items() if len(v) > 0
         }
 
-    def _submit_worker(
-        self,
-        worker: _Worker,
-        results_ids_sub_workers: List[str],
-    ) -> str:
+    def report_for_duty(self, worker: _Worker):
         """
         Start worker or add it to the list of workers waiting for a provider
         """
-        results_id = worker.set_results_id(results_ids_sub_workers)
+        checksum = worker.results_checksum
+        logging.info(
+            f"Worker '{worker.id}' reported for duty for query '{worker.query}'. Will produce result with checksum '{checksum}'"
+        )
+        assert (
+            checksum is not None
+        ), "Only a worker with all input data is ready to work"
 
         if self.component_caching:
-
-            # if results_id in self.provider_for_results_id:
-            if results_id in self.provided_results_id.values():
-                self.provided_results_id[worker] = results_id
-                # there is a provider for the results
-                if results_id in self.results_for_results_id:
-                    # The results are already there.
-                    self._set_results(worker, results_id)
+            if checksum in self.results_checksum_for_worker.values():
+                # provided will be (is) calculated by another worker
+                if checksum in self.results_for_results_checksum.keys():
+                    # result is already calculated
+                    self._set_results(worker, checksum)
                 else:
-                    # Register as subscriber for the results
-                    if not results_id in self.subscribers_for_results_id:
-                        self.subscribers_for_results_id[results_id] = []
-                    self.subscribers_for_results_id[results_id].append(worker)
-
+                    # result not calculated yet but will be provided by another worker. Subscribe to the result
+                    if not checksum in self.subscribers_for_results_checksum:
+                        self.subscribers_for_results_checksum[checksum] = []
+                    self.subscribers_for_results_checksum[checksum].append(worker)
             else:
                 # There is no provider yet so this worker should be registered as the provider
-                # self.provider_for_results_id[results_id] = worker
-                self.provided_results_id[worker] = results_id
-                worker.work_if_ready()
-
+                self.results_checksum_for_worker[worker] = checksum
+                worker.work()
         else:
-            self.provided_results_id[worker] = results_id
-            worker.work_if_ready()
-        return results_id
+            worker.work()
 
     def _set_worker(self, worker: _Worker):
         """
@@ -393,33 +384,36 @@ class _QueryRunner:
         """
         Called when results attribute has been populated
         """
-
+        self.workers_working.remove(worker)
         self.workers_completed.append(worker)
         self._transfer_results(worker, flat_results)
+
         if self.component_caching:
-            results_id = worker.results_id
-
             # Store results from worker on the calculation ID
-            self.results_for_results_id[results_id] = worker.results
-
-            if results_id in self.subscribers_for_results_id.keys():
+            logging.info(
+                f"Worker '{worker.id}' registers results with checksum '{worker.results_checksum}' for query '{worker.query}'"
+            )
+            checksum = worker.results_checksum
+            self.results_for_results_checksum[checksum] = worker.results
+            # If all results have been calculated no more messages will be sent to workers
+            # So we need to start them manually
+            if checksum in self.subscribers_for_results_checksum.keys():
                 # There are subscribers
-                for _worker in self.subscribers_for_results_id[results_id]:
-                    self._set_results(_worker, worker.results_id)
-                del self.subscribers_for_results_id[results_id]
+                for _worker in self.subscribers_for_results_checksum[checksum]:
+                    self._set_results(_worker, checksum)
+                del self.subscribers_for_results_checksum[checksum]
 
         # Save results to disk
         if self.model._model_caching_mode == "incremental":
             with open(self.model._cache_file_path, "w") as handle:
                 flat_results.to_file(self.model._cache_file_path)
-        self.workers_working.remove(worker)
 
     def _transfer_results(self, worker, flat_results):
         """
         Transfer results and notify subscribers. Called from workflow.
         """
         results = worker.result_for_path()
-        # sets results on workflow
+        # sets results on subscribers
         for path, value in results.items():
             if path in self.subscribers_for_path.keys():
                 for subscriber in self.subscribers_for_path[path]:

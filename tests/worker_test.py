@@ -141,12 +141,6 @@ class TestWorker(unittest.TestCase):
 
         return w
 
-    def test_set_results_id(self):
-        w = TestWorker._make_worker()
-        result = w.set_results_id(["A", "B", "C"])
-        expected_result = "9fe92bbe331cb58741ebc0256f3eb32c"
-        assert result == expected_result
-
     def test_4(self):
         """
         Adding required data to worker stepwise to see that it
@@ -228,10 +222,10 @@ class TestWorker(unittest.TestCase):
                 w.is_ready_to_work() == (len(pending_results_paths) == 0)
             )
 
-        print("WWW", w.pending_results_paths, pending_results_paths)
-        print("WWW", w.pending_input_paths, pending_input_paths)
+        # Start work
+        w.work()
 
-        # After adding last attribute the worker starts running (sequentially)
+        # Work is sequential so now the results are ready
         self.assertTrue(w.results_ready())
 
         self.assertTrue(all(itests_paths_pending))

@@ -97,7 +97,7 @@ def model_2_component_cache():
         "cars[:].price",  # price for all cars
     ]
 
-    component_caching_levels = (True,)
+    component_caching_levels = (False, True)
     for component_caching in component_caching_levels:
         hmodel.set_component_caching(component_caching)
         r = hmodel.get(query, use_multi_processing=use_multi_processing)

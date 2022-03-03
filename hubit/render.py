@@ -141,7 +141,7 @@ def get_dot(model: HubitModel, query: Query, file_idstr: str):
                     dummy_query,
                     func,
                     version,
-                    model.tree_for_idxcontext,
+                    tree_for_idxcontext={},  # bypass expansion since we are not hierarchically spawning workers here
                 )
             )
 

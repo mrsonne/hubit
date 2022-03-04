@@ -20,6 +20,7 @@ from typing import (
     Tuple,
     Dict,
     Optional,
+    Union,
     cast,
     TYPE_CHECKING,
 )
@@ -96,6 +97,39 @@ def _get(
     If dryrun=True the workers will generate dummy results. Usefull
     to validate s query.
     """
+    queries_exp, the_err, status = _run(
+        queryrunner, query, flat_input, flat_results, dryrun
+    )
+
+    # Join workers
+    queryrunner._join_workers()
+
+    if the_err is None:
+        if not expand_iloc:
+            # TODO: compression call belongs on model (like expand)
+            response = queryrunner.model._collect_results(
+                queryrunner.flat_results, queries_exp
+            )
+
+        return response, queryrunner.flat_results
+    else:
+        print("Exited with runner status")
+        print(status)
+        # Re-raise if failed
+        raise the_err
+
+
+def _run(
+    queryrunner: _QueryRunner,
+    query: Query,
+    flat_input: FlatData,
+    flat_results: FlatData,
+    dryrun: bool,
+) -> Tuple[_QueryExpansion, Union[Exception, None], str]:
+
+    the_err: Union[Exception, None] = None
+    status: str = ""
+
     # Reset book keeping data
     queryrunner.reset(flat_results)
 
@@ -116,7 +150,6 @@ def _get(
 
     # remeber to send SIGTERM for processes
     # https://stackoverflow.com/questions/11436502/closing-all-threads-with-a-keyboard-interrupt
-    the_err = None
     try:
         watcher.start()
         if queryrunner.use_multi_processing:
@@ -145,23 +178,7 @@ def _get(
         status = _status(queryrunner, flat_results)
         shutdown_event.set()
 
-    # Join workers
-    queryrunner._join_workers()
-
-    if the_err is None:
-
-        if not expand_iloc:
-            # TODO: compression call belongs on model (like expand)
-            response = queryrunner.model._collect_results(
-                queryrunner.flat_results, queries_exp
-            )
-
-        return response, queryrunner.flat_results
-    else:
-        print("Exited with runner status")
-        print(status)
-        # Re-raise if failed
-        raise the_err
+    return queries_exp, the_err, status
 
 
 class HubitModel:

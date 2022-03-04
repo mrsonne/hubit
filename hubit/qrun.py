@@ -368,7 +368,7 @@ class _QueryRunner:
         logging.info(
             f"Worker '{worker.id}' with checksum '{worker.results_checksum}' for query '{worker.query}' completed"
         )
-        self._set_worker_completed(worker, self.flat_results)
+        self._set_worker_completed(worker)
 
     def _set_worker(self, worker: _Worker):
         """
@@ -385,19 +385,13 @@ class _QueryRunner:
         """
         self.workers_working.append(worker)
 
-    # def get_cache(self, worker_calc_id):
-    #     """
-    #     Called from worker when all consumed data is set
-    #     """
-    #     return self.results_for_results_id[worker_calc_id]
-
-    def _set_worker_completed(self, worker: _Worker, flat_results):
+    def _set_worker_completed(self, worker: _Worker):
         """
         Called when results attribute has been populated
         """
         self.workers_working.remove(worker)
         self.workers_completed.append(worker)
-        self._transfer_results(worker, flat_results)
+        self._transfer_results(worker)
 
         if self.component_caching:
             # Store results from worker on the calculation ID
@@ -419,9 +413,9 @@ class _QueryRunner:
         # Save results to disk
         if self.model._model_caching_mode == "incremental":
             with open(self.model._cache_file_path, "w") as handle:
-                flat_results.to_file(self.model._cache_file_path)
+                self.flat_results.to_file(self.model._cache_file_path)
 
-    def _transfer_results(self, worker, flat_results):
+    def _transfer_results(self, worker: _Worker):
         """
         Transfer results and notify subscribers. Called from workflow.
         """
@@ -431,7 +425,7 @@ class _QueryRunner:
             if path in self.subscribers_for_path.keys():
                 for subscriber in self.subscribers_for_path[path]:
                     subscriber.set_consumed_result(path, value)
-            flat_results[path] = value
+            self.flat_results[path] = value
 
     def _watcher(self, queries, shutdown_event):
         """

@@ -100,6 +100,7 @@ def _get(
 
     if queryrunner.use_multi_processing:
         with Manager() as manager:
+            # mypy complains although the type seems to be SyncManager as expected
             queryrunner.manager = cast(SyncManager, manager)
             queries_exp, the_err, status = _run(
                 queryrunner, query, flat_input, flat_results, dryrun
@@ -160,13 +161,15 @@ def _run(
     # https://stackoverflow.com/questions/11436502/closing-all-threads-with-a-keyboard-interrupt
     try:
         watcher.start()
-        # mypy complains although the type seems to be SyncManager as expected
         queryrunner.spawn_workers(
             _queries,
             extracted_input,
             flat_input,
             dryrun=dryrun,
         )
+        # if queryrunner.hold_back:
+        #     queryrunner.release_workers()
+
         watcher.join()
 
     except (Exception, KeyboardInterrupt) as err:

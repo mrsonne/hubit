@@ -368,13 +368,22 @@ class _Worker:
             self.results[key] = val
         self._results_from = self.RESULTS_FROM_CACHE_ID
 
+    def _func_wrapped(self, inputval_for_name, results):
+        self.func(inputval_for_name, results)
+
     def _mp_func(self, inputval_for_name):
         self.job = multiprocessing.Process(
-            target=self.func,
+            target=self._func_wrapped,
             args=(inputval_for_name, self.results),
         )
         self.job.daemon = False
         self.job.start()
+        self._did_complete = True
+
+    def _sp_func(self, inputval_for_name):
+        self.func(inputval_for_name, self.results)
+        self._did_complete = True
+        self.qrun.report_completed(self)
 
     def _work(self):
         """
@@ -394,7 +403,7 @@ class _Worker:
         if self.use_multiprocessing:
             self._mp_func(inputval_for_name)
         else:
-            self.func(inputval_for_name, self.results)
+            self._sp_func(inputval_for_name)
         self._results_from = self.RESULTS_FROM_CALCULATION_ID
 
         logging.debug("\n**STOP WORKING**\n{}".format(self.__str__()))
@@ -423,8 +432,6 @@ class _Worker:
         self._prepare_work()
         self.workfun()
         self._did_complete = True
-        if not self.use_multiprocessing:
-            self.qrun.report_completed(self)
 
     def set_results(self, results):
         """Set pre-computed results directly on worker.

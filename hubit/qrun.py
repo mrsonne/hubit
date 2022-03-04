@@ -72,6 +72,7 @@ class _QueryRunner:
         self.subscribers_for_path: Dict[HubitQueryPath, List[_Worker]] = {}
         self.component_caching: bool = component_caching
         self.flat_results: Optional[FlatData] = None
+        self.manager: Optional[SyncManager] = None
 
         # For book-keeping what has already been imported
         # {component_id: (func, version)}
@@ -193,13 +194,11 @@ class _QueryRunner:
     def _worker_for_query(
         self,
         path: HubitQueryPath,
-        manager: Optional[SyncManager] = None,
         dryrun: bool = False,
     ) -> _Worker:
         """Creates instance of the worker class that can respond to the query
 
         Args:
-            manager: A multiprocessing SyncManager,
             path: Explicit query path
             dryrun (bool, optional): Dryrun flag for the worker. Defaults to False.
 
@@ -223,7 +222,7 @@ class _QueryRunner:
             func,
             version,
             self.model.tree_for_idxcontext,
-            manager,
+            self.manager,
             dryrun=dryrun,
             caching=self.component_caching,
         )
@@ -249,7 +248,6 @@ class _QueryRunner:
         qpaths: List[HubitQueryPath],
         extracted_input,
         all_input,
-        manager: Optional[SyncManager] = None,
         skip_paths=[],
         dryrun=False,
     ):
@@ -273,7 +271,7 @@ class _QueryRunner:
 
             # Figure out which component can provide a response to the query
             # and get the corresponding worker
-            worker = self._worker_for_query(qpath, manager, dryrun=dryrun)
+            worker = self._worker_for_query(qpath, dryrun=dryrun)
 
             # Skip if the queried data will be provided
             _skip_paths.extend(worker.paths_provided())
@@ -319,7 +317,6 @@ class _QueryRunner:
                 queries_next,
                 extracted_input,
                 all_input,
-                manager,
                 skip_paths=_skip_paths,
                 dryrun=dryrun,
             )

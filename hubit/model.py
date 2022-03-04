@@ -100,9 +100,9 @@ def _get(
 
     if queryrunner.use_multi_processing:
         with Manager() as manager:
-            manager = cast(SyncManager, manager)
+            queryrunner.manager = cast(SyncManager, manager)
             queries_exp, the_err, status = _run(
-                queryrunner, query, flat_input, flat_results, dryrun, manager
+                queryrunner, query, flat_input, flat_results, dryrun
             )
     else:
         queries_exp, the_err, status = _run(
@@ -133,7 +133,6 @@ def _run(
     flat_input: FlatData,
     flat_results: FlatData,
     dryrun: bool,
-    manager: Optional[SyncManager] = None,
 ) -> Tuple[_QueryExpansion, Union[Exception, None], str]:
 
     the_err: Union[Exception, None] = None
@@ -166,7 +165,6 @@ def _run(
             _queries,
             extracted_input,
             flat_input,
-            manager,
             dryrun=dryrun,
         )
         watcher.join()

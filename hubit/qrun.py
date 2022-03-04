@@ -1,4 +1,5 @@
 from __future__ import annotations
+from collections import defaultdict
 import copy
 from importlib.machinery import ModuleSpec
 from importlib.util import spec_from_file_location, module_from_spec
@@ -70,6 +71,7 @@ class _QueryRunner:
         self.worker_for_id: Dict[str, _Worker] = {}
         self.subscribers_for_path: Dict[HubitQueryPath, List[_Worker]] = {}
         self.component_caching: bool = component_caching
+        self.flat_results: Optional[FlatData] = None
 
         # For book-keeping what has already been imported
         # {component_id: (func, version)}
@@ -81,7 +83,9 @@ class _QueryRunner:
 
         # To track if there is already a provider for the results. Elements are checksums
         self.results_checksum_for_worker: Dict[_Worker, str] = {}
-        self.subscribers_for_results_checksum: Dict[str, List[_Worker]] = {}
+        self.subscribers_for_results_checksum: Dict[str, List[_Worker]] = defaultdict(
+            list
+        )
 
     def _worker_status(self, worker):
         return "(complete)" if worker in self.workers_completed else "(waiting )"
@@ -122,12 +126,17 @@ class _QueryRunner:
         lines += [f"*" * 100]
         return "\n".join(lines)
 
-    def reset(self):
+    def reset(self, flat_results: Optional[FlatData] = None):
         self.workers = []
         self.workers_working = []
         self.workers_completed = []
         self.worker_for_id = {}
         self.subscribers_for_path = {}
+
+        if flat_results is None:
+            self.flat_results = FlatData()
+        else:
+            self.flat_results = flat_results
 
     def _join_workers(self):
         # TODO Not sure this is required
@@ -239,7 +248,6 @@ class _QueryRunner:
         self,
         qpaths: List[HubitQueryPath],
         extracted_input,
-        flat_results: FlatData,
         all_input,
         manager: Optional[SyncManager] = None,
         skip_paths=[],
@@ -260,7 +268,7 @@ class _QueryRunner:
                 continue
 
             # Check whether the queried data is already available
-            if qpath in flat_results:
+            if qpath in self.flat_results:
                 continue
 
             # Figure out which component can provide a response to the query
@@ -279,7 +287,7 @@ class _QueryRunner:
             # Set available data on the worker. If data is missing the corresponding
             # paths (queries) are returned
             (input_paths_missing, queries_next) = worker.set_values(
-                extracted_input, flat_results
+                extracted_input, self.flat_results
             )
 
             # THIS WILL START THE WORKER BUT WE DONT WANT THAT
@@ -310,7 +318,6 @@ class _QueryRunner:
             self.spawn_workers(
                 queries_next,
                 extracted_input,
-                flat_results,
                 all_input,
                 manager,
                 skip_paths=_skip_paths,
@@ -320,6 +327,8 @@ class _QueryRunner:
     def _set_results(self, worker: _Worker, results_checksum: str):
         # Start worker to handle transfer of results to correct paths
         worker.set_results(self.results_for_results_checksum[results_checksum])
+
+        # If the worker subscribes to path remove the subscription
         for subscribers in self.subscribers_for_path.values():
             if worker in subscribers:
                 subscribers.remove(worker)
@@ -343,14 +352,13 @@ class _QueryRunner:
 
         if self.component_caching:
             if checksum in self.results_checksum_for_worker.values():
+                self.results_checksum_for_worker[worker] = checksum
                 # provided will be (is) calculated by another worker
                 if checksum in self.results_for_results_checksum.keys():
                     # result is already calculated
                     self._set_results(worker, checksum)
                 else:
                     # result not calculated yet but will be provided by another worker. Subscribe to the result
-                    if not checksum in self.subscribers_for_results_checksum:
-                        self.subscribers_for_results_checksum[checksum] = []
                     self.subscribers_for_results_checksum[checksum].append(worker)
             else:
                 # There is no provider yet so this worker should be registered as the provider
@@ -358,6 +366,12 @@ class _QueryRunner:
                 worker.work()
         else:
             worker.work()
+
+    def report_completed(self, worker: _Worker):
+        logging.info(
+            f"Worker '{worker.id}' with checksum '{worker.results_checksum}' for query '{worker.query}' completed"
+        )
+        self._set_worker_completed(worker, self.flat_results)
 
     def _set_worker(self, worker: _Worker):
         """
@@ -401,6 +415,8 @@ class _QueryRunner:
                 # There are subscribers
                 for _worker in self.subscribers_for_results_checksum[checksum]:
                     self._set_results(_worker, checksum)
+
+                # All subscribers have had their results set so remove their
                 del self.subscribers_for_results_checksum[checksum]
 
         # Save results to disk
@@ -420,7 +436,7 @@ class _QueryRunner:
                     subscriber.set_consumed_result(path, value)
             flat_results[path] = value
 
-    def _watcher(self, queries, flat_results, shutdown_event):
+    def _watcher(self, queries, shutdown_event):
         """
         Run this watcher on a thread. Runs until all queried data
         is present in the results. Not needed for sequential runs,
@@ -430,14 +446,11 @@ class _QueryRunner:
         t_start = time.perf_counter()
         should_stop = False
         while not should_stop and not shutdown_event.is_set():
-            _workers_completed = [
-                worker for worker in self.workers_working if worker.results_ready()
-            ]
-            for worker in _workers_completed:
-                logging.debug("Query runner detected that a worker completed.")
-                self._set_worker_completed(worker, flat_results)
 
-            should_stop = all([query in flat_results.keys() for query in queries])
+            if self.use_multi_processing:
+                self._poll_workers()
+
+            should_stop = all([query in self.flat_results.keys() for query in queries])
             time.sleep(POLLTIME)
 
         elapsed_time = self._add_log_items(t_start)
@@ -445,7 +458,23 @@ class _QueryRunner:
 
         # Save results
         if self.model._model_caching_mode == "after_execution":
-            flat_results.to_file(self.model._cache_file_path)
+            self.flat_results.to_file(self.model._cache_file_path)
+
+    def _poll_workers(self):
+        """
+        Getting results from workers must happen from main thread to avoid
+        concurency issues.
+
+        TODO: negative-indices. could we make the flat data a Syncmanager dict and write directly
+        from the worker process. This could be done by wrapping the worker func.
+        would make it parallel vs sequential more symmetric
+        """
+        _workers_completed = [
+            worker for worker in self.workers_working if worker.results_ready()
+        ]
+        for worker in _workers_completed:
+            logging.debug("Query runner detected that a worker completed.")
+            self.report_completed(worker)
 
     def _add_log_items(self, t_start: float) -> float:
         # Set zeros for all components

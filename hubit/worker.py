@@ -9,7 +9,7 @@ import multiprocessing
 from multiprocessing.managers import SyncManager
 import copy
 from typing import Any, Callable, Dict, Set, TYPE_CHECKING, List, Optional, Union
-from .config import HubitBinding, HubitQueryPath, ModelIndexSpecifier
+from .config import FlatData, HubitBinding, HubitQueryPath, ModelIndexSpecifier
 from .tree import LengthTree
 from .utils import traverse, reshape, ReadOnlyDict
 from operator import itemgetter
@@ -420,6 +420,8 @@ class _Worker:
         self._prepare_work()
         self.workfun()
         self._did_complete = True
+        if not self.use_multiprocessing:
+            self.qrun.report_completed(self)
 
     def set_results(self, results):
         """Set pre-computed results directly on worker.
@@ -428,6 +430,8 @@ class _Worker:
         self._prepare_work()
         self.use_cached_result(results)
         self._did_complete = True
+        if not self.use_multiprocessing:
+            self.qrun.report_completed(self)
 
     def set_consumed_input(self, path: HubitQueryPath, value):
         if path in self.pending_input_paths:
@@ -471,7 +475,7 @@ class _Worker:
 
         # self.work_if_ready()
 
-    def set_values(self, inputdata, resultsdata):
+    def set_values(self, inputdata, resultsdata: FlatData):
         """
         Set the consumed values if they are ready otherwise add them
         to the list of pending items
@@ -562,8 +566,9 @@ class _Worker:
         n = 100
         fstr1 = "{:30}{}\n"
         strtmp = "=" * n + "\n"
-        strtmp += "ID {}\n".format(self.idstr())
-        strtmp += "Function {}\n".format(self.func)
+        strtmp += "ID: {}\n".format(self.idstr())
+        strtmp += "Function: {}\n".format(self.func)
+        strtmp += "Query: {}\n".format(self.query)
         strtmp += "-" * n + "\n"
         strtmp += fstr1.format("Results provided", self.rpath_provided_for_name)
         strtmp += fstr1.format(

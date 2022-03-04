@@ -96,12 +96,8 @@ def _get(
     If dryrun=True the workers will generate dummy results. Usefull
     to validate s query.
     """
-    if flat_results is None:
-        _flat_results = FlatData()
-    else:
-        _flat_results = flat_results
     # Reset book keeping data
-    queryrunner.reset()
+    queryrunner.reset(flat_results)
 
     extracted_input: Dict[str, Any] = {}
 
@@ -115,9 +111,7 @@ def _get(
 
     # Start thread that periodically checks whether we are finished or not
     shutdown_event = Event()
-    watcher = Thread(
-        target=queryrunner._watcher, args=(_queries, _flat_results, shutdown_event)
-    )
+    watcher = Thread(target=queryrunner._watcher, args=(_queries, shutdown_event))
     watcher.daemon = True
 
     # remeber to send SIGTERM for processes
@@ -132,7 +126,6 @@ def _get(
                 queryrunner.spawn_workers(
                     _queries,
                     extracted_input,
-                    _flat_results,
                     flat_input,
                     manager,
                     dryrun=dryrun,
@@ -142,7 +135,6 @@ def _get(
             queryrunner.spawn_workers(
                 _queries,
                 extracted_input,
-                _flat_results,
                 flat_input,
                 dryrun=dryrun,
             )
@@ -160,9 +152,11 @@ def _get(
 
         if not expand_iloc:
             # TODO: compression call belongs on model (like expand)
-            response = queryrunner.model._collect_results(_flat_results, queries_exp)
+            response = queryrunner.model._collect_results(
+                queryrunner.flat_results, queries_exp
+            )
 
-        return response, _flat_results
+        return response, queryrunner.flat_results
     else:
         print("Exited with runner status")
         print(status)

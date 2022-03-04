@@ -13,6 +13,7 @@ import time
 from types import ModuleType
 from typing import Any, Callable, Dict, List, Set, Tuple, Optional, Union, cast
 import yaml
+from threading import Thread, Event
 
 from typing import TYPE_CHECKING
 
@@ -427,6 +428,30 @@ class _QueryRunner:
                     subscriber.set_consumed_result(path, value)
             self.flat_results[path] = value
 
+    def prepare(self):
+        self.t_start = time.perf_counter()
+
+    def wait(self, _queries):
+        if self.use_multi_processing:
+            # Start thread that periodically checks whether we are finished or not
+            shutdown_event = Event()
+            watcher = Thread(target=self._watcher, args=(_queries, shutdown_event))
+            watcher.daemon = True
+            watcher.start()
+            watcher.join()
+            return shutdown_event
+        else:
+            return None
+
+    def close(self):
+        elapsed_time = self._add_log_items(self.t_start)
+        logging.info("Response created in {} s".format(elapsed_time))
+        # self.flat_results = FlatData.from_flat_dict(self.flat_results)
+
+        # Save results
+        if self.model._model_caching_mode == "after_execution":
+            self.flat_results.to_file(self.model._cache_file_path)
+
     def _watcher(self, queries, shutdown_event):
         """
         Run this watcher on a thread. Runs until all queried data
@@ -434,7 +459,6 @@ class _QueryRunner:
         but is necessary when main tread should waiting for
         calculation processes when using multiprocessing
         """
-        t_start = time.perf_counter()
         should_stop = False
         while not should_stop and not shutdown_event.is_set():
 
@@ -443,13 +467,6 @@ class _QueryRunner:
 
             should_stop = all([query in self.flat_results.keys() for query in queries])
             time.sleep(POLLTIME)
-
-        elapsed_time = self._add_log_items(t_start)
-        logging.info("Response created in {} s".format(elapsed_time))
-
-        # Save results
-        if self.model._model_caching_mode == "after_execution":
-            self.flat_results.to_file(self.model._cache_file_path)
 
     def _poll_workers(self):
         """

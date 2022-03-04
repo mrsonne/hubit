@@ -32,7 +32,6 @@ import time
 import copy
 import itertools
 from multiprocessing import Pool
-from threading import Thread, Event
 import warnings
 
 from .qrun import _QueryRunner
@@ -152,30 +151,26 @@ def _run(
     for qexp in queries_exp:
         logging.debug(f"Expanded query {qexp}")
 
-    # Start thread that periodically checks whether we are finished or not
-    shutdown_event = Event()
-    watcher = Thread(target=queryrunner._watcher, args=(_queries, shutdown_event))
-    watcher.daemon = True
-
     # remeber to send SIGTERM for processes
     # https://stackoverflow.com/questions/11436502/closing-all-threads-with-a-keyboard-interrupt
+    shutdown_event = None
     try:
-        watcher.start()
+        queryrunner.prepare()
         queryrunner.spawn_workers(
             _queries,
             extracted_input,
             flat_input,
             dryrun=dryrun,
         )
-        # if queryrunner.hold_back:
-        #     queryrunner.release_workers()
 
-        watcher.join()
+        shutdown_event = queryrunner.wait(_queries)
+        queryrunner.close()
 
     except (Exception, KeyboardInterrupt) as err:
         the_err = err
         status = _status(queryrunner, flat_results)
-        shutdown_event.set()
+        if shutdown_event is not None:
+            shutdown_event.set()
 
     return queries_exp, the_err, status
 

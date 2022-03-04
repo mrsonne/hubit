@@ -97,9 +97,17 @@ def _get(
     If dryrun=True the workers will generate dummy results. Usefull
     to validate s query.
     """
-    queries_exp, the_err, status = _run(
-        queryrunner, query, flat_input, flat_results, dryrun
-    )
+
+    if queryrunner.use_multi_processing:
+        with Manager() as manager:
+            manager = cast(SyncManager, manager)
+            queries_exp, the_err, status = _run(
+                queryrunner, query, flat_input, flat_results, dryrun, manager
+            )
+    else:
+        queries_exp, the_err, status = _run(
+            queryrunner, query, flat_input, flat_results, dryrun
+        )
 
     # Join workers
     queryrunner._join_workers()
@@ -125,6 +133,7 @@ def _run(
     flat_input: FlatData,
     flat_results: FlatData,
     dryrun: bool,
+    manager: Optional[SyncManager] = None,
 ) -> Tuple[_QueryExpansion, Union[Exception, None], str]:
 
     the_err: Union[Exception, None] = None
@@ -152,26 +161,15 @@ def _run(
     # https://stackoverflow.com/questions/11436502/closing-all-threads-with-a-keyboard-interrupt
     try:
         watcher.start()
-        if queryrunner.use_multi_processing:
-            with Manager() as manager:
-                # mypy complains although the type seems to be SyncManager as expected
-                manager = cast(SyncManager, manager)
-                queryrunner.spawn_workers(
-                    _queries,
-                    extracted_input,
-                    flat_input,
-                    manager,
-                    dryrun=dryrun,
-                )
-                watcher.join()
-        else:
-            queryrunner.spawn_workers(
-                _queries,
-                extracted_input,
-                flat_input,
-                dryrun=dryrun,
-            )
-            watcher.join()
+        # mypy complains although the type seems to be SyncManager as expected
+        queryrunner.spawn_workers(
+            _queries,
+            extracted_input,
+            flat_input,
+            manager,
+            dryrun=dryrun,
+        )
+        watcher.join()
 
     except (Exception, KeyboardInterrupt) as err:
         the_err = err

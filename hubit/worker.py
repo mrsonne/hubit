@@ -368,6 +368,14 @@ class _Worker:
             self.results[key] = val
         self._results_from = self.RESULTS_FROM_CACHE_ID
 
+    def _mp_func(self, inputval_for_name):
+        self.job = multiprocessing.Process(
+            target=self.func,
+            args=(inputval_for_name, self.results),
+        )
+        self.job.daemon = False
+        self.job.start()
+
     def _work(self):
         """
         Executes actual work
@@ -384,12 +392,7 @@ class _Worker:
             }
         )
         if self.use_multiprocessing:
-            self.job = multiprocessing.Process(
-                target=self.func,
-                args=(inputval_for_name, self.results),
-            )
-            self.job.daemon = False
-            self.job.start()
+            self._mp_func(inputval_for_name)
         else:
             self.func(inputval_for_name, self.results)
         self._results_from = self.RESULTS_FROM_CALCULATION_ID

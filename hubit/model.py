@@ -131,8 +131,8 @@ def _run(
     queryrunner: _QueryRunner,
     query: Query,
     flat_input: FlatData,
-    flat_results: FlatData,
-    dryrun: bool,
+    flat_results: Optional[FlatData] = None,
+    dryrun: bool = False,
 ) -> Tuple[_QueryExpansion, Union[Exception, None], str]:
 
     the_err: Union[Exception, None] = None

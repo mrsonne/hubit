@@ -362,9 +362,8 @@ class _Worker:
 
     def _func_wrapped(self, inputval_for_name, results, did_complete):
         self.func(inputval_for_name, results)
-        did_complete.acquire()
-        did_complete.value = Value(c_bool, True)
-        did_complete.release()
+        with did_complete.get_lock():
+            did_complete.value = Value(c_bool, True)
 
     def _mp_func(self, inputval_for_name):
         self.job = multiprocessing.Process(

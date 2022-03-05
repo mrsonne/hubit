@@ -13,7 +13,6 @@ import sys
 import time
 from types import ModuleType
 from typing import Any, Callable, Dict, List, Set, Tuple, Optional, Union, cast
-import yaml
 from threading import Thread, Event
 
 from typing import TYPE_CHECKING
@@ -67,14 +66,17 @@ class _QueryRunner:
         self.model = model
         self.use_multi_processing = use_multi_processing
         self.workers: List[_Worker] = []
-        self.workers_working: List[_Worker] = []
-        self.workers_completed: List[_Worker] = []
         self.worker_for_id: Dict[str, _Worker] = {}
         self.subscribers_for_path: Dict[HubitQueryPath, List[_Worker]] = {}
         self.component_caching: bool = component_caching
         self.flat_results: FlatData = FlatData()
         self.manager: Optional[SyncManager] = None
-        self.queue = Queue()
+
+        self.queue: Queue
+        if use_multi_processing:
+            self.queue = Queue()
+        else:
+            self.queue = None
 
         # For book-keeping what has already been imported
         # {component_id: (func, version)}
@@ -91,7 +93,7 @@ class _QueryRunner:
         )
 
     def _worker_status(self, worker):
-        return "(complete)" if worker in self.workers_completed else "(waiting )"
+        return worker.status
 
     def __str__(self):
         worker_ids: List[List[str]] = []
@@ -131,8 +133,6 @@ class _QueryRunner:
 
     def reset(self, flat_results: Optional[FlatData] = None):
         self.workers = []
-        self.workers_working = []
-        self.workers_completed = []
         self.worker_for_id = {}
         self.subscribers_for_path = {}
 
@@ -143,7 +143,7 @@ class _QueryRunner:
 
     def _join_workers(self):
         # TODO Not sure this is required
-        for i, worker in enumerate(self.workers_completed):
+        for worker in self.workers:
             # https://stackoverflow.com/questions/25455462/share-list-between-process-in-python-server
             worker.join()
 
@@ -385,19 +385,10 @@ class _QueryRunner:
         """
         self.workers.append(worker)
 
-    def _set_worker_working(self, worker: _Worker):
-        """
-        Called from _Worker object just before the worker
-        process is started.
-        """
-        self.workers_working.append(worker)
-
     def _set_worker_completed(self, worker: _Worker):
         """
         Called when results attribute has been populated
         """
-        self.workers_working.remove(worker)
-        self.workers_completed.append(worker)
         self._transfer_results(worker)
         logging.info(
             f"Worker '{worker.id}' reports COMPLETE '{worker.results_checksum}' for query '{worker.query}'"
@@ -444,11 +435,11 @@ class _QueryRunner:
     def prepare(self):
         self.t_start = time.perf_counter()
 
-    def wait(self, _queries):
+    def wait(self, paths: List[HubitQueryPath]):
         if self.use_multi_processing:
             # Start thread that periodically checks whether we are finished or not
             shutdown_event = Event()
-            watcher = Thread(target=self._watcher, args=(_queries, shutdown_event))
+            watcher = Thread(target=self._watcher, args=(paths, shutdown_event))
             watcher.daemon = True
             watcher.start()
             watcher.join()

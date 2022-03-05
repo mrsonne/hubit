@@ -184,6 +184,10 @@ class _Worker:
 
         logging.info(f'Worker "{self.id}" was created for query "{self.query}"')
 
+    @property
+    def status(self):
+        return "Not implemented"
+
     @staticmethod
     def bindings_from_idxs(bindings: List[HubitBinding], idxval_for_idxid) -> Dict:
         """
@@ -353,7 +357,6 @@ class _Worker:
 
     def use_cached_result(self, result):
         logging.info(f'Worker "{self.id}" using CACHE for query "{self.query}"')
-        self.qrun._set_worker_working(self)
         # Set each key-val pair from the cached results to the worker results
         # The worker results may be a managed dict
         for key, val in result.items():
@@ -383,7 +386,6 @@ class _Worker:
         """
         Sets all results to None
         """
-        self.qrun._set_worker_working(self)
         for name in self.rpath_provided_for_name.keys():
             tree = self.tree_for_idxcontext[
                 self.provided_mpath_for_name[name].index_context
@@ -400,7 +402,6 @@ class _Worker:
         logging.info(f'Worker "{self.id}" STARTED for query "{self.query}"')
 
         # Notify the hubit model that we are about to start the work
-        self.qrun._set_worker_working(self)
         # create single input
         inputval_for_name = ReadOnlyDict(
             {

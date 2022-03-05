@@ -127,15 +127,18 @@ def _get(
         raise the_err
 
 
+Err = Union[Exception, KeyboardInterrupt, None]
+
+
 def _run(
     queryrunner: _QueryRunner,
     query: Query,
     flat_input: FlatData,
     flat_results: Optional[FlatData] = None,
     dryrun: bool = False,
-) -> Tuple[_QueryExpansion, Union[Exception, None], str]:
+) -> Tuple[List[_QueryExpansion], Err, str]:
 
-    the_err: Union[Exception, None] = None
+    the_err: Err = None
     status: str = ""
 
     # Reset book keeping data

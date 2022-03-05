@@ -342,17 +342,6 @@ class _Worker:
         """
         return set(self.results.keys()) == set(self.rpath_provided_for_name.keys())
 
-    def _work_dryrun(self):
-        """
-        Sets all results to None
-        """
-        self.qrun._set_worker_working(self)
-        for name in self.rpath_provided_for_name.keys():
-            tree = self.tree_for_idxcontext[
-                self.provided_mpath_for_name[name].index_context
-            ]
-            self.results[name] = tree.none_like()
-
     def join(self):
         """Join process"""
         if self.job is not None:
@@ -370,6 +359,7 @@ class _Worker:
 
     def _func_wrapped(self, inputval_for_name, results):
         self.func(inputval_for_name, results)
+        self._did_complete = True
 
     def _mp_func(self, inputval_for_name):
         self.job = multiprocessing.Process(
@@ -378,10 +368,23 @@ class _Worker:
         )
         self.job.daemon = False
         self.job.start()
-        self._did_complete = True
 
     def _sp_func(self, inputval_for_name):
         self.func(inputval_for_name, self.results)
+        self._did_complete = True
+        self.qrun.report_completed(self)
+
+    def _work_dryrun(self):
+        """
+        Sets all results to None
+        """
+        self.qrun._set_worker_working(self)
+        for name in self.rpath_provided_for_name.keys():
+            tree = self.tree_for_idxcontext[
+                self.provided_mpath_for_name[name].index_context
+            ]
+            self.results[name] = tree.none_like()
+
         self._did_complete = True
         self.qrun.report_completed(self)
 

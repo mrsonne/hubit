@@ -81,8 +81,11 @@ def _status(
 
     lines += ["Results missing"]
     if flat_results is not None:
-        paths_missing = set(list(flat_results.keys())).difference(set(paths))
-        lines.extend([f"   {path}" for path in paths_missing])
+        paths_missing = set(paths).difference(set(list(flat_results.keys())))
+        if len(paths_missing) > 0:
+            lines.extend([f"   {path}" for path in paths_missing])
+        else:
+            lines.append("   No paths missing")
     else:
         lines.append("   NA")
 

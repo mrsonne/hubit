@@ -7,6 +7,8 @@ import hashlib
 import logging
 import multiprocessing
 from multiprocessing.managers import SyncManager
+from multiprocessing import Value
+from ctypes import c_bool
 import copy
 from typing import Any, Callable, Dict, Set, TYPE_CHECKING, List, Optional, Union
 from .config import FlatData, HubitBinding, HubitQueryPath, ModelIndexSpecifier
@@ -65,7 +67,6 @@ class _Worker:
         self.input_checksum: Optional[str] = None
         self.results_checksum: Optional[str] = None
         self.caching = caching
-        self._did_complete = False
         self._did_start = False
 
         # Store information on how results were created (calculation or cache)
@@ -97,9 +98,11 @@ class _Worker:
         self.results: Dict[str, Any]
         if manager is None:
             self.results = {}
+            self._did_complete = False
             self.use_multiprocessing = False
         else:
             self.results = manager.dict()
+            self._did_complete = Value(c_bool, False)
             self.use_multiprocessing = True
 
         # TODO
@@ -357,14 +360,16 @@ class _Worker:
             self.results[key] = val
         self._results_from = self.RESULTS_FROM_CACHE_ID
 
-    def _func_wrapped(self, inputval_for_name, results):
+    def _func_wrapped(self, inputval_for_name, results, did_complete):
         self.func(inputval_for_name, results)
-        self._did_complete = True
+        did_complete.acquire()
+        did_complete.value = Value(c_bool, True)
+        did_complete.release()
 
     def _mp_func(self, inputval_for_name):
         self.job = multiprocessing.Process(
             target=self._func_wrapped,
-            args=(inputval_for_name, self.results),
+            args=(inputval_for_name, self.results, self._did_complete),
         )
         self.job.daemon = False
         self.job.start()
@@ -434,7 +439,6 @@ class _Worker:
         """ """
         self._prepare_work()
         self.workfun()
-        self._did_complete = True
 
     def set_results(self, results):
         """Set pre-computed results directly on worker.
@@ -607,6 +611,7 @@ class _Worker:
         strtmp += f"Did start: {self._did_start}\n"
         strtmp += f"Did complete: {self._did_complete}\n"
         strtmp += "Results {}\n".format(self.results)
+        strtmp += f"Results from: {self._results_from}\n"
 
         strtmp += "=" * n + "\n"
 

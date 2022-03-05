@@ -72,7 +72,7 @@ class _QueryRunner:
         self.worker_for_id: Dict[str, _Worker] = {}
         self.subscribers_for_path: Dict[HubitQueryPath, List[_Worker]] = {}
         self.component_caching: bool = component_caching
-        self.flat_results: Optional[FlatData] = None
+        self.flat_results: FlatData = FlatData()
         self.manager: Optional[SyncManager] = None
 
         # For book-keeping what has already been imported
@@ -400,6 +400,10 @@ class _QueryRunner:
                 f"Worker '{worker.id}' registers results with checksum '{worker.results_checksum}' for query '{worker.query}'"
             )
             checksum = worker.results_checksum
+
+            # If worker is complete the checksum should be generated. This check is superfluous but satisfies mypy
+            assert checksum is not None
+
             self.results_for_results_checksum[checksum] = worker.results
             # If all results have been calculated no more messages will be sent to workers
             # So we need to start them manually

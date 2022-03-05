@@ -363,6 +363,8 @@ class _QueryRunner:
                 self.results_checksum_for_worker[worker] = checksum
                 worker.work()
         else:
+            # checksums not needed but nice for debugging
+            self.results_checksum_for_worker[worker] = checksum
             worker.work()
 
     def report_completed(self, worker: _Worker):

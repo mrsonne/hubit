@@ -133,17 +133,15 @@ class TestRunner(unittest.TestCase):
             self.qr._worker_for_query(HubitQueryPath("i.dont.exist"))
 
     def get_worker_counts(self, queries):
-        flat_results = FlatData()
         flat_input = FlatData.from_dict(
             self.input,
             stop_at=self.model_cfg.compiled_query_depths,
             include_patterns=self.model_cfg.include_patterns,
         )
+        self.qr.reset()
         worker_counts = []
         for qpaths in queries:
-            self.qr.spawn_workers(
-                qpaths, flat_input, flat_results, flat_input, dryrun=True
-            )
+            self.qr.spawn_workers(qpaths, flat_input, flat_input, dryrun=True)
             worker_counts.append(len(self.qr.workers))
 
         return worker_counts

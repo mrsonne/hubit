@@ -364,6 +364,7 @@ class _Worker:
         self.func(inputval_for_name, results)
         with did_complete.get_lock():
             did_complete.value = Value(c_bool, True)
+        self.qrun.report_completed(self)
 
     def _mp_func(self, inputval_for_name):
         self.job = multiprocessing.Process(
@@ -446,8 +447,7 @@ class _Worker:
         self._prepare_work()
         self.use_cached_result(results)
         self._did_complete = True
-        if not self.use_multiprocessing:
-            self.qrun.report_completed(self)
+        self.qrun.report_completed(self)
 
     def set_consumed_input(self, path: HubitQueryPath, value):
         if path in self.pending_input_paths:

@@ -7,6 +7,7 @@ from importlib.abc import Loader
 import importlib
 import logging
 from multiprocessing.managers import SyncManager
+from multiprocessing import Queue
 import os
 import sys
 import time
@@ -24,8 +25,7 @@ from .worker import _Worker
 from .utils import count
 from .config import FlatData, HubitModelComponent, HubitQueryPath
 
-POLLTIME = 0.1
-POLLTIME_LONG = 0.25
+POLLTIME = 0.01
 
 
 class ModuleInterface(ModuleType):
@@ -74,6 +74,7 @@ class _QueryRunner:
         self.component_caching: bool = component_caching
         self.flat_results: FlatData = FlatData()
         self.manager: Optional[SyncManager] = None
+        self.queue = Queue()
 
         # For book-keeping what has already been imported
         # {component_id: (func, version)}
@@ -371,7 +372,10 @@ class _QueryRunner:
         logging.info(
             f"Worker '{worker.id}' with checksum '{worker.results_checksum}' for query '{worker.query}' completed"
         )
-        self._set_worker_completed(worker)
+        if self.use_multi_processing:
+            self.queue.put(worker._id)
+        else:
+            self._set_worker_completed(worker)
 
     def _set_worker(self, worker: _Worker):
         """
@@ -395,6 +399,9 @@ class _QueryRunner:
         self.workers_working.remove(worker)
         self.workers_completed.append(worker)
         self._transfer_results(worker)
+        logging.info(
+            f"Worker '{worker.id}' reports COMPLETE '{worker.results_checksum}' for query '{worker.query}'"
+        )
 
         if self.component_caching:
             # Store results from worker on the calculation ID
@@ -452,7 +459,6 @@ class _QueryRunner:
     def close(self):
         elapsed_time = self._add_log_items(self.t_start)
         logging.info("Response created in {} s".format(elapsed_time))
-        # self.flat_results = FlatData.from_flat_dict(self.flat_results)
 
         # Save results
         if self.model._model_caching_mode == "after_execution":
@@ -467,28 +473,11 @@ class _QueryRunner:
         """
         should_stop = False
         while not should_stop and not shutdown_event.is_set():
-
-            if self.use_multi_processing:
-                self._poll_workers()
+            worker_id = self.queue.get()
+            self._set_worker_completed(self.worker_for_id[worker_id])
 
             should_stop = all([query in self.flat_results.keys() for query in queries])
             time.sleep(POLLTIME)
-
-    def _poll_workers(self):
-        """
-        Getting results from workers must happen from main thread to avoid
-        concurency issues.
-
-        TODO: negative-indices. could we make the flat data a Syncmanager dict and write directly
-        from the worker process. This could be done by wrapping the worker func.
-        would make it parallel vs sequential more symmetric
-        """
-        _workers_completed = [
-            worker for worker in self.workers_working if worker.results_ready()
-        ]
-        for worker in _workers_completed:
-            logging.debug("Query runner detected that a worker completed.")
-            self.report_completed(worker)
 
     def _add_log_items(self, t_start: float) -> float:
         # Set zeros for all components

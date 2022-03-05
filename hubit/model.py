@@ -65,13 +65,24 @@ def _default_skipfun(flat_input: FlatData) -> bool:
     return False
 
 
-def _status(queryrunner: _QueryRunner, flat_results: Optional[FlatData]) -> str:
+def _status(
+    queryrunner: _QueryRunner,
+    flat_results: Optional[FlatData],
+    paths: List[HubitQueryPath],
+) -> str:
     """String representation of run status"""
     lines = ["*" * 100, f"SUMMARY", "*" * 100]
     lines.append(str(queryrunner))
     lines += ["Results collected"]
     if flat_results is not None:
         lines.extend([f"   {path}: {value}" for path, value in flat_results.items()])
+    else:
+        lines.append("   NA")
+
+    lines += ["Results missing"]
+    if flat_results is not None:
+        paths_missing = set(list(flat_results.keys())).difference(set(paths))
+        lines.extend([f"   {path}" for path in paths_missing])
     else:
         lines.append("   NA")
 
@@ -148,8 +159,8 @@ def _run(
 
     # Expand the query for each path
     queries_exp = [queryrunner.model._expand_query(qpath) for qpath in query.paths]
-    # Make flat list of expanded queries
-    _queries = [qpath for qexp in queries_exp for qpath in qexp.flat_expanded_paths()]
+    # Make flat list of expanded paths
+    paths = [qpath for qexp in queries_exp for qpath in qexp.flat_expanded_paths()]
 
     for qexp in queries_exp:
         logging.debug(f"Expanded query {qexp}")
@@ -160,18 +171,18 @@ def _run(
     try:
         queryrunner.prepare()
         queryrunner.spawn_workers(
-            _queries,
+            paths,
             extracted_input,
             flat_input,
             dryrun=dryrun,
         )
 
-        shutdown_event = queryrunner.wait(_queries)
+        shutdown_event = queryrunner.wait(paths)
         queryrunner.close()
 
     except (Exception, KeyboardInterrupt) as err:
         the_err = err
-        status = _status(queryrunner, flat_results)
+        status = _status(queryrunner, flat_results, paths)
         if shutdown_event is not None:
             shutdown_event.set()
 

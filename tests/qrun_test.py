@@ -3,7 +3,7 @@ import unittest
 import yaml
 
 from hubit.model import HubitModel
-from hubit.qrun import _QueryRunner
+from hubit.qrun import _QueryRunner, query_runner_factory
 from hubit.errors import HubitModelQueryError
 from hubit.config import FlatData, HubitModelConfig, HubitQueryPath
 
@@ -72,7 +72,7 @@ class TestRunner(unittest.TestCase):
             output_path=REL_TMP_DIR,
         )
         use_multi_processing = False
-        self.qr = _QueryRunner(self.hmodel, use_multi_processing)
+        self.qr = query_runner_factory(use_multi_processing, self.hmodel)
         self.input = yaml.load(yml_input, Loader=yaml.FullLoader)
         self.hmodel.set_input(self.input)
 

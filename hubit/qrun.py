@@ -54,12 +54,14 @@ def module_from_dotted_path(dotted_path: str) -> ModuleInterface:
 
 
 def query_runner_factory(
-    use_multi_processing: bool, *args, **kwargs
+    use_multi_processing: bool,
+    model: HubitModel,
+    component_caching: bool = False,
 ) -> Union[_QueryRunner, _QueryRunnerMultiProcess]:
     if use_multi_processing:
-        return _QueryRunnerMultiProcess(*args, **kwargs)
+        return _QueryRunnerMultiProcess(model, component_caching)
     else:
-        return _QueryRunner(*args, **kwargs)
+        return _QueryRunner(model, component_caching)
 
 
 class _QueryRunner:

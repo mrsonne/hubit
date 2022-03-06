@@ -81,7 +81,7 @@ def _status(
 
     lines += ["Results missing"]
     if flat_results is not None:
-        paths_missing = set(paths).difference(set(list(flat_results.keys())))
+        paths_missing = queryrunner.paths_missing(paths)
         if len(paths_missing) > 0:
             lines.extend([f"   {path}" for path in paths_missing])
         else:

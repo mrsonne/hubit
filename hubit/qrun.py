@@ -455,19 +455,22 @@ class _QueryRunner:
         if self.model._model_caching_mode == "after_execution":
             self.flat_results.to_file(self.model._cache_file_path)
 
-    def _watcher(self, queries, shutdown_event):
+    def paths_missing(self, paths):
+        return set(paths).difference(set(list(self.flat_results.keys())))
+
+    def should_stop(self, paths):
+        return len(self.paths_missing(paths)) == 0
+
+    def _watcher(self, paths, shutdown_event):
         """
         Run this watcher on a thread. Runs until all queried data
         is present in the results. Not needed for sequential runs,
         but is necessary when main tread should waiting for
         calculation processes when using multiprocessing
         """
-        should_stop = False
-        while not should_stop and not shutdown_event.is_set():
+        while not self.should_stop(paths) and not shutdown_event.is_set():
             worker_id = self.queue.get()
             self._set_worker_completed(self.worker_for_id[worker_id])
-
-            should_stop = all([query in self.flat_results.keys() for query in queries])
             time.sleep(POLLTIME)
 
     def _add_log_items(self, t_start: float) -> float:

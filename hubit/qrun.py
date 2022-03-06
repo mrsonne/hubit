@@ -7,6 +7,7 @@ from importlib.abc import Loader
 import importlib
 import logging
 from multiprocessing.managers import SyncManager
+from multiprocessing import Manager
 from multiprocessing import Queue
 import os
 import sys
@@ -17,14 +18,18 @@ from threading import Thread, Event
 
 from typing import TYPE_CHECKING
 
+from hubit.tree import _QueryExpansion
+
 if TYPE_CHECKING:
     from hubit.model import HubitModel
 
 from .worker import _Worker
 from .utils import count
-from .config import FlatData, HubitModelComponent, HubitQueryPath
+from .config import FlatData, HubitModelComponent, HubitQueryPath, Query
 
 POLLTIME = 0.01
+
+Err = Union[Exception, KeyboardInterrupt, None]
 
 
 class ModuleInterface(ModuleType):
@@ -48,11 +53,19 @@ def module_from_dotted_path(dotted_path: str) -> ModuleInterface:
     return cast(ModuleInterface, importlib.import_module(dotted_path))
 
 
+def query_runner_factory(
+    use_multi_processing: bool, *args, **kwargs
+) -> Union[_QueryRunner, _QueryRunnerMultiProcess]:
+    if use_multi_processing:
+        return _QueryRunnerMultiProcess(*args, **kwargs)
+    else:
+        return _QueryRunner(*args, **kwargs)
+
+
 class _QueryRunner:
     def __init__(
         self,
         model: HubitModel,
-        use_multi_processing: bool,
         component_caching: bool = False,
     ):
         """Internal class managing workers. Is in a model, the query runner
@@ -61,22 +74,14 @@ class _QueryRunner:
 
         Args:
             model (HubitModel): The model to manage
-            use_multi_processing (bool): Flag indicating if multi-processing should be used
         """
         self.model = model
-        self.use_multi_processing = use_multi_processing
         self.workers: List[_Worker] = []
         self.worker_for_id: Dict[str, _Worker] = {}
         self.subscribers_for_path: Dict[HubitQueryPath, List[_Worker]] = {}
         self.component_caching: bool = component_caching
         self.flat_results: FlatData = FlatData()
-        self.manager: Optional[SyncManager] = None
-
-        self.queue: Queue
-        if use_multi_processing:
-            self.queue = Queue()
-        else:
-            self.queue = None
+        self.manager = None
 
         # For book-keeping what has already been imported
         # {component_id: (func, version)}
@@ -124,7 +129,7 @@ class _QueryRunner:
 
         lines += [f"*" * 100]
         lines.append(f"Use component caching: {self.component_caching}")
-        lines.append(f"Use multi-procesing: {self.use_multi_processing}")
+        lines.append(f"Runner: {self.__class__.__name__}")
         for header, wids in zip(headers, worker_ids):
             lines.append(header)
             lines.extend([f"   {wid}" for wid in wids])
@@ -372,10 +377,7 @@ class _QueryRunner:
         logging.info(
             f"Worker '{worker.id}' with checksum '{worker.results_checksum}' for query '{worker.query}' completed"
         )
-        if self.use_multi_processing:
-            self.queue.put(worker._id)
-        else:
-            self._set_worker_completed(worker)
+        self._set_worker_completed(worker)
 
     def _set_worker(self, worker: _Worker):
         """
@@ -436,16 +438,7 @@ class _QueryRunner:
         self.t_start = time.perf_counter()
 
     def wait(self, paths: List[HubitQueryPath]):
-        if self.use_multi_processing:
-            # Start thread that periodically checks whether we are finished or not
-            shutdown_event = Event()
-            watcher = Thread(target=self._watcher, args=(paths, shutdown_event))
-            watcher.daemon = True
-            watcher.start()
-            watcher.join()
-            return shutdown_event
-        else:
-            return None
+        ...
 
     def close(self):
         elapsed_time = self._add_log_items(self.t_start)
@@ -460,18 +453,6 @@ class _QueryRunner:
 
     def should_stop(self, paths):
         return len(self.paths_missing(paths)) == 0
-
-    def _watcher(self, paths, shutdown_event):
-        """
-        Run this watcher on a thread. Runs until all queried data
-        is present in the results. Not needed for sequential runs,
-        but is necessary when main tread should waiting for
-        calculation processes when using multiprocessing
-        """
-        while not self.should_stop(paths) and not shutdown_event.is_set():
-            worker_id = self.queue.get()
-            self._set_worker_completed(self.worker_for_id[worker_id])
-            time.sleep(POLLTIME)
 
     def _add_log_items(self, t_start: float) -> float:
         # Set zeros for all components
@@ -494,3 +475,155 @@ class _QueryRunner:
         elapsed_time = time.perf_counter() - t_start
         self.model._add_log_items(worker_counts, elapsed_time, cache_counts)
         return elapsed_time
+
+    def _status(
+        self,
+        flat_results: Optional[FlatData],
+        paths: List[HubitQueryPath],
+    ) -> str:
+        """String representation of run status"""
+        lines = ["*" * 100, f"SUMMARY", "*" * 100]
+        lines.append(str(self))
+        lines += ["Results collected"]
+        if flat_results is not None:
+            lines.extend(
+                [f"   {path}: {value}" for path, value in flat_results.items()]
+            )
+        else:
+            lines.append("   NA")
+
+        lines += ["Results missing"]
+        if flat_results is not None:
+            paths_missing = self.paths_missing(paths)
+            if len(paths_missing) > 0:
+                lines.extend([f"   {path}" for path in paths_missing])
+            else:
+                lines.append("   No paths missing")
+        else:
+            lines.append("   NA")
+
+        lines += ["*" * 100]
+        return "\n".join(lines)
+
+    def _run(
+        self,
+        query: Query,
+        flat_input: FlatData,
+        flat_results: Optional[FlatData] = None,
+        dryrun: bool = False,
+    ) -> Tuple[List[_QueryExpansion], Err, str]:
+
+        the_err: Err = None
+        status: str = ""
+
+        # Reset book keeping data
+        self.reset(flat_results)
+
+        extracted_input: Dict[str, Any] = {}
+
+        # Expand the query for each path
+        queries_exp = [self.model._expand_query(qpath) for qpath in query.paths]
+        # Make flat list of expanded paths
+        paths = [qpath for qexp in queries_exp for qpath in qexp.flat_expanded_paths()]
+
+        for qexp in queries_exp:
+            logging.debug(f"Expanded query {qexp}")
+
+        # remeber to send SIGTERM for processes
+        # https://stackoverflow.com/questions/11436502/closing-all-threads-with-a-keyboard-interrupt
+        shutdown_event = None
+        try:
+            self.prepare()
+            self.spawn_workers(
+                paths,
+                extracted_input,
+                flat_input,
+                dryrun=dryrun,
+            )
+
+            shutdown_event = self.wait(paths)
+            self.close()
+
+        except (Exception, KeyboardInterrupt) as err:
+            the_err = err
+            status = self._status(flat_results, paths)
+            if shutdown_event is not None:
+                shutdown_event.set()
+
+        return queries_exp, the_err, status
+
+    def run(
+        self,
+        query: Query,
+        flat_input,
+        flat_results: Optional[FlatData] = None,
+        dryrun: bool = False,
+    ):
+        queries_exp, the_err, status = self._run(
+            query, flat_input, flat_results, dryrun
+        )
+
+        # Join workers
+        self._join_workers()
+        return queries_exp, the_err, status
+
+
+class _QueryRunnerMultiProcess(_QueryRunner):
+    """Query runner that supports multiprocessing"""
+
+    def __init__(
+        self,
+        model: HubitModel,
+        component_caching: bool = False,
+    ):
+
+        super().__init__(
+            model,
+            component_caching,
+        )
+        self.manager: SyncManager
+        self.queue = Queue()
+
+    def report_completed(self, worker: _Worker):
+        logging.info(
+            f"Worker '{worker.id}' with checksum '{worker.results_checksum}' for query '{worker.query}' completed"
+        )
+        self.queue.put(worker._id)
+
+    def _watcher(self, paths, shutdown_event):
+        """
+        Run this watcher on a thread. Runs until all queried data
+        is present in the results. Not needed for sequential runs,
+        but is necessary when main tread should waiting for
+        calculation processes when using multiprocessing
+        """
+        while not self.should_stop(paths) and not shutdown_event.is_set():
+            worker_id = self.queue.get()
+            self._set_worker_completed(self.worker_for_id[worker_id])
+            time.sleep(POLLTIME)
+
+    def wait(self, paths: List[HubitQueryPath]):
+        # Start thread that periodically checks whether we are finished or not
+        shutdown_event = Event()
+        watcher = Thread(target=self._watcher, args=(paths, shutdown_event))
+        watcher.daemon = True
+        watcher.start()
+        watcher.join()
+        return shutdown_event
+
+    def run(
+        self,
+        query: Query,
+        flat_input,
+        flat_results: Optional[FlatData] = None,
+        dryrun: bool = False,
+    ):
+        with Manager() as manager:
+            # mypy complains although the type seems to be SyncManager as expected
+            self.manager = cast(SyncManager, manager)
+            queries_exp, err, status = self._run(
+                query, flat_input, flat_results, dryrun
+            )
+        # Join workers
+        self._join_workers()
+        return queries_exp, err, status

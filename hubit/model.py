@@ -14,18 +14,13 @@ import pickle
 from dataclasses import dataclass, field, fields
 from typing import (
     Any,
-    Callable,
     List,
     Sequence,
     Tuple,
     Dict,
     Optional,
-    Union,
-    cast,
     TYPE_CHECKING,
 )
-from multiprocessing.managers import SyncManager
-from multiprocessing import Manager
 import logging
 import os
 import time
@@ -34,7 +29,7 @@ import itertools
 from multiprocessing import Pool
 import warnings
 
-from .qrun import _QueryRunner
+from .qrun import _QueryRunner, query_runner_factory
 from .tree import LengthTree, _QueryExpansion, tree_for_idxcontext
 from .config import FlatData, HubitModelConfig, Query, PathIndexRange, HubitQueryPath
 from .render import get_dot
@@ -65,41 +60,12 @@ def _default_skipfun(flat_input: FlatData) -> bool:
     return False
 
 
-def _status(
-    queryrunner: _QueryRunner,
-    flat_results: Optional[FlatData],
-    paths: List[HubitQueryPath],
-) -> str:
-    """String representation of run status"""
-    lines = ["*" * 100, f"SUMMARY", "*" * 100]
-    lines.append(str(queryrunner))
-    lines += ["Results collected"]
-    if flat_results is not None:
-        lines.extend([f"   {path}: {value}" for path, value in flat_results.items()])
-    else:
-        lines.append("   NA")
-
-    lines += ["Results missing"]
-    if flat_results is not None:
-        paths_missing = queryrunner.paths_missing(paths)
-        if len(paths_missing) > 0:
-            lines.extend([f"   {path}" for path in paths_missing])
-        else:
-            lines.append("   No paths missing")
-    else:
-        lines.append("   NA")
-
-    lines += ["*" * 100]
-    return "\n".join(lines)
-
-
 def _get(
     queryrunner: _QueryRunner,
     query: Query,
     flat_input,
     flat_results: Optional[FlatData] = None,
     dryrun: bool = False,
-    expand_iloc: bool = False,
 ):
     """
     With the 'queryrunner' object deploy the paths
@@ -111,85 +77,20 @@ def _get(
     to validate s query.
     """
 
-    if queryrunner.use_multi_processing:
-        with Manager() as manager:
-            # mypy complains although the type seems to be SyncManager as expected
-            queryrunner.manager = cast(SyncManager, manager)
-            queries_exp, the_err, status = _run(
-                queryrunner, query, flat_input, flat_results, dryrun
-            )
-    else:
-        queries_exp, the_err, status = _run(
-            queryrunner, query, flat_input, flat_results, dryrun
+    queries_exp, err, status = queryrunner.run(query, flat_input, flat_results, dryrun)
+
+    if err is None:
+        # TODO: compression call belongs on model (like expand)
+        response = queryrunner.model._collect_results(
+            queryrunner.flat_results, queries_exp
         )
-
-    # Join workers
-    queryrunner._join_workers()
-
-    if the_err is None:
-        if not expand_iloc:
-            # TODO: compression call belongs on model (like expand)
-            response = queryrunner.model._collect_results(
-                queryrunner.flat_results, queries_exp
-            )
 
         return response, queryrunner.flat_results
     else:
         print("Exited with runner status")
         print(status)
         # Re-raise if failed
-        raise the_err
-
-
-Err = Union[Exception, KeyboardInterrupt, None]
-
-
-def _run(
-    queryrunner: _QueryRunner,
-    query: Query,
-    flat_input: FlatData,
-    flat_results: Optional[FlatData] = None,
-    dryrun: bool = False,
-) -> Tuple[List[_QueryExpansion], Err, str]:
-
-    the_err: Err = None
-    status: str = ""
-
-    # Reset book keeping data
-    queryrunner.reset(flat_results)
-
-    extracted_input: Dict[str, Any] = {}
-
-    # Expand the query for each path
-    queries_exp = [queryrunner.model._expand_query(qpath) for qpath in query.paths]
-    # Make flat list of expanded paths
-    paths = [qpath for qexp in queries_exp for qpath in qexp.flat_expanded_paths()]
-
-    for qexp in queries_exp:
-        logging.debug(f"Expanded query {qexp}")
-
-    # remeber to send SIGTERM for processes
-    # https://stackoverflow.com/questions/11436502/closing-all-threads-with-a-keyboard-interrupt
-    shutdown_event = None
-    try:
-        queryrunner.prepare()
-        queryrunner.spawn_workers(
-            paths,
-            extracted_input,
-            flat_input,
-            dryrun=dryrun,
-        )
-
-        shutdown_event = queryrunner.wait(paths)
-        queryrunner.close()
-
-    except (Exception, KeyboardInterrupt) as err:
-        the_err = err
-        status = _status(queryrunner, flat_results, paths)
-        if shutdown_event is not None:
-            shutdown_event.set()
-
-    return queries_exp, the_err, status
+        raise err
 
 
 class HubitModel:
@@ -460,9 +361,9 @@ class HubitModel:
 
         _query = Query.from_paths(query)
 
-        # Make a query runner
-        self._qrunner = _QueryRunner(
-            self, use_multi_processing, self._component_caching
+        # Create a query runner
+        self._qrunner = query_runner_factory(
+            use_multi_processing, self, self._component_caching
         )
 
         if validate:

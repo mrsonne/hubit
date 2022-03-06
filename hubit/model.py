@@ -29,7 +29,7 @@ import itertools
 from multiprocessing import Pool
 import warnings
 
-from .qrun import _QueryRunner, query_runner_factory
+from .qrun import query_runner_factory
 from .tree import LengthTree, _QueryExpansion, tree_for_idxcontext
 from .config import FlatData, HubitModelConfig, Query, PathIndexRange, HubitQueryPath
 from .render import get_dot
@@ -44,7 +44,7 @@ from .errors import (
 
 if TYPE_CHECKING:
     from .config import HubitBinding, HubitModelComponent, HubitModelPath
-
+    from .qrun import _QueryRunner
 
 _CACHE_DIR = ".hubit_cache"
 _HUBIT_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -452,10 +452,9 @@ class HubitModel:
 
             if skipfun(_flat_input):
                 continue
-            qrun = _QueryRunner(
-                self,
-                use_multi_processing=False,
-                component_caching=self._component_caching,
+            # Never use multiprocessing in the worker pool
+            qrun = query_runner_factory(
+                False, self, component_caching=self._component_caching
             )
             flat_results = FlatData()
             args.append((qrun, _query, _flat_input, flat_results))
@@ -601,7 +600,7 @@ class HubitModel:
         Run the query using a dummy calculation to see that all required
         input and results are available
         """
-        qrunner = _QueryRunner(self, use_multi_processing)
+        qrunner = query_runner_factory(use_multi_processing, self)
         _get(qrunner, query, self.flat_input, dryrun=True)
         return qrunner.workers
 

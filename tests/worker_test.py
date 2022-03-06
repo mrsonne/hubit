@@ -89,7 +89,6 @@ class TestWorker(unittest.TestCase):
     def _make_worker():
         qrunner = Mock()
         qrunner._set_worker
-        qrunner._set_worker_working
         qrunner.check_cache.return_value = None
         cname = None
         func = dummy_function

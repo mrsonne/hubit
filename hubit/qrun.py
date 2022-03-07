@@ -83,7 +83,10 @@ class _QueryRunner:
         self.subscribers_for_path: Dict[HubitQueryPath, List[_Worker]] = {}
         self.component_caching: bool = component_caching
         self.flat_results: FlatData = FlatData()
-        self.manager = None
+
+        # Always leave a s none _QueryRunner, but change to SyncManager in _QueryRunnerMultiProcess
+        # TODO: Find better pattern
+        self.manager: Union[SyncManager, None] = None
 
         # For book-keeping what has already been imported
         # {component_id: (func, version)}
@@ -584,7 +587,7 @@ class _QueryRunnerMultiProcess(_QueryRunner):
             component_caching,
         )
         self.manager: SyncManager
-        self.queue = Queue()
+        self.queue: Queue = Queue()
 
     def report_completed(self, worker: _Worker):
         logging.info(

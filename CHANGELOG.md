@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Explicit indexing for non-rectangular data.
-- Intermittently code stall when using component caching.
+- Intermittent code stall when using component caching.
 - Component caching in the case where an "upstream" result is queried
 before a downstream. Consider a car price calculation (downstream) that consumes the prices of
 all parts (upstream). The query `"cars[:].price"` would produce the car price as expected. The query `["cars[:].price", "cars[:].parts[:].price"]` would produce the car price as expected and spawning the same number of workers as `"cars[:].price"` thus ignoring the superfluous query path `"cars[:].parts[:].price"`.  The query, `["cars[:].parts[:].price", "cars[:].price"]` was, however, broken.

@@ -127,6 +127,20 @@ def run_yield_calc(use_multi_processing, hmodel, query, response_description):
     hmodel.clean_log()
 
 
+def run_sales_calc(model_id, input_file="input.yml"):
+    use_multi_processing = False
+    hmodel = get_model(model_id, input_file)
+    response = hmodel.get(
+        [
+            "prod_sites[:].prod_lines[:].revenue",
+            # "unit_price",
+        ],
+        use_multi_processing=use_multi_processing,
+    )
+    pprint(hmodel.results)
+    print(response)
+
+
 if __name__ == "__main__":
     # One production site with one production line.
     input_file = "input.yml"
@@ -144,3 +158,6 @@ if __name__ == "__main__":
     run("model_1a.yml", input_file)
     run("model_1b.yml", input_file)
     run("model_2.yml", input_file)
+
+    input_file = "input.yml"
+    run_sales_calc("model_1.yml", input_file)

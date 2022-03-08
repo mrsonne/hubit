@@ -1,3 +1,4 @@
+price_source: "https://raw.githubusercontent.com/mrsonne/hubit/master/examples/tanks/data.json"
 prod_sites:
   - prod_lines:
     - tanks:

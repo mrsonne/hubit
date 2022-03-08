@@ -906,7 +906,7 @@ class HubitModelPath(_HubitPath):
     def __init__(self, value: str = "", allow_limited_range: bool = True):
         super().__init__()
         self.allow_limited_range = allow_limited_range
-        self.allow_negative_index = False
+        self.allow_negative_index = True
 
     def _validate_index_specifiers(self):
         for idx_spec in self.get_index_specifiers():

@@ -6,8 +6,7 @@ if TYPE_CHECKING:
 
 
 def main(_input_consumed: ReadOnlyDict, results_provided: Dict):
-    # unit_price = _input_consumed["unit_price"]
-    unit_price = 4.0
+    unit_price = _input_consumed["unit_price"]
     Q_yield = _input_consumed["Q_yield"]
     results_provided["revenue"] = Q_yield * unit_price
 

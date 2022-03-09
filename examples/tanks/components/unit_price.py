@@ -1,7 +1,11 @@
 from __future__ import annotations
+from signal import raise_signal
 from typing import TYPE_CHECKING, Dict
-import urllib.request
 import json
+import urllib3
+
+from hubit.errors import HubitError
+
 
 if TYPE_CHECKING:
     from hubit.utils import ReadOnlyDict
@@ -11,11 +15,16 @@ def main(_input_consumed: ReadOnlyDict, results_provided: Dict):
     """
     Contact service at the 'url' and get today's unit price for the product
     """
-    # url = _input_consumed["url"]
-    # with urllib.request.urlopen(url) as response:
-    #     response = json.loads(response.read())
-    # results_provided["unit_price"] = response["unit_price"]
-    results_provided["unit_price"] = 1.7
+    timeout = urllib3.Timeout(connect=1.0, read=5.0)
+    url = _input_consumed["url"]
+    http = urllib3.PoolManager(timeout=timeout)
+    headers = {"Cache-Control": "no-cache", "Pragma": "no-cache"}
+    response = http.request("GET", url, headers=headers)
+    # print(response.headers)
+    if not (response.status == 200):
+        raise HubitError(f"Could not connect to '{url}'")
+    payload = json.loads(response.data.decode("utf-8"))
+    results_provided["unit_price"] = payload["unit_price"]
 
 
 def version() -> str:

@@ -490,8 +490,6 @@ class _Worker:
 
             self.qrun.report_for_duty(self)
 
-        # self.work_if_ready()
-
     def set_values(self, inputdata, resultsdata: FlatData):
         """
         Set the consumed values if they are ready otherwise add them

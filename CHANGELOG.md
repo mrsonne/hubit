@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- ## [0.5.0] - 2022-02-XX -->
 ### Added
 
-- Support for negative indices in queries.
+- Support for negative indices in query paths. The feature is illustrated in the example `examples/car/run.py`.
+- Support for negative indices in model paths. The feature is illustrated in the example `examples/tanks/run_prices.py` and discussed in `examples/tanks/README.md`.
 - Reduced computational overhead
 
 ### Fixed

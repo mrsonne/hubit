@@ -20,6 +20,9 @@ def run_sales_calc(model_id, input_file="input.yml"):
     print("\nModel response")
     print(response)
 
+    print("\nRun log")
+    print(hmodel.log())
+
 
 if __name__ == "__main__":
     input_file = "input.yml"

@@ -37,11 +37,8 @@ class PathIndexRange(str):
     supported ranges comprise
 
     - Positive integers e.g. `0`, `17`.
-    - The all-index character `:`.
-
-    A `HubitQueryPath` also supports
-
     - Negative integers e.g. `-1`, `-2`.
+    - The all-index character `:`.
 
     Further, in the `index_scope` attribute of
     [`HubitModelComponent`][hubit.config.HubitModelComponent] the following

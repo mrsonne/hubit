@@ -7,7 +7,6 @@ from .shared import get_model
 
 
 def run(model_id, input_file="input.yml"):
-    use_multi_processing = False
 
     ltot = 100
     ltitle = len(model_id)
@@ -128,6 +127,8 @@ def run_yield_calc(use_multi_processing, hmodel, query, response_description):
 
 
 if __name__ == "__main__":
+    use_multi_processing = False
+
     # One production site with one production line.
     input_file = "input.yml"
     run("model_1.yml", input_file)

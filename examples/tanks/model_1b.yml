@@ -53,3 +53,21 @@ components:
       - name: Q_transfer_1
         path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[2@IDX_TANK].Q_yield
       
+  - path: ./components/revenue.py
+    provides_results:
+      - name: revenue
+        path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].revenue
+    consumes_results:
+      # use outlet flow from previous tank 0
+      - name: Q_yield
+        path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[-1@IDX_TANK].Q_yield
+      - name: unit_price
+        path: unit_price
+
+  - path: ./components/unit_price.py
+    provides_results:
+      - name: unit_price
+        path: unit_price
+    consumes_input:
+      - name: url
+        path: price_source

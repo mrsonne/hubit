@@ -27,3 +27,6 @@ def run_sales_calc(model_id, input_file="input.yml"):
 if __name__ == "__main__":
     input_file = "input.yml"
     run_sales_calc("model_1.yml", input_file)
+    run_sales_calc("model_1a.yml", input_file)
+    run_sales_calc("model_1b.yml", input_file)
+    run_sales_calc("model_2.yml", input_file)

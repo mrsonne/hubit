@@ -24,7 +24,6 @@ class TestWorker(unittest.TestCase):
         """
         Fails since query does not match.
         """
-        qrunner = None
         func = None
         version = None
         cfg = {
@@ -44,7 +43,8 @@ class TestWorker(unittest.TestCase):
         querystring = HubitQueryPath("shared.attr.path")
         with self.assertRaises(HubitWorkerError) as context:
             w = _Worker(
-                qrunner,
+                lambda x: x,
+                lambda x: x,
                 component,
                 querystring,
                 func,
@@ -57,7 +57,6 @@ class TestWorker(unittest.TestCase):
         """
         Initialize a simple worker with no idxids
         """
-        qrunner = None
         func = None
         version = None
         cfg = {
@@ -77,7 +76,8 @@ class TestWorker(unittest.TestCase):
         # Query something known to exist
         querystring = HubitQueryPath(component.provides_results[0].path)
         w = _Worker(
-            qrunner,
+            lambda x: x,
+            lambda x: x,
             component,
             querystring,
             func,
@@ -88,7 +88,6 @@ class TestWorker(unittest.TestCase):
 
     def _make_worker():
         qrunner = Mock()
-        qrunner._set_worker
         qrunner.check_cache.return_value = None
         cname = None
         func = dummy_function
@@ -129,7 +128,8 @@ class TestWorker(unittest.TestCase):
         _tree_for_idxcontext = tree_for_idxcontext([component], inputdata)
 
         w = _Worker(
-            qrunner,
+            lambda x: x,
+            lambda x: x,
             component,
             querystring,
             func,
@@ -240,7 +240,6 @@ class TestWorker(unittest.TestCase):
         Initialize worker with ILOC locations in
         query and ILOC wildcards in bindings
         """
-        qrunner = None
         func = None
         version = None
         cfg = """
@@ -271,7 +270,8 @@ class TestWorker(unittest.TestCase):
 
         querystr = HubitQueryPath(querystr)
         w = _Worker(
-            qrunner,
+            lambda x: x,
+            lambda x: x,
             component,
             querystr,
             func,
@@ -357,7 +357,6 @@ class TestWorker(unittest.TestCase):
         """
         Test compression of indices. The query does not include any indices
         """
-        qrunner = None
         func = None
         version = None
         comp_yml = """
@@ -386,7 +385,8 @@ class TestWorker(unittest.TestCase):
 
         querystr = HubitQueryPath(querystr)
         w = _Worker(
-            qrunner,
+            lambda x: x,
+            lambda x: x,
             component,
             querystr,
             func,

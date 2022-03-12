@@ -228,7 +228,8 @@ class _QueryRunner:
 
         # Create and return worker
         return _Worker(
-            self,
+            self.report_for_duty,
+            self.report_completed,
             component,
             path,
             func,
@@ -299,6 +300,10 @@ class _QueryRunner:
             (input_paths_missing, queries_next) = worker.set_values(
                 extracted_input, self.flat_results
             )
+
+            # set the worker here since in init we have not yet
+            # checked that a similar instance does not exist
+            self.workers.append(worker)
 
             # THIS WILL START THE WORKER BUT WE DONT WANT THAT
             # IF ANOTHER WORKER IS ALREADY CALCULATING THAT
@@ -383,14 +388,6 @@ class _QueryRunner:
             f"Worker '{worker.id}' with checksum '{worker.results_checksum}' for query '{worker.query}' completed"
         )
         self._set_worker_completed(worker)
-
-    def _set_worker(self, worker: _Worker):
-        """
-        Called from _Worker object when the input is set.
-        Not on init since we do not yet know if a similar
-        object exists.
-        """
-        self.workers.append(worker)
 
     def _set_worker_completed(self, worker: _Worker):
         """

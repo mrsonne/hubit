@@ -19,7 +19,6 @@ from operator import itemgetter
 from .errors import HubitError, HubitWorkerError
 
 if TYPE_CHECKING:
-    from .qrun import _QueryRunner
     from .config import HubitModelComponent
 
 
@@ -32,7 +31,8 @@ class _Worker:
 
     def __init__(
         self,
-        qrun: _QueryRunner,
+        callback_ready: Callable,
+        callback_completed: Callable,
         component: HubitModelComponent,
         query: HubitQueryPath,
         func: Callable,
@@ -54,7 +54,8 @@ class _Worker:
         self.id = component.id  # name of the component
         self.name = component.name  # name of the component
         self.version = version  # Version of the component
-        self.qrun = qrun  # reference to the query runner
+        self._callback_ready = callback_ready
+        self._callback_completed = callback_completed
         self.job = None  # For referencing the job if using multiprocessing
         self.query = query
         self.tree_for_idxcontext = tree_for_idxcontext
@@ -367,7 +368,7 @@ class _Worker:
         self.func(inputval_for_name, results)
         with did_complete.get_lock():
             did_complete.value = Value(c_bool, True)
-        self.qrun.report_completed(self)
+        self._callback_completed(self)
 
     def _mp_func(self, inputval_for_name):
         self.job = multiprocessing.Process(
@@ -380,7 +381,7 @@ class _Worker:
     def _sp_func(self, inputval_for_name):
         self.func(inputval_for_name, self.results)
         self._did_complete = True
-        self.qrun.report_completed(self)
+        self._callback_completed(self)
 
     def _work_dryrun(self):
         """
@@ -393,7 +394,7 @@ class _Worker:
             self.results[name] = tree.none_like()
 
         self._did_complete = True
-        self.qrun.report_completed(self)
+        self._callback_completed(self)
 
     def _work(self):
         """
@@ -448,7 +449,7 @@ class _Worker:
         self._prepare_work()
         self.use_cached_result(results)
         self._did_complete = True
-        self.qrun.report_completed(self)
+        self._callback_completed(self)
 
     def set_consumed_input(self, path: HubitQueryPath, value):
         if path in self.pending_input_paths:
@@ -470,7 +471,7 @@ class _Worker:
                 self.rpaths_consumed_for_name, self.resultval_for_path
             )
             self.results_checksum = self._results_checksum()
-            self.qrun.report_for_duty(self)
+            self._callback_ready(self)
 
         # if not self.caching:
         #     self.work_if_ready()
@@ -488,17 +489,13 @@ class _Worker:
             )
             self.results_checksum = self._results_checksum()
 
-            self.qrun.report_for_duty(self)
+            self._callback_ready(self)
 
     def set_values(self, inputdata, resultsdata: FlatData):
         """
         Set the consumed values if they are ready otherwise add them
         to the list of pending items
         """
-        # set the worker here since in init we have not yet
-        # checked that a similar instance does not exist
-        self.qrun._set_worker(self)
-
         # Check consumed input (should not have any pending items by definition)
         for path in self.iname_for_path.keys():
             if path in inputdata.keys():
@@ -530,7 +527,7 @@ class _Worker:
             self.results_checksum = self._results_checksum()
 
         if self.is_ready_to_work():
-            self.qrun.report_for_duty(self)
+            self._callback_ready(self)
 
         return (
             copy.copy(self.pending_input_paths),

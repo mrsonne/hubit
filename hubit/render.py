@@ -128,15 +128,14 @@ def get_dot(model: HubitModel, query: Query, file_idstr: str):
 
             dummy_query = HubitQueryPath(path.set_indices(dummy_indices))
 
-            qrun_dummy = _QueryRunner(model)
-
             # Get function and version to init the worker
             (func, version, _) = _QueryRunner._get_func(
                 model.base_path, component, components_known={}
             )
             workers.append(
                 _Worker(
-                    qrun_dummy,
+                    lambda x: x,  # dummy function
+                    lambda x: x,  # dummy function
                     component,
                     dummy_query,
                     func,

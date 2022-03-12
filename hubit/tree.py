@@ -194,7 +194,7 @@ class DummyLengthTree:
         """Don't change the tree"""
         return self if inplace else copy.deepcopy(self)
 
-    def expand_path(self, path: Path, *args, **kwargs) -> List[HubitModelPath]:
+    def expand_path(self, path: Path, *args, **kwargs) -> List[HubitQueryPath]:
         return [HubitQueryPath(path)]
 
     def none_like(self):

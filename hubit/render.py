@@ -132,7 +132,7 @@ def get_dot(model: HubitModel, query: Query, file_idstr: str):
 
             # Get function and version to init the worker
             (func, version, _) = _QueryRunner._get_func(
-                model.base_path, component, components={}
+                model.base_path, component, components_known={}
             )
             workers.append(
                 _Worker(

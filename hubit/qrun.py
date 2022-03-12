@@ -160,48 +160,48 @@ class _QueryRunner:
     @staticmethod
     def _get_func(
         base_path,
-        component_cfg: HubitModelComponent,
-        components: Dict[str, Tuple[Callable, str]],
-    ):
+        component: HubitModelComponent,
+        components_known: Dict[str, Tuple[Callable, str]],
+    ) -> Tuple[Callable, str, Dict[str, Tuple[Callable, str]]]:
         """[summary]
 
         Args:
             base_path (str): Model base path
             component_cfg (HubitModelComponent): configuration data from the model definition file
-            components (Dict):
+            components_known (Dict): Components already known
 
         Returns:
             tuple: function handle, function version, and component dict
         """
         version: str
-        func_name = component_cfg.func_name
-        if not component_cfg.is_dotted_path:
-            path, file_name = os.path.split(component_cfg.path)
+        func_name = component.func_name
+        if not component.is_dotted_path:
+            path, file_name = os.path.split(component.path)
             path = os.path.join(base_path, path)
             module_name = os.path.splitext(file_name)[0]
             path = os.path.abspath(path)
             file_path = os.path.join(path, file_name)
-            component_id = component_cfg.id
-            if component_id in components.keys():
-                func, version = components[component_id]
-                return func, version, components
+            component_id = component.id
+            if component_id in components_known.keys():
+                func, version = components_known[component_id]
+                return func, version, components_known
 
             sys.path.insert(0, path)
             module = module_from_path(module_name, file_path)
         else:
-            module = module_from_dotted_path(component_cfg.path)
-            component_id = component_cfg.id
-            if component_id in components.keys():
-                func, version = components[component_id]
-                return func, version, components
+            module = module_from_dotted_path(component.path)
+            component_id = component.id
+            if component_id in components_known.keys():
+                func, version = components_known[component_id]
+                return func, version, components_known
 
         func = getattr(module, func_name)
         try:
             version = module.version()
         except AttributeError:
             version = "None"
-        components[component_id] = func, version
-        return func, version, components
+        components_known[component_id] = func, version
+        return func, version, components_known
 
     def _worker_for_query(
         self,

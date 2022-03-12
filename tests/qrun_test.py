@@ -1,11 +1,12 @@
 import os
 import unittest
+import pytest
 import yaml
 
 from hubit.model import HubitModel
 from hubit.qrun import _QueryRunner, query_runner_factory
 from hubit.errors import HubitModelQueryError
-from hubit.config import FlatData, HubitModelConfig, HubitQueryPath
+from hubit.config import FlatData, HubitModelComponent, HubitModelConfig, HubitQueryPath
 
 THIS_FILE = os.path.realpath(__file__)
 THIS_DIR = os.path.dirname(THIS_FILE)
@@ -84,6 +85,35 @@ class TestRunner(unittest.TestCase):
         self.querystr_level1 = HubitQueryPath(
             "list[{}].some_attr.two_x_numbers_x_factor".format(self.idx)
         )
+
+    def test_get_func(self):
+
+        # Location of model file
+        base_path = THIS_DIR
+
+        cfg = {
+            "path": "dummy",
+            "func_name": "dummy_func",
+            "provides_results": [
+                {"name": "attr", "path": "list[IDX].attr.path1"},
+            ],
+        }
+
+        component = HubitModelComponent.from_cfg(cfg, 0)
+
+        # Components already known
+        components_known = {}
+
+        # cannot find module "dummy"
+        with pytest.raises(AssertionError):
+            _QueryRunner._get_func(base_path, component, components_known)
+
+        cfg["path"] = "config_test.py"
+        component = HubitModelComponent.from_cfg(cfg, 0)
+
+        # Cannot find attribute "dummy_func"
+        with pytest.raises(AttributeError):
+            _QueryRunner._get_func(base_path, component, components_known)
 
     def test_str(self):
         """Check the string representation completes"""

@@ -86,10 +86,18 @@ class TestRunner(unittest.TestCase):
         )
 
     def test_str(self):
-        """Check the the string representation completes"""
+        """Check the string representation completes"""
         # Use query to set worker(s) to cover more code blocks in __str__
         self.get_worker_counts([[self.querystr_level0]])
         str(self.qr)
+
+    def test_status(self):
+        """Check the status string representation completes"""
+        self.get_worker_counts([[self.querystr_level0]])
+        flat_results = FlatData({"hello.world": 5})
+        self.qr.flat_results = flat_results
+        expanded_paths = [HubitQueryPath("hello.world")]
+        self.qr._status(flat_results, expanded_paths)
 
     def test_worker_comp1(self):
         """ """

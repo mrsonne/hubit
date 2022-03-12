@@ -85,6 +85,12 @@ class TestRunner(unittest.TestCase):
             "list[{}].some_attr.two_x_numbers_x_factor".format(self.idx)
         )
 
+    def test_str(self):
+        """Check the the string representation completes"""
+        # Use query to set worker(s) to cover more code blocks in __str__
+        self.get_worker_counts([[self.querystr_level0]])
+        str(self.qr)
+
     def test_worker_comp1(self):
         """ """
         # Component index in model (TODO: brittle)'

@@ -13,6 +13,10 @@ THIS_DIR = os.path.dirname(THIS_FILE)
 REL_TMP_DIR = "./tmp"
 
 
+def function_for_test():
+    ...
+
+
 def setUpModule():
     global yml_input
     global model
@@ -114,6 +118,11 @@ class TestRunner(unittest.TestCase):
         # Cannot find attribute "dummy_func"
         with pytest.raises(AttributeError):
             _QueryRunner._get_func(base_path, component, components_known)
+
+        cfg["path"] = "qrun_test.py"
+        cfg["func_name"] = "function_for_test"
+        component = HubitModelComponent.from_cfg(cfg, 0)
+        _QueryRunner._get_func(base_path, component, components_known)
 
     def test_str(self):
         """Check the string representation completes"""

@@ -1,8 +1,8 @@
 # Heat flow through a wall
 
-In this example we consider a wall that consists of three segments as shown in the illustration below. 
+In this example we consider a wall that consists of three segments as shown in the illustration below.
 
-``` 
+```
 Face view wall (not to scale)
      _______________
     |   segment 1   | 1.5 m
@@ -46,6 +46,7 @@ temperature = 300 K  |         | |        | temperature = 273 K
 The wall materials, dimensions and other input can be found in wall input file [`examples/wall/input.yml`](https://github.com/mrsonne/hubit/blob/master/examples/wall/input.yml). Note that the number of wall layers in the two segments differ, which illustrates that `Hubit` can handle non-rectangular data.
 
 ## Model
+
 The wall model is defined in [`examples/wall/model.yml`](https://github.com/mrsonne/hubit/blob/master/examples/wall/model.yml) and define bindings between calculation components that provides certain results. The components are explained in greater detail later. With the model in place `Hubit` allows users to query the results data structure. For example, to get the "total_cost" and "total_heat_loss" for the wall we would write
 
 ```python
@@ -69,12 +70,13 @@ Behind the scenes `Hubit` constructs and executes the call graph for the query. 
 By using different queries it is straight forward to set up reports for different audiences, each with a customized content, but based on the same model and the same input. Such different reports can service different stakeholders e.g. management, internal design engineers, clients or independent verification agencies.
 
 ### Components
+
 The source code for the wall model components can be found in the [`examples/wall/components`](https://github.com/mrsonne/hubit/tree/master/examples/wall) folder in the repository and are referenced from [`the model configuration file`](https://github.com/mrsonne/hubit/tree/master/examples/wall/model.yml). A time delay has been added in some of the components to simulate a heavy computational load or a latency in a web service. The time delay illustrates the asynchronous capabilities in `Hubit`.
 
 Some of the calculation components deals with the physics part of the wall model. These components include
 
 1. [`thermal_conductivity.py`](https://github.com/mrsonne/hubit/tree/master/examples/wall/components/thermal_conductivity.py). Simple lookup of thermal conductivities based on the material name.
-2. [`thermal_profile.py`](https://github.com/mrsonne/hubit/tree/master/examples/wall/components/thermal_profile.py). A calculation of the temperature for all wall layers in a segment as well 
+2. [`thermal_profile.py`](https://github.com/mrsonne/hubit/tree/master/examples/wall/components/thermal_profile.py). A calculation of the temperature for all wall layers in a segment as well
 as the heat flux in the segment. We assume one-dimensional heat flow, and thus each segment can be treated independently.
 3. [`heat_flow.py`](https://github.com/mrsonne/hubit/tree/master/examples/wall/components/heat_flow.py). Calculates the heat flow through a segment.
 4. [`heat_transfer_number.py`](https://github.com/mrsonne/hubit/tree/master/examples/wall/components/heat_transfer_number.py). Calculates the overall heat transfer number and wall energy classification. The wall energy classification ranges from A to D where A indicates the most insulating wall (best) and D indicates the least insulating wall (worst).
@@ -88,14 +90,14 @@ The wall cost is calculated by the two components below
 
 To support the cost calculations two extra engineering components are included
 
-7. [`volume.py`](https://github.com/mrsonne/hubit/tree/master/examples/wall/components/volume.py). Calculates the volume of wall layers. 
+7. [`volume.py`](https://github.com/mrsonne/hubit/tree/master/examples/wall/components/volume.py). Calculates the volume of wall layers.
 8. [`weight.py`](https://github.com/mrsonne/hubit/tree/master/examples/wall/components/weight.py). Calculates the weight of wall layers.
 
 ### Call graph & multi-processing
 
 `Hubit` is event-driven and components are spawned dynamically. The bindings that are used to set up the relations between components are defined in `model.yml`
 
-To illustrate the cascade of events that spawn the necessary calculations let us consider a query for the wall `total_cost`. In the model file the total cost is _provided_ by `total_cost.py`. 
+To illustrate the cascade of events that spawn the necessary calculations let us consider a query for the wall `total_cost`. In the model file the total cost is _provided_ by `total_cost.py`.
 
 ```yml
 path: ./components/total_cost.py
@@ -109,7 +111,7 @@ consumes:
       path: segments[:@IDX_SEG].cost
 ```
 
-Further, the model file reveals that the `total_cost.py` _consumes_ the costs for all segments (`segments[:@IDX_SEG].cost`). The segment costs are, in turn, provided by `segment_cost.py` as seen from the component definition below, which is also taken from `model.yml`. 
+Further, the model file reveals that the `total_cost.py` _consumes_ the costs for all segments (`segments[:@IDX_SEG].cost`). The segment costs are, in turn, provided by `segment_cost.py` as seen from the component definition below, which is also taken from `model.yml`.
 
 ```yml
 path: ./components/segment_cost.py
@@ -128,7 +130,7 @@ consumes:
       path: segments[IDX_SEG].layers[:@IDX_LAY].weight
 ```
 
-Since the segment costs are not in the results data to begin with `hubit` spawns the `segment_cost.py` calculation. To calculate the segment cost, the material and segment weight must be known for each layer in the segment since these attributes are specified in the `consumes` section. The segment cost component expects the layer materials and weights to be available at `segments[IDX_SEG].layers[:@IDX_LAY].material` and `segments[IDX_SEG].layers[:@IDX_LAY].weight`,  respectively. 
+Since the segment costs are not in the results data to begin with `hubit` spawns the `segment_cost.py` calculation. To calculate the segment cost, the material and segment weight must be known for each layer in the segment since these attributes are specified in the `consumes` section. The segment cost component expects the layer materials and weights to be available at `segments[IDX_SEG].layers[:@IDX_LAY].material` and `segments[IDX_SEG].layers[:@IDX_LAY].weight`,  respectively.
 
 The weights are calculated in `weight.py` and the material (part of the input) is used to look up a price in `segment_cost.py`. Inspecting `model.yml` shows that the weight component _consumes_ the layer volume calculated in `volume.py`. So the original query triggers a cascade of new auxiliary queries that each may spawn new calculations. The calculations are put on hold until the all required data is available. Once this data becomes available the calculation starts and may, after completion, provide data that trigger other pending calculations. Since the cost and heat transfer calculations for each wall segment are independent the event-driven architecture allows `hubit` to execute these calculations for each wall segment in parallel if the multi-processing flag is set to `True`.
 
@@ -169,36 +171,45 @@ All the results that were used to process the query can be accessed using `hmode
                              2: {'k_therm': 1.1, 'outer_temperature': 273.0}}}}}
 ```
 
-
 ## Example calculations
+
 The purpose of the examples are summarized below. To run an example using the `hubit` source code run the example script from the project root e.g. `python3 -m examples.wall.run_queries`. In some of the examples you can toggle the multi-processing flag to see the performance difference with and without multi-processing. The performance change obtained by activating multi-processing depends on the time spent in the components. You can try to adjust the sleep time in `thermal_conductivity.py` and `thermal_profile.py`.
 
 ### Rending the model
+
 To get a graphical overview of a `hubit` model the model can be rendered **if Graphviz is installed**. The rendition of the wall model is shown below  
 
-<img src="https://github.com/mrsonne/hubit/blob/develop/examples/wall/images/model_wall.png" width="1000">
+<a target="_blank" rel="noopener noreferrer" href="https://github.com/mrsonne/hubit/blob/master/examples/wall/images/model_wall.png">
+  <img src="https://github.com/mrsonne/hubit/raw/master/examples/wall/images/model_wall.png" width="1000" style="max-width:100%;">
+</a>
 
-`hubit` can also render a query as illustrated below 
+`Hubit` can also render a query as illustrated below
 
-<img src="https://github.com/mrsonne/hubit/blob/develop/examples/wall/images/query_wall.png" width="1000">
+<a target="_blank" rel="noopener noreferrer" href="https://github.com/mrsonne/hubit/blob/master/examples/wall/images/query_wall.png">
+  <img src="https://github.com/mrsonne/hubit/raw/master/examples/wall/images/query_wall.png" width="1000" style="max-width:100%;">
+</a>
 
-Notice how the graph representing the query only includes a subset of all the model components. When a query is rendered only the relevant components for that particular query are shown. The example code can be found in 
+Notice how the graph representing the query only includes a subset of all the model components. When a query is rendered only the relevant components for that particular query are shown. The example code can be found in
 [`examples/wall/render.py`](https://github.com/mrsonne/hubit/tree/master/examples/wall/render.py)
 .
 
-### Queries 
+### Queries
+
 This example runs various queries. First the queries are submitted individually, which causes redundant calculations. Second, all the queries are submitted together in which case `Hubit` will assure that the same result is not calculate multiple times. An example is shown in [`examples/wall/run_queries.py`](https://github.com/mrsonne/hubit/tree/master/examples/wall/run_queries.py).
-### Re-using old results 
-After completing a query the `Hubit` model instance will store the results. If a new query is submitted using the same model and the `use_results` argument is set to `"current"` in  [`get`][hubit.model.HubitModel.get], `Hubit` will use the cached results instead of re-calculating them i.e. `Hubit` will bypass the components that provide the cached results. For example, if the layer costs are queried first followed by a query for the wall total cost, which consumes the layer cost, the layer cost will not be calculated in the second query. An example is shown in 
+
+### Re-using old results
+
+After completing a query the `Hubit` model instance will store the results. If a new query is submitted using the same model and the `use_results` argument is set to `"current"` in  [`get`][hubit.model.HubitModel.get], `Hubit` will use the cached results instead of re-calculating them i.e. `Hubit` will bypass the components that provide the cached results. For example, if the layer costs are queried first followed by a query for the wall total cost, which consumes the layer cost, the layer cost will not be calculated in the second query. An example is shown in
 [`examples/wall/run_precompute.py`](https://github.com/mrsonne/hubit/tree/master/examples/wall/run_precompute.py)
 
-The results can be retrieved using the [`get_results()`][hubit.model.HubitModel.get_results] method on the `Hubit` model instance and can then be saved to disk or otherwise persisted. 
+The results can be retrieved using the [`get_results()`][hubit.model.HubitModel.get_results] method on the `Hubit` model instance and can then be saved to disk or otherwise persisted.
 
-### Manually set results 
+### Manually set results
+
 Results can be manually set on the model using the [`set_results()`][hubit.model.HubitModel.set_results] method on a `Hubit` model instance. In subsequent queries `Hubit` will then omit re-calculating the results that have been set, thus bypassing the corresponding providers. The values that are manually set could represent some new measurements that you want to see the effect of when propagated in through the remaining components downstream of the component that is bypassed. The values could also represent persisted results that you want to augment with additional results or analyses without running the entire model again. An example is shown in [`examples/wall/run_set_results.py`](https://github.com/mrsonne/hubit/tree/master/examples/wall/run_set_results.py).
 
+### Sweep input parameters
 
-### Sweep input parameters 
 `Hubit` can sweep over different values of the input attributes. The example shows the energy class and cost for different value of the insulation thickness and for different values of the wall materials. [`examples/wall/run_sweep.py`](https://github.com/mrsonne/hubit/tree/master/examples/wall/run_sweep.py) shows an example sweep which results in the table below
 
 ```
@@ -217,5 +228,4 @@ concrete     concrete     0.12                  0.065                 0.68      
 -------------------------------------------------------------------------------------------------------------------------
 ```
 
-The information in the table could conveniently be visualized in a parallel coordinates plot. 
-
+The information in the table could conveniently be visualized in a parallel coordinates plot.

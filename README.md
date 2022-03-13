@@ -10,19 +10,20 @@
 
 ## At a glance
 
-`Hubit` is an event-driven orchestration hub for your existing calculation tools. It allows you to 
+`Hubit` is an event-driven orchestration hub for your existing calculation tools. It allows you to
 
 - execute calculation tools as one `Hubit` composite model with a loose coupling between the model components,
 - centrally configure the interfaces between calculation tools rather than coding them. This allows true separation of responsibility between different teams,
-- easily run your existing calculation tools in asynchronously in multiple processes,
+- easily run your existing calculation tools asynchronously in multiple processes,
 - query the `Hubit` model for specific results thus avoiding explicitly coding (fixed) call graphs and running superfluous calculations,
 - make parameter sweeps,
-- feed previously calculated results into new calculations thus augmenting old results objects,
-- incremental results caching and calculation restart from cache,
-- caching of model component results allowing `Hubit` to bypass repeated calculations,
+- feed previously calculated results into new calculations thus augmenting old results,
+- store results incrementally during execution and restart from previously stored results (model caching),
+- reuse results if calculations are executed multiple times with the same input (component caching),
 - visualize your `Hubit` composite model i.e. visualize your existing tools and the attributes that flow between them.
 
 ## Motivation
+
 Many work places have developed a rich ecosystem of stand-alone tools. These tools may be developed/maintained by different teams using different programming languages and using different input/output data models. Nevertheless, the tools often depend on results provided the other tools leading to complicated dependencies and error-prone (manual) workflows involving copy & paste. If this sounds familiar you should try `Hubit`.
 
 By defining input and results data structures that are shared between your tools `Hubit` allows all your Python-wrappable tools to be seamlessly executed asynchronously as a single model. Asynchronous multi-processor execution often assures a better utilization of the available CPU resources compared to sequential single-processor execution. This is especially true when some time is spent in each component i.e. for CPU bound calculations. In practice this performance improvement often compensates the management overhead introduced by `Hubit`.
@@ -79,7 +80,7 @@ and the corresponding response is
 
 From the response we can see the prices for the five parts that comprise the first car and the prices for the four parts that comprise the second car. The full example illustrates how a second calculation component can be used to calculate the total price for each car.
 
-`Hubit` can render models and queries. In the example below we have rendered the query `cars[0].price` i.e. the price of the car at index 0 using 
+`Hubit` can render models and queries. In the example below we have rendered the query `cars[0].price` i.e. the price of the car at index 0 using
 
 ```python
 query = ['cars[0].price']
@@ -94,23 +95,22 @@ which yields the graph shown below.
 
 The graph illustrates nodes in the input data structure, nodes in the the results data structure, the calculation components involved in creating the response as well as hints at which attributes flow in and out of these components.
 
-
 ## Installation & requirements
 
 Install from pypi
+
 ```sh
 pip install hubit
 ```
 
-
 Install from GitHub
+
 ```sh
 pip install git+git://github.com/mrsonne/hubit.git
 ```
 
-To render `hubit` models and queries you need to install Graphviz (https://graphviz.org/download/). On e.g. Ubuntu, Graphviz can be installed using the command
+To render `hubit` models and queries you need to install Graphviz (<https://graphviz.org/download/>). On e.g. Ubuntu, Graphviz can be installed using the command
 
 ```sh
 sudo apt install graphviz
 ```
-

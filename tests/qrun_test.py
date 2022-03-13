@@ -139,6 +139,20 @@ class TestRunner(unittest.TestCase):
         assert version == "None"
         assert components_known == {component.id: (func, version)}
 
+        cfg["path"] = "math"
+        cfg["func_name"] = "cos"
+        cfg["is_dotted_path"] = True
+        components_known = {}
+        component = HubitModelComponent.from_cfg(cfg, 0)
+        func, version, components_known = _QueryRunner._get_func(
+            base_path, component, components_known
+        )
+        print(func.__module__)
+        assert func.__name__ == "cos"
+        assert func.__module__ == "math"
+        assert version == "None"
+        assert components_known == {component.id: (func, version)}
+
     def test_str(self):
         """Check the string representation completes"""
         # Use query to set worker(s) to cover more code blocks in __str__

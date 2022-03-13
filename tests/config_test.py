@@ -196,6 +196,35 @@ class TestHubitComponent(unittest.TestCase):
         cfg.update({"index_scope": {"IDX": ":"}})
         HubitModelComponent.from_cfg(cfg, 0)
 
+    # def test_consumes_input_paths(self):
+    #     cmp.consumes_input_paths()
+
+    # def test_consumes_results_paths(self):
+    #     cmp.consumes_results_paths()
+
+    def test_scope_start(self):
+        cfg = {
+            "path": "dummy",
+            "func_name": "dummy",
+            "provides_results": [
+                {"name": "attr", "path": "list[IDX].attr.path2"},
+            ],
+        }
+
+        # No scope
+        cmp = HubitModelComponent.from_cfg(cfg, 0)
+        assert cmp.scope_start == (None, None)
+
+        # All slice
+        cfg.update({"index_scope": {"IDX": "1:4"}})
+        cmp = HubitModelComponent.from_cfg(cfg, 0)
+        assert cmp.scope_start == ("IDX", 1)
+
+        # All indices
+        cfg.update({"index_scope": {"IDX": ":"}})
+        cmp = HubitModelComponent.from_cfg(cfg, 0)
+        assert cmp.scope_start == ("IDX", 0)
+
 
 class TestHubitPath(unittest.TestCase):
     def test_from_dotted(self):

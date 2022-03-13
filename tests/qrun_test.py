@@ -122,7 +122,13 @@ class TestRunner(unittest.TestCase):
         cfg["path"] = "qrun_test.py"
         cfg["func_name"] = "function_for_test"
         component = HubitModelComponent.from_cfg(cfg, 0)
-        _QueryRunner._get_func(base_path, component, components_known)
+        func, version, components_known = _QueryRunner._get_func(
+            base_path, component, components_known
+        )
+        assert func.__name__ == function_for_test.__name__
+        assert func.__module__ == function_for_test.__module__.split(".")[-1]
+        assert version == "None"
+        assert components_known == {component.id: (func, version)}
 
     def test_str(self):
         """Check the string representation completes"""

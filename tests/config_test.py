@@ -196,34 +196,7 @@ class TestHubitComponent(unittest.TestCase):
         cfg.update({"index_scope": {"IDX": ":"}})
         HubitModelComponent.from_cfg(cfg, 0)
 
-    def test_consumes_input_paths(self):
-        cfg = {
-            "path": "dummy",
-            "func_name": "dummy",
-            "provides_results": [
-                {"name": "attr", "path": "list[IDX].attr.path2"},
-            ],
-            "consumes_input": [
-                {"name": "attr1", "path": "shared.input.attr.path1"},
-                {"name": "attr2", "path": "shared.input.attr.path2"},
-            ],
-            "consumes_results": [
-                {"name": "attr3", "path": "shared.input.attr.path2"},
-                {"name": "attr4", "path": "shared.input.attr.path3"},
-            ],
-        }
-
-        cmp = HubitModelComponent.from_cfg(cfg, 0)
-        result = set(cmp.consumes_input_paths)
-        expected_result = set(
-            [
-                HubitModelPath("shared.input.attr.path1"),
-                HubitModelPath("shared.input.attr.path2"),
-            ]
-        )
-        assert result == expected_result
-
-    def test_consumes_results_paths(self):
+    def test_get_paths(self):
         cfg = {
             "path": "dummy",
             "func_name": "dummy",
@@ -241,11 +214,28 @@ class TestHubitComponent(unittest.TestCase):
         }
 
         cmp = HubitModelComponent.from_cfg(cfg, 0)
+        result = set(cmp.consumes_input_paths)
+        expected_result = set(
+            [
+                HubitModelPath("shared.input.attr.path1"),
+                HubitModelPath("shared.input.attr.path2"),
+            ]
+        )
+        assert result == expected_result
+
         result = set(cmp.consumes_results_paths)
         expected_result = set(
             [
                 HubitModelPath("shared.input.attr.path3"),
                 HubitModelPath("shared.input.attr.path4"),
+            ]
+        )
+        assert result == expected_result
+
+        result = set(cmp.provides_results_paths)
+        expected_result = set(
+            [
+                HubitModelPath("list[IDX].attr.path2"),
             ]
         )
         assert result == expected_result

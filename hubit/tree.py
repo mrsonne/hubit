@@ -753,11 +753,12 @@ class _QueryExpansion:
 
         # Store in dict with normalized path so decomposition can be carried out in
         # pairs (qpath_norm, mpaths)
+        index_scopes = [cmp.index_scope for cmp in cmps]
         mpaths_for_qpath_norm = {
             qpath_norm: _QueryExpansion._filter_mpaths_for_qpath_index_ranges(
                 qpath_norm,
                 mpaths,
-                cmps,
+                index_scopes,
                 self.tree.prune_from_path(qpath_norm, inplace=False),
             )
             for qpath_norm in self.paths_norm
@@ -809,18 +810,18 @@ class _QueryExpansion:
     def _filter_mpaths_for_qpath_index_ranges(
         qpath: HubitQueryPath,
         mpaths: List[HubitModelPath],
-        cmps: List[HubitModelComponent],
+        index_scopes: Sequence[Dict[str, PathIndexRange]],
         pruned_tree: LengthTree,
     ) -> List[HubitModelPath]:
         """
         each path represents a path provided for the corresponding component.
-        mpaths, cmp_ids have same length
+        mpaths, index_scopes have same length
         """
         # Indexes for models paths that match the query path (index considering intersections)
         # Set the index scope
         _mpaths = [
-            mpath.set_range_for_idxid(cmp.index_scope)
-            for mpath, cmp in zip(mpaths, cmps)
+            mpath.set_range_for_idxid(index_scope)
+            for mpath, index_scope in zip(mpaths, index_scopes)
         ]
 
         # TODO negative-indices. split out field check

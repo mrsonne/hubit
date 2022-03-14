@@ -1174,6 +1174,42 @@ class TestQueryExpansion(unittest.TestCase):
                 # Query has two index wildcards hence nested list
                 assert result == [[[10.0, 6.0, 4.0]], [[20.0, 8.0, 3.0, 1.0]]]
 
+    def test_filter_mpaths_for_qpath_index_ranges(self):
+        qpath = HubitQueryPath("sites[0].lines[0].tanks[:].Q_yield")
+        mpaths = [
+            HubitModelPath(
+                "sites[0@IDX_SITE].lines[0@IDX_LINE].tanks[IDX_TANK].Q_yield"
+            ),
+            HubitModelPath(
+                "sites[0@IDX_SITE].lines[0@IDX_LINE].tanks[IDX_TANK].Q_yield"
+            ),
+            HubitModelPath(
+                "sites[0@IDX_SITE].lines[1@IDX_LINE].tanks[IDX_TANK].Q_yield"
+            ),
+        ]
+
+        # Index scpoe for each mpath
+        index_scopes = [
+            {"IDX_TANK": PathIndexRange("0")},
+            {"IDX_TANK": PathIndexRange("1:")},
+            {"IDX_TANK": PathIndexRange(":")},
+        ]
+        tree, _ = _get_data()
+        pruned_tree = tree.prune_from_path(qpath, inplace=False)
+
+        result = _QueryExpansion._filter_mpaths_for_qpath_index_ranges(
+            qpath,
+            mpaths,
+            index_scopes,
+            pruned_tree,
+        )
+
+        expected_result = [
+            mpath.set_range_for_idxid(index_scope)
+            for mpath, index_scope in zip(mpaths[:2], index_scopes[:2])
+        ]
+        assert result == expected_result
+
 
 if __name__ == "__main__":
     unittest.main()

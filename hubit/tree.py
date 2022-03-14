@@ -83,7 +83,7 @@ class LengthNode:
 
     def child(self, index: int) -> Union[LengthNode, LeafNode]:
         """Get the child corresponding to the specified index"""
-        # TODO: negative-indices. should this be improved?
+        # TODO: should this be improved?
         try:
             return {child.index: child for child in self.children}[
                 self.normalize_child_index(index)
@@ -96,7 +96,7 @@ class LengthNode:
             )
 
     def normalize_child_index(self, index: int):
-        # TODO: negative-indices. think about this for a while...
+        # TODO: think about this for a while...
         if index < 0:
             norm_index = self._nchildren_org + index
             if norm_index < 0:
@@ -788,7 +788,7 @@ class _QueryExpansion:
             )
             self.decomposed_paths.append(list(set(_decomposed_paths)))
 
-        # TODO: negative-indices. Cannot see that I actually use the keys any longer
+        # TODO: Cannot see that I actually use the keys any longer
         self.exp_paths_for_decomp_path: Dict[HubitQueryPath, List[HubitQueryPath]] = {}
 
         # Used to validate tree against expansion

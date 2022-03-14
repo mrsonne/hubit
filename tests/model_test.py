@@ -344,17 +344,6 @@ class TestModel(unittest.TestCase):
             with self.subTest(use_multi_processing=use_multi_processing):
                 test()
 
-    def test_get_all(self):
-        """
-        No query yields all results
-        """
-        self.skipTest("Not implemented")
-        self.hmodel.set_input(self.input)
-        for use_multi_processing in self.use_multi_processing_values:
-            with self.subTest(use_multi_processing=use_multi_processing):
-                response = self.hmodel.get(use_multi_processing=use_multi_processing)
-                print(response)
-
     def test_sweep(self):
         """
         Sweep input parameters

@@ -383,15 +383,15 @@ class TestHubitQueryPath(unittest.TestCase):
         mpath = HubitModelPath("segs[IDX1].walls[12@IDX1].temps")
         assert not qpath.path_match(mpath)
 
-    def test_set_index(self):
+    def test_new_with_index(self):
         # Replace only first occurrence
         path = HubitModelPath("segments[1].lay1ers[1]")
-        path = path.set_index("1", "11")
+        path = path.new_with_index("1", "11")
         assert path == HubitModelPath("segments[11].lay1ers[1]")
 
         # Do not change a match in the field name (1 in lay1ers)
         path = HubitModelPath("segments[2].lay1ers[1]")
-        path = path.set_index("1", "11")
+        path = path.new_with_index("1", "11")
         print(path)
         assert path == HubitModelPath("segments[2].lay1ers[11]")
 
@@ -551,10 +551,10 @@ class TestHubitModelPath(unittest.TestCase):
         path = HubitModelPath("segments[IDX_SEG].layers[:@IDX1LAY113]")
         assert path.as_query_depth_path() == "segments[*].layers[*]"
 
-    def test_set_index(self):
+    def test_new_with_index(self):
         path = HubitModelPath("segments[IDX_SEG].lay1ers[:@IDX1LAY113]")
         index_specifiers = path.get_index_specifiers()
-        path = path.set_index(index_specifiers[1], "1")
+        path = path.new_with_index(index_specifiers[1], "1")
         assert path == HubitModelPath("segments[IDX_SEG].lay1ers[1]")
 
 

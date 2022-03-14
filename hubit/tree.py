@@ -577,7 +577,7 @@ class LengthTree:
                 # Assumes pruned tree
                 paths_current_level.extend(
                     [
-                        _path.set_index(idxspec, str(child.index))
+                        _path.new_with_index(idxspec, str(child.index))
                         for child in node.children
                     ]
                 )

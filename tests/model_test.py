@@ -4,7 +4,7 @@ import os
 import pathlib
 import yaml
 from hubit.errors import HubitModelNoInputError, HubitModelQueryError
-from hubit.config import HubitModelConfig, HubitModelPath
+from hubit.config import HubitModelConfig, HubitModelPath, HubitQueryPath
 from hubit import HubitModel
 import pprint
 
@@ -67,6 +67,71 @@ class TestModel(unittest.TestCase):
         ]
 
         self.querystr_level0_last = "list[-1].some_attr.two_x_numbers"
+
+    # def test_mpaths_for_qpath_fields_only(self):
+    #     mpaths, cmp_ids = self.mpaths_for_qpath_fields_only(qpath)
+
+    def test_cmpids_for_query(self):
+
+        # Test the default model
+        qpath = HubitQueryPath("first_coor[:].second_coor[:].value")
+        result = self.hmodel._cmpids_for_query(qpath, check_intersection=True)
+        expected_result = ["cmp0@./components/comp0.move_number"]
+        assert result == expected_result
+
+        # Test model with explicit indices
+        model = """
+        components:
+          -   
+            # move a number
+            func_name: move_number
+            path: ./components/comp0.py 
+            provides_results:
+                - name: number
+                  path: first_coor[IDX1].second_coor[0@IDX2].value 
+            consumes_input: 
+                - name: number
+                  path: list[IDX1].some_attr.inner_list[IDX2].xval
+          -
+            func_name: move_number
+            path: ./components/comp0.py 
+            provides_results:
+                - name: number
+                  path: first_coor[IDX1].second_coor[1@IDX2].value 
+            consumes_input: 
+                - name: number
+                  path: list[IDX1].some_attr.inner_list[IDX2].xval
+        """
+        model_cfg = HubitModelConfig.from_cfg(
+            yaml.load(model, Loader=yaml.FullLoader), base_path=THIS_DIR
+        )
+        self.hmodel = HubitModel(model_cfg, name="TEST", output_path=REL_TMP_DIR)
+
+        # Two components match query path
+        qpath = HubitQueryPath("first_coor[:].second_coor[:].value")
+        result = self.hmodel._cmpids_for_query(qpath, check_intersection=True)
+        expected_result = [
+            "cmp0@./components/comp0.move_number",
+            "cmp1@./components/comp0.move_number",
+        ]
+        assert result == expected_result
+
+        # Only the second components match query path
+        qpath = HubitQueryPath("first_coor[:].second_coor[1].value")
+        result = self.hmodel._cmpids_for_query(qpath, check_intersection=True)
+        expected_result = [
+            "cmp1@./components/comp0.move_number",
+        ]
+        assert result == expected_result
+
+        # Both components match the query path since we don't check the intersection
+        qpath = HubitQueryPath("first_coor[:].second_coor[1].value")
+        result = self.hmodel._cmpids_for_query(qpath, check_intersection=False)
+        expected_result = [
+            "cmp0@./components/comp0.move_number",
+            "cmp1@./components/comp0.move_number",
+        ]
+        assert result == expected_result
 
     def test_from_file(self):
         """
@@ -136,9 +201,6 @@ class TestModel(unittest.TestCase):
         """
         Render the query
         TODO: could test the dot object instead
-        Sometimes (?!?!) gives this warning:
-        Warning: _Query -> cluster_resultslist: head not inside head cluster cluster_results
-        Warning: cluster_resultslist -> _Response: tail not inside tail cluster cluster_results
         """
         self.hmodel.set_input(self.input)
         query = [self.querystr_level0]
@@ -281,22 +343,6 @@ class TestModel(unittest.TestCase):
         for use_multi_processing in self.use_multi_processing_values:
             with self.subTest(use_multi_processing=use_multi_processing):
                 test()
-
-    def test_get_last(self):
-        """
-        Query last list element
-        """
-        self.skipTest("Catch22 in normalize, prune, expand")
-        self.hmodel.set_input(self.input)
-        queries = [self.querystr_level0_last]
-        for use_multi_processing in self.use_multi_processing_values:
-            with self.subTest(use_multi_processing=use_multi_processing):
-                response = self.hmodel.get(
-                    queries, use_multi_processing=use_multi_processing
-                )
-                self.assertSequenceEqual(
-                    response[self.querystr_level0_last], self.expected_result_level0
-                )
 
     def test_get_all(self):
         """

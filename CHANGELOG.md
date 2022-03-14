@@ -9,17 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- ## [0.5.0] - 2022-02-XX -->
 ### Added
 
-- Support for negative indices in query paths. The feature is illustrated in the example `examples/car/run.py`.
-- Support for negative indices in model paths. The feature is illustrated in the example `examples/tanks/run_prices.py` and discussed in `examples/tanks/README.md`.
+- Support for negative indices in query paths. The feature is illustrated in `examples/car/run.py`.
+- Support for negative indices in model paths. The feature is illustrated in
+  - `examples/tanks/run_prices.py` and discussed in `examples/tanks/README.md`.
+  - `examples/wall/run_min_temperature.py` and discussed in `examples/wall/README.md`.
 - Reduced computational overhead
 
 ### Fixed
 
-- Explicit indexing for non-rectangular data.
-- Intermittent code stall when using component caching.
+- Explicit indexing (e.g. 1@IDX) for non-rectangular data.
+- Occasional code stall when using component caching.
 - Component caching in the case where an "upstream" result is queried
 before a downstream. Consider a car price calculation (downstream) that consumes the prices of
-all parts (upstream). The query `"cars[:].price"` would produce the car price as expected. The query `["cars[:].price", "cars[:].parts[:].price"]` would produce the car price as expected and spawning the same number of workers as `"cars[:].price"` thus ignoring the superfluous query path `"cars[:].parts[:].price"`.  The query, `["cars[:].parts[:].price", "cars[:].price"]` was, however, broken.
+all parts (upstream). The query `"cars[:].price"` would produce the car price as expected. The query `["cars[:].price", "cars[:].parts[:].price"]` would produce the car price as expected and spawning the same number of workers as `"cars[:].price"`, thus ignoring the superfluous query path `"cars[:].parts[:].price"`. The query, `["cars[:].parts[:].price", "cars[:].price"]` was, however, broken.
 - Image links and model excerpt example in wall example documentation.
 
 ## [0.4.1] - 2021-11-06

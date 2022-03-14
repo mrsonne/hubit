@@ -195,6 +195,28 @@ Notice how the graph representing the query only includes a subset of all the mo
 
 This example runs various queries. First the queries are submitted individually, which causes redundant calculations. Second, all the queries are submitted together in which case `Hubit` will assure that the same result is not calculate multiple times. An example is shown in [`examples/wall/run_queries.py`](https://github.com/mrsonne/hubit/tree/master/examples/wall/run_queries.py).
 
+### Negative indices in model binding paths
+
+To illustrate the use of negative indices in model binding paths, the [model file](https://github.com/mrsonne/hubit/tree/master/examples/wall/model.yml) includes a component that calculates the minimum temperature between the outermost and second outermost wall layers. This interface is called the "service layer" and one could imaging that it is of engineering interest to know the lowest temperature that this service layer will experience. To this end the component subscribes to `segments[IDX_SEG].layers[-2@IDX_LAY].outer_temperature` among other paths. The result is saved in the path `service_layer_minimum_temperature`. The example in [`examples/wall/run_min_temperature.py`](https://github.com/mrsonne/hubit/tree/master/examples/wall/run_min_temperature.py) show how the minimum service layer temperature can be obtained by executing `hmodel.get(["service_layer_minimum_temperature"])`.
+
+The `Hubit` log reveals that to produce the response 10 thermal conductivity and 3 thermal profile workers were spawned.
+
+```
+------------------------------------------------------------------------------------------------------------------------------
+Query finish time    Query took (s)                      Worker name                       Workers spawned Component cache hits
+-------------------------------------------------------------------------------------------------------------------------------
+14-Mar-2022 13:06:16      2.5                  ./components/heat_flow.heat_flow                   0                 0
+                                    ./components/heat_transfer_number.heat_transfer_number        0                 0
+                                              ./components/min_temperature.main                   1                 0
+                                                ./components/segment_cost.cost                    0                 0
+                                    ./components/thermal_conductivity.thermal_conductivity       10                 0
+                                          ./components/thermal_profile.thermal_prof               3                 0
+                                           ./components/total_cost.total_wall_cost                0                 0
+                                                  ./components/volume.volume                      0                 0
+                                                  ./components/weight.weight                      0                 0
+-------------------------------------------------------------------------------------------------------------------------------
+```
+
 ### Re-using old results
 
 After completing a query the `Hubit` model instance will store the results. If a new query is submitted using the same model and the `use_results` argument is set to `"current"` in  [`get`][hubit.model.HubitModel.get], `Hubit` will use the cached results instead of re-calculating them i.e. `Hubit` will bypass the components that provide the cached results. For example, if the layer costs are queried first followed by a query for the wall total cost, which consumes the layer cost, the layer cost will not be calculated in the second query. An example is shown in

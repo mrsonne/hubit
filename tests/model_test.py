@@ -18,6 +18,60 @@ TMP_DIR = os.path.join(THIS_DIR, REL_TMP_DIR)
 pathlib.Path(TMP_DIR).mkdir(parents=True, exist_ok=True)
 
 
+def get_model_with_explicit_indices():
+    return """
+    components:
+        -   
+          # move a number
+          func_name: move_number
+          path: ./components/comp0.py 
+          provides_results:
+            - name: number
+              path: first_coor[IDX1].second_coor[0@IDX2].value 
+          consumes_input: 
+            - name: number
+              path: list[IDX1].some_attr.inner_list[IDX2].xval
+        -
+          func_name: move_number
+          path: ./components/comp0.py 
+          provides_results:
+            - name: number
+              path: first_coor[IDX1].second_coor[1@IDX2].value 
+          consumes_input: 
+            - name: number
+              path: list[IDX1].some_attr.inner_list[IDX2].xval
+    """
+
+
+def get_model_with_index_scopes():
+    return """
+    components:
+        -
+          # move a number
+          func_name: move_number
+          path: ./components/comp0.py
+          index_scope:
+            IDX2: 0
+          provides_results:
+            - name: number
+              path: first_coor[IDX1].second_coor[IDX2].value
+          consumes_input:
+            - name: number
+              path: list[IDX1].some_attr.inner_list[IDX2].xval
+        -
+          func_name: move_number
+          path: ./components/comp0.py
+          index_scope:
+            IDX2: "1:"
+          provides_results:
+            - name: number
+              path: first_coor[IDX1].second_coor[IDX2].value
+          consumes_input:
+            - name: number
+              path: list[IDX1].some_attr.inner_list[IDX2].xval
+    """
+
+
 def setUpModule():
     global yml_input
     global model
@@ -68,8 +122,57 @@ class TestModel(unittest.TestCase):
 
         self.querystr_level0_last = "list[-1].some_attr.two_x_numbers"
 
-    # def test_mpaths_for_qpath_fields_only(self):
-    #     mpaths, cmp_ids = self.mpaths_for_qpath_fields_only(qpath)
+    def run_mpaths_for_qpath_fields_only(hmodel: HubitModel):
+
+        expected_mpaths = [
+            "first_coor[IDX1].second_coor[0@IDX2].value",
+            "first_coor[IDX1].second_coor[1@IDX2].value",
+        ]
+
+        expected_cmp_ids = [
+            "cmp0@./components/comp0.move_number",
+            "cmp1@./components/comp0.move_number",
+        ]
+
+        # Two components match query path
+        qpath = HubitQueryPath("first_coor[:].second_coor[:].value")
+        mpaths, cmp_ids = hmodel.mpaths_for_qpath_fields_only(qpath)
+
+        assert cmp_ids == expected_cmp_ids
+        assert mpaths == expected_mpaths
+
+        # Only the second components match query path
+        qpath = HubitQueryPath("first_coor[:].second_coor[1].value")
+        mpaths, cmp_ids = hmodel.mpaths_for_qpath_fields_only(qpath)
+
+        assert cmp_ids == expected_cmp_ids
+        assert mpaths == expected_mpaths
+
+        # Both components match the query path since we don't check the intersection
+        qpath = HubitQueryPath("first_coor[:].second_coor[1].value")
+        mpaths, cmp_ids = hmodel.mpaths_for_qpath_fields_only(qpath)
+
+        assert cmp_ids == expected_cmp_ids
+        assert mpaths == expected_mpaths
+
+    def test_mpaths_for_qpath_fields_only(self):
+        # Test the default model
+        qpath = HubitQueryPath("first_coor[:].second_coor[:].value")
+        mpaths, cmp_ids = self.hmodel.mpaths_for_qpath_fields_only(qpath)
+        expected_cmp_ids = [
+            "cmp0@./components/comp0.move_number",
+        ]
+        assert cmp_ids == expected_cmp_ids
+
+        expected_mpaths = ["first_coor[IDX1].second_coor[IDX2].value"]
+        assert mpaths == expected_mpaths
+
+        model = get_model_with_explicit_indices()
+        model_cfg = HubitModelConfig.from_cfg(
+            yaml.load(model, Loader=yaml.FullLoader), base_path=THIS_DIR
+        )
+        hmodel = HubitModel(model_cfg, name="TEST", output_path=REL_TMP_DIR)
+        TestModel.run_mpaths_for_qpath_fields_only(hmodel)
 
     def run_cmpids_for_query_tests(hmodel):
         # Two components match query path
@@ -107,28 +210,7 @@ class TestModel(unittest.TestCase):
         assert result == expected_result
 
         # Test model with explicit indices
-        model = """
-        components:
-          -   
-            # move a number
-            func_name: move_number
-            path: ./components/comp0.py 
-            provides_results:
-                - name: number
-                  path: first_coor[IDX1].second_coor[0@IDX2].value 
-            consumes_input: 
-                - name: number
-                  path: list[IDX1].some_attr.inner_list[IDX2].xval
-          -
-            func_name: move_number
-            path: ./components/comp0.py 
-            provides_results:
-                - name: number
-                  path: first_coor[IDX1].second_coor[1@IDX2].value 
-            consumes_input: 
-                - name: number
-                  path: list[IDX1].some_attr.inner_list[IDX2].xval
-        """
+        model = get_model_with_explicit_indices()
         model_cfg = HubitModelConfig.from_cfg(
             yaml.load(model, Loader=yaml.FullLoader), base_path=THIS_DIR
         )
@@ -136,32 +218,7 @@ class TestModel(unittest.TestCase):
         TestModel.run_cmpids_for_query_tests(hmodel)
 
         # Test model with index scopes
-        model = """
-        components:
-          -
-            # move a number
-            func_name: move_number
-            path: ./components/comp0.py
-            index_scope:
-                IDX2: 0
-            provides_results:
-                - name: number
-                  path: first_coor[IDX1].second_coor[IDX2].value
-            consumes_input:
-                - name: number
-                  path: list[IDX1].some_attr.inner_list[IDX2].xval
-          -
-            func_name: move_number
-            path: ./components/comp0.py
-            index_scope:
-                IDX2: "1:"
-            provides_results:
-                - name: number
-                  path: first_coor[IDX1].second_coor[IDX2].value
-            consumes_input:
-                - name: number
-                  path: list[IDX1].some_attr.inner_list[IDX2].xval
-        """
+        model = get_model_with_index_scopes()
         model_cfg = HubitModelConfig.from_cfg(
             yaml.load(model, Loader=yaml.FullLoader), base_path=THIS_DIR
         )

@@ -1,4 +1,5 @@
 import logging
+import pprint
 
 from hubit.model import HubitModel
 from .utils import get_model
@@ -11,7 +12,10 @@ def run_query(hmodel: HubitModel, use_multi_processing: bool):
         ["service_layer_minimum_temperature"],
         use_multi_processing=use_multiprocessing,
     )
-    print(response)
+
+    print(hmodel.log())
+    pprint.pprint(hmodel.results)
+    print("\nResponse", response)
 
 
 if __name__ == "__main__":

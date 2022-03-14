@@ -71,6 +71,33 @@ class TestModel(unittest.TestCase):
     # def test_mpaths_for_qpath_fields_only(self):
     #     mpaths, cmp_ids = self.mpaths_for_qpath_fields_only(qpath)
 
+    def run_cmpids_for_query_tests(hmodel):
+        # Two components match query path
+        qpath = HubitQueryPath("first_coor[:].second_coor[:].value")
+        result = hmodel._cmpids_for_query(qpath, check_intersection=True)
+        expected_result = [
+            "cmp0@./components/comp0.move_number",
+            "cmp1@./components/comp0.move_number",
+        ]
+        assert result == expected_result
+
+        # Only the second components match query path
+        qpath = HubitQueryPath("first_coor[:].second_coor[1].value")
+        result = hmodel._cmpids_for_query(qpath, check_intersection=True)
+        expected_result = [
+            "cmp1@./components/comp0.move_number",
+        ]
+        assert result == expected_result
+
+        # Both components match the query path since we don't check the intersection
+        qpath = HubitQueryPath("first_coor[:].second_coor[1].value")
+        result = hmodel._cmpids_for_query(qpath, check_intersection=False)
+        expected_result = [
+            "cmp0@./components/comp0.move_number",
+            "cmp1@./components/comp0.move_number",
+        ]
+        assert result == expected_result
+
     def test_cmpids_for_query(self):
 
         # Test the default model
@@ -105,33 +132,41 @@ class TestModel(unittest.TestCase):
         model_cfg = HubitModelConfig.from_cfg(
             yaml.load(model, Loader=yaml.FullLoader), base_path=THIS_DIR
         )
-        self.hmodel = HubitModel(model_cfg, name="TEST", output_path=REL_TMP_DIR)
+        hmodel = HubitModel(model_cfg, name="TEST", output_path=REL_TMP_DIR)
+        TestModel.run_cmpids_for_query_tests(hmodel)
 
-        # Two components match query path
-        qpath = HubitQueryPath("first_coor[:].second_coor[:].value")
-        result = self.hmodel._cmpids_for_query(qpath, check_intersection=True)
-        expected_result = [
-            "cmp0@./components/comp0.move_number",
-            "cmp1@./components/comp0.move_number",
-        ]
-        assert result == expected_result
-
-        # Only the second components match query path
-        qpath = HubitQueryPath("first_coor[:].second_coor[1].value")
-        result = self.hmodel._cmpids_for_query(qpath, check_intersection=True)
-        expected_result = [
-            "cmp1@./components/comp0.move_number",
-        ]
-        assert result == expected_result
-
-        # Both components match the query path since we don't check the intersection
-        qpath = HubitQueryPath("first_coor[:].second_coor[1].value")
-        result = self.hmodel._cmpids_for_query(qpath, check_intersection=False)
-        expected_result = [
-            "cmp0@./components/comp0.move_number",
-            "cmp1@./components/comp0.move_number",
-        ]
-        assert result == expected_result
+        # Test model with index scopes
+        model = """
+        components:
+          -
+            # move a number
+            func_name: move_number
+            path: ./components/comp0.py
+            index_scope:
+                IDX2: 0
+            provides_results:
+                - name: number
+                  path: first_coor[IDX1].second_coor[IDX2].value
+            consumes_input:
+                - name: number
+                  path: list[IDX1].some_attr.inner_list[IDX2].xval
+          -
+            func_name: move_number
+            path: ./components/comp0.py
+            index_scope:
+                IDX2: "1:"
+            provides_results:
+                - name: number
+                  path: first_coor[IDX1].second_coor[IDX2].value
+            consumes_input:
+                - name: number
+                  path: list[IDX1].some_attr.inner_list[IDX2].xval
+        """
+        model_cfg = HubitModelConfig.from_cfg(
+            yaml.load(model, Loader=yaml.FullLoader), base_path=THIS_DIR
+        )
+        hmodel = HubitModel(model_cfg, name="TEST", output_path=REL_TMP_DIR)
+        TestModel.run_cmpids_for_query_tests(hmodel)
 
     def test_from_file(self):
         """

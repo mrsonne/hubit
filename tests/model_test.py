@@ -174,7 +174,7 @@ class TestModel(unittest.TestCase):
         hmodel = HubitModel(model_cfg, name="TEST", output_path=REL_TMP_DIR)
         TestModel.run_mpaths_for_qpath_fields_only(hmodel)
 
-    def run_cmpids_for_query_tests(hmodel):
+    def run_cmpids_for_query_tests(hmodel: HubitModel):
         # Two components match query path
         qpath = HubitQueryPath("first_coor[:].second_coor[:].value")
         result = hmodel._cmpids_for_query(qpath, check_intersection=True)

@@ -102,13 +102,12 @@ To illustrate the cascade of events that spawn the necessary calculations let us
 ```yml
 path: ./components/total_cost.py
 func_name: total_wall_cost
-provides:
+provides_results:
   - name: cost
     path: total_cost
-consumes:
-  results:
-    - name: segment_costs
-      path: segments[:@IDX_SEG].cost
+consumes_results:
+  - name: segment_costs
+    path: segments[:@IDX_SEG].cost
 ```
 
 Further, the model file reveals that the `total_cost.py` _consumes_ the costs for all segments (`segments[:@IDX_SEG].cost`). The segment costs are, in turn, provided by `segment_cost.py` as seen from the component definition below, which is also taken from `model.yml`.
@@ -116,23 +115,22 @@ Further, the model file reveals that the `total_cost.py` _consumes_ the costs fo
 ```yml
 path: ./components/segment_cost.py
 func_name: cost
-provides:
+provides_results:
   - name: cost
     path: segments[IDX_SEG].cost
-consumes:
-  input: 
-    - name: materials
-      path: segments[IDX_SEG].layers[:@IDX_LAY].material
-    - name: type
-      path: segments[IDX_SEG].type
-  results:
-    - name: weights
-      path: segments[IDX_SEG].layers[:@IDX_LAY].weight
+consumes_input: 
+  - name: materials
+    path: segments[IDX_SEG].layers[:@IDX_LAY].material
+  - name: type
+    path: segments[IDX_SEG].type
+consumes_results: 
+  - name: weights
+    path: segments[IDX_SEG].layers[:@IDX_LAY].weight
 ```
 
-Since the segment costs are not in the results data to begin with `hubit` spawns the `segment_cost.py` calculation. To calculate the segment cost, the material and segment weight must be known for each layer in the segment since these attributes are specified in the `consumes` section. The segment cost component expects the layer materials and weights to be available at `segments[IDX_SEG].layers[:@IDX_LAY].material` and `segments[IDX_SEG].layers[:@IDX_LAY].weight`,  respectively.
+Since the segment costs are not in the results data to begin with `Hubit` spawns the `segment_cost.py` calculation. To calculate the segment cost, the material and segment weight must be known for each layer in the segment since these attributes are specified in the `consumes_results` section. The segment cost component expects the layer materials and weights to be available at `segments[IDX_SEG].layers[:@IDX_LAY].material` and `segments[IDX_SEG].layers[:@IDX_LAY].weight`,  respectively.
 
-The weights are calculated in `weight.py` and the material (part of the input) is used to look up a price in `segment_cost.py`. Inspecting `model.yml` shows that the weight component _consumes_ the layer volume calculated in `volume.py`. So the original query triggers a cascade of new auxiliary queries that each may spawn new calculations. The calculations are put on hold until the all required data is available. Once this data becomes available the calculation starts and may, after completion, provide data that trigger other pending calculations. Since the cost and heat transfer calculations for each wall segment are independent the event-driven architecture allows `hubit` to execute these calculations for each wall segment in parallel if the multi-processing flag is set to `True`.
+The weights are calculated in `weight.py` and the material (part of the input) is used to look up a price in `segment_cost.py`. Inspecting `model.yml` shows that the weight component _consumes_ the layer volume calculated in `volume.py`. So the original query triggers a cascade of new auxiliary queries that each may spawn new calculations. The calculations are put on hold until the all required data is available. Once this data becomes available the calculation starts and may, after completion, provide data that trigger other pending calculations. Since the cost and heat transfer calculations for each wall segment are independent the event-driven architecture allows `Hubit` to execute these calculations for each wall segment in parallel if the multi-processing flag is set to `True`.
 
 As we have previously seen, the response to the `'heat_transfer_number'` query is
 

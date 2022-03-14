@@ -27,7 +27,7 @@ def query_with_precomputed_results(
 
     print("response", response)
     # Get the full results object
-    results = hmodel.get_results()
+    results = hmodel.results
 
     print("\n*** RESULTS (FlatData) ***")
     pprint.pprint(results)

@@ -138,7 +138,7 @@ As we have previously seen, the response to the `'heat_transfer_number'` query i
 {'heat_transfer_number': 0.8888377547279751}
 ```
 
-All the results that were used to process the query can be accessed using `hmodel.get_results()`
+All the results that were used to process the query can be accessed using `hmodel.results`
 
 ```python
 {'energy_class': 'C',
@@ -200,7 +200,7 @@ This example runs various queries. First the queries are submitted individually,
 After completing a query the `Hubit` model instance will store the results. If a new query is submitted using the same model and the `use_results` argument is set to `"current"` in  [`get`][hubit.model.HubitModel.get], `Hubit` will use the cached results instead of re-calculating them i.e. `Hubit` will bypass the components that provide the cached results. For example, if the layer costs are queried first followed by a query for the wall total cost, which consumes the layer cost, the layer cost will not be calculated in the second query. An example is shown in
 [`examples/wall/run_precompute.py`](https://github.com/mrsonne/hubit/tree/master/examples/wall/run_precompute.py)
 
-The results can be retrieved using the [`get_results()`][hubit.model.HubitModel.get_results] method on the `Hubit` model instance and can then be saved to disk or otherwise persisted.
+The results can be retrieved from [`results`][hubit.model.HubitModel.results] on the `Hubit` model instance and can then be saved to disk or otherwise persisted.
 
 ### Manually set results
 

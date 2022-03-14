@@ -197,9 +197,9 @@ This example runs various queries. First the queries are submitted individually,
 
 ### Negative indices in model binding paths
 
-To illustrate the use of negative indices in model binding paths, the [model file](https://github.com/mrsonne/hubit/tree/master/examples/wall/model.yml) includes a component that calculates the minimum temperature between the outermost and second outermost wall layers. This interface is called the "service layer" and one could imaging that it is of engineering interest to know the lowest temperature that this service layer will experience. To this end the component subscribes to `segments[IDX_SEG].layers[-2@IDX_LAY].outer_temperature` among other paths. The result is saved in the path `service_layer_minimum_temperature`. The example in [`examples/wall/run_min_temperature.py`](https://github.com/mrsonne/hubit/tree/master/examples/wall/run_min_temperature.py) show how the minimum service layer temperature can be obtained by executing `hmodel.get(["service_layer_minimum_temperature"])`.
+To illustrate the use of negative indices, the [model file](https://github.com/mrsonne/hubit/tree/master/examples/wall/model.yml) includes a component that calculates the minimum temperature between the outermost and second outermost wall layers. One could imagine that this temperature is of engineering interest. To this end the `Hubit` model component subscribes to `segments[IDX_SEG].layers[-2@IDX_LAY].outer_temperature` among other paths. The minimum temperature is stored in the path `service_layer_minimum_temperature`.
 
-The `Hubit` log reveals that to produce the response 10 thermal conductivity and 3 thermal profile workers were spawned.
+The example in [`examples/wall/run_min_temperature.py`](https://github.com/mrsonne/hubit/tree/master/examples/wall/run_min_temperature.py) executes `hmodel.get(["service_layer_minimum_temperature"])` which gives the response `{'service_layer_minimum_temperature': 275.79}`. The `Hubit` log reveals that 10 thermal conductivity and 3 thermal profile workers were spawned to produce the response.
 
 ```
 ------------------------------------------------------------------------------------------------------------------------------

@@ -1,6 +1,7 @@
 # The input is used lazyly so only the parts that are 
 # used by a specific query are required
-
+no_service_segment_types:
+  - window
 segments:
   # First segment
   - type: wall

@@ -133,7 +133,25 @@ components:
     func_name: total_wall_cost
     provides_results:
       - name: cost
-        path: total_cost  
+        path: total_cost
     consumes_results:
       - name: segment_costs
         path: segments[:@IDX_SEG].cost
+
+# Component that calculates the minimum temperature between 
+#  the outermost and second outermost wall layer named the 
+# "service" layer
+  - path: ./components/min_temperature.py
+    provides_results:
+      - name: service_layer_minimum_temperature
+        path: service_layer_minimum_temperature
+    consumes_results:
+      - name: service_layer_minimum_temperatures
+        path: segments[IDX_SEG].layers[-2@IDX_LAY].outer_temperature
+    consumes_input: 
+    # consume the segment type and a 
+    # list of segment types to exclude 
+      - name: segment_types
+        path: segments[IDX_SEG].type
+      - name: no_service_segment_types
+        path: no_service_segment_types

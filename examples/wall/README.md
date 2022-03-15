@@ -195,7 +195,7 @@ Notice how the graph representing the query only includes a subset of all the mo
 
 This example runs various queries. First the queries are submitted individually, which causes redundant calculations. Second, all the queries are submitted together in which case `Hubit` will assure that the same result is not calculate multiple times. An example is shown in [`examples/wall/run_queries.py`](https://github.com/mrsonne/hubit/tree/master/examples/wall/run_queries.py).
 
-### Negative indices in model binding paths
+### Indexing from the back in the model
 
 To illustrate the use of negative indices, the [model file](https://github.com/mrsonne/hubit/tree/master/examples/wall/model.yml) includes a component that calculates the minimum temperature between the outermost and second outermost wall layers. The temperature at this interface could be of particular engineering interest. To this end the `Hubit` model component subscribes to `segments[IDX_SEG].layers[-2@IDX_LAY].outer_temperature` and the minimum temperature is stored in the path `service_layer_minimum_temperature`.
 

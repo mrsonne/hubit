@@ -279,9 +279,9 @@ There are two important details. First, the `index_scope` field limits the scope
 
 The complete model definition can be seen in [`examples/tanks/model_2.yml`](https://github.com/mrsonne/hubit/tree/master/examples/tanks/model_2.yml) in the repository.
 
-## Indexing from the back in the model definition
+## Indexing from the back in the model
 
-If we want to use the yield stream from the last tank to calculate e.g. the revenue from a production line we can easily add e.g. two components to the model. The first component, which is implemented in `unit_price.py`, is responsible for fetching the unit price for the product stream. The second component, which is implemented in `revenue.py`, subscribes to the yield stream from the last tank as well as the  the unit price and is responsible for calculating the revenue. The new section in the model file could look like this
+If we want to use the yield stream from the last tank to calculate e.g. the revenue from a production line we can easily add two components to the model (see e.g. [`examples/tanks/model_1.yml`](https://github.com/mrsonne/hubit/tree/master/examples/tanks/model_1.yml). The first component, which is implemented in `unit_price.py`, is responsible for fetching the unit price for the product stream. The second component, which is implemented in `revenue.py`, subscribes to the yield stream from the last tank as well as the unit price. The latter is responsible for calculating the revenue. The new section in the model file could look like this
 
 ```yaml
   - path: ./components/unit_price.py
@@ -297,11 +297,11 @@ If we want to use the yield stream from the last tank to calculate e.g. the reve
       - name: revenue
         path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].revenue
     consumes_results:
-      # use outlet flow from previous tank 0
+      # use outlet flow from last tank
       - name: Q_yield
         path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[-1@IDX_TANK].Q_yield
       - name: unit_price
         path: unit_price
 ```
 
-In this example `unit_price.py` uses a web service with a URL defined in the field `price_source` in input data.
+In the example `unit_price.py` uses a web service with a URL defined in the field `price_source` in the [`examples/tanks/input.yml`](https://github.com/mrsonne/hubit/tree/master/examples/tanks/input.yml).

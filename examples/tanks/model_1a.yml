@@ -54,7 +54,7 @@ components:
       - name: revenue
         path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].revenue
     consumes_results:
-      # use outlet flow from previous tank 0
+      # use outlet flow from last tank
       - name: Q_yield
         path: prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[-1@IDX_TANK].Q_yield
       - name: unit_price

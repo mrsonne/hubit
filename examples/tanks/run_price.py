@@ -7,7 +7,9 @@ from .shared import get_model
 
 def run_sales_calc(model_id, input_file="input.yml"):
     use_multi_processing = True
+    component_caching = True
     hmodel = get_model(model_id, input_file)
+    hmodel.set_component_caching(component_caching)
     response = hmodel.get(
         [
             "prod_sites[:].prod_lines[:].revenue",

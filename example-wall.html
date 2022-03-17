@@ -1,0 +1,833 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      <link rel="icon" href="assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.2.5">
+    
+    
+      
+        <title>Wall - Hubit Docs</title>
+      
+    
+    
+      <link rel="stylesheet" href="assets/stylesheets/main.2d9f7617.min.css">
+      
+        
+        <link rel="stylesheet" href="assets/stylesheets/palette.e6a45f82.min.css">
+        
+      
+    
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL(".",location),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="none" data-md-color-accent="none">
+  
+    
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#heat-flow-through-a-wall" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-component="outdated" hidden>
+        <aside class="md-banner md-banner--warning">
+          
+        </aside>
+      </div>
+    
+    
+
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="index.html" title="Hubit Docs" class="md-header__button md-logo" aria-label="Hubit Docs" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Hubit Docs
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Wall
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+  
+</header>
+    
+<p style="color:RGBA(0,0,0,.3); font-size: 10px; padding-left: 10px">
+    Page built on Mar 17 2022 for version 0.5.0.
+</p>
+
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="index.html" title="Hubit Docs" class="md-nav__button md-logo" aria-label="Hubit Docs" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    Hubit Docs
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="index.html" class="md-nav__link">
+        First steps
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2" type="checkbox" id="__nav_2" checked>
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_2">
+          Examples
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Examples" data-md-level="1">
+        <label class="md-nav__title" for="__nav_2">
+          <span class="md-nav__icon md-icon"></span>
+          Examples
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="examples.html" class="md-nav__link">
+        Summary
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="example-car.html" class="md-nav__link">
+        Car
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Wall
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="example-wall.html" class="md-nav__link md-nav__link--active">
+        Wall
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#model" class="md-nav__link">
+    Model
+  </a>
+  
+    <nav class="md-nav" aria-label="Model">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#components" class="md-nav__link">
+    Components
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#call-graph-multi-processing" class="md-nav__link">
+    Call graph &amp; multi-processing
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example-calculations" class="md-nav__link">
+    Example calculations
+  </a>
+  
+    <nav class="md-nav" aria-label="Example calculations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#rending-the-model" class="md-nav__link">
+    Rending the model
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#queries" class="md-nav__link">
+    Queries
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#indexing-from-the-back-in-the-model" class="md-nav__link">
+    Indexing from the back in the model
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#re-using-old-results" class="md-nav__link">
+    Re-using old results
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#manually-set-results" class="md-nav__link">
+    Manually set results
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sweep-input-parameters" class="md-nav__link">
+    Sweep input parameters
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="example-tanks.html" class="md-nav__link">
+        Tanks
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_3" type="checkbox" id="__nav_3" >
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3">
+          Code Reference
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Code Reference" data-md-level="1">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          Code Reference
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="hubit-reference.html" class="md-nav__link">
+        Hubit
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="config-reference.html" class="md-nav__link">
+        Config & data
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="log-reference.html" class="md-nav__link">
+        Log
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="changelog.html" class="md-nav__link">
+        Change log
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#model" class="md-nav__link">
+    Model
+  </a>
+  
+    <nav class="md-nav" aria-label="Model">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#components" class="md-nav__link">
+    Components
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#call-graph-multi-processing" class="md-nav__link">
+    Call graph &amp; multi-processing
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example-calculations" class="md-nav__link">
+    Example calculations
+  </a>
+  
+    <nav class="md-nav" aria-label="Example calculations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#rending-the-model" class="md-nav__link">
+    Rending the model
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#queries" class="md-nav__link">
+    Queries
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#indexing-from-the-back-in-the-model" class="md-nav__link">
+    Indexing from the back in the model
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#re-using-old-results" class="md-nav__link">
+    Re-using old results
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#manually-set-results" class="md-nav__link">
+    Manually set results
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sweep-input-parameters" class="md-nav__link">
+    Sweep input parameters
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content" data-md-component="content">
+            <article class="md-content__inner md-typeset">
+              
+                
+
+
+<h1 id="heat-flow-through-a-wall">Heat flow through a wall</h1>
+<p>In this example we consider a wall that consists of three segments as shown in the illustration below.</p>
+<div class="highlight"><pre><span></span><code>Face view wall (not to scale)
+     _______________
+    |   segment 1   | 1.5 m
+    |_______________|
+    |               | 
+    |   segment 2   | 2.0 m
+    |_______________|
+    |               | 
+    |   segment 3   | 2.0 m
+    |_______________|
+           3.0 m
+</code></pre></div>
+<p>Each wall segment consists of different layers as shown in the side view below.</p>
+<div class="highlight"><pre><span></span><code>Side view of the wall (not to scale)
+
+                      brick air  rockwool 
+                        |    |   |     brick
+                        |    |   |     |
+            Inside      v    v   v     v    Outside
+                     ----------------------
+                     |      | |    |      | segment 1 (wall: brick-air-rockwool-brick)
+temperature = 320 K  |      | |    |      | temperature = 273 K   
+                     ----------------------        
+                                      || ||      
+                                      || || segment 2 (window: glass-air-glass)
+temperature = 300 K                   || || temperature = 273 K
+                     ----------------------
+                     |         | |        |      
+                     |         | |        | segment 3 (wall: concrete-EPS-concrete)
+temperature = 300 K  |         | |        | temperature = 273 K
+                     ----------------------
+                        ^       ^     ^ 
+                        |       |     |
+                     concrete   |     concrete 
+                               EPS 
+</code></pre></div>
+<p>The wall materials, dimensions and other input can be found in wall input file <a href="https://github.com/mrsonne/hubit/blob/master/examples/wall/input.yml"><code>examples/wall/input.yml</code></a>. Note that the number of wall layers in the two segments differ, which illustrates that <code>Hubit</code> can handle non-rectangular data.</p>
+<h2 id="model">Model</h2>
+<p>The wall model is defined in <a href="https://github.com/mrsonne/hubit/blob/master/examples/wall/model.yml"><code>examples/wall/model.yml</code></a> and define bindings between calculation components that provides certain results. The components are explained in greater detail later. With the model in place <code>Hubit</code> allows users to query the results data structure. For example, to get the "total_cost" and "total_heat_loss" for the wall we would write</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">hubit.model</span> <span class="kn">import</span> <span class="n">HubitModel</span>
+<span class="n">hmodel</span> <span class="o">=</span> <span class="n">HubitModel</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="s1">&#39;model.yml&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;wall&#39;</span><span class="p">)</span>
+<span class="n">query</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;total_cost&quot;</span><span class="p">,</span> <span class="s2">&quot;heat_transfer_number&quot;</span><span class="p">]</span>
+<span class="n">response</span> <span class="o">=</span> <span class="n">hmodel</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+</code></pre></div>
+<p>The response to the query is</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+  <span class="s1">&#39;total_cost&#39;</span><span class="p">:</span> <span class="mf">2365.600380096421</span><span class="p">,</span> 
+  <span class="s1">&#39;heat_transfer_number&#39;</span><span class="p">:</span> <span class="mf">0.8888377547279751</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Behind the scenes <code>Hubit</code> constructs and executes the call graph for the query. Only components that provide results that are necessary for constructing the response are spawned. Therefore, the query <code>segment[0].cost</code> would only spawn calculations required to calculate the cost of wall segment 0 while the query <code>total_cost</code> invokes cost calculations for all segments. To understand more about this behavior read the <a href="#call-graph-multi-processing">Call graph &amp; multi-processing</a> section below.</p>
+<p>By using different queries it is straight forward to set up reports for different audiences, each with a customized content, but based on the same model and the same input. Such different reports can service different stakeholders e.g. management, internal design engineers, clients or independent verification agencies.</p>
+<h3 id="components">Components</h3>
+<p>The source code for the wall model components can be found in the <a href="https://github.com/mrsonne/hubit/tree/master/examples/wall"><code>examples/wall/components</code></a> folder in the repository and are referenced from <a href="https://github.com/mrsonne/hubit/tree/master/examples/wall/model.yml"><code>the model configuration file</code></a>. A time delay has been added in some of the components to simulate a heavy computational load or a latency in a web service. The time delay illustrates the asynchronous capabilities in <code>Hubit</code>.</p>
+<p>Some of the calculation components deals with the physics part of the wall model. These components include</p>
+<ol>
+<li><a href="https://github.com/mrsonne/hubit/tree/master/examples/wall/components/thermal_conductivity.py"><code>thermal_conductivity.py</code></a>. Simple lookup of thermal conductivities based on the material name.</li>
+<li><a href="https://github.com/mrsonne/hubit/tree/master/examples/wall/components/thermal_profile.py"><code>thermal_profile.py</code></a>. A calculation of the temperature for all wall layers in a segment as well
+as the heat flux in the segment. We assume one-dimensional heat flow, and thus each segment can be treated independently.</li>
+<li><a href="https://github.com/mrsonne/hubit/tree/master/examples/wall/components/heat_flow.py"><code>heat_flow.py</code></a>. Calculates the heat flow through a segment.</li>
+<li><a href="https://github.com/mrsonne/hubit/tree/master/examples/wall/components/heat_transfer_number.py"><code>heat_transfer_number.py</code></a>. Calculates the overall heat transfer number and wall energy classification. The wall energy classification ranges from A to D where A indicates the most insulating wall (best) and D indicates the least insulating wall (worst).</li>
+</ol>
+<p>Many (all) of the components could have been joined in a single component, but here they are kept as  separate components to increase modularity, to assure that any query only spawns a minimum of calculations and to maximize the potential speed-up obtained by multi-processing.</p>
+<p>The wall cost is calculated by the two components below</p>
+<ol>
+<li><a href="https://github.com/mrsonne/hubit/tree/master/examples/wall/components/segment_cost.py"><code>segment_cost.py</code></a>. Calculates wall segment cost. In the code notice how segments with type 'window' are handled differently compared to other segments types.</li>
+<li><a href="https://github.com/mrsonne/hubit/tree/master/examples/wall/components/total_cost.py"><code>total_cost.py</code></a>. Calculates wall total cost.</li>
+</ol>
+<p>To support the cost calculations two extra engineering components are included</p>
+<ol>
+<li><a href="https://github.com/mrsonne/hubit/tree/master/examples/wall/components/volume.py"><code>volume.py</code></a>. Calculates the volume of wall layers.</li>
+<li><a href="https://github.com/mrsonne/hubit/tree/master/examples/wall/components/weight.py"><code>weight.py</code></a>. Calculates the weight of wall layers.</li>
+</ol>
+<h3 id="call-graph-multi-processing">Call graph &amp; multi-processing</h3>
+<p><code>Hubit</code> is event-driven and components are spawned dynamically. The bindings that are used to set up the relations between components are defined in <code>model.yml</code></p>
+<p>To illustrate the cascade of events that spawn the necessary calculations let us consider a query for the wall <code>total_cost</code>. In the model file the total cost is <em>provided</em> by <code>total_cost.py</code>.</p>
+<div class="highlight"><pre><span></span><code>path: ./components/total_cost.py
+func_name: total_wall_cost
+provides_results:
+  - name: cost
+    path: total_cost
+consumes_results:
+  - name: segment_costs
+    path: segments[:@IDX_SEG].cost
+</code></pre></div>
+<p>Further, the model file reveals that the <code>total_cost.py</code> <em>consumes</em> the costs for all segments (<code>segments[:@IDX_SEG].cost</code>). The segment costs are, in turn, provided by <code>segment_cost.py</code> as seen from the component definition below, which is also taken from <code>model.yml</code>.</p>
+<div class="highlight"><pre><span></span><code>path: ./components/segment_cost.py
+func_name: cost
+provides_results:
+  - name: cost
+    path: segments[IDX_SEG].cost
+consumes_input: 
+  - name: materials
+    path: segments[IDX_SEG].layers[:@IDX_LAY].material
+  - name: type
+    path: segments[IDX_SEG].type
+consumes_results: 
+  - name: weights
+    path: segments[IDX_SEG].layers[:@IDX_LAY].weight
+</code></pre></div>
+<p>Since the segment costs are not in the results data to begin with <code>Hubit</code> spawns the <code>segment_cost.py</code> calculation. To calculate the segment cost, the material and segment weight must be known for each layer in the segment since these attributes are specified in the <code>consumes_results</code> section. The segment cost component expects the layer materials and weights to be available at <code>segments[IDX_SEG].layers[:@IDX_LAY].material</code> and <code>segments[IDX_SEG].layers[:@IDX_LAY].weight</code>,  respectively.</p>
+<p>The weights are calculated in <code>weight.py</code> and the material (part of the input) is used to look up a price in <code>segment_cost.py</code>. Inspecting <code>model.yml</code> shows that the weight component <em>consumes</em> the layer volume calculated in <code>volume.py</code>. So the original query triggers a cascade of new auxiliary queries that each may spawn new calculations. The calculations are put on hold until the all required data is available. Once this data becomes available the calculation starts and may, after completion, provide data that trigger other pending calculations. Since the cost and heat transfer calculations for each wall segment are independent the event-driven architecture allows <code>Hubit</code> to execute these calculations for each wall segment in parallel if the multi-processing flag is set to <code>True</code>.</p>
+<p>As we have previously seen, the response to the <code>'heat_transfer_number'</code> query is</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span><span class="s1">&#39;heat_transfer_number&#39;</span><span class="p">:</span> <span class="mf">0.8888377547279751</span><span class="p">}</span>
+</code></pre></div>
+<p>All the results that were used to process the query can be accessed using <code>hmodel.results</code></p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span><span class="s1">&#39;energy_class&#39;</span><span class="p">:</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span>
+ <span class="s1">&#39;heat_transfer_number&#39;</span><span class="p">:</span> <span class="mf">0.8888377547279751</span><span class="p">,</span>
+ <span class="s1">&#39;segments&#39;</span><span class="p">:</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;heat_flux&#39;</span><span class="p">:</span> <span class="mf">13.134093452714046</span><span class="p">,</span>
+                  <span class="s1">&#39;heat_transfer_number&#39;</span><span class="p">:</span> <span class="mf">0.2794487968662563</span><span class="p">,</span>
+                  <span class="s1">&#39;layers&#39;</span><span class="p">:</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;k_therm&#39;</span><span class="p">:</span> <span class="mf">0.47</span><span class="p">,</span>
+                                 <span class="s1">&#39;outer_temperature&#39;</span><span class="p">:</span> <span class="mf">317.20551203133743</span><span class="p">},</span>
+                             <span class="mi">1</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;k_therm&#39;</span><span class="p">:</span> <span class="mf">0.025</span><span class="p">,</span>
+                                 <span class="s1">&#39;outer_temperature&#39;</span><span class="p">:</span> <span class="mf">306.6982372691662</span><span class="p">},</span>
+                             <span class="mi">2</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;k_therm&#39;</span><span class="p">:</span> <span class="mf">0.034</span><span class="p">,</span>
+                                 <span class="s1">&#39;outer_temperature&#39;</span><span class="p">:</span> <span class="mf">275.79448796866257</span><span class="p">},</span>
+                             <span class="mi">3</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;k_therm&#39;</span><span class="p">:</span> <span class="mf">0.47</span><span class="p">,</span> <span class="s1">&#39;outer_temperature&#39;</span><span class="p">:</span> <span class="mf">273.0</span><span class="p">}}},</span>
+              <span class="mi">1</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;heat_flux&#39;</span><span class="p">:</span> <span class="mf">33.540372670807464</span><span class="p">,</span>
+                  <span class="s1">&#39;heat_transfer_number&#39;</span><span class="p">:</span> <span class="mf">1.2422360248447208</span><span class="p">,</span>
+                  <span class="s1">&#39;layers&#39;</span><span class="p">:</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;k_therm&#39;</span><span class="p">:</span> <span class="mf">0.8</span><span class="p">,</span>
+                                 <span class="s1">&#39;outer_temperature&#39;</span><span class="p">:</span> <span class="mf">299.91614906832297</span><span class="p">},</span>
+                             <span class="mi">1</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;k_therm&#39;</span><span class="p">:</span> <span class="mf">0.025</span><span class="p">,</span>
+                                 <span class="s1">&#39;outer_temperature&#39;</span><span class="p">:</span> <span class="mf">273.083850931677</span><span class="p">},</span>
+                             <span class="mi">2</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;k_therm&#39;</span><span class="p">:</span> <span class="mf">0.8</span><span class="p">,</span>
+                                 <span class="s1">&#39;outer_temperature&#39;</span><span class="p">:</span> <span class="mf">272.99999999999994</span><span class="p">}}},</span>
+              <span class="mi">2</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;heat_flux&#39;</span><span class="p">:</span> <span class="mf">26.79699248120301</span><span class="p">,</span>
+                  <span class="s1">&#39;heat_transfer_number&#39;</span><span class="p">:</span> <span class="mf">0.9924812030075189</span><span class="p">,</span>
+                  <span class="s1">&#39;layers&#39;</span><span class="p">:</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;k_therm&#39;</span><span class="p">:</span> <span class="mf">1.1</span><span class="p">,</span>
+                                 <span class="s1">&#39;outer_temperature&#39;</span><span class="p">:</span> <span class="mf">296.34586466165416</span><span class="p">},</span>
+                             <span class="mi">1</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;k_therm&#39;</span><span class="p">:</span> <span class="mf">0.033</span><span class="p">,</span>
+                                 <span class="s1">&#39;outer_temperature&#39;</span><span class="p">:</span> <span class="mf">276.0451127819549</span><span class="p">},</span>
+                             <span class="mi">2</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;k_therm&#39;</span><span class="p">:</span> <span class="mf">1.1</span><span class="p">,</span> <span class="s1">&#39;outer_temperature&#39;</span><span class="p">:</span> <span class="mf">273.0</span><span class="p">}}}}}</span>
+</code></pre></div>
+<h2 id="example-calculations">Example calculations</h2>
+<p>The purpose of the examples are summarized below. To run an example using the <code>hubit</code> source code run the example script from the project root e.g. <code>python3 -m examples.wall.run_queries</code>. In some of the examples you can toggle the multi-processing flag to see the performance difference with and without multi-processing. The performance change obtained by activating multi-processing depends on the time spent in the components. You can try to adjust the sleep time in <code>thermal_conductivity.py</code> and <code>thermal_profile.py</code>.</p>
+<h3 id="rending-the-model">Rending the model</h3>
+<p>To get a graphical overview of a <code>hubit</code> model the model can be rendered <strong>if Graphviz is installed</strong>. The rendition of the wall model is shown below  </p>
+<p><a target="_blank" rel="noopener noreferrer" href="https://github.com/mrsonne/hubit/blob/master/examples/wall/images/model_wall.png">
+  <img src="https://github.com/mrsonne/hubit/raw/master/examples/wall/images/model_wall.png" width="1000" style="max-width:100%;">
+</a></p>
+<p><code>Hubit</code> can also render a query as illustrated below</p>
+<p><a target="_blank" rel="noopener noreferrer" href="https://github.com/mrsonne/hubit/blob/master/examples/wall/images/query_wall.png">
+  <img src="https://github.com/mrsonne/hubit/raw/master/examples/wall/images/query_wall.png" width="1000" style="max-width:100%;">
+</a></p>
+<p>Notice how the graph representing the query only includes a subset of all the model components. When a query is rendered only the relevant components for that particular query are shown. The example code can be found in
+<a href="https://github.com/mrsonne/hubit/tree/master/examples/wall/render.py"><code>examples/wall/render.py</code></a>
+.</p>
+<h3 id="queries">Queries</h3>
+<p>This example runs various queries. First the queries are submitted individually, which causes redundant calculations. Second, all the queries are submitted together in which case <code>Hubit</code> will assure that the same result is not calculate multiple times. An example is shown in <a href="https://github.com/mrsonne/hubit/tree/master/examples/wall/run_queries.py"><code>examples/wall/run_queries.py</code></a>.</p>
+<h3 id="indexing-from-the-back-in-the-model">Indexing from the back in the model</h3>
+<p>To illustrate the use of negative indices, the <a href="https://github.com/mrsonne/hubit/tree/master/examples/wall/model.yml">model file</a> includes a component that calculates the minimum temperature between the outermost and second outermost wall layers. The temperature at this interface could be of particular engineering interest. To this end the <code>Hubit</code> model component subscribes to <code>segments[IDX_SEG].layers[-2@IDX_LAY].outer_temperature</code> and the minimum temperature is stored in the path <code>service_layer_minimum_temperature</code>.</p>
+<p>The example in <a href="https://github.com/mrsonne/hubit/tree/master/examples/wall/run_min_temperature.py"><code>examples/wall/run_min_temperature.py</code></a> executes <code>hmodel.get(["service_layer_minimum_temperature"])</code> which gives the response <code>{'service_layer_minimum_temperature': 275.79}</code>. The <code>Hubit</code> log reveals that 10 thermal conductivity and 3 thermal profile workers were spawned to produce the response.</p>
+<div class="highlight"><pre><span></span><code>------------------------------------------------------------------------------------------------------------------------------
+Query finish time    Query took (s)                      Worker name                       Workers spawned Component cache hits
+-------------------------------------------------------------------------------------------------------------------------------
+14-Mar-2022 13:06:16      2.5                  ./components/heat_flow.heat_flow                   0                 0
+                                    ./components/heat_transfer_number.heat_transfer_number        0                 0
+                                              ./components/min_temperature.main                   1                 0
+                                                ./components/segment_cost.cost                    0                 0
+                                    ./components/thermal_conductivity.thermal_conductivity       10                 0
+                                          ./components/thermal_profile.thermal_prof               3                 0
+                                           ./components/total_cost.total_wall_cost                0                 0
+                                                  ./components/volume.volume                      0                 0
+                                                  ./components/weight.weight                      0                 0
+-------------------------------------------------------------------------------------------------------------------------------
+</code></pre></div>
+<h3 id="re-using-old-results">Re-using old results</h3>
+<p>After completing a query the <code>Hubit</code> model instance will store the results. If a new query is submitted using the same model and the <code>use_results</code> argument is set to <code>"current"</code> in  <a class="autorefs autorefs-internal" href="hubit-reference.html#hubit.model.HubitModel.get"><code>get</code></a>, <code>Hubit</code> will use the cached results instead of re-calculating them i.e. <code>Hubit</code> will bypass the components that provide the cached results. For example, if the layer costs are queried first followed by a query for the wall total cost, which consumes the layer cost, the layer cost will not be calculated in the second query. An example is shown in
+<a href="https://github.com/mrsonne/hubit/tree/master/examples/wall/run_precompute.py"><code>examples/wall/run_precompute.py</code></a></p>
+<p>The results can be retrieved from <a class="autorefs autorefs-internal" href="hubit-reference.html#hubit.model.HubitModel.results"><code>results</code></a> on the <code>Hubit</code> model instance and can then be saved to disk or otherwise persisted.</p>
+<h3 id="manually-set-results">Manually set results</h3>
+<p>Results can be manually set on the model using the <a class="autorefs autorefs-internal" href="hubit-reference.html#hubit.model.HubitModel.set_results"><code>set_results()</code></a> method on a <code>Hubit</code> model instance. In subsequent queries <code>Hubit</code> will then omit re-calculating the results that have been set, thus bypassing the corresponding providers. The values that are manually set could represent some new measurements that you want to see the effect of when propagated in through the remaining components downstream of the component that is bypassed. The values could also represent persisted results that you want to augment with additional results or analyses without running the entire model again. An example is shown in <a href="https://github.com/mrsonne/hubit/tree/master/examples/wall/run_set_results.py"><code>examples/wall/run_set_results.py</code></a>.</p>
+<h3 id="sweep-input-parameters">Sweep input parameters</h3>
+<p><code>Hubit</code> can sweep over different values of the input attributes. The example shows the energy class and cost for different value of the insulation thickness and for different values of the wall materials. <a href="https://github.com/mrsonne/hubit/tree/master/examples/wall/run_sweep.py"><code>examples/wall/run_sweep.py</code></a> shows an example sweep which results in the table below</p>
+<div class="highlight"><pre><span></span><code>Wall sweep
+-------------------------------------------------------------------------------------------------------------------------
+Inner Mat.   Outer Mat.   Seg0 Ins. Thck. [m]   Seg1 Ins. Thck. [m]   heat_transfer_number   energy_class   total_cost
+-------------------------------------------------------------------------------------------------------------------------
+brick        brick        0.08                  0.025                 0.80                   C              2761
+brick        brick        0.12                  0.065                 0.65                   B              2804
+brick        concrete     0.08                  0.025                 0.84                   C              1746
+brick        concrete     0.12                  0.065                 0.66                   B              1789
+concrete     brick        0.08                  0.025                 0.84                   C              1619
+concrete     brick        0.12                  0.065                 0.66                   B              1662
+concrete     concrete     0.08                  0.025                 0.89                   C              604
+concrete     concrete     0.12                  0.065                 0.68                   B              647
+-------------------------------------------------------------------------------------------------------------------------
+</code></pre></div>
+<p>The information in the table could conveniently be visualized in a parallel coordinates plot.</p>
+
+              
+            </article>
+          </div>
+        </div>
+        
+      </main>
+      
+
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    <script id="__config" type="application/json">{"base": ".", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "assets/javascripts/workers/search.bd0b6b67.min.js", "version": "0.5.0"}</script>
+    
+    
+      <script src="assets/javascripts/bundle.467223ff.min.js"></script>
+      
+    
+  </body>
+</html>

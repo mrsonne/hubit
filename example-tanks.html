@@ -1,0 +1,849 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      <link rel="icon" href="assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.2.5">
+    
+    
+      
+        <title>Tanks - Hubit Docs</title>
+      
+    
+    
+      <link rel="stylesheet" href="assets/stylesheets/main.2d9f7617.min.css">
+      
+        
+        <link rel="stylesheet" href="assets/stylesheets/palette.e6a45f82.min.css">
+        
+      
+    
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL(".",location),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="none" data-md-color-accent="none">
+  
+    
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#connected-tanks" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-component="outdated" hidden>
+        <aside class="md-banner md-banner--warning">
+          
+        </aside>
+      </div>
+    
+    
+
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="index.html" title="Hubit Docs" class="md-header__button md-logo" aria-label="Hubit Docs" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Hubit Docs
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Tanks
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+  
+</header>
+    
+<p style="color:RGBA(0,0,0,.3); font-size: 10px; padding-left: 10px">
+    Page built on Mar 17 2022 for version 0.5.0.
+</p>
+
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="index.html" title="Hubit Docs" class="md-nav__button md-logo" aria-label="Hubit Docs" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    Hubit Docs
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="index.html" class="md-nav__link">
+        First steps
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2" type="checkbox" id="__nav_2" checked>
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_2">
+          Examples
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Examples" data-md-level="1">
+        <label class="md-nav__title" for="__nav_2">
+          <span class="md-nav__icon md-icon"></span>
+          Examples
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="examples.html" class="md-nav__link">
+        Summary
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="example-car.html" class="md-nav__link">
+        Car
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="example-wall.html" class="md-nav__link">
+        Wall
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Tanks
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="example-tanks.html" class="md-nav__link md-nav__link--active">
+        Tanks
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#model-1-unstructured" class="md-nav__link">
+    Model 1: Unstructured
+  </a>
+  
+    <nav class="md-nav" aria-label="Model 1: Unstructured">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#explicit-indexing" class="md-nav__link">
+    Explicit indexing
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#index-scope-tanks-1-2" class="md-nav__link">
+    Index scope (tanks 1 &amp; 2)
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#index-scope-tank-3" class="md-nav__link">
+    Index scope (tank 3)
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#model-2-structured" class="md-nav__link">
+    Model 2: Structured
+  </a>
+  
+    <nav class="md-nav" aria-label="Model 2: Structured">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#index-scope" class="md-nav__link">
+    Index scope
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#index-offsets" class="md-nav__link">
+    Index offsets
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#indexing-from-the-back-in-the-model" class="md-nav__link">
+    Indexing from the back in the model
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_3" type="checkbox" id="__nav_3" >
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3">
+          Code Reference
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Code Reference" data-md-level="1">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          Code Reference
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="hubit-reference.html" class="md-nav__link">
+        Hubit
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="config-reference.html" class="md-nav__link">
+        Config & data
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="log-reference.html" class="md-nav__link">
+        Log
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="changelog.html" class="md-nav__link">
+        Change log
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#model-1-unstructured" class="md-nav__link">
+    Model 1: Unstructured
+  </a>
+  
+    <nav class="md-nav" aria-label="Model 1: Unstructured">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#explicit-indexing" class="md-nav__link">
+    Explicit indexing
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#index-scope-tanks-1-2" class="md-nav__link">
+    Index scope (tanks 1 &amp; 2)
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#index-scope-tank-3" class="md-nav__link">
+    Index scope (tank 3)
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#model-2-structured" class="md-nav__link">
+    Model 2: Structured
+  </a>
+  
+    <nav class="md-nav" aria-label="Model 2: Structured">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#index-scope" class="md-nav__link">
+    Index scope
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#index-offsets" class="md-nav__link">
+    Index offsets
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#indexing-from-the-back-in-the-model" class="md-nav__link">
+    Indexing from the back in the model
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content" data-md-component="content">
+            <article class="md-content__inner md-typeset">
+              
+                
+
+
+<h1 id="connected-tanks">Connected tanks</h1>
+<p>This example shows how to set up models where one compartment (cell, element) consumes a result of an upstream compartment (cell, element). In the example, a liquid flows from one tank to the next and encompass two similar tanks models <a href="https://github.com/mrsonne/hubit/tree/master/examples/tanks/model_1.yml"><code>model_1.yml</code></a> and <a href="https://github.com/mrsonne/hubit/tree/master/examples/tanks/model_2.yml"><code>model_2.yml</code></a>. The former illustrates explicit linking of the tanks which is useful for unstructured problems while the latter shows a linking pattern useful for structured problems. Notice that all the model components presented below share the same entrypoint function even though the configurations are quite different. This highlights the powerful separation of implementation and configuration in <code>Hubit</code>.</p>
+<h2 id="model-1-unstructured">Model 1: Unstructured</h2>
+<p>In this example liquid flows into tank 1 with rate <code>Q_in,1</code>. In tank 1 some process takes place and the yield rate is <code>Q_yield,1</code>. Tank 2 is similar to tank 1 only the yield rate is <code>Q_yield,2</code>. The two yield streams are mixed in tank 3 where another process takes place with yield <code>Q_yield,3</code>. The entire process is schematically illustrated below</p>
+<!-- Fixes width ssue for some characters in ascii drawing -->
+<style>
+code {
+  font-family: "var(--md-code-font-family,_)",SFMono-Regular,Consolas,Menlo,monospace;
+}
+</style>
+
+<div class="highlight"><pre><span></span><code>           ║  Q_in,1                ║ Q_in,2                         
+           ║                        ║     
+        ┌──║───────┐          ┌─────║──┐         
+        │  ˅       │          |     ˅  |            
+        │          │          |        |        
+        │~~~~~~~~~~│          |~~~~~~~~|
+        │  Tank 1  │          | Tank 2 |                   
+        └───╥──────┘          └─────╥──┘     
+            ║ Q_yield,1   Q_yield,2 ║
+          ╔═╩══════════╗    ╔═══════╩══╗ 
+Q_spill,1 ║            ║    ║          ║ Q_spill,2
+          ˅            ║    ║          ˅         
+                     ┌─║────║─┐
+                     | ˅    ˅ | 
+                     |        |                                         
+                     |~~~~~~~~|                                         
+                     | Tank 3 |                                         
+                     └──╥─────┘
+                        ║  
+                      ╔═╩════╗                                     
+           Q_spill,3  ║      ║  Q_yield,3
+                      ˅      ˅
+</code></pre></div>
+<p>For simplicity, the yields are determined from a predefined yield fraction parameter i.e. <code>Q_yield = yield_fraction * Q_in</code>.</p>
+<p>Imagine the three tanks represent a production line on a production site. If we consider only one production site with only one production line, the input for the model could look like this</p>
+<div class="highlight"><pre><span></span><code><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">prod_sites</span><span class="p">:</span><span class="w"></span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">prod_lines</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="nt">tanks</span><span class="p">:</span><span class="w"></span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">yield_fraction</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.5</span><span class="w"></span>
+<span class="w">        </span><span class="nt">Q_in</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">20.</span><span class="w"></span>
+<span class="w">        </span><span class="nt">Q_transfer</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.</span><span class="w"></span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">yield_fraction</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.6</span><span class="w"></span>
+<span class="w">        </span><span class="nt">Q_in</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10.</span><span class="w"></span>
+<span class="w">        </span><span class="nt">Q_transfer</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.</span><span class="w"></span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">yield_fraction</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.25</span><span class="w"></span>
+<span class="w">        </span><span class="nt">Q_in</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.</span><span class="w"></span>
+</code></pre></div>
+<p>The fields <code>prod_sites[0].prod_lines[0].tanks[0:2].Q_transfer: 0</code> and <code>prod_sites[0].prod_lines[0].tanks[2].Q_in: 0</code> are boundary conditions that have been added to allow the implementation of the calculation code to be the same for all tanks.</p>
+<h3 id="explicit-indexing">Explicit indexing</h3>
+<p>In this example we will use explicit indexing to direct the yield from tank 1 <code>Q_yield,1</code> into tank 3. For tank 1, the model component could look like this</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Tank 1</span><span class="w"></span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./components/mod1.py</span><span class="w"> </span>
+<span class="w">  </span><span class="nt">provides_results</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Q_yield</span><span class="w"></span>
+<span class="w">      </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[0@IDX_TANK].Q_yield</span><span class="w"></span>
+<span class="w">  </span><span class="nt">consumes_input</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">yield_fraction</span><span class="w"></span>
+<span class="w">      </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[0@IDX_TANK].yield_fraction</span><span class="w"></span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Q_in</span><span class="w"></span>
+<span class="w">      </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[0@IDX_TANK].Q_in</span><span class="w"></span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Q_transfer</span><span class="w"></span>
+<span class="w">      </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[0@IDX_TANK].Q_transfer</span><span class="w"></span>
+</code></pre></div>
+<p>We see that, for a given production site (<code>IDX_SITE</code>) and a given production line (<code>IDX_LINE</code>) on that site, tank 1 consumes input (<code>yield_fraction</code>, <code>Q_in</code> and <code>Q_transfer</code>) from element zero in the list of tanks in the input data (<code>tanks[0@IDX_TANK]</code>). Similarly, the resulting yield (<code>Q_yield</code>) is stored on element zero in the tanks list in the results data.</p>
+<p>For tank 2, the model component is similar to tank 1 except all index specifiers point to tank index 1 (<code>1@IDX_TANK</code>) and is omitted here. For tank 3 the model component could look like this</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Third tank</span><span class="w"></span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./components/mod1.py</span><span class="w"> </span>
+<span class="w">  </span><span class="nt">provides_results</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Q_yield</span><span class="w"></span>
+<span class="w">      </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[2@IDX_TANK].Q_yield</span><span class="w"></span>
+<span class="w">  </span><span class="nt">consumes_input</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">yield_fraction</span><span class="w"></span>
+<span class="w">      </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[2@IDX_TANK].yield_fraction</span><span class="w"></span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Q_in</span><span class="w"></span>
+<span class="w">      </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[2@IDX_TANK].Q_in</span><span class="w"></span>
+<span class="w">  </span><span class="nt">consumes_results</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="c1"># use outlet flow from tank 0</span><span class="w"></span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Q_transfer_1</span><span class="w"></span>
+<span class="w">      </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[0@IDX_TANK].Q_yield</span><span class="w"></span>
+<span class="w">    </span><span class="c1"># use outlet flow from tank 1</span><span class="w"></span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Q_transfer_2</span><span class="w"></span>
+<span class="w">      </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[1@IDX_TANK].Q_yield</span><span class="w"></span>
+</code></pre></div>
+<p>The nodes <code>provides_results</code> and <code>consumes_input</code> look a lot like the equivalent nodes for tanks 1 and 2 except that all index specifiers now refer to tank index 2 (<code>2@IDX_TANK</code>). One other important difference is that tank 3 consumes the outlet flows <code>Q_yield</code> from tanks 1 and 2. The complete model definition can be seen in <a href="https://github.com/mrsonne/hubit/tree/master/examples/tanks/model_1.yml"><code>examples/tanks/model_1.yml</code></a> in the repository.</p>
+<p>With the model in place we can explore some queries and responses. The final yield (from tank 3) from the first production line at the first production site can be obtained from the query.</p>
+<div class="highlight"><pre><span></span><code>[&#39;prod_sites[0].prod_lines[0].tanks[2].Q_yield&#39;]
+</code></pre></div>
+<p>and the response is</p>
+<div class="highlight"><pre><span></span><code>{&#39;prod_sites[0].prod_lines[0].tanks[2].Q_yield&#39;: 4.0}
+</code></pre></div>
+<p>The same result would be produced by querying</p>
+<div class="highlight"><pre><span></span><code>[&#39;prod_sites[0].prod_lines[0].tanks[-1].Q_yield&#39;]
+</code></pre></div>
+<p>From <code>examples/tanks/input.yml</code> we can reconstruct how the result 4.0 was calculated</p>
+<div class="highlight"><pre><span></span><code>Q_yield,3 = 
+yield_fraction_3 * (yield_fraction_1 * Q_in,1 + yield_fraction_2 * Q_in,2) = 
+0.25 * (0.5 * 20 + 0.6 * 10) = 
+4.0
+</code></pre></div>
+<p>The query spawns three workers i.e. one for each tank. Notice that no explicit looping over tanks is required once the subscriptions are configured in the <code>Hubit</code> model. This allow the developers of the tank model to work isolated on the tank model with less attention to the context in which it will be used.</p>
+<p>If we query the yield from tank 3 from all production lines at all production sites using</p>
+<div class="highlight"><pre><span></span><code>[&#39;prod_sites[:].prod_lines[:].tanks[2].Q_yield&#39;]
+</code></pre></div>
+<p>we again get the result 4.0 back (since there is actually only one production site and one production line), but the result is now a double nested list.</p>
+<div class="highlight"><pre><span></span><code>{&#39;prod_sites[:].prod_lines[:].tanks[2].Q_yield&#39;: [[4.0]]}
+</code></pre></div>
+<p>The outer list represents the production sites while the inner list represent the production lines. As before <code>['prod_sites[:].prod_lines[:].tanks[-1].Q_yield']</code> would produce the same result.</p>
+<p>Explicit indexing provides nice flexibility, but it may quickly become tiresome to configure. Further, the model presented above would need to be changed when the number of tanks changes. Of course, this could be done programmatically based on the tank connectivities (mesh of cells/compartments/elements) generated elsewhere.</p>
+<h3 id="index-scope-tanks-1-2">Index scope (tanks 1 &amp; 2)</h3>
+<p><a href="https://github.com/mrsonne/hubit/tree/master/examples/tanks/model_1a.yml"><code>model_1a.yml</code></a> shows how model 1 can be refactored to one component with no explicit indexes in the binding paths by leveraging an <em>index scope</em> the model components for tanks 1 and 2</p>
+<div class="highlight"><pre><span></span><code><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./components/mod1.py</span><span class="w"> </span>
+<span class="w">  </span><span class="nt">index_scope</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="nt">IDX_TANK</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;0:2&quot;</span><span class="w"></span>
+<span class="w">  </span><span class="nt">provides_results</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Q_yield</span><span class="w"></span>
+<span class="w">      </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[IDX_TANK].Q_yield</span><span class="w"></span>
+<span class="w">  </span><span class="nt">consumes_input</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">yield_fraction</span><span class="w"></span>
+<span class="w">      </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[IDX_TANK].yield_fraction</span><span class="w"></span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Q_in</span><span class="w"></span>
+<span class="w">      </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[IDX_TANK].Q_in</span><span class="w"></span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Q_transfer</span><span class="w"></span>
+<span class="w">      </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[IDX_TANK].Q_transfer</span><span class="w"></span>
+</code></pre></div>
+<p>In this case the scope <code>index_scope.IDX_TANK: "0:2"</code> assures that <code>IDX_TANK</code> equals 0 or 1 in all instances of this component. This version of the model is shown in <code>examples/tanks/model_1a.yml</code>.</p>
+<h3 id="index-scope-tank-3">Index scope (tank 3)</h3>
+<p><a href="https://github.com/mrsonne/hubit/tree/master/examples/tanks/model_1b.yml"><code>model_1b.yml</code></a>
+leverages <em>index scope</em> to reconfigure tank 3</p>
+<div class="highlight"><pre><span></span><code><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./components/mod1.py</span><span class="w"> </span>
+<span class="w">  </span><span class="nt">index scope</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="nt">IDX_TANK</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span><span class="w"></span>
+<span class="w">  </span><span class="nt">provides_results</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Q_yield</span><span class="w"></span>
+<span class="w">      </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[IDX_TANK].Q_yield</span><span class="w"></span>
+<span class="w">  </span><span class="nt">consumes_input</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">yield_fraction</span><span class="w"></span>
+<span class="w">      </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[IDX_TANK].yield_fraction</span><span class="w"></span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Q_in</span><span class="w"></span>
+<span class="w">      </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[IDX_TANK].Q_in</span><span class="w"></span>
+<span class="w">  </span><span class="nt">consumes_results</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="c1"># use outlet flow from previous tank 0</span><span class="w"></span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Q_transfer_1</span><span class="w"></span>
+<span class="w">      </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[0@IDX_TANK].Q_yield</span><span class="w"></span>
+<span class="w">    </span><span class="c1"># use outlet flow from previous tank 1</span><span class="w"></span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Q_transfer_2</span><span class="w"></span>
+<span class="w">      </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[1@IDX_TANK].Q_yield</span><span class="w"></span>
+</code></pre></div>
+<p>In this case the index scope <code>index_scope.IDX_TANK: 2</code> assures that the identifier <code>IDX_TANK</code> equals 2 in all instances of this component. The explicit indices in <code>consumes_results</code> i.e. <code>0@IDX_TANK</code> and <code>1@IDX_TANK</code> are still used as is. This version of the model is shown in <code>examples/tanks/model_1b.yml</code>.</p>
+<h2 id="model-2-structured">Model 2: Structured</h2>
+<p>In structured cases, such as the tank example schematically illustrated below, <code>Hubit</code>'s <em>index scope</em> and <em>index offset</em> come in handy.</p>
+<div class="highlight"><pre><span></span><code>           ║  Q_in,1                          
+           ║              
+        ┌──║───────┐           
+        │  ˅       │             
+        │          │          
+        │~~~~~~~~~~│          
+        │  Tank 1  │            ║ Q_in,2               
+        └───╥──────┘            ║ 
+            ║   Q_yield,1 ┌─────║──┐
+          ╔═╩═════════════|═╗   ˅  | 
+Q_spill,1 ║               | ˅      |
+          ˅               |~~~~~~~~|
+                          | Tank 2 |              ║ Q_in,3
+                          └───╥────┘              ║
+                              ║   Q_yield,2 ┌─────║──┐
+                  Q_spill,2 ╔═╩═════════════|═╗   ˅  | 
+                            ║               | ˅      |                            
+                            ˅               |~~~~~~~~|                               
+                                            | Tank 3 |
+                                            └──╥─────┘
+                                               ║  
+                                   Q_spill,3 ╔═╩════╗                                     
+                                             ║      ˅ Q_yield,3
+                                             ˅      
+</code></pre></div>
+<p>The input is the same as in the previous section.</p>
+<h3 id="index-scope">Index scope</h3>
+<p>Using an index scope, the component for the first tank may be defined as shown below</p>
+<div class="highlight"><pre><span></span><code><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./components/mod1.py</span><span class="w"> </span>
+<span class="w">  </span><span class="nt">index_scope</span><span class="p">:</span><span class="w"> </span>
+<span class="w">    </span><span class="nt">IDX_TANK</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span><span class="w"></span>
+<span class="w">  </span><span class="nt">provides_results</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Q_yield</span><span class="w"></span>
+<span class="w">      </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[IDX_TANK].Q_yield</span><span class="w"></span>
+<span class="w">  </span><span class="nt">consumes_input</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">yield_fraction</span><span class="w"></span>
+<span class="w">      </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[IDX_TANK].yield_fraction</span><span class="w"></span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Q_in</span><span class="w"></span>
+<span class="w">      </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[IDX_TANK].Q_in</span><span class="w"></span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Q_transfer</span><span class="w"></span>
+<span class="w">      </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[IDX_TANK].Q_transfer</span><span class="w"></span>
+</code></pre></div>
+<p>At first sight the component looks as if its binding paths can refer to any combination of <code>IDX_SITE</code>, <code>IDX_LINE</code> and <code>IDX_TANK</code>. The <code>index_scope</code> filed, however, assures that <code>IDX_TANK</code> is 0 in all instances of this component.</p>
+<h3 id="index-offsets">Index offsets</h3>
+<p>The second component is shown below</p>
+<div class="highlight"><pre><span></span><code><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./components/mod1.py</span><span class="w"></span>
+<span class="w">  </span><span class="nt">index_scope</span><span class="p">:</span><span class="w"> </span>
+<span class="w">    </span><span class="nt">IDX_TANK</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;1:&quot;</span><span class="w"></span>
+<span class="w">  </span><span class="nt">provides_results</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Q_yield</span><span class="w"></span>
+<span class="w">      </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[IDX_TANK].Q_yield</span><span class="w"></span>
+<span class="w">  </span><span class="nt">consumes_input</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">yield_fraction</span><span class="w"></span>
+<span class="w">      </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[IDX_TANK].yield_fraction</span><span class="w"></span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Q_in</span><span class="w"></span>
+<span class="w">      </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[IDX_TANK].Q_in</span><span class="w"></span>
+<span class="w">  </span><span class="nt">consumes_results</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Q_transfer</span><span class="w"></span>
+<span class="w">      </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[IDX_TANK-1].Q_yield</span><span class="w"></span>
+</code></pre></div>
+<p>There are two important details. First, the <code>index_scope</code> field limits the scope to tanks after the first tank in all instances of this component. Second, the component consumes the yield rate <code>Q_yield</code> from the previous tank pointing to the index identifier <code>IDX_TANK</code> offset by 1 i.e <code>IDX_TANK-1</code>. To avoid going out of bounds it is important to exclude the first tank from the index scope as explained above.</p>
+<p>The complete model definition can be seen in <a href="https://github.com/mrsonne/hubit/tree/master/examples/tanks/model_2.yml"><code>examples/tanks/model_2.yml</code></a> in the repository.</p>
+<h2 id="indexing-from-the-back-in-the-model">Indexing from the back in the model</h2>
+<p>If we want to use the yield stream from the last tank to calculate e.g. the revenue from a production line we can easily add two components to the model (see e.g. <a href="https://github.com/mrsonne/hubit/tree/master/examples/tanks/model_1.yml"><code>examples/tanks/model_1.yml</code></a>. The first component, which is implemented in <code>unit_price.py</code>, is responsible for fetching the unit price for the product stream. The second component, which is implemented in <code>revenue.py</code>, subscribes to the yield stream from the last tank as well as the unit price. The latter is responsible for calculating the revenue. The new section in the model file could look like this</p>
+<div class="highlight"><pre><span></span><code><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./components/unit_price.py</span><span class="w"></span>
+<span class="w">    </span><span class="nt">provides_results</span><span class="p">:</span><span class="w"></span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">unit_price</span><span class="w"></span>
+<span class="w">        </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">unit_price</span><span class="w"></span>
+<span class="w">    </span><span class="nt">consumes_input</span><span class="p">:</span><span class="w"></span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">url</span><span class="w"></span>
+<span class="w">        </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">price_source</span><span class="w"></span>
+
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./components/revenue.py</span><span class="w"></span>
+<span class="w">    </span><span class="l l-Scalar l-Scalar-Plain">provides_results</span><span class="p p-Indicator">:</span><span class="w"></span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">revenue</span><span class="w"></span>
+<span class="w">        </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prod_sites[IDX_SITE].prod_lines[IDX_LINE].revenue</span><span class="w"></span>
+<span class="w">  </span><span class="w w-Error">  </span><span class="nt">consumes_results</span><span class="p">:</span><span class="w"></span>
+<span class="w">      </span><span class="c1"># use outlet flow from last tank</span><span class="w"></span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Q_yield</span><span class="w"></span>
+<span class="w">        </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prod_sites[IDX_SITE].prod_lines[IDX_LINE].tanks[-1@IDX_TANK].Q_yield</span><span class="w"></span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">unit_price</span><span class="w"></span>
+<span class="w">        </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">unit_price</span><span class="w"></span>
+</code></pre></div>
+<p>In the example <code>unit_price.py</code> uses a web service with a URL defined in the field <code>price_source</code> in the <a href="https://github.com/mrsonne/hubit/tree/master/examples/tanks/input.yml"><code>examples/tanks/input.yml</code></a>.</p>
+
+              
+            </article>
+          </div>
+        </div>
+        
+      </main>
+      
+
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    <script id="__config" type="application/json">{"base": ".", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "assets/javascripts/workers/search.bd0b6b67.min.js", "version": "0.5.0"}</script>
+    
+    
+      <script src="assets/javascripts/bundle.467223ff.min.js"></script>
+      
+    
+  </body>
+</html>

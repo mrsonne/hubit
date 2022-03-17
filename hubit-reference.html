@@ -1,0 +1,1622 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      <link rel="icon" href="assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.2.5">
+    
+    
+      
+        <title>Hubit - Hubit Docs</title>
+      
+    
+    
+      <link rel="stylesheet" href="assets/stylesheets/main.2d9f7617.min.css">
+      
+        
+        <link rel="stylesheet" href="assets/stylesheets/palette.e6a45f82.min.css">
+        
+      
+    
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL(".",location),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="none" data-md-color-accent="none">
+  
+    
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#hubit" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-component="outdated" hidden>
+        <aside class="md-banner md-banner--warning">
+          
+        </aside>
+      </div>
+    
+    
+
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="index.html" title="Hubit Docs" class="md-header__button md-logo" aria-label="Hubit Docs" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Hubit Docs
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Hubit
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+  
+</header>
+    
+<p style="color:RGBA(0,0,0,.3); font-size: 10px; padding-left: 10px">
+    Page built on Mar 17 2022 for version 0.5.0.
+</p>
+
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="index.html" title="Hubit Docs" class="md-nav__button md-logo" aria-label="Hubit Docs" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    Hubit Docs
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="index.html" class="md-nav__link">
+        First steps
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2" type="checkbox" id="__nav_2" >
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_2">
+          Examples
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Examples" data-md-level="1">
+        <label class="md-nav__title" for="__nav_2">
+          <span class="md-nav__icon md-icon"></span>
+          Examples
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="examples.html" class="md-nav__link">
+        Summary
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="example-car.html" class="md-nav__link">
+        Car
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="example-wall.html" class="md-nav__link">
+        Wall
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="example-tanks.html" class="md-nav__link">
+        Tanks
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_3" type="checkbox" id="__nav_3" checked>
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3">
+          Code Reference
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Code Reference" data-md-level="1">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          Code Reference
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Hubit
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="hubit-reference.html" class="md-nav__link md-nav__link--active">
+        Hubit
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#hubit.model.HubitModel" class="md-nav__link">
+    HubitModel
+  </a>
+  
+    <nav class="md-nav" aria-label="HubitModel">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hubit.model.HubitModel.results" class="md-nav__link">
+    results
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hubit.model.HubitModel.clear_cache" class="md-nav__link">
+    clear_cache()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hubit.model.HubitModel.from_file" class="md-nav__link">
+    from_file()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hubit.model.HubitModel.get" class="md-nav__link">
+    get()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hubit.model.HubitModel.get_many" class="md-nav__link">
+    get_many()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hubit.model.HubitModel.get_results" class="md-nav__link">
+    get_results()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hubit.model.HubitModel.has_cached_results" class="md-nav__link">
+    has_cached_results()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hubit.model.HubitModel.log" class="md-nav__link">
+    log()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hubit.model.HubitModel.mpaths_for_qpath_fields_only" class="md-nav__link">
+    mpaths_for_qpath_fields_only()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hubit.model.HubitModel.render" class="md-nav__link">
+    render()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hubit.model.HubitModel.set_component_caching" class="md-nav__link">
+    set_component_caching()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hubit.model.HubitModel.set_input" class="md-nav__link">
+    set_input()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hubit.model.HubitModel.set_model_caching" class="md-nav__link">
+    set_model_caching()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hubit.model.HubitModel.set_results" class="md-nav__link">
+    set_results()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hubit.model.HubitModel.validate" class="md-nav__link">
+    validate()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hubit.__init__.clear_hubit_cache" class="md-nav__link">
+    clear_hubit_cache()
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="config-reference.html" class="md-nav__link">
+        Config & data
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="log-reference.html" class="md-nav__link">
+        Log
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="changelog.html" class="md-nav__link">
+        Change log
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#hubit.model.HubitModel" class="md-nav__link">
+    HubitModel
+  </a>
+  
+    <nav class="md-nav" aria-label="HubitModel">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hubit.model.HubitModel.results" class="md-nav__link">
+    results
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hubit.model.HubitModel.clear_cache" class="md-nav__link">
+    clear_cache()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hubit.model.HubitModel.from_file" class="md-nav__link">
+    from_file()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hubit.model.HubitModel.get" class="md-nav__link">
+    get()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hubit.model.HubitModel.get_many" class="md-nav__link">
+    get_many()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hubit.model.HubitModel.get_results" class="md-nav__link">
+    get_results()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hubit.model.HubitModel.has_cached_results" class="md-nav__link">
+    has_cached_results()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hubit.model.HubitModel.log" class="md-nav__link">
+    log()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hubit.model.HubitModel.mpaths_for_qpath_fields_only" class="md-nav__link">
+    mpaths_for_qpath_fields_only()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hubit.model.HubitModel.render" class="md-nav__link">
+    render()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hubit.model.HubitModel.set_component_caching" class="md-nav__link">
+    set_component_caching()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hubit.model.HubitModel.set_input" class="md-nav__link">
+    set_input()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hubit.model.HubitModel.set_model_caching" class="md-nav__link">
+    set_model_caching()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hubit.model.HubitModel.set_results" class="md-nav__link">
+    set_results()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hubit.model.HubitModel.validate" class="md-nav__link">
+    validate()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hubit.__init__.clear_hubit_cache" class="md-nav__link">
+    clear_hubit_cache()
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content" data-md-component="content">
+            <article class="md-content__inner md-typeset">
+              
+                
+
+
+<h1 id="hubit">Hubit</h1>
+<p>Components described below are available directly from the 'hubit' package. 
+Therefore, the model class can be imported as <code>from hubit import HubitModel</code>.</p>
+
+
+  <div class="doc doc-object doc-class">
+
+
+
+<h2 id="hubit.model.HubitModel" class="doc doc-heading">
+        <code>
+HubitModel        </code>
+
+
+
+</h2>
+
+    <div class="doc doc-contents first">
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+  <div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="hubit.model.HubitModel.results" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">results</span><span class="p">:</span> <span class="n">FlatData</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-property"><code>property</code></small>
+      <small class="doc doc-property doc-property-readonly"><code>readonly</code></small>
+  </span>
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Get model results as <a class="autorefs autorefs-internal" href="config-reference.html#hubit.config.FlatData"><code>FlatData</code></a></p>
+
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>FlatData</code></td>
+      <td><p>Results for the model instance.</p></td>
+    </tr>
+  </tbody>
+</table>    </div>
+
+  </div>
+
+
+
+
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="hubit.model.HubitModel.clear_cache" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">clear_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Clear the model cache. Will delete the serialized model cache
+from the disk if it exists.</p>
+
+    </div>
+
+  </div>
+
+
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="hubit.model.HubitModel.from_file" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">from_file</span><span class="p">(</span><span class="n">model_file_path</span><span class="p">,</span> <span class="n">output_path</span><span class="o">=</span><span class="s1">&#39;./&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;NA&#39;</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-classmethod"><code>classmethod</code></small>
+  </span>
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Creates a <code>HubitModel</code> from a configuration file.</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>model_file_path</code></td>
+        <td><code>str</code></td>
+        <td><p>The location of the model file.</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>output_path</code></td>
+        <td><code>str</code></td>
+        <td><p>Path where results should be saved</p></td>
+        <td><code>&#39;./&#39;</code></td>
+      </tr>
+      <tr>
+        <td><code>name</code></td>
+        <td><code>str</code></td>
+        <td><p>Model name</p></td>
+        <td><code>&#39;NA&#39;</code></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>HubitModel</code></td>
+      <td><p>Hubit model object as defined in the specified model file</p></td>
+    </tr>
+  </tbody>
+</table>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="hubit.model.HubitModel.get" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="n">use_multi_processing</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">validate</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">use_results</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Get the response corresponding to the <code>query</code></p>
+<p>On Windows this method should be guarded by
+if <code>__name__ == '__main__':</code> if <code>use_multi_processing</code> is <code>True</code></p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>query</code></td>
+        <td><code>List[str]</code></td>
+        <td><p>Sequence of strings that complies with <a class="autorefs autorefs-internal" href="config-reference.html#hubit.config.Query"><code>Query</code></a>.</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>use_multi_processing</code></td>
+        <td><code>bool</code></td>
+        <td><p>Flag indicating if the respose should be generated
+using (async) multiprocessing.</p></td>
+        <td><code>False</code></td>
+      </tr>
+      <tr>
+        <td><code>validate</code></td>
+        <td><code>bool</code></td>
+        <td><p>Flag indicating if the query should be validated prior
+to execution. If <code>True</code> a dry-run of the model will be executed.</p></td>
+        <td><code>False</code></td>
+      </tr>
+      <tr>
+        <td><code>use_results</code></td>
+        <td><code>str</code></td>
+        <td><p>Should previously saved results be used.
+If <code>use_results</code> is set to "current" the results set on the model instance
+will be used as-is i.e. will not be recalculated.
+If <code>use_results</code> is set to "cached" cached results will be used
+if they exists. If <code>use_results</code> is set to "none" no previously
+calculated results will be used.</p></td>
+        <td><code>&#39;none&#39;</code></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Exceptions:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>HubitModelNoInputError</code></td>
+        <td><p>If no input is set on the model.</p></td>
+      </tr>
+      <tr>
+        <td><code>HubitModelNoResultsError</code></td>
+        <td><p>If <code>use_results</code> = "current" but
+no results are present on the model.</p></td>
+      </tr>
+      <tr>
+        <td><code>HubitError</code></td>
+        <td><p>If the specified <code>use_results</code> option is not known.</p></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>Dict[str, Any]</code></td>
+      <td><p>The response</p></td>
+    </tr>
+  </tbody>
+</table>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="hubit.model.HubitModel.get_many" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_many</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="n">input_values_for_path</span><span class="p">,</span> <span class="n">skipfun</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nproc</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Perform a full factorial sampling of the
+input points specified in <code>input_values_for_path</code>.</p>
+<p>On Windows calling this method should be guarded by
+if <code>__name__ == '__main__':</code></p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>query</code></td>
+        <td><code>List[str]</code></td>
+        <td><p>Sequence of strings that complies with <a class="autorefs autorefs-internal" href="config-reference.html#hubit.config.Query"><code>Query</code></a>.</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>input_values_for_path</code></td>
+        <td><code>Dict[str, Any]</code></td>
+        <td><p>Dictionary with string keys that each complies with
+<a class="autorefs autorefs-internal" href="config-reference.html#hubit.config.HubitQueryPath"><code>HubitQueryPath</code></a>.
+The corresponding values should be an iterable with elements
+representing discrete values for the attribute at the path. For
+each factor combination an input data object
+(<a class="autorefs autorefs-internal" href="config-reference.html#hubit.config.FlatData"><code>FlatData</code></a>) will be created
+and passed to <code>skipfun</code>.</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>skipfun</code></td>
+        <td><code>Any</code></td>
+        <td><p>Callable that takes the flattened input for each factor combination
+as the only argument. If the skip function returns <code>True</code> the
+factor combination represented by the input data object is skipped.
+The default <code>skipfun</code> corresponding to
+<code>skipfun=None</code> always returns <code>False</code>.</p></td>
+        <td><code>None</code></td>
+      </tr>
+      <tr>
+        <td><code>nproc</code></td>
+        <td><code>Any</code></td>
+        <td><p>Number of processes to use. If <code>None</code> a suitable default is used.</p></td>
+        <td><code>None</code></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Exceptions:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>HubitModelNoInputError</code></td>
+        <td><p>If not input is set.</p></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>Tuple</code></td>
+      <td><p>Tuple of lists (responses, flat_inputs, flat_results). flat_inputs
+and flat_results both have elements of type <a class="autorefs autorefs-internal" href="config-reference.html#hubit.config.FlatData"><code>FlatData</code></a></p></td>
+    </tr>
+  </tbody>
+</table>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="hubit.model.HubitModel.get_results" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_results</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Get model results as <a class="autorefs autorefs-internal" href="config-reference.html#hubit.config.FlatData"><code>FlatData</code></a></p>
+
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>FlatData</code></td>
+      <td><p>Results for the model instance.</p></td>
+    </tr>
+  </tbody>
+</table>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="hubit.model.HubitModel.has_cached_results" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">has_cached_results</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Check if the model has cached results</p>
+
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>bool</code></td>
+      <td><p>The result of the check</p></td>
+    </tr>
+  </tbody>
+</table>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="hubit.model.HubitModel.log" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">log</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Get the model log</p>
+
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>HubitLog</code></td>
+      <td><p><a class="autorefs autorefs-internal" href="log-reference.html#hubit.model.HubitLog">HubitLog</a> object</p></td>
+    </tr>
+  </tbody>
+</table>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="hubit.model.HubitModel.mpaths_for_qpath_fields_only" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">mpaths_for_qpath_fields_only</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qpath</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Find model paths that match the query. The match
+is evaluated only based on field names</p>
+
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="hubit.model.HubitModel.render" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">render</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="o">=</span><span class="p">[],</span> <span class="n">file_idstr</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Create graph representing the model or the query and save
+the image to the model <code>output_path</code>.</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>query</code></td>
+        <td><code>List[str]</code></td>
+        <td><p>Sequence of strings that complies with
+<a class="autorefs autorefs-internal" href="config-reference.html#hubit.config.Query"><code>Query</code></a>. If not provided
+(or is empty) the model is rendered. If a non-empty <code>query</code> is
+provided that query is rendered, which requires the input data
+be set.</p></td>
+        <td><code>[]</code></td>
+      </tr>
+      <tr>
+        <td><code>file_idstr</code></td>
+        <td><code>str</code></td>
+        <td><p>Identifier appended to the image file name.</p></td>
+        <td><code>&#39;&#39;</code></td>
+      </tr>
+  </tbody>
+</table>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="hubit.model.HubitModel.set_component_caching" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">set_component_caching</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">component_caching</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Set component worker caching on/off.</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>component_caching</code></td>
+        <td><code>bool</code></td>
+        <td><p>True corresponds to worker caching being on.</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="hubit.model.HubitModel.set_input" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">set_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_data</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Set the (hierarchical) input on the model.</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>input_data</code></td>
+        <td><code>Dict[str, Any]</code></td>
+        <td><p>Input data as a freely formatted, serializable dictionary.</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>HubitModel</code></td>
+      <td><p>Hubit model with input set.</p></td>
+    </tr>
+  </tbody>
+</table>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="hubit.model.HubitModel.set_model_caching" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">set_model_caching</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">caching_mode</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Set the model caching mode.</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>caching_mode</code></td>
+        <td><code>str</code></td>
+        <td><p>Valid options are: "none", "incremental", "after_execution".
+If "none" model results are not cached. If "incremental" results are
+saved to disk whenever a component worker finishes its workload. If
+the <code>caching_mode</code> is set to "after_execution" the results are saved
+to disk when all component workers have finished their workloads.</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>      <p>Results caching is useful when you want to avoid spending time calculating
+the same results multiple times. A use case for "incremental" caching is when
+a calculation is stopped (computer shutdown, keyboard interrupt,
+exception raised) before the response has been generated. In such cases
+the calculation can be restarted from the cached results. The overhead
+introduced by caching makes it especially useful for CPU bound models.
+A use case for "after_execution" caching is when writing the result data
+incrementally is a bottleneck.</p>
+<p><strong>Warning</strong>. Cached results are tied to the content of the model configuration
+file and the model input. <code>Hubit</code> does not check if any of the underlying calculation
+code has changed. Therefore, using results caching while components
+are in development is not recommended.</p>
+<p><code>Hubit</code>'s behavior in four parameter combinations is summarized below.
+"Yes" in the Write column corresponds to setting the caching level to either
+"incremental" or "after_execution" using the <code>set_model_caching</code> method.
+"No" in the Write column corresponds to caching level "none".
+"Yes" in the Read column corresponds
+<code>use_results="cached"</code> in the <code>get</code> method while "No" corresponds to
+<code>use_results="none"</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Write</th>
+<th>Read</th>
+<th>Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Yes</td>
+<td>Yes</td>
+<td>Any cached results for the model are loaded. These results will be saved (incrementally or after execution) and may be augmented in the new run depending on the new query</td>
+</tr>
+<tr>
+<td>Yes</td>
+<td>No</td>
+<td>Model results are cached incrementally or after execution. These new results overwrite any existing results cached for the model</td>
+</tr>
+<tr>
+<td>No</td>
+<td>Yes</td>
+<td>Any cached results for the model are loaded. No new results are cached and therefore the cached results will remain the same after execution.</td>
+</tr>
+<tr>
+<td>No</td>
+<td>No</td>
+<td>No results are cached and no results are loaded into the model</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="hubit.model.HubitModel.set_results" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">set_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">results_data</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Set the (hierarchical) results on the model.</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>results_data</code></td>
+        <td><code>Dict[str, Any]</code></td>
+        <td><p>Results data as a freely formatted, serializable dictionary.</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>HubitModel</code></td>
+      <td><p>Hubit model with input set</p></td>
+    </tr>
+  </tbody>
+</table>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="hubit.model.HubitModel.validate" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="o">=</span><span class="p">[])</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Validate a model or query. Will validate as a query if
+query are provided.</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>query</code></td>
+        <td><code>List[str]</code></td>
+        <td><p>Sequence of strings that complies with <a class="autorefs autorefs-internal" href="config-reference.html#hubit.config.Query"><code>Query</code></a>.</p></td>
+        <td><code>[]</code></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Exceptions:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>HubitModelNoInputError</code></td>
+        <td><p>If not input is set.</p></td>
+      </tr>
+      <tr>
+        <td><code>HubitModelValidationError</code></td>
+        <td><p>If validation fails.</p></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>bool</code></td>
+      <td><p>True if validation was successful.</p></td>
+    </tr>
+  </tbody>
+</table>
+    </div>
+
+  </div>
+
+
+
+
+
+  </div>
+
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h2 id="hubit.__init__.clear_hubit_cache" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">clear_hubit_cache</span><span class="p">()</span></code>
+
+
+</h2>
+
+    <div class="doc doc-contents first">
+
+      <p>Clear the cache for all models. Will delete all serialized model cache
+from the disk.</p>
+
+    </div>
+
+  </div>
+
+              
+            </article>
+          </div>
+        </div>
+        
+      </main>
+      
+
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    <script id="__config" type="application/json">{"base": ".", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "assets/javascripts/workers/search.bd0b6b67.min.js", "version": "0.5.0"}</script>
+    
+    
+      <script src="assets/javascripts/bundle.467223ff.min.js"></script>
+      
+    
+  </body>
+</html>

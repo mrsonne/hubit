@@ -529,7 +529,7 @@ class HubitModel:
             HubitModelValidationError: If validation fails.
 
         Returns:
-            True if validation was successful.
+            True if validation was successful. False otherwise.
         """
         # TODO: check for circular references,
         #       Component that consumes a specified index ID should also

@@ -14,6 +14,7 @@ import pickle
 from dataclasses import dataclass, field, fields
 from typing import (
     Any,
+    Callable,
     List,
     Sequence,
     Tuple,
@@ -297,6 +298,8 @@ class HubitModel:
 
     def get_results(self) -> FlatData:
         """
+        Deprecated. Use the [`results`][hubit.model.HubitModel.results] property instead.
+
         Get model results as [`FlatData`][hubit.config.FlatData]
 
         Returns:
@@ -395,8 +398,8 @@ class HubitModel:
     def get_many(
         self,
         query: List[str],
-        input_values_for_path: Dict[str, Any],
-        skipfun: Any = None,  # Callable[[FlatData], bool] = _default_skipfun,
+        input_values_for_path: Dict[str, Sequence],
+        skipfun: Optional[Callable[[FlatData], bool]] = None,
         nproc: Any = None,
     ) -> Tuple:
         """Perform a full factorial sampling of the
@@ -410,7 +413,7 @@ class HubitModel:
             input_values_for_path: Dictionary with string keys that each complies with
                 [`HubitQueryPath`][hubit.config.HubitQueryPath].
                 The corresponding values should be an iterable with elements
-                representing discrete values for the attribute at the path. For
+                representing discrete values for the path. For
                 each factor combination an input data object
                 ([`FlatData`][hubit.config.FlatData]) will be created
                 and passed to `skipfun`.
@@ -427,6 +430,44 @@ class HubitModel:
         Returns:
             Tuple of lists (responses, flat_inputs, flat_results). flat_inputs
             and flat_results both have elements of type [`FlatData`][hubit.config.FlatData]
+
+
+        **Example:**
+
+        The input
+        ```
+        input_values_for_path = {
+            "segments[2].layers[2].material": ("brick", "concrete"),
+            "segments[0].layers[2].thickness": (0.08, 0.12)
+        }
+        ```
+
+        would result in the four `FlatData` input objects being generated and executed individually.
+
+        ```
+        [
+            {
+                "segments[2].layers[2].material": "brick",
+                "segments[0].layers[2].thickness": 0.08
+            },
+            {
+                "segments[2].layers[2].material": "brick",
+                "segments[0].layers[2].thickness": 0.12
+            },
+            {
+                "segments[2].layers[2].material": "concrete",
+                "segments[0].layers[2].thickness": 0.08
+            },
+            {
+                "segments[2].layers[2].material": "concrete",
+                "segments[0].layers[2].thickness": 0.12
+            },
+        ]
+        ```
+
+        Before execution the skip function will be called with the `FlatData` input as the
+        sole argument. In the skip function it may be convenient to use the
+        [`inflate`][hubit.config.FlatData.inflate] method on the `FlatData` object.
         """
         if not self._input_is_set:
             raise HubitModelNoInputError()
@@ -656,10 +697,10 @@ class HubitModel:
             raise HubitModelQueryError(msg)
         return cmp_ids[0]
 
-    def component_for_qpath(self, path: HubitQueryPath) -> HubitModelComponent:
+    def _component_for_qpath(self, path: HubitQueryPath) -> HubitModelComponent:
         return self.component_for_id(self._cmpid_for_query(path))
 
-    def mpaths_for_qpath_fields_only(
+    def _mpaths_for_qpath_fields_only(
         self, qpath: HubitQueryPath
     ) -> Tuple[List[HubitModelPath], List[str]]:
         """Find model paths that match the query. The match
@@ -701,7 +742,7 @@ class HubitModel:
         """
 
         # Find mpaths and component IDs
-        mpaths, cmp_ids = self.mpaths_for_qpath_fields_only(qpath)
+        mpaths, cmp_ids = self._mpaths_for_qpath_fields_only(qpath)
 
         # Find components corresponding to the IDs
         cmps = [self.model_cfg.component_for_id[cmp_id] for cmp_id in cmp_ids]

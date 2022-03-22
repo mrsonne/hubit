@@ -221,7 +221,7 @@ class _QueryRunner:
         Returns:
             _Worker instance or None
         """
-        component = self.model.component_for_qpath(path)
+        component = self.model._component_for_qpath(path)
         (func, version, self._components) = _QueryRunner._get_func(
             self.model.base_path, component, self._components
         )

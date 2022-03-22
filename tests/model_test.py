@@ -136,21 +136,21 @@ class TestModel(unittest.TestCase):
 
         # Two components match query path
         qpath = HubitQueryPath("first_coor[:].second_coor[:].value")
-        mpaths, cmp_ids = hmodel.mpaths_for_qpath_fields_only(qpath)
+        mpaths, cmp_ids = hmodel._mpaths_for_qpath_fields_only(qpath)
 
         assert cmp_ids == expected_cmp_ids
         assert mpaths == expected_mpaths
 
         # Only the second components match query path
         qpath = HubitQueryPath("first_coor[:].second_coor[1].value")
-        mpaths, cmp_ids = hmodel.mpaths_for_qpath_fields_only(qpath)
+        mpaths, cmp_ids = hmodel._mpaths_for_qpath_fields_only(qpath)
 
         assert cmp_ids == expected_cmp_ids
         assert mpaths == expected_mpaths
 
         # Both components match the query path since we don't check the intersection
         qpath = HubitQueryPath("first_coor[:].second_coor[1].value")
-        mpaths, cmp_ids = hmodel.mpaths_for_qpath_fields_only(qpath)
+        mpaths, cmp_ids = hmodel._mpaths_for_qpath_fields_only(qpath)
 
         assert cmp_ids == expected_cmp_ids
         assert mpaths == expected_mpaths
@@ -158,7 +158,7 @@ class TestModel(unittest.TestCase):
     def test_mpaths_for_qpath_fields_only(self):
         # Test the default model
         qpath = HubitQueryPath("first_coor[:].second_coor[:].value")
-        mpaths, cmp_ids = self.hmodel.mpaths_for_qpath_fields_only(qpath)
+        mpaths, cmp_ids = self.hmodel._mpaths_for_qpath_fields_only(qpath)
         expected_cmp_ids = [
             "cmp0@./components/comp0.move_number",
         ]

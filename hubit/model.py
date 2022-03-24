@@ -67,7 +67,7 @@ def _get(
     flat_input,
     flat_results: Optional[FlatData] = None,
     dryrun: bool = False,
-):
+) -> Tuple[Dict[HubitQueryPath, Any], FlatData]:
     """
     With the 'queryrunner' object deploy the paths
     in 'query'.
@@ -327,7 +327,7 @@ class HubitModel:
         use_multi_processing: bool = False,
         validate: bool = False,
         use_results: str = "none",
-    ) -> Dict[str, Any]:
+    ) -> Dict[HubitQueryPath, Any]:
         """Get the response corresponding to the `query`
 
         On Windows this method should be guarded by
@@ -401,7 +401,7 @@ class HubitModel:
         input_values_for_path: Dict[str, Sequence],
         skipfun: Optional[Callable[[FlatData], bool]] = None,
         nproc: Any = None,
-    ) -> Tuple:
+    ) -> Tuple[List[Dict], Sequence[FlatData], Sequence[FlatData]]:
         """Perform a full factorial sampling of the
         input points specified in `input_values_for_path`.
 
@@ -497,8 +497,7 @@ class HubitModel:
             qrun = query_runner_factory(
                 False, self, component_caching=self._component_caching
             )
-            flat_results = FlatData()
-            args.append((qrun, _query, _flat_input, flat_results))
+            args.append((qrun, _query, _flat_input, FlatData()))
             flat_inputs.append(_flat_input)
 
         if len(args) == 0:

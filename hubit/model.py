@@ -21,6 +21,7 @@ from typing import (
     Dict,
     Optional,
     TYPE_CHECKING,
+    Union,
 )
 import logging
 import os
@@ -30,7 +31,7 @@ import itertools
 from multiprocessing import Pool
 import warnings
 
-from .qrun import query_runner_factory
+from .qrun import _QueryRunnerMultiProcess, query_runner_factory
 from .tree import LengthTree, _QueryExpansion, tree_for_idxcontext
 from .config import FlatData, HubitModelConfig, Query, PathIndexRange, HubitQueryPath
 from .render import get_dot
@@ -395,6 +396,46 @@ class HubitModel:
         )
         return response
 
+    def _cartesian_product(
+        self,
+        query: Query,
+        input_values_for_path: Dict[str, Sequence],
+        skipfun: Optional[Callable[[FlatData], bool]],
+    ) -> Tuple[
+        Sequence[FlatData],
+        Sequence[
+            Tuple[
+                Union[_QueryRunner, _QueryRunnerMultiProcess], Query, FlatData, FlatData
+            ],
+        ],
+    ]:
+
+        # Get paths to change in paths and the values each path should assume in pvalues
+        paths, values = zip(*input_values_for_path.items())
+
+        # List of tuples each containing values for each path in paths
+        ppvalues = list(itertools.product(*values))
+
+        skipfun = skipfun or _default_skipfun
+
+        args = []
+        flat_inputs = []
+        for pvalues in ppvalues:
+            _flat_input = copy.deepcopy(self.flat_input)
+            for path, val in zip(paths, pvalues):
+                _flat_input[path] = val
+
+            if skipfun(_flat_input):
+                continue
+            # Never use multiprocessing in the worker pool
+            qrun = query_runner_factory(
+                False, self, component_caching=self._component_caching
+            )
+            args.append((qrun, query, _flat_input, FlatData()))
+            flat_inputs.append(_flat_input)
+
+        return flat_inputs, args
+
     def get_many(
         self,
         query: List[str],
@@ -476,29 +517,11 @@ class HubitModel:
 
         tstart = time.time()
 
-        # Get paths to change in paths and the values each path should assume in pvalues
-        paths, pvalues = zip(*input_values_for_path.items())
-
-        # List of tuples each containing values for each path in paths
-        ppvalues = list(itertools.product(*pvalues))
-
-        skipfun = skipfun or _default_skipfun
-
-        args = []
-        flat_inputs = []
-        for pvalues in ppvalues:
-            _flat_input = copy.deepcopy(self.flat_input)
-            for path, val in zip(paths, pvalues):
-                _flat_input[path] = val
-
-            if skipfun(_flat_input):
-                continue
-            # Never use multiprocessing in the worker pool
-            qrun = query_runner_factory(
-                False, self, component_caching=self._component_caching
+        method = "product"
+        if method == "product":
+            flat_inputs, args = self._cartesian_product(
+                _query, input_values_for_path, skipfun
             )
-            args.append((qrun, _query, _flat_input, FlatData()))
-            flat_inputs.append(_flat_input)
 
         if len(args) == 0:
             raise HubitError("No args found for sweep")

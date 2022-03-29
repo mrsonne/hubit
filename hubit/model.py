@@ -441,10 +441,11 @@ class HubitModel:
         query: List[str],
         input_values_for_path: Dict[str, Sequence],
         skipfun: Optional[Callable[[FlatData], bool]] = None,
-        nproc: Any = None,
+        method: str = "product",
+        nproc: Optional[int] = None,
     ) -> Tuple[List[Dict], Sequence[FlatData], Sequence[FlatData]]:
-        """Perform a full factorial sampling of the
-        input points specified in `input_values_for_path`.
+        """Perform sampling of the input points specified in `input_values_for_path`
+        according to the specified `method`.
 
         On Windows calling this method should be guarded by
         if `__name__ == '__main__':`
@@ -463,6 +464,10 @@ class HubitModel:
                 factor combination represented by the input data object is skipped.
                 The default `skipfun` corresponding to
                 `skipfun=None` always returns `False`.
+            method: The method used in the sampling of `input_values_for_path`.
+            Available methods are: 'product' which creates the cartesian product of the
+            values in `input_values_for_path`. 'zip' which zips the values for each path
+            in `input_values_for_path`.
             nproc: Number of processes to use. If `None` a suitable default is used.
 
         Raises:
@@ -472,17 +477,16 @@ class HubitModel:
             Tuple of lists (responses, flat_inputs, flat_results). flat_inputs
             and flat_results both have elements of type [`FlatData`][hubit.config.FlatData]
 
-
         **Example:**
 
-        The input
+        Specifying `method="product"` the input
+
         ```
         input_values_for_path = {
             "segments[2].layers[2].material": ("brick", "concrete"),
             "segments[0].layers[2].thickness": (0.08, 0.12)
         }
         ```
-
         would result in the four `FlatData` input objects being generated and executed individually.
 
         ```
@@ -505,11 +509,27 @@ class HubitModel:
             },
         ]
         ```
+        Specifying `method="zip"` the same input would result in the two
+        `FlatData` input objects being generated and executed individually.
+
+        ```
+        [
+            {
+                "segments[2].layers[2].material": "brick",
+                "segments[0].layers[2].thickness": 0.08
+            },
+            {
+                "segments[2].layers[2].material": "concrete",
+                "segments[0].layers[2].thickness": 0.12
+            }
+        ]
+        ```
 
         Before execution the skip function will be called with the `FlatData` input as the
         sole argument. In the skip function it may be convenient to use the
         [`inflate`][hubit.config.FlatData.inflate] method on the `FlatData` object.
         """
+
         if not self._input_is_set:
             raise HubitModelNoInputError()
 
@@ -522,6 +542,10 @@ class HubitModel:
             flat_inputs, args = self._cartesian_product(
                 _query, input_values_for_path, skipfun
             )
+        elif method == "zip":
+            flat_inputs, args = self._zip(_query, input_values_for_path, skipfun)
+        else:
+            raise HubitError("Unknown")
 
         if len(args) == 0:
             raise HubitError("No args found for sweep")

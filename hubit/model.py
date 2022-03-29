@@ -48,6 +48,16 @@ if TYPE_CHECKING:
     from .config import HubitBinding, HubitModelComponent, HubitModelPath
     from .qrun import _QueryRunner
 
+    MethodReturnType = Tuple[
+        Sequence[FlatData],
+        Sequence[
+            Tuple[
+                Union[_QueryRunner, _QueryRunnerMultiProcess], Query, FlatData, FlatData
+            ],
+        ],
+    ]
+
+
 _CACHE_DIR = ".hubit_cache"
 _HUBIT_DIR = os.path.dirname(os.path.realpath(__file__))
 _CACHE_DIR = os.path.join(_HUBIT_DIR, _CACHE_DIR)
@@ -396,25 +406,26 @@ class HubitModel:
         )
         return response
 
-    def _cartesian_product(
+    def _sample_method(
         self,
+        f: Callable,
         query: Query,
         input_values_for_path: Dict[str, Sequence],
         skipfun: Optional[Callable[[FlatData], bool]],
-    ) -> Tuple[
-        Sequence[FlatData],
-        Sequence[
-            Tuple[
-                Union[_QueryRunner, _QueryRunnerMultiProcess], Query, FlatData, FlatData
-            ],
-        ],
-    ]:
+    ) -> MethodReturnType:
+        """
+        f is a callable that creates input tuples (one element per path)
+        from values for each path
+        """
 
-        # Get paths to change in paths and the values each path should assume in pvalues
+        # Get paths to change in paths and the values each path should assume in values
+        # paths = ["path1", "path2", "path3"]
+        # values = [(1,2), (4,), (5,6)]
         paths, values = zip(*input_values_for_path.items())
 
         # List of tuples each containing values for each path in paths
-        ppvalues = list(itertools.product(*values))
+        # [(1, 4, 5), (1, 2, 6), (2, 4, 5), (2, 4, 6)]
+        ppvalues = f(values)
 
         skipfun = skipfun or _default_skipfun
 
@@ -433,8 +444,27 @@ class HubitModel:
             )
             args.append((qrun, query, _flat_input, FlatData()))
             flat_inputs.append(_flat_input)
-
         return flat_inputs, args
+
+    def _zip_method(
+        self,
+        query: Query,
+        input_values_for_path: Dict[str, Sequence],
+        skipfun: Optional[Callable[[FlatData], bool]],
+    ) -> MethodReturnType:
+        return self._sample_method(
+            lambda x: list(zip(*x)), query, input_values_for_path, skipfun
+        )
+
+    def _cartesian_product_method(
+        self,
+        query: Query,
+        input_values_for_path: Dict[str, Sequence],
+        skipfun: Optional[Callable[[FlatData], bool]],
+    ) -> MethodReturnType:
+        return self._sample_method(
+            lambda x: list(itertools.product(*x)), query, input_values_for_path, skipfun
+        )
 
     def get_many(
         self,
@@ -539,11 +569,11 @@ class HubitModel:
 
         method = "product"
         if method == "product":
-            flat_inputs, args = self._cartesian_product(
+            flat_inputs, args = self._cartesian_product_method(
                 _query, input_values_for_path, skipfun
             )
         elif method == "zip":
-            flat_inputs, args = self._zip(_query, input_values_for_path, skipfun)
+            flat_inputs, args = self._zip_method(_query, input_values_for_path, skipfun)
         else:
             raise HubitError("Unknown")
 

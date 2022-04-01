@@ -450,7 +450,7 @@ class HubitModel:
         self,
         query: Query,
         input_values_for_path: Dict[str, Sequence],
-        skipfun: Optional[Callable[[FlatData], bool]],
+        skipfun: Optional[Callable[[FlatData], bool]] = None,
     ) -> MethodReturnType:
         return self._sample_method(
             lambda x: list(zip(*x)), query, input_values_for_path, skipfun
@@ -460,7 +460,7 @@ class HubitModel:
         self,
         query: Query,
         input_values_for_path: Dict[str, Sequence],
-        skipfun: Optional[Callable[[FlatData], bool]],
+        skipfun: Optional[Callable[[FlatData], bool]] = None,
     ) -> MethodReturnType:
         return self._sample_method(
             lambda x: list(itertools.product(*x)), query, input_values_for_path, skipfun

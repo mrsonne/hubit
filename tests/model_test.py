@@ -2,9 +2,10 @@ import copy
 import unittest
 import os
 import pathlib
+from unittest.mock import Mock
 import yaml
 from hubit.errors import HubitModelNoInputError, HubitModelQueryError
-from hubit.config import HubitModelConfig, HubitModelPath, HubitQueryPath
+from hubit.config import HubitModelConfig, HubitModelPath, HubitQueryPath, Query
 from hubit import HubitModel
 import pprint
 
@@ -630,6 +631,48 @@ class TestModel(unittest.TestCase):
         # Take out values for newest log item
         result = log.get_all("worker_counts")[0]
         self.assertEqual(result, expected_result)
+
+    def test_zip_method(self):
+
+        query_paths = []
+        query = Query.from_paths(query_paths)
+        input_values_for_path = {
+            "segments[2].layers[2].material": ("brick", "concrete"),
+            "segments[0].layers[2].thickness": (0.08, 0.12),
+        }
+
+        hmodel = HubitModel(
+            HubitModelConfig.from_cfg(
+                yaml.load(model, Loader=yaml.FullLoader), base_path=THIS_DIR
+            )
+        )
+
+        flat_inputs, args = hmodel._zip_method(
+            query,
+            input_values_for_path,
+        )
+
+        expected_inputs = [
+            {
+                "segments[2].layers[2].material": "brick",
+                "segments[0].layers[2].thickness": 0.08,
+            },
+            {
+                "segments[2].layers[2].material": "concrete",
+                "segments[0].layers[2].thickness": 0.12,
+            },
+        ]
+
+        assert flat_inputs == expected_inputs
+
+        # args is a tuple like
+        # (qrun, query, _flat_input, FlatData())
+
+        #
+        # Mock query_runner_factory to give testable result
+        # Flat input equal the one above
+        # FlatData is empty
+        # query equal the input query
 
     if __name__ == "__main__":
         unittest.main()

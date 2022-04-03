@@ -11,7 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Support for zip-style input value sweep on `get_many`.
 - Better type hinting on user-facing methods
-- Check for circular references in model definition.
 
 ## [0.5.0] - 2022-03-17
 

@@ -679,5 +679,52 @@ class TestModel(unittest.TestCase):
             assert arg[2] == expected_inputs[i]
             assert arg[3] == FlatData()
 
+    def test_cartesian_product_method(self):
+
+        query_paths = []
+        query = Query.from_paths(query_paths)
+        input_values_for_path = {
+            "segments[2].layers[2].material": ("brick", "concrete"),
+            "segments[0].layers[2].thickness": (0.08, 0.12),
+        }
+
+        hmodel = HubitModel(
+            HubitModelConfig.from_cfg(
+                yaml.load(model, Loader=yaml.FullLoader), base_path=THIS_DIR
+            )
+        )
+
+        flat_inputs, args = hmodel._cartesian_product_method(
+            query,
+            input_values_for_path,
+        )
+
+        expected_inputs = [
+            {
+                "segments[2].layers[2].material": "brick",
+                "segments[0].layers[2].thickness": 0.08,
+            },
+            {
+                "segments[2].layers[2].material": "brick",
+                "segments[0].layers[2].thickness": 0.12,
+            },
+            {
+                "segments[2].layers[2].material": "concrete",
+                "segments[0].layers[2].thickness": 0.08,
+            },
+            {
+                "segments[2].layers[2].material": "concrete",
+                "segments[0].layers[2].thickness": 0.12,
+            },
+        ]
+
+        assert flat_inputs == expected_inputs
+
+        for i, arg in enumerate(args):
+            assert type(arg[0]) == _QueryRunner
+            assert type(arg[1]) == Query
+            assert arg[2] == expected_inputs[i]
+            assert arg[3] == FlatData()
+
     if __name__ == "__main__":
         unittest.main()

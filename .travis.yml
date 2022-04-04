@@ -6,6 +6,7 @@ python:
 - 3.9
 before_install:
 - sudo apt-get install graphviz
+- python -m pip install --upgrade pip
 install:
 - pip install -e .[dev]
 script:

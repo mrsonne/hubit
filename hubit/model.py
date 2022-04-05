@@ -567,7 +567,6 @@ class HubitModel:
 
         tstart = time.time()
 
-        method = "product"
         if method == "product":
             flat_inputs, args = self._cartesian_product_method(
                 _query, input_values_for_path, skipfun

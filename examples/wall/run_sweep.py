@@ -2,7 +2,7 @@ import logging
 from pprint import pprint
 from math import isclose
 from operator import getitem
-from typing import Any, Dict
+from typing import Any, Callable, Dict, Optional, Sequence
 from .utils import get_model, HubitModel
 from hubit.config import FlatData, HubitModelPath
 
@@ -42,7 +42,13 @@ def skipfun(flat_input: FlatData) -> bool:
     return not_all_eq_tck or different_inner_mat or different_outer_mat
 
 
-def make_sweep(hmodel: HubitModel, nproc: Any = None) -> None:
+def make_sweep(
+    hmodel: HubitModel,
+    input_values_for_path: Dict[str, Sequence],
+    sweep_method: str,
+    skipfun: Optional[Callable] = None,
+    nproc: Optional[int] = None,
+) -> None:
     """Run a parameter sweep
 
     Args:
@@ -52,25 +58,9 @@ def make_sweep(hmodel: HubitModel, nproc: Any = None) -> None:
     """
     query = ["heat_transfer_number", "energy_class", "total_cost"]
 
-    # Cartesian product of the input perturbations
-    input_values_for_path = {
-        "segments[0].layers[0].material": ("brick", "concrete"),  # inner layer
-        "segments[2].layers[0].material": ("brick", "concrete"),
-        "segments[0].layers[3].material": ("brick", "concrete"),  # outer layer
-        "segments[2].layers[2].material": ("brick", "concrete"),
-        "segments[0].layers[2].thickness": (
-            0.08,
-            0.12,
-        ),  # insulation thickness
-        "segments[2].layers[1].thickness": (
-            0.025,
-            0.065,
-        ),
-    }
-
     # The skip function determines which factor combinations should be included
     responses, inps, _ = hmodel.get_many(
-        query, input_values_for_path, skipfun=skipfun, nproc=nproc
+        query, input_values_for_path, skipfun=skipfun, nproc=nproc, method=sweep_method
     )
 
     # Print results in a primitive table with no fancy dependecies
@@ -112,7 +102,69 @@ def make_sweep(hmodel: HubitModel, nproc: Any = None) -> None:
     print("\n".join(lines))
 
 
-if (
-    __name__ == "__main__"
-):  # Main guard required on windows if use_multi_processing = True
-    make_sweep(get_model(), nproc=None)
+def make_full_factorial_sweep():
+    # Cartesian product of the input perturbations
+    input_values_for_path = {
+        "segments[0].layers[0].material": ("brick", "concrete"),  # inner layer
+        "segments[2].layers[0].material": ("brick", "concrete"),
+        "segments[0].layers[3].material": ("brick", "concrete"),  # outer layer
+        "segments[2].layers[2].material": ("brick", "concrete"),
+        "segments[0].layers[2].thickness": (
+            0.08,
+            0.12,
+        ),  # insulation thickness
+        "segments[2].layers[1].thickness": (
+            0.025,
+            0.065,
+        ),
+    }
+
+    make_sweep(
+        get_model(),
+        input_values_for_path,
+        sweep_method="product",
+        skipfun=skipfun,
+        nproc=None,
+    )
+
+
+def make_zip_sweep():
+    input_values_for_path = {
+        "segments[0].layers[0].material": (  # inner layer
+            "brick",
+            "concrete",
+        ),
+        "segments[2].layers[0].material": (  # inner layer
+            "brick",
+            "concrete",
+        ),
+        "segments[0].layers[3].material": (  # outer layer
+            "brick",
+            "concrete",
+        ),
+        "segments[2].layers[2].material": (
+            "brick",
+            "concrete",
+        ),
+        "segments[0].layers[2].thickness": (  # insulation thickness
+            0.08,
+            0.12,
+        ),
+        "segments[2].layers[1].thickness": (
+            0.025,
+            0.065,
+        ),
+    }
+
+    make_sweep(
+        get_model(),
+        input_values_for_path,
+        sweep_method="zip",
+        nproc=None,
+    )
+
+
+# Main guard required on windows if use_multi_processing = True
+if __name__ == "__main__":
+    # make_full_factorial_sweep()
+    make_zip_sweep()

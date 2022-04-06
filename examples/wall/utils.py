@@ -5,7 +5,7 @@ from hubit.model import HubitModel
 THISPATH = os.path.dirname(os.path.realpath(__file__))
 
 
-def get_model() -> HubitModel:
+def get_model(model_file: str = "model.yml") -> HubitModel:
     """Create a HubutModel instance from a model file.
 
     Args:
@@ -15,7 +15,7 @@ def get_model() -> HubitModel:
         [HubitModel]: A hubit model corresponding to the model file
     """
     # Create model from a model file
-    model_file = "model.yml"
+
     modelfile = os.path.join(THISPATH, model_file)
     modelname = "wall"
     hmodel = HubitModel.from_file(modelfile, name=modelname, output_path="./tmp")

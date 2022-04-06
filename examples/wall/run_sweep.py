@@ -166,5 +166,5 @@ def make_zip_sweep():
 
 # Main guard required on windows if use_multi_processing = True
 if __name__ == "__main__":
-    # make_full_factorial_sweep()
+    make_full_factorial_sweep()
     make_zip_sweep()

@@ -1,0 +1,37 @@
+components:
+  -
+    path: ./components/thermal_conductivity.py 
+    func_name: thermal_conductivity     
+    provides_results:
+      - name: k_therm # internal name in the component
+        path: segments[IDX_SEG].layers[IDX_LAY].k_therm # path in the shared data model
+    consumes_input:
+      - name: material
+        path: segments[IDX_SEG].layers[IDX_LAY].material
+    consumes_results:
+      # - name: inner_temperature
+      #   path: segments[IDX_SEG].layers[IDX_LAY-1].outer_temperature
+      - name: outer_temperature
+        path: segments[IDX_SEG].layers[IDX_LAY].outer_temperature
+
+  - 
+    path: ./components/thermal_profile.py
+    func_name: thermal_prof
+    provides_results:
+      - name: outer_temperature_all_layers
+        path: segments[IDX_SEG].layers[:@IDX_LAY].outer_temperature # K
+      - name: heat_flux 
+        path: segments[IDX_SEG].heat_flux # W/m^2
+      - name: heat_transfer_number
+        path: segments[IDX_SEG].heat_transfer_number #W/m^2/K
+    consumes_input: 
+      - name: temp_in
+        path: segments[IDX_SEG].inside.temperature
+      - name: temp_out
+        path: segments[IDX_SEG].outside.temperature
+      - name: thicknesses
+        path: segments[IDX_SEG].layers[:@IDX_LAY].thickness
+    consumes_results: 
+      - name: ks_walls 
+        path: segments[IDX_SEG].layers[:@IDX_LAY].k_therm
+

@@ -560,6 +560,11 @@ class HubitModel:
         [`inflate`][hubit.config.FlatData.inflate] method on the `FlatData` object.
         """
 
+        fun_for_method = {
+            "product": self._cartesian_product_method,
+            "zip": self._zip_method,
+        }
+
         if not self._input_is_set:
             raise HubitModelNoInputError()
 
@@ -567,14 +572,14 @@ class HubitModel:
 
         tstart = time.time()
 
-        if method == "product":
-            flat_inputs, args = self._cartesian_product_method(
+        try:
+            flat_inputs, args = fun_for_method[method](
                 _query, input_values_for_path, skipfun
             )
-        elif method == "zip":
-            flat_inputs, args = self._zip_method(_query, input_values_for_path, skipfun)
-        else:
-            raise HubitError("Unknown")
+        except KeyError:
+            raise HubitError(
+                f"Unknown method '{method}'. Known methods are: {', '.join(fun_for_method.keys())}"
+            )
 
         if len(args) == 0:
             raise HubitError("No args found for sweep")

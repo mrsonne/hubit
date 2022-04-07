@@ -8,8 +8,22 @@ logging.basicConfig(level=logging.INFO)
 with open(".travis.yml", "r") as stream:
     steps = yaml.load(stream, Loader=yaml.SafeLoader)["script"]
 
-extra_steps = ("coverage html -d htmlcov",)
-steps.extend(extra_steps)
+# TODO: find examples automatically
+local_steps = (
+    "coverage html -d htmlcov",
+    "python -m examples.car.run",
+    "python -m examples.car.render",
+    "python -m examples.tanks.run",
+    "python -m examples.tanks.render",
+    "python -m examples.tanks.run_price",
+    "python -m examples.wall.run_queries",
+    "python -m examples.wall.render",
+    "python -m examples.wall.run_precompute",
+    "python -m examples.wall.run_set_results",
+    "python -m examples.wall.run_min_temperature",
+    "python -m examples.wall.run_sweep",
+)
+steps.extend(local_steps)
 
 nsteps = len(steps)
 for istep, step in enumerate(steps, 1):

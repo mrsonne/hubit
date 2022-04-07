@@ -1,0 +1,7 @@
+calc:
+  n_cells: 5
+  n_batches: 3
+cell:
+  k_eq: 1.2
+  V_tot: 17
+  liquid_fraction: 0.35

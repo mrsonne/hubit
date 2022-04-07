@@ -21,9 +21,11 @@ yml_input = None
 model = None
 
 THIS_FILE = os.path.realpath(__file__)
-THIS_DIR = os.path.dirname(THIS_FILE)
+THIS_DIR = pathlib.Path(__file__).parent
 REL_TMP_DIR = "./tmp"
-TMP_DIR = os.path.join(THIS_DIR, REL_TMP_DIR)
+TMP_DIR = THIS_DIR.joinpath("tmp")
+
+
 pathlib.Path(TMP_DIR).mkdir(parents=True, exist_ok=True)
 
 

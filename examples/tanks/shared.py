@@ -1,9 +1,10 @@
+import pathlib
 from black import Path
 import yaml
 import os
 from hubit.model import HubitModel
 
-THISPATH = os.path.dirname(os.path.realpath(__file__))
+THISPATH = pathlib.Path(__file__).parent
 
 
 def get_model(filename, input_file, model_id=""):

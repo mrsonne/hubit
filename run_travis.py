@@ -8,7 +8,7 @@ logging.basicConfig(level=logging.INFO)
 with open(".travis.yml", "r") as stream:
     steps = yaml.load(stream, Loader=yaml.SafeLoader)["script"]
 
-# TODO: find examples automatically
+# TODO: find examples automatically and run a unit tests marked "slow"
 local_steps = (
     "coverage html -d htmlcov",
     "python -m examples.car.run",

@@ -58,9 +58,9 @@ if TYPE_CHECKING:
     ]
 
 
-_CACHE_DIR = ".hubit_cache"
-_HUBIT_DIR = os.path.dirname(os.path.realpath(__file__))
-_CACHE_DIR = os.path.join(_HUBIT_DIR, _CACHE_DIR)
+_CACHE_DIR = pathlib.Path(".hubit_cache")
+_HUBIT_DIR = pathlib.Path(__file__).parent
+_CACHE_DIR = _HUBIT_DIR.joinpath(_CACHE_DIR)
 IDX_WILDCARD = PathIndexRange.wildcard_chr
 
 

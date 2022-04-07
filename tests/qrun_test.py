@@ -1,4 +1,5 @@
 import os
+import pathlib
 import unittest
 import pytest
 import yaml
@@ -9,7 +10,7 @@ from hubit.errors import HubitModelQueryError
 from hubit.config import FlatData, HubitModelComponent, HubitModelConfig, HubitQueryPath
 
 THIS_FILE = os.path.realpath(__file__)
-THIS_DIR = os.path.dirname(THIS_FILE)
+THIS_DIR = pathlib.Path(__file__).parent
 REL_TMP_DIR = "./tmp"
 
 

@@ -1,0 +1,33 @@
+# Calculate initial amounts in cell based on amounts transferred 
+# from previous cell and amounts that resides in the cell from the 
+# previous batch
+components:
+  - path: ./components/get_total_comp.py
+    index_scope:
+      IDX_CELL: "1:"
+    provides_results: 
+      - name: tot_composition
+        path: batches[IDX_BATCH].cells[IDX_CELL].tot_composition
+    consumes_results:
+      - name: liq_composition
+        path: batches[IDX_BATCH].cells[IDX_CELL-1].liq_composition
+      - name: V_liq_in
+        path: batches[IDX_BATCH].cells[IDX_CELL-1].V_liq
+      # - name: solid_composition
+      #   path: batches[IDX_BATCH-1].cells[IDX_CELL].sol_composition
+
+#  Find concentrations in liquid and solid phases based on total conc 
+  - path: ./components/eq_non_competitive.py
+    provides_results: 
+      - name: liq_composition
+        path: batches[IDX_BATCH].cells[IDX_CELL].liq_composition
+      - name: sol_composition
+        path: batches[IDX_BATCH].cells[IDX_CELL].sol_composition
+      - name: V_liq
+        path: batches[IDX_BATCH].cells[IDX_CELL].V_liq
+    consumes_results:
+      - name: tot_composition
+        path: batches[IDX_BATCH].cells[IDX_CELL].tot_composition
+    consumes_input:
+      - name: cell
+        path: batches[IDX_BATCH].cells[IDX_CELL]

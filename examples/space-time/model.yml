@@ -1,9 +1,6 @@
-# Calculate initial amounts in cell based on amounts transferred 
-# from previous cell and amounts that resides in the cell from the 
-# previous batch
 components:
 
-  # Calculates the liquid volume and composition for the first cell
+# Calculates the liquid volume and composition for the first cell
   - &total_comp
     path: ./components/get_total_comp.py
     index_scope:
@@ -19,7 +16,7 @@ components:
       # - name: solid_composition
       #   path: batches[IDX_BATCH-1].cells[IDX_CELL].sol_composition
 
-  # Overwrites the source for liquid composition and liquid volume
+# Overwrites the source for liquid composition and liquid volume
   - <<: *total_comp
     index_scope:
       IDX_CELL: "1:"

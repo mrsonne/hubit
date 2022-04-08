@@ -33,6 +33,14 @@ def make_input():
     return input_
 
 
+def run():
+    # Load the model
+    with open(os.path.join(THIS_DIR, "model.yml"), "r") as stream:
+        model_cfg = yaml.load(stream, Loader=yaml.FullLoader)
+    pprint.pprint(model_cfg)
+
+
 if __name__ == "__main__":
     inp = make_input()
     pprint.pprint(inp)
+    run()

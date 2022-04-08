@@ -2,6 +2,8 @@ calc:
   n_cells: 5
   n_batches: 3
 cell:
-  k_eq: 1.2
-  V_tot: 17
-  liquid_fraction: 0.35
+  k_eq: 1.1, 0.1, 12
+  V_solid: 12.
+feed:
+  liq_composition: 1., 2., 3. 
+  V_liq: 8.

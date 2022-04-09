@@ -23,7 +23,7 @@ components:
     consumes_results:
       - name: liq_composition
         path: batches[IDX_BATCH].cells[IDX_CELL-1].liq_composition
-      - name: V_liq_in
+      - name: V_liq
         path: batches[IDX_BATCH].cells[IDX_CELL-1].V_liq
       # - name: solid_composition
       #   path: batches[IDX_BATCH-1].cells[IDX_CELL].sol_composition

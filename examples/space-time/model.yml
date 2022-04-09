@@ -2,7 +2,7 @@ components:
 
 # Calculates the liquid volume and composition for the first cell
   - &total_comp
-    path: ./components/get_total_comp.py
+    path: ./components/total_comp.py
     index_scope:
       IDX_CELL: "0"
     provides_results: 

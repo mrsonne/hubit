@@ -26,6 +26,8 @@ def make_input():
         * input_data["calc"]["n_batches"]
     }
 
+    input_["feed"] = input_data["feed"]
+
     # Load the input
     with open(os.path.join(TMP_DIR, "input_expanded.yml"), "w") as handle:
         yaml.dump(input_, handle)

@@ -6,8 +6,8 @@ components:
     index_scope:
       IDX_CELL: "0"
     provides_results: 
-      - name: tot_composition
-        path: batches[IDX_BATCH].cells[IDX_CELL].tot_composition
+      - name: mole_numbers
+        path: batches[IDX_BATCH].cells[IDX_CELL].mole_numbers
     consumes_input:
       - name: liq_composition
         path: feed.liq_composition
@@ -39,8 +39,10 @@ components:
       - name: V_liq
         path: batches[IDX_BATCH].cells[IDX_CELL].V_liq
     consumes_results:
-      - name: tot_composition
-        path: batches[IDX_BATCH].cells[IDX_CELL].tot_composition
+      - name: V_liq
+        path: batches[IDX_BATCH].cells[IDX_CELL-1].V_liq
+      - name: mole_numbers
+        path: batches[IDX_BATCH].cells[IDX_CELL].mole_numbers
     consumes_input:
       - name: cell
         path: batches[IDX_BATCH].cells[IDX_CELL]

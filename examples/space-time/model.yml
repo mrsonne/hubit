@@ -2,15 +2,15 @@ components:
 
 # Calculates the liquid volume and composition for the first cell
   - &total_comp
-    path: ./components/total_comp.py
+    path: ./components/mix.py
     index_scope:
       IDX_CELL: "0"
     provides_results: 
       - name: mole_numbers
         path: batches[IDX_BATCH].cells[IDX_CELL].mole_numbers
     consumes_input:
-      - name: liq_composition
-        path: feed.liq_composition
+      - name: liq_concs
+        path: feed.liq_concs
       - name: V_liq
         path: feed.V_liq
       # - name: solid_composition
@@ -21,8 +21,8 @@ components:
     index_scope:
       IDX_CELL: "1:"
     consumes_results:
-      - name: liq_composition
-        path: batches[IDX_BATCH].cells[IDX_CELL-1].liq_composition
+      - name: liq_concs
+        path: batches[IDX_BATCH].cells[IDX_CELL-1].liq_concs
       - name: V_liq
         path: batches[IDX_BATCH].cells[IDX_CELL-1].V_liq
       # - name: solid_composition
@@ -32,10 +32,10 @@ components:
 #  Same for all cells & batches
   - path: ./components/eq_non_competitive.py
     provides_results: 
-      - name: liq_composition
-        path: batches[IDX_BATCH].cells[IDX_CELL].liq_composition
-      - name: sol_composition
-        path: batches[IDX_BATCH].cells[IDX_CELL].sol_composition
+      - name: liq_concs
+        path: batches[IDX_BATCH].cells[IDX_CELL].liq_concs
+      - name: sol_concs
+        path: batches[IDX_BATCH].cells[IDX_CELL].sol_concs
       - name: V_liq
         path: batches[IDX_BATCH].cells[IDX_CELL].V_liq
     consumes_results:

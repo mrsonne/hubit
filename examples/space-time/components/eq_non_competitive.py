@@ -2,6 +2,10 @@ from typing import Dict
 from hubit.utils import ReadOnlyDict
 
 
+def get_change(n, k_eq, V_s, V_l):
+    return (n * k_eq * V_s / V_l) / (1 + k_eq * V_s / V_l)
+
+
 def main(_input: ReadOnlyDict, results: Dict):
     """
     Finds the equilibrium for the dissolution of A from a liquid (l) into a solid
@@ -36,7 +40,7 @@ def main(_input: ReadOnlyDict, results: Dict):
     k_eq = _input["cell"]["k_eq"]
     V_solid = _input["cell"]["V_solid"]
     V_liq = _input["V_liq"]
-
-    results["liq_composition"] = 1
-    results["sol_composition"] = 1
-    results["V_liq"] = 1
+    xs = [get_change(_n, _k_eq, V_solid, V_liq) for _n, _k_eq in zip(n, k_eq)]
+    results["liq_composition"] = [_n - _x for _x, _n in zip(xs, n)]
+    results["sol_composition"] = xs
+    results["V_liq"] = V_liq

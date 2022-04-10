@@ -2,7 +2,7 @@ from typing import Dict
 from hubit.utils import ReadOnlyDict
 
 
-def main(_input: ReadOnlyDict, results_provided: Dict):
+def main(_input: ReadOnlyDict, results: Dict):
     """
     Finds the equilibrium for the dissolution of A from a liquid (l) into a solid
     (s) phase.
@@ -37,6 +37,6 @@ def main(_input: ReadOnlyDict, results_provided: Dict):
     V_solid = _input["cell"]["V_solid"]
     V_liq = _input["V_liq"]
 
-    results_provided["liq_composition"] = 1
-    results_provided["sol_composition"] = 1
-    results_provided["V_liq"] = 1
+    results["liq_composition"] = 1
+    results["sol_composition"] = 1
+    results["V_liq"] = 1

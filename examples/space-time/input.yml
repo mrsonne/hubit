@@ -5,5 +5,5 @@ cell:
   k_eq: [1.1, 0.1, 12]
   V_solid: 12.
 feed:
-  liq_composition: [1., 2., 3.] 
-  V_liq: 8.
+  concs: [1., 2., 3.] 
+  V: 8.

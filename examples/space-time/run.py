@@ -21,14 +21,21 @@ def make_input():
     with open(os.path.join(THIS_DIR, "input.yml"), "r") as stream:
         input_data = yaml.load(stream, Loader=yaml.FullLoader)
 
+    # Create all cells
     input_ = {
         "batches": [{"cells": [input_data["cell"]] * input_data["calc"]["n_cells"]}]
         * input_data["calc"]["n_batches"]
     }
 
-    input_["feed"] = input_data["feed"]
+    # Boundary condition all cells at  t = 0
+    feed_concs = [0.0 for _ in input_data["feed"]["concs"]]
+    input_["feed"] = [
+        {"concs": feed_concs, "V": 0} for icell in range(input_data["calc"]["n_cells"])
+    ]
+    input_["feed"][0]["concs"] = input_data["feed"]["concs"]
+    input_["feed"][0]["V"] = input_data["feed"]["V"]
 
-    # Load the input
+    # Save input (not necessary)
     with open(os.path.join(TMP_DIR, "input_expanded.yml"), "w") as handle:
         yaml.dump(input_, handle)
 

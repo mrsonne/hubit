@@ -1,32 +1,34 @@
 components:
 
 # Calculates the liquid volume and composition for the first cell
-  - &total_comp
+  - &mix
     path: ./components/mix.py
     index_scope:
-      IDX_CELL: "0"
+      IDX_CELL: ":"
+      IDX_BATCH: "0"
     provides_results: 
       - name: mole_numbers
         path: batches[IDX_BATCH].cells[IDX_CELL].mole_numbers
-    consumes_input:
-      - name: liq_concs
-        path: feed.liq_concs
       - name: V_liq
-        path: feed.V_liq
-      # - name: solid_composition
-      #   path: batches[IDX_BATCH-1].cells[IDX_CELL].sol_composition
+        path: batches[IDX_BATCH].cells[IDX_CELL].V_liq
+    consumes_input:
+      - name: feed_concs
+        path: feed[IDX_CELL].concs
+      - name: V_feed
+        path: feed[IDX_CELL].V
 
 # Overwrites the source for liquid composition and liquid volume
-  - <<: *total_comp
-    index_scope:
-      IDX_CELL: "1:"
-    consumes_results:
-      - name: liq_concs
-        path: batches[IDX_BATCH].cells[IDX_CELL-1].liq_concs
-      - name: V_liq
-        path: batches[IDX_BATCH].cells[IDX_CELL-1].V_liq
-      # - name: solid_composition
-      #   path: batches[IDX_BATCH-1].cells[IDX_CELL].sol_composition
+  # - <<: *mix
+  #   index_scope:
+  #     IDX_CELL: "1:"
+  #     IDX_BATCH: "1:"
+  #   consumes_results:
+  #     - name: feed_concs
+  #       path: batches[IDX_BATCH-1].cells[IDX_CELL-1].liq_concs
+  #     - name: V_feed
+  #       path: batches[IDX_BATCH-1].cells[IDX_CELL-1].V_liq
+  #     # - name: solid_composition
+  #     #   path: batches[IDX_BATCH-1].cells[IDX_CELL].sol_composition
 
 #  Find concentrations in liquid and solid phases based on total conc 
 #  Same for all cells & batches
@@ -40,7 +42,7 @@ components:
         path: batches[IDX_BATCH].cells[IDX_CELL].V_liq
     consumes_results:
       - name: V_liq
-        path: batches[IDX_BATCH].cells[IDX_CELL-1].V_liq
+        path: batches[IDX_BATCH].cells[IDX_CELL].V_liq
       - name: mole_numbers
         path: batches[IDX_BATCH].cells[IDX_CELL].mole_numbers
     consumes_input:

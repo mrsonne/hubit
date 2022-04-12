@@ -3,20 +3,20 @@ components:
 # Calculates the liquid volume and composition for the first cell
   - &mix
     path: ./components/mix.py
-    index_scope:
-      IDX_CELL: ":"
+    # index_scope:
+      # IDX_CELL: ":"
       # IDX_BATCH: "0"
     provides_results: 
       - name: mole_numbers
         path: batches[IDX_BATCH].cells[IDX_CELL].mole_numbers_feed
       - name: V_liq
-        path: batches[IDX_BATCH].cells[IDX_CELL].V_feed
+        path: batches[IDX_BATCH].cells[IDX_CELL].V_liq
     consumes_input:
       # TODO: Temporary since we need to infer the tree structure for the provided index context 
       - name: feed_concs
-        path: batches[IDX_BATCH].cells[IDX_CELL].ini[concs]
+        path: batches[IDX_BATCH].cells[IDX_CELL].ini.concs
       - name: V_feed
-        path: batches[IDX_BATCH].cells[IDX_CELL].ini[V]
+        path: batches[IDX_BATCH].cells[IDX_CELL].ini.V
       # - name: feed_concs
       #   # path: feed[IDX_CELL].concs
       #   path: cells[IDX_CELL].ini.concs
@@ -38,20 +38,18 @@ components:
 
 #  Find concentrations in liquid and solid phases based on total conc 
 #  Same for all cells & batches
-  - path: ./components/eq_non_competitive.py
-    provides_results: 
-      - name: liq_concs
-        path: batches[IDX_BATCH].cells[IDX_CELL].liq_concs
-      - name: sol_concs
-        path: batches[IDX_BATCH].cells[IDX_CELL].sol_concs
-      - name: V_liq
-        path: batches[IDX_BATCH].cells[IDX_CELL].V_liq
-    consumes_results:
-      - name: V_feed
-        path: batches[IDX_BATCH].cells[IDX_CELL].V_feed
-      - name: mole_numbers_feed
-        path: batches[IDX_BATCH].cells[IDX_CELL].mole_numbers_feed
-    consumes_input:
-      - name: cell
-        # TODO: cells do not change in time but for now we need a tree with index context IDX_BATCH-IDX_CELL
-        path: batches[IDX_BATCH].cells[IDX_CELL]
+  # - path: ./components/eq_non_competitive.py
+  #   provides_results: 
+  #     - name: liq_concs
+  #       path: batches[IDX_BATCH].cells[IDX_CELL].liq_concs
+  #     - name: sol_concs
+  #       path: batches[IDX_BATCH].cells[IDX_CELL].sol_concs
+  #   consumes_results:
+  #     - name: V_liq
+  #       path: batches[IDX_BATCH].cells[IDX_CELL].V_liq
+  #     - name: mole_numbers_feed
+  #       path: batches[IDX_BATCH].cells[IDX_CELL].mole_numbers_feed
+  #   consumes_input:
+  #     - name: cell
+  #       # TODO: cells do not change in time but for now we need a tree with index context IDX_BATCH-IDX_CELL
+  #       path: batches[IDX_BATCH].cells[IDX_CELL]

@@ -58,17 +58,18 @@ def run(inp):
     # Load the model
     with open(THIS_DIR.joinpath("model.yml"), "r") as stream:
         model_cfg = yaml.load(stream, Loader=yaml.FullLoader)
-    pprint.pprint(model_cfg)
+    # pprint.pprint(model_cfg)
 
     model = HubitModel.from_file(THIS_DIR.joinpath("model.yml"))
     model.set_input(inp)
 
-    qpaths = ["batches[0].cells[-1].liq_concs"]
+    qpaths = ["batches[0].cells[-1].mole_numbers_feed"]
+    # qpaths = ["batches[0].cells[-1].V_liq"]
     response = model.get(qpaths)
-    # print(response)
+    print(response)
 
 
 if __name__ == "__main__":
     inp = make_input()
-    pprint.pprint(inp)
+    # pprint.pprint(inp)
     run(inp)

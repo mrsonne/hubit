@@ -63,7 +63,7 @@ def run(inp):
     model = HubitModel.from_file(THIS_DIR.joinpath("model.yml"))
     model.set_input(inp)
 
-    qpaths = ["batches[0].cells[-1].mole_numbers_feed"]
+    qpaths = ["batches[0].cells[-1].mole_numbers_tot"]
     # qpaths = ["batches[0].cells[-1].V_liq"]
     response = model.get(qpaths)
     print(response)

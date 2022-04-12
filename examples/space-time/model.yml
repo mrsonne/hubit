@@ -7,8 +7,8 @@ components:
       # IDX_CELL: ":"
       # IDX_BATCH: "0"
     provides_results: 
-      - name: mole_numbers
-        path: batches[IDX_BATCH].cells[IDX_CELL].mole_numbers_feed
+      - name: mole_numbers_tot
+        path: batches[IDX_BATCH].cells[IDX_CELL].mole_numbers_tot
       - name: V_liq
         path: batches[IDX_BATCH].cells[IDX_CELL].V_liq
     consumes_input:
@@ -38,18 +38,18 @@ components:
 
 #  Find concentrations in liquid and solid phases based on total conc 
 #  Same for all cells & batches
-  # - path: ./components/eq_non_competitive.py
-  #   provides_results: 
-  #     - name: liq_concs
-  #       path: batches[IDX_BATCH].cells[IDX_CELL].liq_concs
-  #     - name: sol_concs
-  #       path: batches[IDX_BATCH].cells[IDX_CELL].sol_concs
-  #   consumes_results:
-  #     - name: V_liq
-  #       path: batches[IDX_BATCH].cells[IDX_CELL].V_liq
-  #     - name: mole_numbers_feed
-  #       path: batches[IDX_BATCH].cells[IDX_CELL].mole_numbers_feed
-  #   consumes_input:
-  #     - name: cell
-  #       # TODO: cells do not change in time but for now we need a tree with index context IDX_BATCH-IDX_CELL
-  #       path: batches[IDX_BATCH].cells[IDX_CELL]
+#   - path: ./components/eq_non_competitive.py
+#     provides_results: 
+#       - name: liq_concs
+#         path: batches[IDX_BATCH].cells[IDX_CELL].liq_concs
+#       - name: sol_concs
+#         path: batches[IDX_BATCH].cells[IDX_CELL].sol_concs
+#     consumes_results:
+#       - name: V_liq
+#         path: batches[IDX_BATCH].cells[IDX_CELL].V_liq
+#       - name: mole_numbers_feed
+#         path: batches[IDX_BATCH].cells[IDX_CELL].mole_numbers_tot
+#     consumes_input:
+#       - name: cell
+#         # TODO: cells do not change in time but for now we need a tree with index context IDX_BATCH-IDX_CELL
+#         path: batches[IDX_BATCH].cells[IDX_CELL]

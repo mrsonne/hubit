@@ -5,17 +5,23 @@ components:
     path: ./components/mix.py
     index_scope:
       IDX_CELL: ":"
-      IDX_BATCH: "0"
+      # IDX_BATCH: "0"
     provides_results: 
       - name: mole_numbers
-        path: batches[IDX_BATCH].cells[IDX_CELL].mole_numbers
+        path: batches[IDX_BATCH].cells[IDX_CELL].mole_numbers_feed
       - name: V_liq
-        path: batches[IDX_BATCH].cells[IDX_CELL].V_liq
+        path: batches[IDX_BATCH].cells[IDX_CELL].V_feed
     consumes_input:
+      # TODO: Temporary since we need to infer the tree structure for the provided index context 
       - name: feed_concs
-        path: feed[IDX_CELL].concs
+        path: batches[IDX_BATCH].cells[IDX_CELL].ini[concs]
       - name: V_feed
-        path: feed[IDX_CELL].V
+        path: batches[IDX_BATCH].cells[IDX_CELL].ini[V]
+      # - name: feed_concs
+      #   # path: feed[IDX_CELL].concs
+      #   path: cells[IDX_CELL].ini.concs
+      # - name: V_feed
+      #   path: feed[IDX_CELL].V
 
 # Overwrites the source for liquid composition and liquid volume
   # - <<: *mix
@@ -41,10 +47,11 @@ components:
       - name: V_liq
         path: batches[IDX_BATCH].cells[IDX_CELL].V_liq
     consumes_results:
-      - name: V_liq
-        path: batches[IDX_BATCH].cells[IDX_CELL].V_liq
-      - name: mole_numbers
-        path: batches[IDX_BATCH].cells[IDX_CELL].mole_numbers
+      - name: V_feed
+        path: batches[IDX_BATCH].cells[IDX_CELL].V_feed
+      - name: mole_numbers_feed
+        path: batches[IDX_BATCH].cells[IDX_CELL].mole_numbers_feed
     consumes_input:
       - name: cell
+        # TODO: cells do not change in time but for now we need a tree with index context IDX_BATCH-IDX_CELL
         path: batches[IDX_BATCH].cells[IDX_CELL]

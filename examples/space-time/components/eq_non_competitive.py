@@ -36,11 +36,11 @@ def main(_input: ReadOnlyDict, results: Dict):
 
     For multiple components, each equilibrium is assumed to be independent.
     """
-    n = _input["mole_numbers"]
+    n = _input["mole_numbers_feed"]
+    V_feed = _input["V_feed"]
     k_eq = _input["cell"]["k_eq"]
     V_solid = _input["cell"]["V_solid"]
-    V_liq = _input["V_liq"]
-    xs = [get_change(_n, _k_eq, V_solid, V_liq) for _n, _k_eq in zip(n, k_eq)]
+    xs = [get_change(_n, _k_eq, V_solid, V_feed) for _n, _k_eq in zip(n, k_eq)]
     results["liq_composition"] = [_n - _x for _x, _n in zip(xs, n)]
     results["sol_composition"] = xs
-    results["V_liq"] = V_liq
+    results["V_liq"] = V_feed

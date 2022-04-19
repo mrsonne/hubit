@@ -9,6 +9,7 @@ from __future__ import annotations, with_statement
 import copy
 from abc import ABC, abstractproperty
 from dataclasses import dataclass, field
+from itertools import permutations
 import pathlib
 from collections import abc, Counter
 import yaml
@@ -1262,6 +1263,11 @@ class HubitModelConfig:
             for component in self.components
             for query_depth in component.query_depths()
         ]
+
+        # Loop over all pairs and make sure that only the deepest levels are kept.  
+        # For example in ['batches[*].cells[*].ini.concs', 'batches[*].cells[*].ini.V', 'batches[*].cells[*]']
+        # the last item should not be kept since it may prevent flattening to the "ini" depth level 
+        self._query_depths = list(set(p1 for p1, p2 in permutations(self._query_depths, 2) if not p2.startswith(p1)))
 
         self.include_patterns = [
             include_pattern

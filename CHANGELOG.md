@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for zip-style input value sweep on `get_many`.
 - Better type hinting on user-facing methods.
 
+### Fixed
+
+- make sure that only the deepest levels are kept
+
 ## [0.5.0] - 2022-03-17
 
 ### Added

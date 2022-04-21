@@ -877,6 +877,31 @@ class TestFlatData(unittest.TestCase):
         expected_result = True
         assert result == expected_result
 
+        key = "list1.list2"
+        includes = "list1.list2", "ok"
+        result = FlatData._include(key, includes)
+        expected_result = True
+        assert result == expected_result
+
+        key = "list1"
+        includes = "list1.list2", "ok"
+        result = FlatData._include(key, includes)
+        expected_result = True
+        assert result == expected_result
+
+        key = "list1.list2.ok"
+        includes = "list1.list2", "ok"
+        result = FlatData._include(key, includes)
+        expected_result = False
+        assert result == expected_result
+
+        key = "list1.1"
+        includes = "list1.list2", "ok"
+        result = FlatData._include(key, includes)
+        expected_result = True
+        assert result == expected_result
+
+        key = "list1.1.list2.32"
         includes = "list1", "ok"
         result = FlatData._include(key, includes)
         expected_result = False

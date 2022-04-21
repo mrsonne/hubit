@@ -1264,10 +1264,16 @@ class HubitModelConfig:
             for query_depth in component.query_depths()
         ]
 
-        # Loop over all pairs and make sure that only the deepest levels are kept.  
+        # Loop over all pairs and make sure that only the deepest levels are kept.
         # For example in ['batches[*].cells[*].ini.concs', 'batches[*].cells[*].ini.V', 'batches[*].cells[*]']
-        # the last item should not be kept since it may prevent flattening to the "ini" depth level 
-        self._query_depths = list(set(p1 for p1, p2 in permutations(self._query_depths, 2) if not p2.startswith(p1)))
+        # the last item should not be kept since it may prevent flattening to the "ini" depth level
+        # self._query_depths = list(
+        #     set(
+        #         p1
+        #         for p1, p2 in permutations(self._query_depths, 2)
+        #         if not p2.startswith(p1)
+        #     )
+        # )
 
         self.include_patterns = [
             include_pattern
@@ -1450,17 +1456,28 @@ class FlatData(Dict):
         cls,
         dict: Dict,
         parent_key: str = "",
-        sep: str = ".",
         stop_at: List = [],
         include_patterns=[],
         as_dotted: bool = False,
     ):
         """
-        Flattens dict and concatenates keys to a dotted style internal path
+        Flattens dict and concatenates keys.
+
+        dict: Input dictionary
+        parent_key: Recursion argument
+        stop_at: List = [],
+        include_patterns: dotted style paths that specifies the structure
+            that the flattened paths (excluding .DIGITS) should fulfil to be included.
+            The include pattern should start with the path.
+            If, for example the `include_patterns` is `["list1.list2"]` the following flattened
+            keys would be included: `list1`, `list1.list2` and `list1.1.list2.32`. The last path is included
+            because all digits preceded by a dot are excluded in the comparison.
+            The following flattened keys would not be included: `list1.list2.ok`.
+        as_dotted: bool = False,
         """
         items = []
         for k, v in dict.items():
-            new_key = parent_key + sep + k if parent_key else k
+            new_key = parent_key + SEP + k if parent_key else k
             if FlatData._match(new_key, stop_at):
                 items.append((cls._path_cls(new_key), v))
                 continue
@@ -1473,7 +1490,6 @@ class FlatData(Dict):
                     cls.from_dict(
                         v,
                         new_key,
-                        sep=sep,
                         stop_at=stop_at,
                         include_patterns=include_patterns,
                     ).items()
@@ -1492,7 +1508,6 @@ class FlatData(Dict):
                                 cls.from_dict(
                                     item,
                                     _new_key,
-                                    sep=sep,
                                     stop_at=stop_at,
                                     include_patterns=include_patterns,
                                 ).items()

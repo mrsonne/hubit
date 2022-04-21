@@ -1432,15 +1432,12 @@ class FlatData(Dict):
         return items
 
     @staticmethod
-    def _match(path: str, stop_at: List):
+    def _match(path: str, stop_at: List[re.Pattern]):
         """
         Check if path matches any of the compiled regex in the
         stop_at list
         """
-        if any(prog.search(path) for prog in stop_at):
-            return True
-        else:
-            return False
+        return len([True for prog in stop_at if prog.search(path)]) > 0
 
     @staticmethod
     def _include(path: str, include_patterns: List[str]):
@@ -1475,6 +1472,7 @@ class FlatData(Dict):
             The following flattened keys would not be included: `list1.list2.ok`.
         as_dotted: bool = False,
         """
+
         items = []
         for k, v in dict.items():
             new_key = parent_key + SEP + k if parent_key else k

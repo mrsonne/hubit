@@ -50,6 +50,16 @@ components:
       - name: mole_numbers_feed
         path: batches[IDX_BATCH].cells[IDX_CELL].mole_numbers_tot
     consumes_input:
+      # HubitModelConfig._query_depths
+      # ['batches[*].cells[*].ini.concs', 'batches[*].cells[*].ini.V', 'batches[*].cells[*]']
+      # Bug: stops at 'batches[*].cells[*]' since we don't check if paths in list are actually 
+      # the same but at different depths. 
       - name: cell
         # TODO: cells do not change in time but for now we need a tree with index context IDX_BATCH-IDX_CELL
         path: batches[IDX_BATCH].cells[IDX_CELL]
+      # - name: V_solid
+      #   # TODO: cells do not change in time but for now we need a tree with index context IDX_BATCH-IDX_CELL
+      #   path: batches[IDX_BATCH].cells[IDX_CELL].V_solid
+      # - name: k_eq
+      #   # TODO: cells do not change in time but for now we need a tree with index context IDX_BATCH-IDX_CELL
+      #   path: batches[IDX_BATCH].cells[IDX_CELL].k_eq

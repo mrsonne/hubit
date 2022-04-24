@@ -804,7 +804,8 @@ class _HubitQueryDepthPath(HubitQueryPath):
     def compile_regex(self):
         """Convert to internal path but escaping dots"""
         return re.compile(
-            self.replace("[", r"\.")
+            ("^" + self)
+            .replace("[", r"\.")
             .replace("]", r"")
             .replace(_HubitQueryDepthPath.idx_wildcard, "[0-9]+")
         )
@@ -1267,13 +1268,11 @@ class HubitModelConfig:
         # Loop over all pairs and make sure that only the deepest levels are kept.
         # For example in ['batches[*].cells[*].ini.concs', 'batches[*].cells[*].ini.V', 'batches[*].cells[*]']
         # the last item should not be kept since it may prevent flattening to the "ini" depth level
-        # self._query_depths = list(
-        #     set(
-        #         p1
-        #         for p1, p2 in permutations(self._query_depths, 2)
-        #         if not p2.startswith(p1)
-        #     )
-        # )
+        self.has_deeper_paths = set(
+            p1.compile_regex()
+            for p1, p2 in permutations(self._query_depths, 2)
+            if p2.startswith(p1)
+        )
 
         self.include_patterns = [
             include_pattern
@@ -1432,12 +1431,16 @@ class FlatData(Dict):
         return items
 
     @staticmethod
-    def _match(path: str, stop_at: List[re.Pattern]):
+    def _match(path: str, stop_at: List[re.Pattern]) -> Union[None, re.Pattern]:
         """
         Check if path matches any of the compiled regex in the
         stop_at list
         """
-        return len([True for prog in stop_at if prog.search(path)]) > 0
+        matches = list(set(prog for prog in stop_at if prog.search(path) is not None))
+        try:
+            return matches[0]
+        except IndexError:
+            return None
 
     @staticmethod
     def _include(path: str, include_patterns: List[str]):
@@ -1449,67 +1452,107 @@ class FlatData(Dict):
         return any(include.startswith(_path) for include in include_patterns)
 
     @classmethod
+    def _items_from_list_stop(cls, v, new_key):
+        items = []
+        for idx, item in enumerate(v):
+            _new_key = new_key + "." + str(idx)
+            items.append((cls._path_cls(_new_key), item))
+        return items
+
+    @classmethod
+    def _items_from_list_recurse(
+        cls, v, new_key, stop_at, include_patterns, has_deeper_paths
+    ):
+        items = []
+        for idx, item in enumerate(v):
+            _new_key = new_key + "." + str(idx)
+            items.extend(
+                cls.from_dict(
+                    item,
+                    _new_key,
+                    stop_at=stop_at,
+                    include_patterns=include_patterns,
+                    has_deeper_paths=has_deeper_paths,
+                ).items()
+            )
+        return items
+
+    @classmethod
     def from_dict(
         cls,
         dict: Dict,
         parent_key: str = "",
-        stop_at: List = [],
-        include_patterns=[],
+        stop_at: List[re.Pattern] = [],
+        include_patterns: List[str] = [],
+        has_deeper_paths: set[re.Pattern] = set(),
         as_dotted: bool = False,
-    ):
+    ) -> FlatData:
         """
-        Flattens dict and concatenates keys.
+        Flattens dict and concatenates keys. If e.g. the input `dict`
+        is `{"a": {"b": {"c": [2, 3]}}}` the default output is
+        `{"a.b.c[0]": 2, "a.b.c[1]": 3}`
 
         dict: Input dictionary
         parent_key: Recursion argument
-        stop_at: List = [],
-        include_patterns: dotted style paths that specifies the structure
+        stop_at: Patterns that determine when the flattening should stop.
+            If empty the input `dict` will be flattened all the way to the leaves,
+        include_patterns: dotted style regex pattern that specifies the structure
             that the flattened paths (excluding .DIGITS) should fulfil to be included.
             The include pattern should start with the path.
             If, for example the `include_patterns` is `["list1.list2"]` the following flattened
             keys would be included: `list1`, `list1.list2` and `list1.1.list2.32`. The last path is included
             because all digits preceded by a dot are excluded in the comparison.
             The following flattened keys would not be included: `list1.list2.ok`.
-        as_dotted: bool = False,
+        has_deeper_paths: contains items from 'include_patterns' if they
+        as_dotted: If true list elements are represented by dotted paths instead of
+            braces e.g. `{"a.b.c.0": 2, "a.b.c.1": 3}`
         """
+        # Flatten to deepest
+        to_deepest = False
 
         items = []
         for k, v in dict.items():
             new_key = parent_key + SEP + k if parent_key else k
-            if FlatData._match(new_key, stop_at):
+            match = FlatData._match(new_key, stop_at)
+            if match is not None:
                 items.append((cls._path_cls(new_key), v))
-                continue
+                if match in has_deeper_paths and to_deepest:
+                    # continue digging deeper for the current key
+                    pass
+                else:
+                    # continue to next key in the data
+                    continue
 
             if not FlatData._include(new_key, include_patterns):
                 continue
 
             if isinstance(v, Dict):
+                # Go one level deeper
                 items.extend(
                     cls.from_dict(
                         v,
                         new_key,
                         stop_at=stop_at,
                         include_patterns=include_patterns,
+                        has_deeper_paths=has_deeper_paths,
                     ).items()
                 )
             elif isinstance(v, abc.Iterable) and not isinstance(v, str):
                 try:  # Elements are dicts
                     # Test with element 0 - if there is a match then treat all elements accordingly
-                    if FlatData._match(new_key + ".0", stop_at):
-                        for idx, item in enumerate(v):
-                            _new_key = new_key + "." + str(idx)
-                            items.append((cls._path_cls(_new_key), item))
+                    match = FlatData._match(new_key + ".0", stop_at)
+                    if match is not None:
+                        items.extend(cls._items_from_list_stop(v, new_key))
+                        if match in has_deeper_paths and to_deepest:
+                            pass
                     else:
-                        for idx, item in enumerate(v):
-                            _new_key = new_key + "." + str(idx)
-                            items.extend(
-                                cls.from_dict(
-                                    item,
-                                    _new_key,
-                                    stop_at=stop_at,
-                                    include_patterns=include_patterns,
-                                ).items()
+                        # items in sequence did not meet a stop criterion so go one level down for each
+                        items.extend(
+                            cls._items_from_list_recurse(
+                                v, new_key, stop_at, include_patterns, has_deeper_paths
                             )
+                        )
+
                 except AttributeError:
                     # Elements are not dicts
                     # Keep list with not flattening
@@ -1520,6 +1563,7 @@ class FlatData(Dict):
                         items.append((cls._path_cls(_new_key), item))
             else:
                 items.append((cls._path_cls(new_key), v))
+
         if as_dotted:
             return cls(items)
         else:

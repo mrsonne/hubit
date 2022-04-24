@@ -65,6 +65,7 @@ def run(inp):
 
     qpaths = ["batches[0].cells[-1].mole_numbers_tot"]
     # qpaths = ["batches[0].cells[-1].V_liq"]
+    qpaths = ["batches[0].cells[-1].liq_concs"]
     response = model.get(qpaths)
     print(response)
 

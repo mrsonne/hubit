@@ -1271,7 +1271,7 @@ class HubitModelConfig:
         self.has_deeper_paths = set(
             p1.compile_regex()
             for p1, p2 in permutations(self._query_depths, 2)
-            if p2.startswith(p1)
+            if p2.startswith(p1) and p2 != p1
         )
 
         self.include_patterns = [
@@ -1508,7 +1508,7 @@ class FlatData(Dict):
             braces e.g. `{"a.b.c.0": 2, "a.b.c.1": 3}`
         """
         # Flatten to deepest
-        to_deepest = False
+        to_deepest = True
 
         items = []
         for k, v in dict.items():
@@ -1544,7 +1544,15 @@ class FlatData(Dict):
                     if match is not None:
                         items.extend(cls._items_from_list_stop(v, new_key))
                         if match in has_deeper_paths and to_deepest:
-                            pass
+                            items.extend(
+                                cls._items_from_list_recurse(
+                                    v,
+                                    new_key,
+                                    stop_at,
+                                    include_patterns,
+                                    has_deeper_paths,
+                                )
+                            )
                     else:
                         # items in sequence did not meet a stop criterion so go one level down for each
                         items.extend(

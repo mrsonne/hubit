@@ -1495,7 +1495,9 @@ class FlatData(Dict):
         dict: Input dictionary
         parent_key: Recursion argument
         stop_at: Patterns that determine when the flattening should stop.
-            If empty the input `dict` will be flattened all the way to the leaves,
+            If empty the input `dict` will be flattened all the way to the leaves.
+            When the patterns in `stop_at` are matched the corresponding path is
+            treated as a leaf.
         include_patterns: dotted style regex pattern that specifies the structure
             that the flattened paths (excluding .DIGITS) should fulfil to be included.
             The include pattern should start with the path.
@@ -1503,7 +1505,11 @@ class FlatData(Dict):
             keys would be included: `list1`, `list1.list2` and `list1.1.list2.32`. The last path is included
             because all digits preceded by a dot are excluded in the comparison.
             The following flattened keys would not be included: `list1.list2.ok`.
-        has_deeper_paths: contains items from 'include_patterns' if they
+        has_deeper_paths: contains items from 'stop_at' if `stop_at` contains items are
+            on same branch that are deeper. For example the `stop_at` item `list1.list2`
+            would be included in `has_deeper_paths` if `stop_at` also contained e.g.
+            `list1.list2.ok`. In this case the flattened data would contain both
+            paths `list1.list2` and `list1.list2.ok` along with the corresponding values.
         as_dotted: If true list elements are represented by dotted paths instead of
             braces e.g. `{"a.b.c.0": 2, "a.b.c.1": 3}`
         """
@@ -1544,6 +1550,7 @@ class FlatData(Dict):
                     if match is not None:
                         items.extend(cls._items_from_list_stop(v, new_key))
                         if match in has_deeper_paths and to_deepest:
+                            # continue digging deeper for the current key
                             items.extend(
                                 cls._items_from_list_recurse(
                                     v,

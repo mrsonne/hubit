@@ -57,9 +57,3 @@ components:
       - name: cell
         # TODO: cells do not change in time but for now we need a tree with index context IDX_BATCH-IDX_CELL
         path: batches[IDX_BATCH].cells[IDX_CELL]
-      # - name: V_solid
-      #   # TODO: cells do not change in time but for now we need a tree with index context IDX_BATCH-IDX_CELL
-      #   path: batches[IDX_BATCH].cells[IDX_CELL].V_solid
-      # - name: k_eq
-      #   # TODO: cells do not change in time but for now we need a tree with index context IDX_BATCH-IDX_CELL
-      #   path: batches[IDX_BATCH].cells[IDX_CELL].k_eq

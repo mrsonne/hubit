@@ -1500,6 +1500,7 @@ class FlatData(Dict):
             treated as a leaf.
         include_patterns: dotted style regex pattern that specifies the structure
             that the flattened paths (excluding .DIGITS) should fulfil to be included.
+            This check is bypassed if the list is empty.
             The include pattern should start with the path.
             If, for example the `include_patterns` is `["list1.list2"]` the following flattened
             keys would be included: `list1`, `list1.list2` and `list1.1.list2.32`. The last path is included
@@ -1529,8 +1530,9 @@ class FlatData(Dict):
                     # continue to next key in the data
                     continue
 
-            if not FlatData._include(new_key, include_patterns):
-                continue
+            if len(include_patterns) > 0:
+                if not FlatData._include(new_key, include_patterns):
+                    continue
 
             if isinstance(v, Dict):
                 # Go one level deeper

@@ -772,9 +772,9 @@ class TestFlatData(unittest.TestCase):
         Test nested dict
         """
         data = {"level1": {"level2": [{"attr1": 1}, {"attr2": 2}]}, "number": 3}
-        result = FlatData.from_dict(
-            data, include_patterns=["level1.level2.attr1", "level1.level2.attr2"]
-        )
+        # Exclude 'number'
+        include_patterns = ["level1.level2.attr1", "level1.level2.attr2"]
+        result = FlatData.from_dict(data, include_patterns=include_patterns)
         expected_result = {
             "level1.level2[0].attr1": 1,
             "level1.level2[1].attr2": 2,
@@ -789,7 +789,7 @@ class TestFlatData(unittest.TestCase):
         Test flattening of simple list
         """
         data = {"list": [1, 2, 3], "level0": {"list": [1, 2, 3]}}
-        result = FlatData.from_dict(data, include_patterns=["list", "level0.list"])
+        result = FlatData.from_dict(data)
         expected_result = {
             "list[0]": 1,
             "list[1]": 2,
@@ -808,7 +808,6 @@ class TestFlatData(unittest.TestCase):
         result = FlatData.from_dict(
             data,
             stop_at=[re.compile("level0")],
-            include_patterns=["level0", "number"],
         )
         expected_result = data
         assert result == expected_result
@@ -820,7 +819,9 @@ class TestFlatData(unittest.TestCase):
         data = {"level0": {"level1": [{"attr1": 1}, {"attr2": 2}]}, "number": 3}
         include_path = "level0.level1"
         result = FlatData.from_dict(
-            data, stop_at=[re.compile(include_path)], include_patterns=[include_path]
+            data,
+            stop_at=[re.compile(include_path)],
+            include_patterns=[include_path],
         )
         expected_result = {
             "level0.level1": [{"attr1": 1}, {"attr2": 2}],
@@ -839,7 +840,6 @@ class TestFlatData(unittest.TestCase):
         result = FlatData.from_dict(
             data,
             stop_at=[re.compile(include_path)],
-            include_patterns=[include_path, "number"],
         )
         expected_result = data
         assert result == expected_result
@@ -857,9 +857,7 @@ class TestFlatData(unittest.TestCase):
         result = FlatData.from_dict(
             data,
             stop_at=specs,
-            include_patterns=["level0.level1", "level0.ff", "level0.gg", "number"],
         )
-        print(result)
         expected_result = {
             "level0[0].level1": [1, 2, 3, 4],
             "level0[0].ff": 4,

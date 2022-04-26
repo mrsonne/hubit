@@ -1,3 +1,5 @@
+import pprint
+import sys
 import unittest
 import pytest
 import pathlib
@@ -868,6 +870,70 @@ class TestFlatData(unittest.TestCase):
 
         assert result == expected_result
 
+    def test_from_dict_leaves_are_lists(self):
+        """
+        Test flattening all the way to the leaves. Note that
+        the leaf-lists are not expanded since ther's no key that
+        separates the lists from the previous list
+        """
+        data = {
+            "list": [1, 2, 3],
+            "level0": {"list": [["a", "b"], ["c", "d"], ["e", "f"]]},
+        }
+        result = FlatData.from_dict(data)
+        expected_result = {
+            "list[0]": 1,
+            "list[1]": 2,
+            "list[2]": 3,
+            "level0.list[0]": ["a", "b"],
+            "level0.list[1]": ["c", "d"],
+            "level0.list[2]": ["e", "f"],
+        }
+        assert result == expected_result
+
+    def test_from_dict_stop_at_multiple_levels(self):
+        """
+        level0 is not expanded at all to to the stop criterion in spec1.
+        spec2 is ignored since
+        """
+        data = {
+            "list": [1, 2, 3],
+            "level0": {
+                "list": [
+                    {"x": ["a", "b"], "y": ["c", "d"]},
+                    {"z": ["e", "f"]},
+                ]
+            },
+        }
+        spec1 = _HubitQueryDepthPath("level0")
+        spec2 = _HubitQueryDepthPath("level0.list[*]")
+        specs = [spec1.compile_regex(), spec2.compile_regex()]
+        result = FlatData.from_dict(data, stop_at=specs)
+        expected_result = {
+            "list[0]": 1,
+            "list[1]": 2,
+            "list[2]": 3,
+            "level0": {"list": [{"x": ["a", "b"], "y": ["c", "d"]}, {"z": ["e", "f"]}]},
+        }
+        pprint.pprint(result)
+        assert result == expected_result
+
+        has_deeper_paths = {specs[0]}
+        result = FlatData.from_dict(
+            data, stop_at=specs, has_deeper_paths=has_deeper_paths
+        )
+        expected_result = {
+            "list[0]": 1,
+            "list[1]": 2,
+            "list[2]": 3,
+            "level0": {"list": [{"x": ["a", "b"], "y": ["c", "d"]}, {"z": ["e", "f"]}]},
+            # "level0.list": [{"x": ["a", "b"], "y": ["c", "d"]}, {"z": ["e", "f"]}],
+            "level0.list[0]": {"x": ["a", "b"], "y": ["c", "d"]},
+            "level0.list[1]": {"z": ["e", "f"]},
+        }
+        pprint.pprint(result)
+        assert result == expected_result
+
     def test_include(self):
         key = "list1.1.list2.32"
         includes = "list1.list2", "ok"
@@ -904,3 +970,7 @@ class TestFlatData(unittest.TestCase):
         result = FlatData._include(key, includes)
         expected_result = False
         assert result == expected_result
+
+
+if __name__ == "__main__":
+    pytest.main(args=[sys.argv[0], "-s", "-k", "multiple_levels"])

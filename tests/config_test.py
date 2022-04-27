@@ -920,14 +920,15 @@ class TestFlatData(unittest.TestCase):
 
         has_deeper_paths = {specs[0]}
         result = FlatData.from_dict(
-            data, stop_at=specs, has_deeper_paths=has_deeper_paths
+            data,
+            stop_at=specs,
+            has_deeper_paths=has_deeper_paths,
         )
         expected_result = {
             "list[0]": 1,
             "list[1]": 2,
             "list[2]": 3,
             "level0": {"list": [{"x": ["a", "b"], "y": ["c", "d"]}, {"z": ["e", "f"]}]},
-            # "level0.list": [{"x": ["a", "b"], "y": ["c", "d"]}, {"z": ["e", "f"]}],
             "level0.list[0]": {"x": ["a", "b"], "y": ["c", "d"]},
             "level0.list[1]": {"z": ["e", "f"]},
         }

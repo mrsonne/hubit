@@ -1520,6 +1520,11 @@ class FlatData(Dict):
         items = []
         for k, v in dict.items():
             new_key = parent_key + SEP + k if parent_key else k
+
+            if len(include_patterns) > 0:
+                if not FlatData._include(new_key, include_patterns):
+                    continue
+
             match = FlatData._match(new_key, stop_at)
             if match is not None:
                 items.append((cls._path_cls(new_key), v))
@@ -1528,10 +1533,6 @@ class FlatData(Dict):
                     pass
                 else:
                     # continue to next key in the data
-                    continue
-
-            if len(include_patterns) > 0:
-                if not FlatData._include(new_key, include_patterns):
                     continue
 
             if isinstance(v, Dict):

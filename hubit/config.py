@@ -804,7 +804,7 @@ class _HubitQueryDepthPath(HubitQueryPath):
     def compile_regex(self):
         """Convert to internal path but escaping dots"""
         return re.compile(
-            ("^" + self)
+            ("^" + self + "$")
             .replace("[", r"\.")
             .replace("]", r"")
             .replace(_HubitQueryDepthPath.idx_wildcard, "[0-9]+")

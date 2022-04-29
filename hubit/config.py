@@ -947,6 +947,12 @@ class HubitModelPath(_HubitPath):
         return self.__class__(super().set_indices(indices, mode))
 
     def set_range_for_idxid(self, value_for_idxid: Dict[str, Any]) -> HubitModelPath:
+        """
+        Create new path where the index range in index specifiers have been replaced
+        with the values specified in the input. field1[IDX1].field2[IDX2] would
+        become field1[:@IDX1].field2[3@IDX1] with input
+        value_for_idxid = {"IDX1": ":", "IDX2": 3}
+        """
         # Get current values
         idx_specs = self.get_index_specifiers()
         idx_ids = self.get_index_identifiers()

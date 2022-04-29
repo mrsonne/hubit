@@ -1,3 +1,4 @@
+import copy
 import pprint
 import sys
 import unittest
@@ -417,6 +418,22 @@ class TestHubitModelPath(unittest.TestCase):
         result = path.set_range_for_idxid({"IDX_SEG": "2"})
         expected_result = HubitModelPath("segs[2@IDX_SEG].walls[IDX_WALL].heat_flow")
         self.assertEqual(result, expected_result)
+
+        # Set multiple fields
+        path = HubitModelPath("field1[IDX1].field2[IDX2]")
+        result = path.set_range_for_idxid({"IDX1": "2", "IDX2": "3"})
+        expected_result = HubitModelPath("field1[2@IDX1].field2[3@IDX2]")
+        self.assertEqual(result, expected_result)
+
+        # Replace multiple fields
+        path = HubitModelPath("field1[:@IDX1].field2[6@IDX2]")
+        path_copy = copy.copy(path)
+        result = path.set_range_for_idxid({"IDX1": "2", "IDX2": "3"})
+        expected_result = HubitModelPath("field1[2@IDX1].field2[3@IDX2]")
+        self.assertEqual(result, expected_result)
+
+        # Test that original path is not changed
+        self.assertEqual(path, path_copy)
 
     def test_remove_braces(self):
         path = HubitModelPath("segs[:@IDX_SEG].walls[IDX_WALL].heat_flow")

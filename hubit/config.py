@@ -1118,6 +1118,7 @@ class HubitModelComponent:
         Raises HubitModelComponentError if not successful
         """
         paths_provided = [binding.path for binding in self.provides_results]
+        # TODO: INDEX-SCOPE. Uses only elements 0
         cmp_scope_idxid, cmp_scope = self.scope_range
         if cmp_scope_idxid is not None:
             for path in paths_provided:
@@ -1133,14 +1134,18 @@ class HubitModelComponent:
 
     @property
     def scope_range(self) -> Union[Tuple[str, PathIndexRange], Tuple[None, None]]:
+        """
+        Convert index scope dict to (index specifier, index range) tuple.
+        Return (None, None) if index scope is empty
+        """
         if len(self.index_scope) > 0:
-            idx_spec = list(self.index_scope.keys())[0]
-            return idx_spec, self.index_scope[idx_spec]
+            return list(self.index_scope.items())[0]
         else:
             return None, None
 
     @property
     def scope_start(self) -> Union[Tuple[str, int], Tuple[None, None]]:
+        # TODO: INDEX-SCOPE. No loop or index identifier spec
         scope_idx_spec, scope_range = self.scope_range
         if scope_range is not None:
             scope_start = scope_range.start

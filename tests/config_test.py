@@ -243,7 +243,7 @@ class TestHubitComponent(unittest.TestCase):
         )
         assert result == expected_result
 
-    def test_scope_start(self):
+    def test_scope_start_for_idxid(self):
         cfg = {
             "path": "dummy",
             "func_name": "dummy",
@@ -254,17 +254,30 @@ class TestHubitComponent(unittest.TestCase):
 
         # No scope
         cmp = HubitModelComponent.from_cfg(cfg, 0)
-        assert cmp.scope_start == (None, None)
+        assert cmp.scope_start_for_idxid is None
 
         # All slice
         cfg.update({"index_scope": {"IDX": "1:4"}})
         cmp = HubitModelComponent.from_cfg(cfg, 0)
-        assert cmp.scope_start == ("IDX", 1)
+        assert cmp.scope_start_for_idxid == {"IDX": 1}
 
         # All indices
         cfg.update({"index_scope": {"IDX": ":"}})
         cmp = HubitModelComponent.from_cfg(cfg, 0)
-        assert cmp.scope_start == ("IDX", 0)
+        assert cmp.scope_start_for_idxid == {"IDX": 0}
+
+        # Multiple indentifiers
+        cfg = {
+            "path": "dummy",
+            "func_name": "dummy",
+            "provides_results": [
+                {"name": "attr2", "path": "list[IDX1].list2[IDX2].path2"},
+            ],
+        }
+
+        cfg.update({"index_scope": {"IDX1": ":", "IDX2": "1:4"}})
+        cmp = HubitModelComponent.from_cfg(cfg, 0)
+        assert cmp.scope_start_for_idxid == {"IDX1": 0, "IDX2": 1}
 
 
 class TestHubitPath(unittest.TestCase):

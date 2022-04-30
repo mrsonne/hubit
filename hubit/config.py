@@ -312,6 +312,43 @@ class PathIndexRange(str):
         return None
 
 
+class ScopeIndexRange(PathIndexRange):
+    """
+    See PathIndexRange. A ScopeIndexRange is guaranteed not to be empty.
+    """
+
+    def __init__(
+        self,
+        value,
+        allow_limited_range: bool = True,
+        allow_negative_index: bool = True,
+    ):
+        super().__init__(
+            value,
+            allow_limited_range,
+            allow_negative_index,
+        )
+        assert not self.is_empty, f"Empty '{self.__class__.__name__}' are not allowed."
+
+    @property
+    def start(self) -> int:
+        """First index in range"""
+        if self.is_digit:
+            return int(self)
+        elif self.is_full_range:
+            return 0
+        elif self.is_limited_range:
+            start, _ = self.split(self.wildcard_chr)
+            if start == "":
+                return 0
+            elif is_digit(start):
+                return int(start)
+
+        raise HubitError(
+            f"Unknown '{self.__class__.__name__}' range type for '{self}'."
+        )
+
+
 class _IndexSpecifier(ABC, str):
     # TODO: Warning metaclass with abstract methods
     # abc and multiple inheritance... https://stackoverflow.com/questions/37398966/python-abstractmethod-with-another-baseclass-breaks-abstract-functionality
@@ -1076,7 +1113,7 @@ class HubitModelComponent:
     consumes_results: List[HubitBinding] = field(default_factory=list)
     func_name: str = "main"
     is_dotted_path: bool = False
-    index_scope: Dict[str, PathIndexRange] = field(default_factory=dict)
+    index_scope: Dict[str, ScopeIndexRange] = field(default_factory=dict)
 
     def __post_init__(self):
 
@@ -1112,21 +1149,17 @@ class HubitModelComponent:
             len(names_reused) == 0
         ), f"Component at index {self._index} has names: '{', '.join(names_reused)}' in both 'consumes_results' and 'consumes_input'"
 
-        assert len(self.index_scope) < 2, "Maximum one index scope allowed"
-
-        self._validate_scope()
+        self._validate_scopes()
         return self
 
-    def _validate_scope(self):
+    def _validate_scopes(self):
         """
         Check for index ranges that are not a subset of the index scope
 
         Raises HubitModelComponentError if not successful
         """
-        paths_provided = [binding.path for binding in self.provides_results]
-        # TODO: INDEX-SCOPE. Uses only elements 0
-        cmp_scope_idxid, cmp_scope = self.scope_range
-        if cmp_scope_idxid is not None:
+
+        def validate_scope(paths_provided, cmp_scope_idxid, cmp_scope):
             for path in paths_provided:
                 path_range = path.range_for_identifiers()[cmp_scope_idxid]
                 if not cmp_scope.includes(path_range):
@@ -1138,30 +1171,30 @@ class HubitModelComponent:
                         )
                     )
 
-    @property
-    def scope_range(self) -> Union[Tuple[str, PathIndexRange], Tuple[None, None]]:
-        """
-        Convert index scope dict to (index specifier, index range) tuple.
-        Return (None, None) if index scope is empty
-        """
-        if len(self.index_scope) > 0:
-            return list(self.index_scope.items())[0]
-        else:
-            return None, None
+        paths_provided = [binding.path for binding in self.provides_results]
+        scope_ranges = self.scope_ranges
+        if scope_ranges is not None:
+            for cmp_scope_idxid, cmp_scope in scope_ranges:
+                validate_scope(paths_provided, cmp_scope_idxid, cmp_scope)
 
     @property
-    def scope_start(self) -> Union[Tuple[str, int], Tuple[None, None]]:
-        # TODO: INDEX-SCOPE. No loop or index identifier spec
-        scope_idx_spec, scope_range = self.scope_range
-        if scope_range is not None:
-            scope_start = scope_range.start
-            # For components scopes the pathIndexRange cannot
-            # be empty but mypy cannot know this
-            scope_start = cast(int, scope_start)
-            scope_idx_spec = cast(str, scope_idx_spec)
-            return scope_idx_spec, scope_start
+    def scope_ranges(self) -> Union[Sequence[Tuple[str, ScopeIndexRange]], None]:
+        """
+        Convert index scope dict to list of (index specifier, index range) tuples.
+        Return None if index scope is empty
+        """
+        if len(self.index_scope) > 0:
+            return list(self.index_scope.items())
         else:
-            return None, None
+            return None
+
+    @property
+    def scope_start_for_idxid(self) -> Union[Dict[str, int], None]:
+        scope_ranges = self.scope_ranges
+        if scope_ranges is not None:
+            return {scr[0]: scr[1].start for scr in scope_ranges}
+        else:
+            return None
 
     @property
     def id(self):

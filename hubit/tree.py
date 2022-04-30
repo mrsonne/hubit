@@ -21,6 +21,7 @@ from .config import (
     HubitQueryPath,
     PathIndexRange,
     Path,
+    ScopeIndexRange,
 )
 from .utils import is_digit, get_from_datadict, split_items, traverse, set_element
 
@@ -810,7 +811,7 @@ class _QueryExpansion:
     def _filter_mpaths_for_qpath_index_ranges(
         qpath: HubitQueryPath,
         mpaths: List[HubitModelPath],
-        index_scopes: Sequence[Dict[str, PathIndexRange]],
+        index_scopes: Sequence[Dict[str, ScopeIndexRange]],
         pruned_tree: LengthTree,
     ) -> List[HubitModelPath]:
         """

@@ -115,14 +115,17 @@ def get_dot(model: HubitModel, query: Query, file_idstr: str):
         for component in model.model_cfg.components:
             path = component.provides_results[0].path
             dummy_indices: List[str] = []
-            scope_idxid, scope_start = component.scope_start
+            scope_start_for_idxid = component.scope_start_for_idxid
 
             # Create dummy indices. Leave indices if specified in model
             for idxspc in path.get_index_specifiers():
                 if idxspc.range.is_digit:
                     dummy_indices.append(idxspc.range)
-                elif idxspc == scope_idxid:
-                    dummy_indices.append(str(scope_start))
+                elif (
+                    scope_start_for_idxid is not None
+                    and idxspc in scope_start_for_idxid
+                ):
+                    dummy_indices.append(str(scope_start_for_idxid[idxspc]))
                 else:
                     dummy_indices.append("0")
 
@@ -163,13 +166,13 @@ def get_dot(model: HubitModel, query: Query, file_idstr: str):
 
         for w in workers:
             component = w.component
-            scope_range = component.scope_range
-            if None in scope_range:
+            scope_ranges = component.scope_ranges
+            if scope_ranges is None:
                 _scope = "None"
             else:
-                # index identifier value is "member of" range
-                # TODO: Cast to string to make mypy happy. Should tell it that PathIndexRange is a str subclass
-                _scope = " ϵ ".join([str(item) for item in scope_range])
+                _scope = ", ".join(
+                    [f"{idxid} ϵ {scope_range}" for idxid, scope_range in scope_ranges]
+                )
 
             subgraph.node(
                 name=w.id,  # Name identifier of the node

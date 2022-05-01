@@ -271,12 +271,13 @@ class TestHubitComponent(unittest.TestCase):
             "func_name": "dummy",
             "provides_results": [
                 {"name": "attr2", "path": "list[IDX1].list2[IDX2].path2"},
+                {"name": "attr", "path": "list[IDX].attr.path2"},
             ],
         }
 
-        cfg.update({"index_scope": {"IDX1": ":", "IDX2": "1:4"}})
+        cfg.update({"index_scope": {"IDX1": ":", "IDX2": "1:4", "IDX-NOT-USED": "4:7"}})
         cmp = HubitModelComponent.from_cfg(cfg, 0)
-        assert cmp.scope_start_for_idxid == {"IDX1": 0, "IDX2": 1}
+        assert cmp.scope_start_for_idxid == {"IDX1": 0, "IDX2": 1, "IDX-NOT-USED": 4}
 
 
 class TestHubitPath(unittest.TestCase):

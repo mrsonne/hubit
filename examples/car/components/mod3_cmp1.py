@@ -1,10 +1,12 @@
+from typing import Dict
+from hubit.utils import ReadOnlyDict
 import shared
 
 
-def part_price(_input_consumed, results_provided):
-    counts = _input_consumed["parts_count"]
-    names = _input_consumed["parts_name"]
-    results_provided["parts_price"] = [
+def main(_input: ReadOnlyDict, results: Dict):
+    counts = _input["parts_count"]
+    names = _input["parts_name"]
+    results["parts_price"] = [
         count * shared.PRICE_FOR_NAME[name] for count, name in zip(counts, names)
     ]
 

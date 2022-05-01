@@ -11,12 +11,12 @@ if TYPE_CHECKING:
     from hubit.utils import ReadOnlyDict
 
 
-def main(_input_consumed: ReadOnlyDict, results_provided: Dict):
+def main(_input: ReadOnlyDict, results: Dict):
     """
     Contact service at the 'url' and get today's unit price for the product
     """
     timeout = urllib3.Timeout(connect=1.0, read=5.0)
-    url = _input_consumed["url"]
+    url = _input["url"]
     headers = {
         "cache-control": "no-cache",
         "pragma": "no-cache",
@@ -28,7 +28,7 @@ def main(_input_consumed: ReadOnlyDict, results_provided: Dict):
         raise HubitError(f"Could not connect to '{url}'")
     payload = json.loads(response.data.decode("utf-8"))
     print(f"Received price '{payload['unit_price']}'")
-    results_provided["unit_price"] = payload["unit_price"]
+    results["unit_price"] = payload["unit_price"]
 
 
 def version() -> str:

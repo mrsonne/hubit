@@ -5,7 +5,7 @@ if TYPE_CHECKING:
     from hubit.utils import ReadOnlyDict
 
 
-def main(_input_consumed: ReadOnlyDict, results_provided: Dict):
+def main(_input: ReadOnlyDict, results: Dict):
     """
     Find minimum temperature in the service layer excluding segments with a type
     in "no_service_segment_types". The segment types that are
@@ -15,9 +15,9 @@ def main(_input_consumed: ReadOnlyDict, results_provided: Dict):
     outermost and second outermost wall layer is controlled by the model and
     the component is unaware of the choice.
     """
-    service_layer_min_temps = _input_consumed["service_layer_minimum_temperatures"]
-    segment_types = _input_consumed["segment_types"]
-    no_service_segment_types = _input_consumed["no_service_segment_types"]
+    service_layer_min_temps = _input["service_layer_minimum_temperatures"]
+    segment_types = _input["segment_types"]
+    no_service_segment_types = _input["no_service_segment_types"]
 
     service_layer_min_temp = min(
         min_temp
@@ -25,7 +25,7 @@ def main(_input_consumed: ReadOnlyDict, results_provided: Dict):
         if not (segment_type in no_service_segment_types)
     )
 
-    results_provided["service_layer_minimum_temperature"] = service_layer_min_temp
+    results["service_layer_minimum_temperature"] = service_layer_min_temp
 
 
 def version():

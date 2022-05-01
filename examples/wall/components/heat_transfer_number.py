@@ -1,5 +1,10 @@
 # Calculate heat transfer number and the energy class
 
+from typing import Dict
+
+from hubit.utils import ReadOnlyDict
+
+
 energy_classes = {
     "A": (0, 0.5),
     "B": (0.5, 0.75),
@@ -8,10 +13,9 @@ energy_classes = {
 }
 
 
-def heat_transfer_number(_input_consumed, results_provided):
+def heat_transfer_number(_input: ReadOnlyDict, results: Dict):
     areas = [
-        width * height
-        for width, height in zip(_input_consumed["widths"], _input_consumed["heights"])
+        width * height for width, height in zip(_input["widths"], _input["heights"])
     ]
     total_area = sum(areas)
 
@@ -19,13 +23,12 @@ def heat_transfer_number(_input_consumed, results_provided):
     htn = sum(
         [
             htn * area / total_area
-            for htn, area in zip(_input_consumed["heat_transfer_numbers"], areas)
+            for htn, area in zip(_input["heat_transfer_numbers"], areas)
         ]
     )
-    results_provided["heat_transfer_number"] = htn
-    results_provided["energy_class"] = [
+    results["heat_transfer_number"] = htn
+    results["energy_class"] = [
         ecls
         for ecls, limits in energy_classes.items()
         if htn >= limits[0] and htn < limits[1]
     ][0]
-    return results_provided

@@ -1,4 +1,7 @@
 import time
+from typing import Dict
+
+from hubit.utils import ReadOnlyDict
 
 KG_PER_LBS = 0.453592
 
@@ -27,9 +30,9 @@ prices = {
 }
 
 
-def cost(_input_consumed, results_provided):
+def cost(_input: ReadOnlyDict, results: Dict):
     """ """
-    if _input_consumed["type"] == "window":
+    if _input["type"] == "window":
         # A window has a fixed price
         cost = 1000.0
     else:
@@ -37,12 +40,10 @@ def cost(_input_consumed, results_provided):
         cost = sum(
             [
                 weight * prices[material]
-                for weight, material in zip(
-                    _input_consumed["weights"], _input_consumed["materials"]
-                )
+                for weight, material in zip(_input["weights"], _input["materials"])
             ]
         )
-    results_provided["cost"] = cost
+    results["cost"] = cost
 
 
 def version():

@@ -1,4 +1,9 @@
 # density in kg/m^3
+from typing import Dict
+
+from hubit.utils import ReadOnlyDict
+
+
 densities = {
     "brick": 2000.0,
     "concrete": 1835.0,
@@ -10,8 +15,6 @@ densities = {
 }
 
 
-def weight(_input_consumed, results_provided):
+def weight(_input: ReadOnlyDict, results: Dict):
     """Calculate weight"""
-    results_provided["weight"] = (
-        _input_consumed["volume"] * densities[_input_consumed["material"]]
-    )
+    results["weight"] = _input["volume"] * densities[_input["material"]]

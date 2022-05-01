@@ -1,7 +1,8 @@
-def volume(_input_consumed, results_provided):
+from typing import Dict
+
+from hubit.utils import ReadOnlyDict
+
+
+def volume(_input: ReadOnlyDict, results: Dict):
     """Calculate volume"""
-    results_provided["volume"] = (
-        _input_consumed["thickness"]
-        * _input_consumed["width"]
-        * _input_consumed["height"]
-    )
+    results["volume"] = _input["thickness"] * _input["width"] * _input["height"]

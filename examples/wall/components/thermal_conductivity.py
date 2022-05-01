@@ -1,4 +1,7 @@
 from time import sleep
+from typing import Dict
+
+from hubit.utils import ReadOnlyDict
 
 # thermal conductivities in W/m/K
 ks = {
@@ -12,9 +15,9 @@ ks = {
 }
 
 
-def thermal_conductivity(_input_consumed, results_provided):
+def thermal_conductivity(_input: ReadOnlyDict, results: Dict):
     """Use 'material' in the input to compute the corresponding thermal
     conductivity. Use sleep to simulate some latency
     """
     sleep(2.0)
-    results_provided["k_therm"] = ks[_input_consumed["material"]]
+    results["k_therm"] = ks[_input["material"]]

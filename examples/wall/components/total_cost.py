@@ -1,6 +1,11 @@
-def total_wall_cost(_input_consumed, results_provided):
+from typing import Dict
+
+from hubit.utils import ReadOnlyDict
+
+
+def total_wall_cost(_input: ReadOnlyDict, results: Dict):
     """ """
-    results_provided["cost"] = sum(_input_consumed["segment_costs"])
+    results["cost"] = sum(_input["segment_costs"])
 
 
 def version():

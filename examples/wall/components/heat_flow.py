@@ -8,4 +8,4 @@ from hubit.utils import ReadOnlyDict
 
 def heat_flow(_input: ReadOnlyDict, results: Dict):
     area = _input["width"] * _input["height"]
-    results["heat_fl"] = _input["heat_flux"] * area
+    results["heat_flow"] = _input["heat_flux"] * area

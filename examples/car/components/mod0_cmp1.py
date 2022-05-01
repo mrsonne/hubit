@@ -1,12 +1,13 @@
 from time import sleep
+from typing import Dict
 from shared import PRICE_FOR_NAME
 
+from hubit.utils import ReadOnlyDict
 
-def main(_input_consumed, results_provided):
+
+def main(_input: ReadOnlyDict, results: Dict):
     counts, names = list(
-        zip(
-            *[(part["count"], part["name"]) for part in _input_consumed["car"]["parts"]]
-        )
+        zip(*[(part["count"], part["name"]) for part in _input["car"]["parts"]])
     )
 
     unit_prices = [PRICE_FOR_NAME[name] for name in names]
@@ -16,7 +17,7 @@ def main(_input_consumed, results_provided):
     # Delay to see the effect of worker caching.
     # If too fast the watcher loop will not update the results before all calcs are done
     sleep(0.1)
-    results_provided["car_price"] = result
+    results["car_price"] = result
 
 
 def version():

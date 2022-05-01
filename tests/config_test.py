@@ -109,17 +109,6 @@ class TestHubitComponent(unittest.TestCase):
 
     def test_invalid_scope(self):
 
-        # Multiple scopes not allowed
-        cfg = {
-            "path": "dummy",
-            "func_name": "dummy",
-            "index_scope": {"IDX1": "1:", "IDX2": ":"},
-            "provides_results": [{"name": "attr", "path": "shared.input.attr.path1"}],
-            "consumes_results": [{"name": "attr", "path": "shared.input.attr.path2"}],
-        }
-        with self.assertRaises(AssertionError):
-            HubitModelComponent.from_cfg(cfg, 0)
-
         # Scope has invalid range
         cfg = {
             "path": "dummy",
@@ -197,6 +186,16 @@ class TestHubitComponent(unittest.TestCase):
             HubitModelComponent.from_cfg(cfg, 0)
 
         cfg.update({"index_scope": {"IDX": ":"}})
+        HubitModelComponent.from_cfg(cfg, 0)
+
+        # Multiple scopes allowed even if not required for the paths
+        cfg = {
+            "path": "dummy",
+            "func_name": "dummy",
+            "index_scope": {"IDX1": "1:", "IDX2": ":"},
+            "provides_results": [{"name": "attr", "path": "shared.input.attr.path1"}],
+            "consumes_results": [{"name": "attr", "path": "shared.input.attr.path2"}],
+        }
         HubitModelComponent.from_cfg(cfg, 0)
 
     def test_get_paths(self):

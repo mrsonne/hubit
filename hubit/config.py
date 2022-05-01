@@ -1161,15 +1161,16 @@ class HubitModelComponent:
 
         def validate_scope(paths_provided, cmp_scope_idxid, cmp_scope):
             for path in paths_provided:
-                path_range = path.range_for_identifiers()[cmp_scope_idxid]
-                if not cmp_scope.includes(path_range):
-                    raise HubitModelComponentError(
-                        (
-                            f"Path range '{path_range}' in path '{path}' "
-                            f"not included in component index scope '{self.index_scope}' "
-                            f"for component '{self.id}'."
+                if cmp_scope_idxid in path.range_for_identifiers():
+                    path_range = path.range_for_identifiers()[cmp_scope_idxid]
+                    if not cmp_scope.includes(path_range):
+                        raise HubitModelComponentError(
+                            (
+                                f"Path range '{path_range}' in path '{path}' "
+                                f"not included in component index scope '{self.index_scope}' "
+                                f"for component '{self.id}'."
+                            )
                         )
-                    )
 
         paths_provided = [binding.path for binding in self.provides_results]
         scope_ranges = self.scope_ranges

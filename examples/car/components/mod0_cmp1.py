@@ -1,8 +1,8 @@
 from time import sleep
 from typing import Dict
-from shared import PRICE_FOR_NAME
 
 from hubit.utils import ReadOnlyDict
+from shared import PRICE_FOR_NAME
 
 
 def main(_input: ReadOnlyDict, results: Dict):

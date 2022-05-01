@@ -1,15 +1,17 @@
 from time import sleep
+from typing import Dict
+from hubit.utils import ReadOnlyDict
 import shared
 
 
-def main(_input_consumed, results_provided):
+def main(_input: ReadOnlyDict, results: Dict):
     """
     part price calculations
     """
-    count = _input_consumed["part_count"]
-    name = _input_consumed["part_name"]
+    count = _input["part_count"]
+    name = _input["part_name"]
     sleep(0.1)
-    results_provided["part_price"] = count * shared.PRICE_FOR_NAME[name]
+    results["part_price"] = count * shared.PRICE_FOR_NAME[name]
 
 
 def version():

@@ -1,9 +1,12 @@
 from time import sleep
+from typing import Dict
+
+from hubit.utils import ReadOnlyDict
 
 
-def main(_input_consumed, results_provided):
+def main(_input: ReadOnlyDict, results: Dict):
     """
     car price
     """
     # sleep(0.5)
-    results_provided["car_price"] = sum(_input_consumed["prices"])
+    results["car_price"] = sum(_input["prices"])

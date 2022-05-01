@@ -3,7 +3,7 @@ from hubit.utils import ReadOnlyDict
 import shared
 
 
-def main(_input: ReadOnlyDict, results: Dict):
+def part_price(_input: ReadOnlyDict, results: Dict):
     counts = _input["parts_count"]
     names = _input["parts_name"]
     results["parts_price"] = [

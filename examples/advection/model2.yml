@@ -1,0 +1,54 @@
+components:
+  - path: ./components/initialize.py
+    index_scope:
+      IDX_POS: "1:"
+      IDX_TIME: "0"
+    provides_results: 
+      - name: u
+        path: time[IDX_TIME].position[IDX_POS].u
+      - name: t
+        path: time[IDX_TIME].position[IDX_POS].t
+    consumes_input:
+      - name: u
+      # We (still) need some input structure that allows the creation of trees
+      # Construct rectangular trees from input 
+        path: time[IDX_TIME].position[IDX_POS].u
+      - name: t
+        path: time_init
+
+
+  - path: ./components/inlet.py
+    index_scope:
+      IDX_POS: "0"
+      IDX_TIME: "1:"
+    provides_results: 
+      - name: u
+        path: time[IDX_TIME].position[IDX_POS].u
+      - name: t
+        path: time[IDX_TIME].position[IDX_POS].t
+    consumes_results:
+      - name: t
+        path: time[IDX_TIME-1].position[IDX_POS].t 
+    consumes_input:
+      - name: delta_t
+        path: delta_t 
+      - name: wavelet_pars
+        path: wavelet
+
+  # - path: ./components/domain.py
+  #   index_scope:
+  #     IDX_POS: "1:"
+  #     IDX_TIME: "1:"
+  #   provides_results: 
+  #     - name: u
+  #       path: time[IDX_TIME].position[IDX_POS].u
+  #   consumes_results:
+  #     - name: u_pm1
+  #       path: time[IDX_TIME].position[IDX_POS-1].u
+  #     - name: u_tm1
+  #       path: time[IDX_TIME-1].position[IDX_POS].u
+  #   consumes_input:
+  #     - name: delta_t
+  #       path: delta_t 
+  #     - name: delta_x
+  #       path: delta_x

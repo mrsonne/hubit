@@ -6,15 +6,13 @@ components:
     provides_results: 
       - name: u
         path: time[IDX_TIME].position[IDX_POS].u
-      - name: t
-        path: time[IDX_TIME].position[IDX_POS].t
     consumes_input:
-      - name: u
+      - name: t
       # We (still) need some input structure that allows the creation of trees
       # Construct rectangular trees from input 
-        path: time[IDX_TIME].position[IDX_POS].u
-      - name: t
-        path: time_init
+        path: time[IDX_TIME].position[IDX_POS].t
+      - name: u
+        path: u_init
 
 
   - path: ./components/inlet.py

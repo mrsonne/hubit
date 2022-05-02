@@ -22,22 +22,17 @@ def make_input():
         input_data = yaml.load(stream, Loader=yaml.FullLoader)
 
     # Boundary condition all cells at t = 0
-    feed_concs = [0.0 for _ in input_data["feed"]["concs"]]
-
-    # Create all cells
     input_ = {
-        "batches": [
+        "time": [
             {
-                "cells": [{**input_data["cell"], "ini": {"concs": feed_concs, "V": 0}}]
-                * input_data["calc"]["n_cells"]
+                "position": [
+                    idx_time * input_data["calc"]["delta_t"]
+                    for _ in range(input_data["calc"]["n_positions"])
+                ]
             }
+            for idx_time in range(input_data["calc"]["n_times"])
         ]
-        * input_data["calc"]["n_batches"]
     }
-
-    for batch in input_["batches"]:
-        batch["cells"][0]["ini"]["concs"] = input_data["feed"]["concs"]
-        batch["cells"][0]["ini"]["V"] = input_data["feed"]["V"]
 
     # Save input (not necessary)
     with open(TMP_DIR.joinpath("input_expanded.yml"), "w") as handle:

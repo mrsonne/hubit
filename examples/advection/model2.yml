@@ -6,14 +6,17 @@ components:
     provides_results: 
       - name: u
         path: time[IDX_TIME].position[IDX_POS].u
-    consumes_input:
       - name: t
+        path: time[IDX_TIME].position[IDX_POS].t
+    consumes_input:
+      - name: dummy
       # We (still) need some input structure that allows the creation of trees
       # Construct rectangular trees from input 
-        path: time[IDX_TIME].position[IDX_POS].t
+        path: time[IDX_TIME].position[IDX_POS].dummy
       - name: u
-        path: u_init
-
+        path: init.u
+      - name: t
+        path: init.time
 
   - path: ./components/inlet.py
     index_scope:
@@ -22,16 +25,14 @@ components:
     provides_results: 
       - name: u
         path: time[IDX_TIME].position[IDX_POS].u
-      - name: t
-        path: time[IDX_TIME].position[IDX_POS].t
     consumes_results:
-      - name: t
-        path: time[IDX_TIME-1].position[IDX_POS].t 
+      - name: t_prev
+        path: time[IDX_TIME-1].position[IDX_POS].t
     consumes_input:
       - name: delta_t
-        path: delta_t 
+        path: calc.delta_t 
       - name: wavelet_pars
-        path: wavelet
+        path: bc.left.wavelet
 
   # - path: ./components/domain.py
   #   index_scope:

@@ -1,10 +1,14 @@
 calc:
-  n_times: 20
-  n_positions: 10
   delta_x: 1
   delta_t: 1
-  time_init: 0
-wavelet:
-  t_mean: 4
-  s: 1.
-  a: 1.
+init:
+  n_times: 20
+  n_positions: 10
+  u: 0
+  time: 0
+bc:
+  left:
+    wavelet:
+      t_mean: 4
+      s: 1.
+      a: 1.

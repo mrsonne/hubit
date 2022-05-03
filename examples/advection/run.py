@@ -26,11 +26,11 @@ def make_input():
         "time": [
             {
                 "position": [
-                    idx_time * input_data["calc"]["delta_t"]
-                    for _ in range(input_data["calc"]["n_positions"])
+                    {"dummy": [idx_time, idx_pos]}
+                    for idx_pos in range(input_data["init"]["n_positions"])
                 ]
             }
-            for idx_time in range(input_data["calc"]["n_times"])
+            for idx_time in range(input_data["init"]["n_times"])
         ]
     }
 

@@ -1,14 +1,14 @@
 calc:
   delta_x: 1
-  delta_t: 1
+  delta_t: 0.1
 init:
-  n_times: 20
+  n_times: 100
   n_positions: 10
   u: 0
   time: 0
 bc:
   left:
     wavelet:
-      t_mean: 4
+      t_mean: 3
       s: 1.
       a: 1.

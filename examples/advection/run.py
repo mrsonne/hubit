@@ -60,19 +60,21 @@ def run(inp):
     response = model.get(qpaths)
     print(response)
 
-    qpaths = ["time[1].position[0].u"]
-    response = model.get(qpaths)
+    idx_time_max = inp["init"]["n_times"] - 1
+    qpaths = [f"time[{idx_time_max}].position[0].u"]
+    response = model.get(qpaths, use_multi_processing=False
     print(response)
 
-    qpaths = ["time[19].position[0].u"]
-    response = model.get(qpaths)
-    print(response)
+    for idx_time in range(inp["init"]["n_times"]):
+        path = f"time[{idx_time}].position[0].u"
+        print(idx_time, model.results[path])
 
-    qpaths = ["time[:].position[0].u"]
-    response = model.get(qpaths)
-    print(response)
+    # qpaths = ["time[:].position[0].u"]
+    # response = model.get(qpaths)
+    # print(response)
 
 
 if __name__ == "__main__":
     inp = make_input()
+    print("Input ready")
     run(inp)

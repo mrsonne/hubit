@@ -1,7 +1,7 @@
 components:
   - path: ./components/initialize.py
     index_scope:
-      IDX_POS: "1:"
+      IDX_POS: ":"
       IDX_TIME: "0"
     provides_results: 
       - name: u

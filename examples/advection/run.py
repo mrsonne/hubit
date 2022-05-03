@@ -34,6 +34,8 @@ def make_input():
         ]
     }
 
+    input_.update(input_data)
+
     # Save input (not necessary)
     with open(TMP_DIR.joinpath("input_expanded.yml"), "w") as handle:
         yaml.dump(input_, handle)
@@ -50,12 +52,12 @@ def run(inp):
     model = HubitModel.from_file(THIS_DIR.joinpath("model2.yml"))
     model.set_input(inp)
 
+    qpaths = ["time[0].position[-1].u"]
     # qpaths = ["time[:].position[0].u"]
-    # response = model.get(qpaths)
-    # print(response)
+    response = model.get(qpaths)
+    print(response)
 
 
 if __name__ == "__main__":
     inp = make_input()
-    # pprint.pprint(inp)
-    # run(inp)
+    run(inp)

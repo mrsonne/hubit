@@ -52,8 +52,23 @@ def run(inp):
     model = HubitModel.from_file(THIS_DIR.joinpath("model2.yml"))
     model.set_input(inp)
 
-    qpaths = ["time[0].position[-1].u"]
-    # qpaths = ["time[:].position[0].u"]
+    qpaths = ["time[0].position[:].u"]
+    response = model.get(qpaths)
+    print(response)
+
+    qpaths = ["time[0].position[:].t"]
+    response = model.get(qpaths)
+    print(response)
+
+    qpaths = ["time[1].position[0].u"]
+    response = model.get(qpaths)
+    print(response)
+
+    qpaths = ["time[19].position[0].u"]
+    response = model.get(qpaths)
+    print(response)
+
+    qpaths = ["time[:].position[0].u"]
     response = model.get(qpaths)
     print(response)
 

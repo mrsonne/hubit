@@ -25,6 +25,8 @@ components:
     provides_results: 
       - name: u
         path: time[IDX_TIME].position[IDX_POS].u
+      - name: t
+        path: time[IDX_TIME].position[IDX_POS].t
     consumes_results:
       - name: t_prev
         path: time[IDX_TIME-1].position[IDX_POS].t

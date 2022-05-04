@@ -1,14 +1,17 @@
 calc:
   delta_x: 1
-  delta_t: 0.1
+  delta_t: 0.02
+  t_end: 1.5
 init:
-  n_times: 100
   n_positions: 10
   u: 0
   time: 0
+domain:
+  v: 3.
+  length: 1.5 
 bc:
   left:
     wavelet:
-      t_mean: 3
-      s: 1.
+      t_mean: 0.5
+      s: .1
       a: 1.

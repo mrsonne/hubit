@@ -3,6 +3,7 @@ import pprint
 import yaml
 import os
 from hubit.model import HubitModel
+import matplotlib.pyplot as plt
 
 THIS_DIR = pathlib.Path(__file__).parent
 TMP_DIR = THIS_DIR.joinpath("tmp")
@@ -62,12 +63,24 @@ def run(inp):
 
     idx_time_max = inp["init"]["n_times"] - 1
     qpaths = [f"time[{idx_time_max}].position[0].u"]
-    response = model.get(qpaths, use_multi_processing=False
+    response = model.get(qpaths, use_multi_processing=False)
     print(response)
 
-    for idx_time in range(inp["init"]["n_times"]):
-        path = f"time[{idx_time}].position[0].u"
-        print(idx_time, model.results[path])
+    fig, axs = plt.subplots(2, 1, figsize=(12, 8))
+    # Collect data from inlet
+    values = [
+        (
+            model.results[f"time[{idx_time}].position[0].t"],
+            model.results[f"time[{idx_time}].position[0].u"],
+        )
+        for idx_time in range(inp["init"]["n_times"])
+    ]
+    # Plot data from inlet
+    ts, us = zip(*values)
+    axs[0].plot(ts, us)
+    axs[0].set_xlabel("time")
+    axs[0].set_ylabel("u")
+    fig.savefig(TMP_DIR.joinpath("advection.png"))
 
     # qpaths = ["time[:].position[0].u"]
     # response = model.get(qpaths)

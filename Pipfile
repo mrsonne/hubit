@@ -11,6 +11,7 @@ hubit = {editable = true, path = "."}
 mypy = "*"
 types-pyyaml = "*"
 typing-extensions = "*"
+matplotlib = "*"
 
 [requires]
 python_version = "3.8"

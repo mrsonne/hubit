@@ -61,7 +61,10 @@ def run(inp):
     response = model.get(qpaths)
     print(response)
 
+    # TODO: : and -1 doest work yet
     idx_time_max = inp["init"]["n_times"] - 1
+    idx_pos_max = inp["init"]["n_positions"] - 1
+
     qpaths = [f"time[{idx_time_max}].position[0].u"]
     response = model.get(qpaths, use_multi_processing=False)
     print(response)
@@ -75,11 +78,13 @@ def run(inp):
         )
         for idx_time in range(inp["init"]["n_times"])
     ]
+
     # Plot data from inlet
     ts, us = zip(*values)
     axs[0].plot(ts, us)
     axs[0].set_xlabel("time")
     axs[0].set_ylabel("u")
+    axs[0].set_title("Inlet (x=0)")
     fig.savefig(TMP_DIR.joinpath("advection.png"))
 
     # qpaths = ["time[:].position[0].u"]

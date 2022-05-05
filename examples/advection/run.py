@@ -71,7 +71,7 @@ def run(inp):
     idx_time_max = n_times - 1
     idx_pos_max = inp["init"]["n_positions"] - 1
 
-    qpaths = [f"time[{idx_time_max}].position[0].u"]
+    qpaths = [f"time[{idx_time_max}].position[{idx_pos_max}].u"]
     response = model.get(qpaths, use_multi_processing=False)
     print(response)
 

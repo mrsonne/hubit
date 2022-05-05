@@ -36,20 +36,22 @@ components:
       - name: wavelet_pars
         path: bc.left.wavelet
 
-  # - path: ./components/domain.py
-  #   index_scope:
-  #     IDX_POS: "1:"
-  #     IDX_TIME: "1:"
-  #   provides_results: 
-  #     - name: u
-  #       path: time[IDX_TIME].position[IDX_POS].u
-  #   consumes_results:
-  #     - name: u_pm1
-  #       path: time[IDX_TIME].position[IDX_POS-1].u
-  #     - name: u_tm1
-  #       path: time[IDX_TIME-1].position[IDX_POS].u
-  #   consumes_input:
-  #     - name: delta_t
-  #       path: delta_t 
-  #     - name: delta_x
-  #       path: delta_x
+  - path: ./components/propagate.py
+    index_scope:
+      IDX_POS: "1:"
+      IDX_TIME: "1:"
+    provides_results: 
+      - name: u
+        path: time[IDX_TIME].position[IDX_POS].u
+    consumes_results:
+      - name: u_pm1
+        path: time[IDX_TIME].position[IDX_POS-1].u
+      - name: u_tm1
+        path: time[IDX_TIME-1].position[IDX_POS].u
+    consumes_input:
+      - name: delta_t
+        path: calc.delta_t 
+      - name: delta_x
+        path: calc.delta_x
+      - name: v
+        path: domain.v

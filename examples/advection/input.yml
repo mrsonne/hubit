@@ -1,6 +1,6 @@
 calc:
-  delta_x: 1
-  delta_t: 0.02
+  delta_x: 0.05
+  delta_t: 0.05
   t_end: 1.5
 init:
   n_positions: 10
@@ -12,6 +12,6 @@ domain:
 bc:
   left:
     wavelet:
-      t_mean: 0.5
+      t_mean: 0.3
       s: .1
       a: 1.

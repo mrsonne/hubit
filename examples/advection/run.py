@@ -95,15 +95,11 @@ def run(inp):
 
     # Plot data from inlet
     # ts, us = zip(*values)
-    axs[0].plot(ts, us[0])
-    axs[0].plot(ts, us[5])
-    axs[0].plot(ts, us[10])
-    axs[0].plot(ts, us[15])
-    axs[0].plot(ts, us[20])
-    axs[0].plot(ts, us[-1])
+    for idx_pos in range(n_pos):
+        axs[0].plot(ts, us[idx_pos])
     axs[0].set_xlabel("time")
     axs[0].set_ylabel("u")
-    axs[0].set_title("Inlet (x=0)")
+    # axs[0].set_title("Inlet (x=0)")
     fig.savefig(TMP_DIR.joinpath("advection.png"))
 
     # qpaths = ["time[:].position[0].u"]

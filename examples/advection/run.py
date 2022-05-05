@@ -69,7 +69,8 @@ def run(inp):
     # TODO: : and -1 doest work yet
     n_times = n_timesteps(inp)
     idx_time_max = n_times - 1
-    idx_pos_max = inp["init"]["n_positions"] - 1
+    n_pos = inp["init"]["n_positions"]
+    idx_pos_max = n_pos - 1
 
     qpaths = [f"time[{idx_time_max}].position[{idx_pos_max}].u"]
     response = model.get(qpaths, use_multi_processing=False)
@@ -78,17 +79,28 @@ def run(inp):
     fig, axs = plt.subplots(2, 1, figsize=(12, 8))
 
     # Collect data from inlet
-    values = [
-        (
-            model.results[f"time[{idx_time}].position[0].t"],
-            model.results[f"time[{idx_time}].position[0].u"],
-        )
-        for idx_time in range(n_times)
+    us = [
+        [
+            model.results[f"time[{idx_time}].position[{idx_pos}].u"]
+            for idx_time in range(n_times)
+        ]
+        for idx_pos in range(n_pos)
     ]
 
+    ts = [
+        model.results[f"time[{idx_time}].position[0].t"] for idx_time in range(n_times)
+    ]
+
+    # model.results[f"time[{idx_time}].position[{idx_pos}].t"],
+
     # Plot data from inlet
-    ts, us = zip(*values)
-    axs[0].plot(ts, us)
+    # ts, us = zip(*values)
+    axs[0].plot(ts, us[0])
+    axs[0].plot(ts, us[5])
+    axs[0].plot(ts, us[10])
+    axs[0].plot(ts, us[15])
+    axs[0].plot(ts, us[20])
+    axs[0].plot(ts, us[-1])
     axs[0].set_xlabel("time")
     axs[0].set_ylabel("u")
     axs[0].set_title("Inlet (x=0)")

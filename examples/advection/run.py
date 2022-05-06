@@ -82,12 +82,11 @@ def run(inp):
 
     qpaths = [f"time[{idx_time_max}].position[{idx_pos_max}].u"]
     t_start = time.perf_counter()
-    response = model.get(qpaths, use_multi_processing=False)
+    model.set_model_caching("after_execution")
+    response = model.get(qpaths, use_multi_processing=False, use_results="cached")
     elapsed_time = time.perf_counter() - t_start
     print(response)
-    print(f"Generated in {elapsed_time} s")
-
-    fig, axs = plt.subplots(2, 1, figsize=(12, 8))
+    print(f"Response enerated in {elapsed_time} s")
 
     # Collect data from inlet
     us = [
@@ -103,6 +102,12 @@ def run(inp):
     ]
 
     us = np.array(us)
+
+    return response, ts, pos, us
+
+
+def plot(ts, pos, us):
+    fig, axs = plt.subplots(2, 1, figsize=(12, 8))
 
     # Plot data from inlet
     for idx_pos, us_ in enumerate(us):
@@ -131,4 +136,5 @@ def run(inp):
 if __name__ == "__main__":
     inp = make_input()
     print("Input ready")
-    run(inp)
+    response, ts, pos, us = run(inp)
+    plot(ts, pos, us)

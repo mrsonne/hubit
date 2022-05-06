@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for zip-style input value sweep on `get_many`.
 - Better type hinting on user-facing methods.
 - Components may now consume input from different depth levels on same branch e.g. one components may now consume `batches[IDX_BATCH].cells[IDX_CELL].ini.concs` while another may consume `batches[IDX_BATCH].cells[IDX_CELL]`. Previously, only the most shallow path would be available i.e. `batches[IDX_BATCH].cells[IDX_CELL]` in the example.
+- Index scope for multiple . Advection example.
 
 ### Fixed
 

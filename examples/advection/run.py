@@ -44,7 +44,10 @@ def make_input():
 
     input_.update(input_data)
     input_["calc"].update(
-        {"delta_x": input_data["domain"]["length"] / input_data["init"]["n_positions"]}
+        {
+            "delta_x": input_data["domain"]["length"]
+            / (input_data["init"]["n_positions"] - 1)
+        }
     )
 
     # Save input (not necessary)
@@ -59,6 +62,13 @@ def run(inp):
     # with open(THIS_DIR.joinpath("model2.yml"), "r") as stream:
     #     model_cfg = yaml.load(stream, Loader=yaml.FullLoader)
     # pprint.pprint(model_cfg)
+
+    model_caching = "after_execution"
+    use_multi_processing = False
+    use_results = "cached"
+    # model_caching = "after_execution"
+    # use_multi_processing = False
+    # use_results = "none"
 
     model = HubitModel.from_file(THIS_DIR.joinpath("model2.yml"))
     model.set_input(inp)
@@ -82,13 +92,15 @@ def run(inp):
 
     qpaths = [f"time[{idx_time_max}].position[{idx_pos_max}].u"]
     t_start = time.perf_counter()
-    model.set_model_caching("after_execution")
-    response = model.get(qpaths, use_multi_processing=False, use_results="cached")
+    model.set_model_caching(model_caching)
+    response = model.get(
+        qpaths, use_multi_processing=use_multi_processing, use_results=use_results
+    )
     elapsed_time = time.perf_counter() - t_start
     print(response)
     print(f"Response enerated in {elapsed_time} s")
 
-    # Collect data from inlet
+    # Collect data u[time, pos]
     us = [
         [
             model.results[f"time[{idx_time}].position[{idx_pos}].u"]
@@ -102,25 +114,39 @@ def run(inp):
     ]
 
     us = np.array(us)
+    ts = np.array(ts)
+    pos = np.array(pos)
 
     return response, ts, pos, us
 
 
 def plot(ts, pos, us):
     fig, axs = plt.subplots(2, 1, figsize=(12, 8))
-
-    # Plot data from inlet
-    for idx_pos, us_ in enumerate(us):
-        axs[0].plot(ts, us_, label=f"Idx pos {idx_pos}")
+    print(us.shape)
+    print(ts.shape)
+    print(pos.shape)
+    print(pos)
+    # Plot time series for each position
+    num_time_series = 5
+    idxs_pos = np.unique(
+        np.linspace(0, pos.shape[0] - 1, dtype="int", num=num_time_series)
+    )
+    for idx_pos in idxs_pos:
+        axs[0].plot(ts, us[idx_pos, :], label=f"Pos {pos[idx_pos]:7.2e}")
 
     # Transpose to get times in first index
-    us = us.transpose()
-    for idx_time, us_ in enumerate(us):
-        axs[1].plot(pos, us_, label=f"Idx time {idx_time}")
+    num_domain_profiles = 5
+    idxs_time = np.unique(
+        np.linspace(0, ts.shape[0] - 1, dtype="int", num=num_domain_profiles)
+    )
+    for idx_time in idxs_time:
+        axs[1].plot(pos, us[:, idx_time], label=f"Time {ts[idx_time]:7.2e}")
 
-    axs[0].set_xlabel("time")
+    axs[0].set_xlim(ts[0], ts[-1])
+    axs[1].set_xlim(pos[0], pos[-1])
+    axs[0].set_xlabel("Time")
     axs[0].set_ylabel("u")
-    axs[1].set_xlabel("pos")
+    axs[1].set_xlabel("Pos")
     axs[1].set_ylabel("u")
     axs[0].legend()
     axs[1].legend()

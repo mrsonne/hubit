@@ -1,6 +1,6 @@
 calc:
-  delta_t: 0.05
-  t_end: 2.5
+  delta_t: 0.02
+  t_end: 1.5
 init:
   n_positions: 30
   u: 0

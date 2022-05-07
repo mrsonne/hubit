@@ -146,7 +146,7 @@ def plot(ts, pos, us):
     axs[1].set_xlim(pos[0], pos[-1])
     axs[0].set_xlabel("Time")
     axs[0].set_ylabel("u")
-    axs[1].set_xlabel("Pos")
+    axs[1].set_xlabel("Position")
     axs[1].set_ylabel("u")
     axs[0].legend()
     axs[1].legend()

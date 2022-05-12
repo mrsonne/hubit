@@ -12,5 +12,5 @@ bc:
   left:
     wavelet:
       t_mean: 0.3
-      s: .1
+      s: .05
       a: 1.

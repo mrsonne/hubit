@@ -5,6 +5,7 @@ name = "pypi"
 
 [packages]
 hubit = {editable = true, extras = ["dev"], path = "."}
+scipy = "*"
 
 [dev-packages]
 hubit = {editable = true, path = "."}

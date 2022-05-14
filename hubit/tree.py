@@ -948,9 +948,15 @@ class _QueryExpansion:
                     for range, idxid in zip(ranges, idxids)
                     if idxid == PathIndexRange.wildcard_chr
                 ]
+                try:
+                    result = flat_results[path]
+                except KeyError as err:
+                    raise KeyError(
+                        f"No result for path '{path}'. Results found for paths: {', '.join(list(flat_results.keys()))}."
+                    )
                 values = set_element(
                     values,
-                    flat_results[path],
+                    result,
                     [int(range) for range in ranges],
                 )
 

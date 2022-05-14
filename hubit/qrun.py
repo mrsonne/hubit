@@ -260,10 +260,28 @@ class _QueryRunner:
         self,
         qpaths: List[HubitQueryPath],
         extracted_input,
-        all_input,
+        all_input: FlatData,
         skip_paths=[],
         dryrun=False,
     ):
+        queries_next = qpaths
+        while len(queries_next) > 0:
+            queries_next, extracted_input, skip_paths = self._spawn_workers(
+                queries_next,
+                extracted_input,
+                all_input,
+                skip_paths=skip_paths,
+                dryrun=dryrun,
+            )
+
+    def _spawn_workers(
+        self,
+        qpaths: List[HubitQueryPath],
+        extracted_input,
+        all_input: FlatData,
+        skip_paths=[],
+        dryrun=False,
+    ) -> Tuple[List[HubitQueryPath]]:
         """Create workers
 
         queries should be expanded i.e. explicit in terms of iloc
@@ -272,6 +290,7 @@ class _QueryRunner:
 
         paths in skip_paths are skipped
         """
+        queries_next_all = []
         _skip_paths = copy.copy(skip_paths)
         for qpath in qpaths:
             # Skip if the queried data will be provided
@@ -329,14 +348,9 @@ class _QueryRunner:
                     self.subscribers_for_path[path_next] = []
                 self.subscribers_for_path[path_next].append(worker)
 
-            # Spawn workers for the dependencies
-            self.spawn_workers(
-                queries_next,
-                extracted_input,
-                all_input,
-                skip_paths=_skip_paths,
-                dryrun=dryrun,
-            )
+            queries_next_all.extend(queries_next)
+
+        return queries_next_all, extracted_input, _skip_paths
 
     def _set_results(self, worker: _Worker, results_checksum: str):
         # Start worker to handle transfer of results to correct paths

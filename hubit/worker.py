@@ -243,7 +243,8 @@ class _Worker:
         """
         if query_path.wildcard_chr in query_path:
             raise HubitWorkerError(
-                f"Query path '{query_path}' contains illegal character '{query_path.wildcard_chr}'. Should already have been expanded."
+                f"Query path '{query_path}' contains illegal character"
+                f"'{query_path.wildcard_chr}'. Should already have been expanded."
             )
 
         binding_paths = [binding.path for binding in bindings]
@@ -281,36 +282,6 @@ class _Worker:
 
     def binding_map(self, binding_type):
         return self.component.binding_map(binding_type)
-
-    #     def make_map(bindings):
-    #         return {binding.name: binding.path for binding in bindings}
-
-    #     if type == "provides":  # provides is always present in worker
-    #         return make_map(self.cfg["provides"])
-    #     elif type in ("results", "input"):
-    #         if _Worker.consumes_type(self.cfg, type):
-    #             return make_map(self.cfg["consumes"][type])
-    #         else:
-    #             return {}
-    #     else:
-    #         raise HubitWorkerError(f'Unknown type "{type}"')
-
-    # @staticmethod
-    # def consumes_type(cfg: Dict, consumption_type: str) -> bool:
-    #     """Check if configuration (cfg) consumes the "consumption_type"
-
-    #     Args:
-    #         cfg (Dict): Componet configuration
-    #         consumption_type (str): The consumption type. Can either be "input" or "results". Validity not checked.
-
-    #     Returns:
-    #         bool: Flag indicating if the configuration consumes the "consumption_type"
-    #     """
-    #     return (
-    #         "consumes" in cfg
-    #         and consumption_type in cfg["consumes"]
-    #         and len(cfg["consumes"][consumption_type]) > 0
-    # )
 
     def paths_provided(self):
         """Generates a list of the (expanded) paths that will be provided.

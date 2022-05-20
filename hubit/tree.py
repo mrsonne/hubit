@@ -582,7 +582,10 @@ class LengthTree:
                         for child in node.children
                     ]
                 )
-            paths = copy.deepcopy(paths_current_level)
+
+            # Slice copy performance
+            # paths = copy.deepcopy(paths_current_level)
+            paths = paths_current_level[:]
 
         # Cast strings as paths
         _paths = [HubitQueryPath(_path) for _path in paths]
@@ -748,23 +751,35 @@ class _QueryExpansion:
         """
         self.path = path
         self.tree = tree
-        self.paths_norm = _QueryExpansion._normalize_path(self.path, tree)
+        self.paths_norm, self.pruned_tree = _QueryExpansion._normalize_path(
+            self.path, tree
+        )
+        # Store the pruned trees to avoid pruning again
+        self.tree_for_path = {self.path: self.pruned_tree}
 
         # Filter models paths using index specifiers for normalized query path
 
         # Store in dict with normalized path so decomposition can be carried out in
         # pairs (qpath_norm, mpaths)
         index_scopes = [cmp.index_scope for cmp in cmps]
+
+        keys = list(self.tree_for_path.keys())
+        self.tree_for_path.update(
+            {
+                qpath_norm: self.tree.prune_from_path(qpath_norm, inplace=False)
+                for qpath_norm in self.paths_norm
+                if qpath_norm not in keys
+            }
+        )
         mpaths_for_qpath_norm = {
             qpath_norm: _QueryExpansion._filter_mpaths_for_qpath_index_ranges(
                 qpath_norm,
                 mpaths,
                 index_scopes,
-                self.tree.prune_from_path(qpath_norm, inplace=False),
+                self.tree_for_path[qpath_norm],
             )
             for qpath_norm in self.paths_norm
         }
-
         # Store the flattened version
         self.mpaths = list(
             itertools.chain.from_iterable(mpaths_for_qpath_norm.values())
@@ -837,11 +852,12 @@ class _QueryExpansion:
     @staticmethod
     def _normalize_path(
         qpath: HubitQueryPath, tree: LengthTree
-    ) -> List[HubitQueryPath]:
+    ) -> Tuple[List[HubitQueryPath], LengthTree]:
         """
         If the query path has negative indices we must normalize the path
         i.e expand it to get rid of this abstraction.
         """
+        _tree = tree.prune_from_path(qpath, inplace=False)
         if qpath.has_negative_indices:
             # Get index context to find tree and normalizethe  path. The tree
             # is required since field[:].filed2[-1] may, for non-rectangular data,
@@ -853,11 +869,9 @@ class _QueryExpansion:
 
             # Even though the model paths have not yet been filtered based on
             # index ranges the index context should still be unique
-            return tree.prune_from_path(qpath, inplace=False).expand_path(
-                qpath, flat=True
-            )
+            return _tree.expand_path(qpath, flat=True), _tree
         else:
-            return [qpath]
+            return [qpath], _tree
 
     @staticmethod
     def get_index_context(qpath: HubitQueryPath, mpaths: List[HubitModelPath]):
@@ -885,10 +899,14 @@ class _QueryExpansion:
         """Set the expanded paths using the tree"""
         for decomposed_qpaths in self.decomposed_paths:
             for decomposed_qpath, _mpath in zip(decomposed_qpaths, self.mpaths):
-                pruned_tree = self.tree.prune_from_path(
-                    decomposed_qpath,
-                    inplace=False,
-                )
+                if decomposed_qpath in self.tree_for_path:
+                    pruned_tree = self.tree_for_path[decomposed_qpath]
+                else:
+                    pruned_tree = self.tree.prune_from_path(
+                        decomposed_qpath,
+                        inplace=False,
+                    )
+                    self.tree_for_path[decomposed_qpath] = pruned_tree
 
                 # Expand the path
                 expanded_paths = pruned_tree.expand_path(decomposed_qpath, flat=True)

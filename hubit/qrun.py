@@ -13,19 +13,30 @@ import os
 import sys
 import time
 from types import ModuleType
-from typing import Any, Callable, Dict, List, Set, Tuple, Optional, Union, cast
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    Sequence,
+    Set,
+    Tuple,
+    Optional,
+    Union,
+    cast,
+)
 from threading import Thread, Event
 
 from typing import TYPE_CHECKING
 
-from hubit.tree import _QueryExpansion
+from hubit.tree import _QueryExpansion, LengthTree
 
 if TYPE_CHECKING:
     from hubit.model import HubitModel
 
 from .worker import _Worker
 from .utils import count
-from .config import FlatData, HubitModelComponent, HubitQueryPath, Query
+from .config import FlatData, HubitModelComponent, HubitQueryPath, Path, Query
 
 POLLTIME = 0.01
 
@@ -84,6 +95,8 @@ class _QueryRunner:
         self.component_caching: bool = component_caching
         self.flat_results: FlatData = FlatData()
 
+        self.tree_for_path: Dict[Path, LengthTree] = {}
+
         # Always leave a s none _QueryRunner, but change to SyncManager in _QueryRunnerMultiProcess
         # TODO: Find better pattern
         self.manager: Union[SyncManager, None] = None
@@ -101,6 +114,23 @@ class _QueryRunner:
         self.subscribers_for_results_checksum: Dict[str, List[_Worker]] = defaultdict(
             list
         )
+
+    def path_expander(
+        self, path_for_name: Dict[str, Path], model_path_for_name: Dict[str, Path]
+    ) -> Dict[str, Sequence[Path]]:
+        """Called from _Worker to allow for sharing pruned trees"""
+        paths_for_name = {}
+        for name, path in path_for_name.items():
+            if path in self.tree_for_path:
+                pruned_tree = self.tree_for_path[path]
+            else:
+                tree = self.model.tree_for_idxcontext[
+                    model_path_for_name[name].index_context
+                ]
+                pruned_tree = tree.prune_from_path(path, inplace=False)
+                self.tree_for_path[path] = pruned_tree
+            paths_for_name[name] = pruned_tree.expand_path(path)
+        return paths_for_name
 
     def _worker_status(self, worker):
         return worker.status
@@ -235,7 +265,8 @@ class _QueryRunner:
             func,
             version,
             self.model.tree_for_idxcontext,
-            self.manager,
+            path_expander=self.path_expander,
+            manager=self.manager,
             dryrun=dryrun,
             caching=self.component_caching,
         )

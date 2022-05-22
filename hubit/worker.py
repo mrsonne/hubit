@@ -35,6 +35,7 @@ class _Worker:
         func: Callable,
         version: str,
         tree_for_idxcontext: Dict[str, LengthTree],
+        path_expander: Optional[Callable] = None,
         manager: Optional[SyncManager] = None,
         dryrun: bool = False,
         caching: bool = False,
@@ -48,6 +49,7 @@ class _Worker:
 
         """
         self.func = func  # function to excecute
+        self.path_expander = path_expander
         self.id = component.id  # name of the component
         self.name = component.name  # name of the component
         self.version = version  # Version of the component
@@ -149,22 +151,19 @@ class _Worker:
         self._id = self.idstr()
 
         # Expand model paths containing iloc wildcards
-        if not tree_for_idxcontext == {}:
-            self.ipaths_consumed_for_name = _Worker.expand(
+        if self.path_expander is not None:
+            self.ipaths_consumed_for_name = self.path_expander(
                 self.ipath_consumed_for_name,
-                tree_for_idxcontext,
                 iconsumed_mpath_for_name,
             )
 
-            self.rpaths_consumed_for_name = _Worker.expand(
+            self.rpaths_consumed_for_name = self.path_expander(
                 self.rpath_consumed_for_name,
-                tree_for_idxcontext,
                 rconsumed_mpath_for_name,
             )
 
-            self.rpaths_provided_for_name = _Worker.expand(
+            self.rpaths_provided_for_name = self.path_expander(
                 self.rpath_provided_for_name,
-                tree_for_idxcontext,
                 self.provided_mpath_for_name,
             )
 
@@ -267,15 +266,6 @@ class _Worker:
         path_for_name = _Worker.bindings_from_idxs(bindings, idxval_for_idxid)
 
         return path_for_name, idxval_for_idxid
-
-    @staticmethod
-    def expand(path_for_name, tree_for_idxcontext, model_path_for_name):
-        paths_for_name = {}
-        for name, path in path_for_name.items():
-            tree = tree_for_idxcontext[model_path_for_name[name].index_context]
-            pruned_tree = tree.prune_from_path(path, inplace=False)
-            paths_for_name[name] = pruned_tree.expand_path(path)
-        return paths_for_name
 
     def consumes_input_only(self):
         return self._consumes_input_only

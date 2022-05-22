@@ -276,14 +276,11 @@ class LengthTree:
             obj.level_names
         ), f"Path {path} does not math tree with levels {obj.level_names}"
 
-        for level_idx, range in enumerate(ranges):
-
-            if range.is_full_range:
-                # No pruning required since all elements are in scope
-                continue
-
-            if range.is_digit:
-                obj.fix_idx_at_level(int(range), level_idx)
+        [
+            obj.fix_idx_at_level(int(range_), level_idx) if range_.is_digit else None
+            for level_idx, range_ in enumerate(ranges)
+            if not range_.is_full_range
+        ]
 
         return obj
 

@@ -64,11 +64,16 @@ def run(inp):
     #     model_cfg = yaml.load(stream, Loader=yaml.FullLoader)
     # pprint.pprint(model_cfg)
 
-    model_caching = "after_execution"
-    use_multi_processing = False
-    use_results = "cached"
     # model_caching = "after_execution"
     # use_multi_processing = False
+    # use_results = "cached"
+
+    model_caching = "after_execution"
+    use_multi_processing = False
+    use_results = "none"
+
+    # model_caching = "after_execution"
+    # use_multi_processing = True
     # use_results = "none"
 
     model = HubitModel.from_file(THIS_DIR.joinpath("model2.yml"))
@@ -84,14 +89,12 @@ def run(inp):
 
     # TODO: : and -1 doest work yet
     n_times = n_timesteps(inp)
-    idx_time_max = n_times - 1
     n_pos = inp["init"]["n_positions"]
     print(f"Number of time-cell elements is {n_pos*n_times}")
     delta_x = inp["calc"]["delta_x"]
-    idx_pos_max = n_pos - 1
     pos = delta_x * np.arange(n_pos)
 
-    qpaths = [f"time[{idx_time_max}].position[{idx_pos_max}].u"]
+    qpaths = [f"time[-1].position[-1].u"]
     t_start = time.perf_counter()
     model.set_model_caching(model_caching)
     response = model.get(
@@ -100,6 +103,7 @@ def run(inp):
     elapsed_time = time.perf_counter() - t_start
     print(response)
     print(f"Response enerated in {elapsed_time} s")
+    print(model.log())
 
     # Collect data u[time, pos]
     us = [

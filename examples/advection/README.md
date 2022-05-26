@@ -7,6 +7,15 @@ backward Euler in space and time
 
 ( u(n, k) - u(n-1, k) ) / delta t + v*( u(n, k) - u(n, k-1) ) / delta x = 0
 
+```
+• • • • •
+• • x • •
+• x o • •
+• • • • •
+```
+
+Rearranging
+
 u(n, k) - u(n-1, k)   + v *( u(n, k) - u(n, k-1) )* delta t / delta x = 0
 
 u(n, k)*(1 + v* delta t / delta x) = u(n-1, k) +  v *u(n, k-1)* delta t / delta x

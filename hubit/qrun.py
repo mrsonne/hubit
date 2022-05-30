@@ -119,7 +119,7 @@ class _QueryRunner:
         self, path_for_name: Dict[str, Path], model_path_for_name: Dict[str, Path]
     ) -> Dict[str, Sequence[Path]]:
         """Called from _Worker to allow for sharing pruned trees"""
-        paths_for_name = {}
+        paths_for_name: Dict[str, Sequence[Path]] = {}
         for name, path in path_for_name.items():
             if path in self.tree_for_path:
                 pruned_tree = self.tree_for_path[path]
@@ -275,7 +275,7 @@ class _QueryRunner:
     def _transfer_input(
         input_paths: List[HubitQueryPath],
         worker: _Worker,
-        extracted_input: Dict,
+        extracted_input: Dict[HubitQueryPath, Any],
         all_input: FlatData,
     ):
         """
@@ -290,7 +290,7 @@ class _QueryRunner:
     def spawn_workers(
         self,
         qpaths: List[HubitQueryPath],
-        extracted_input,
+        extracted_input: Dict[HubitQueryPath, Any],
         all_input: FlatData,
         skip_paths=[],
         dryrun=False,
@@ -308,11 +308,11 @@ class _QueryRunner:
     def _spawn_workers(
         self,
         qpaths: List[HubitQueryPath],
-        extracted_input,
+        extracted_input: Dict[HubitQueryPath, Any],
         all_input: FlatData,
-        skip_paths=[],
+        skip_paths: List[Path] = [],
         dryrun=False,
-    ) -> Tuple[List[HubitQueryPath]]:
+    ) -> Tuple[List[HubitQueryPath], Dict[HubitQueryPath, Any], List[Path]]:
         """Create workers
 
         queries should be expanded i.e. explicit in terms of iloc
@@ -566,7 +566,7 @@ class _QueryRunner:
         # Reset book keeping data
         self.reset(flat_results)
 
-        extracted_input: Dict[str, Any] = {}
+        extracted_input: Dict[HubitQueryPath, Any] = {}
 
         # Expand the query for each path
         queries_exp = [self.model._expand_query(qpath) for qpath in query.paths]

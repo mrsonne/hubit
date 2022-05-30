@@ -7,8 +7,18 @@ from multiprocessing.managers import SyncManager
 from multiprocessing import Value
 from ctypes import c_bool
 import copy
-from typing import Any, Callable, Dict, Set, TYPE_CHECKING, List, Optional, Union
-from .config import FlatData, HubitBinding, HubitQueryPath, ModelIndexSpecifier
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Sequence,
+    Set,
+    TYPE_CHECKING,
+    List,
+    Optional,
+    Union,
+)
+from .config import FlatData, HubitBinding, HubitQueryPath, ModelIndexSpecifier, Path
 from .tree import LengthTree
 from .utils import traverse, reshape, ReadOnlyDict
 from operator import itemgetter
@@ -273,7 +283,7 @@ class _Worker:
     def binding_map(self, binding_type):
         return self.component.binding_map(binding_type)
 
-    def paths_provided(self):
+    def paths_provided(self) -> Sequence[Path]:
         """Generates a list of the (expanded) paths that will be provided.
 
         Returns:

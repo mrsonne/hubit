@@ -1,11 +1,14 @@
 import unittest
 from unittest.mock import Mock
 import yaml
+from hubit.model import HubitModel
+from hubit.qrun import _QueryRunner
 from hubit.tree import DummyLengthTree, tree_for_idxcontext, LengthNode, LengthTree
 from hubit.worker import _Worker
 from hubit.config import (
     HubitModelComponent,
     HubitBinding,
+    HubitModelConfig,
     HubitModelPath,
     HubitQueryPath,
 )
@@ -127,6 +130,11 @@ class TestWorker(unittest.TestCase):
         querystring = HubitQueryPath("items_outer[1].attr.items_inner[0].path1")
         _tree_for_idxcontext = tree_for_idxcontext([component], inputdata)
 
+        components = {"components": [cfg]}
+        model = HubitModel(HubitModelConfig.from_cfg(components, base_path="./"))
+        model.set_input(inputdata)
+        qrun = _QueryRunner(model)
+
         w = _Worker(
             lambda x: x,
             lambda x: x,
@@ -135,6 +143,7 @@ class TestWorker(unittest.TestCase):
             func,
             version,
             _tree_for_idxcontext,
+            qrun.path_expander,
             dryrun=True,  # Use dryrun to easily predict the result
         )
 
